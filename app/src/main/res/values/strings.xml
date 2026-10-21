@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <!-- The launcher label when About › Short app name is on (#140). A name,
          not a word, so no language translates it. -->
     <string name="app_name_short" translatable="false">WMK</string>
@@ -15,7 +15,7 @@
          this app vouching for itself and Chrome reports the app as missing.
          The site file stays where it is; it answers the other direction. -->
     <string name="asset_statements" translatable="false">[{\"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": {\"namespace\": \"web\", \"site\": \"https://wmkeyboard.pages.dev\"}}, {\"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": {\"namespace\": \"web\", \"site\": \"https://wmkeyboard.app\"}}]</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <!-- Android's name for the keyboard as a spell checker (#511), under the
          system's spell checker setting. -->
     <string name="spell_checker_name">WM Keyboard spell checker</string>

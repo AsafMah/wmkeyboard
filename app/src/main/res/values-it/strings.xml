@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Temi</string>
     <string name="ai_chat_picture_desc">Immagine</string>
     <string name="ai_chat_picture_remove_desc">Rimuovi l\'immagine</string>
-    <string name="app_name">Tastiera WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, o importa il tuo file di font</string>
     <string name="appearance_font_title">Carattere della tastiera</string>
     <plurals name="appearance_icons_changed_count">
@@ -2487,7 +2487,7 @@
     <string name="hue_pair_subtitle">Premi il pulsante rotondo sul bridge, quindi tocca Associa entro trenta secondi. Il bridge assegnerà alla tastiera una chiave dedicata.</string>
     <string name="hue_paired">Accoppiato. Il certificato del bridge è bloccato: un bridge diverso a questo indirizzo verrà rifiutato.</string>
     <string name="imagegen_module_title">Generatore di adesivi</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Questo è un mazzo Anki. L\'app lo trasforma in un pacchetto di vocabolario.</string>
     <string name="import_anki_title">Importare le flashcard?</string>
     <string name="import_api_keys_note">Il file contiene chiavi API. Sostituiranno le chiavi impostate qui.</string>

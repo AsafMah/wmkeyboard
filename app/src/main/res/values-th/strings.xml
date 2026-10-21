@@ -426,7 +426,7 @@
     <string name="addon_use_target_theme_label">ธีม</string>
     <string name="ai_chat_picture_desc">รูปภาพ</string>
     <string name="ai_chat_picture_remove_desc">นำรูปภาพออก</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts หรือนำเข้าไฟล์ฟอนต์ของคุณเอง</string>
     <string name="appearance_font_title">แบบอักษรแป้นพิมพ์</string>
     <plurals name="appearance_icons_changed_count">
@@ -2485,7 +2485,7 @@
     <string name="hue_pair_subtitle">กดปุ่มกลมบนบริดจ์ จากนั้นแตะจับคู่ภายในสามสิบวินาที บริดจ์จะกำหนดคีย์ของตัวเองให้กับแป้นพิมพ์</string>
     <string name="hue_paired">จับคู่แล้ว ใบรับรองของบริดจ์ถูกตรึงไว้: บริดจ์อื่นที่ที่อยู่นี้จะถูกปฏิเสธ</string>
     <string name="imagegen_module_title">เครื่องมือสร้างสติกเกอร์</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">นี่คือสำรับ Anki แอปจะเปลี่ยนให้เป็นชุดคำศัพท์</string>
     <string name="import_anki_title">นำเข้าแฟลชการ์ด?</string>
     <string name="import_api_keys_note">ไฟล์นี้มีคีย์ API ซึ่งจะเข้ามาแทนที่คีย์ที่คุณตั้งค่าไว้ที่นี่</string>

@@ -35,7 +35,7 @@
             android:action="android.intent.action.VIEW"
             android:data="wmkeyboard://settings/tools"
             android:targetClass="com.wasimaster.wmkeyboard.app.MainActivity"
-            android:targetPackage="com.wasimaster.wmkeyboard" />
+            android:targetPackage="com.wasimaster.wmkeyboard.wmpersonal" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -48,7 +48,7 @@
             android:action="android.intent.action.VIEW"
             android:data="wmkeyboard://settings/languages"
             android:targetClass="com.wasimaster.wmkeyboard.app.MainActivity"
-            android:targetPackage="com.wasimaster.wmkeyboard" />
+            android:targetPackage="com.wasimaster.wmkeyboard.wmpersonal" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -61,7 +61,7 @@
             android:action="android.intent.action.VIEW"
             android:data="wmkeyboard://settings/ai_chat"
             android:targetClass="com.wasimaster.wmkeyboard.app.MainActivity"
-            android:targetPackage="com.wasimaster.wmkeyboard" />
+            android:targetPackage="com.wasimaster.wmkeyboard.wmpersonal" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -74,6 +74,6 @@
             android:action="android.intent.action.VIEW"
             android:data="wmkeyboard://settings/themes"
             android:targetClass="com.wasimaster.wmkeyboard.app.MainActivity"
-            android:targetPackage="com.wasimaster.wmkeyboard" />
+            android:targetPackage="com.wasimaster.wmkeyboard.wmpersonal" />
     </shortcut>
 </shortcuts>

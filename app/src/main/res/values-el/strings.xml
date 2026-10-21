@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Θέματα</string>
     <string name="ai_chat_picture_desc">Εικόνα</string>
     <string name="ai_chat_picture_remove_desc">Αφαίρεση της εικόνας</string>
-    <string name="app_name">Πληκτρολόγιο WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts ή εισαγωγή δικού σας αρχείου γραμματοσειράς</string>
     <string name="appearance_font_title">Γραμματοσειρά πληκτρολογίου</string>
     <plurals name="appearance_icons_changed_count">
@@ -2489,7 +2489,7 @@
     <string name="hue_pair_subtitle">Πατήστε το στρογγυλό κουμπί στη γέφυρα και, στη συνέχεια, πατήστε Σύζευξη εντός τριάντα δευτερολέπτων. Η γέφυρα δίνει στο πληκτρολόγιο το δικό του κλειδί.</string>
     <string name="hue_paired">Συσχετίστηκε. Το πιστοποιητικό της γέφυρας είναι καρφιτσωμένο: μια διαφορετική γέφυρα σε αυτήν τη διεύθυνση θα απορριφθεί.</string>
     <string name="imagegen_module_title">Γεννήτρια αυτοκόλλητων</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Αυτή είναι μια τράπουλα Anki. Η εφαρμογή τη μετατρέπει σε πακέτο λεξιλογίου.</string>
     <string name="import_anki_title">Εισαγωγή flashcards;</string>
     <string name="import_api_keys_note">Το αρχείο περιέχει κλειδιά API. Αντικαθιστούν τα κλειδιά που έχετε ορίσει εδώ.</string>

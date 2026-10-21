@@ -430,7 +430,7 @@
     <string name="addon_use_target_theme_label">Motīvi</string>
     <string name="ai_chat_picture_desc">Attēls</string>
     <string name="ai_chat_picture_remove_desc">Noņemt attēlu</string>
-    <string name="app_name">WM tastatūra</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google fonti vai importējiet savu fonta failu</string>
     <string name="appearance_font_title">Tastatūras fonts</string>
     <plurals name="appearance_icons_changed_count">
@@ -2491,7 +2491,7 @@
     <string name="hue_pair_subtitle">Nospiediet apalo pogu uz tilta, pēc tam trīsdesmit sekunžu laikā pieskarieties Savienot pārī. Tilts piešķir tastatūrai savu atslēgu.</string>
     <string name="hue_paired">Sapārots. Tilta sertifikāts ir piesprausts: cits tilts šajā adresē tiks noraidīts.</string>
     <string name="imagegen_module_title">Uzlīmju ģenerators</string>
-    <string name="ime_name">WM tastatūra</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Šis ir Anki komplekts. Lietotne pārvērš to par vārdu krājuma pakotni.</string>
     <string name="import_anki_title">Importēt kartītes?</string>
     <string name="import_api_keys_note">Failā ir API atslēgas. Tās aizstāj šeit iestatītās atslēgas.</string>

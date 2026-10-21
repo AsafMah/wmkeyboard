@@ -432,7 +432,7 @@
     <string name="addon_use_target_theme_label">Izindikimba</string>
     <string name="ai_chat_picture_desc">Isithombe</string>
     <string name="ai_chat_picture_remove_desc">Susa isithombe</string>
-    <string name="app_name">Ikhibhodi ye-WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Amafonti we-Google, noma ngenisa ifayela lakho lefonti</string>
     <string name="appearance_font_title">Ifonti yekhibhodi</string>
     <plurals name="appearance_icons_changed_count">
@@ -2491,7 +2491,7 @@
     <string name="hue_pair_subtitle">Cindezela inkinobho eyindilinga ebhulohweni, bese uthinta u-Pair phakathi nemizuzwana engamashumi amathathu. Ibhuloho linika ikhibhodi ukhiye walo siqu.</string>
     <string name="hue_paired">Kubhangqiwe. Isitifiketi sebhuloho siphiniwe: ibhuloho elihlukile kuleli kheli lizokwenqatshwa.</string>
     <string name="imagegen_module_title">Umenzi wezitikha</string>
-    <string name="ime_name">Ikhibhodi ye-WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Leli idekhi ye-Anki. Uhlelo lokusebenza luyiguqula ibe yiphakethe lesilulumagama.</string>
     <string name="import_anki_title">Ngenisa amakhadi okufunda (flashcards)?</string>
     <string name="import_api_keys_note">Ifayela linokhiye be-API. Bathatha indawo yokhiye obabeke lapha.</string>

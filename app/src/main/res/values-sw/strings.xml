@@ -431,7 +431,7 @@
     <string name="addon_use_target_theme_label">Mandhari</string>
     <string name="ai_chat_picture_desc">Picha</string>
     <string name="ai_chat_picture_remove_desc">Ondoa picha</string>
-    <string name="app_name">Kibodi ya WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, au leta faili yako ya fonti</string>
     <string name="appearance_font_title">Fonti ya kibodi</string>
     <plurals name="appearance_icons_changed_count">
@@ -2494,7 +2494,7 @@
     <string name="hue_pair_subtitle">Bonyeza kitufe cha duara kwenye daraja, kisha uguse Oanisha ndani ya sekunde thelathini. Daraja huipa kibodi ufunguo wake.</string>
     <string name="hue_paired">Imeoanishwa. Cheti cha daraja kimebandikwa: daraja tofauti katika anwani hii litakataliwa.</string>
     <string name="imagegen_module_title">Jenereta ya vibandiko</string>
-    <string name="ime_name">Kibodi ya WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Hii ni staha ya Anki. Programu inageuza hii kuwa kifurushi cha msamiati.</string>
     <string name="import_anki_title">Ingiza flashcards?</string>
     <string name="import_api_keys_note">Faili ina funguo za API. Zinachukua nafasi ya funguo ulizoweka hapa.</string>

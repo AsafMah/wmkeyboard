@@ -426,7 +426,7 @@
     <string name="addon_use_target_theme_label">테마</string>
     <string name="ai_chat_picture_desc">사진</string>
     <string name="ai_chat_picture_remove_desc">사진 제거</string>
-    <string name="app_name">WM 키보드</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts를 사용하거나 나만의 글꼴 파일을 가져오세요</string>
     <string name="appearance_font_title">키보드 글꼴</string>
     <plurals name="appearance_icons_changed_count">
@@ -2485,7 +2485,7 @@
     <string name="hue_pair_subtitle">브리지의 원형 버튼을 누른 후 30초 이내에 페어링을 탭하세요. 브리지가 키보드에 고유 키를 부여합니다.</string>
     <string name="hue_paired">페어링되었습니다. 브리지의 인증서가 고정되었습니다: 이 주소의 다른 브리지는 거부됩니다.</string>
     <string name="imagegen_module_title">스티커 생성기</string>
-    <string name="ime_name">WM 키보드</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">이것은 Anki 덱입니다. 앱이 이를 어휘 팩으로 변환합니다.</string>
     <string name="import_anki_title">플래시카드를 가져오시겠습니까?</string>
     <string name="import_api_keys_note">파일에 API 키가 포함되어 있습니다. 이 키들이 여기에 설정한 키를 대체합니다.</string>

@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Темы</string>
     <string name="ai_chat_picture_desc">Изображение</string>
     <string name="ai_chat_picture_remove_desc">Удалить изображение</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts или импорт собственного файла шрифта</string>
     <string name="appearance_font_title">Шрифт клавиатуры</string>
     <plurals name="appearance_icons_changed_count">
@@ -2488,7 +2488,7 @@
     <string name="hue_pair_subtitle">Нажмите круглую кнопку на мосту, затем в течение тридцати секунд нажмите «Сопряжение». Мост предоставит клавиатуре собственный ключ.</string>
     <string name="hue_paired">Сопряжено. Сертификат моста закреплен: другой мост по этому адресу будет отклонен.</string>
     <string name="imagegen_module_title">Генератор стикеров</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Это колода Anki. Приложение превратит её в словарь.</string>
     <string name="import_anki_title">Импортировать карточки?</string>
     <string name="import_api_keys_note">Файл содержит ключи API. Они заменят ключи, установленные вами здесь.</string>

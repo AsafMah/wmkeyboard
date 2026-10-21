@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">थीम्स</string>
     <string name="ai_chat_picture_desc">चित्र</string>
     <string name="ai_chat_picture_remove_desc">चित्र काढून टाका</string>
-    <string name="app_name">WM कीबोर्ड</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google फॉन्ट्स, किंवा तुमची स्वतःची फॉन्ट फाईल इम्पोर्ट करा</string>
     <string name="appearance_font_title">कीबोर्ड फॉन्ट</string>
     <plurals name="appearance_icons_changed_count">
@@ -2488,7 +2488,7 @@
     <string name="hue_pair_subtitle">ब्रिजवरील गोल बटण दाबा, त्यानंतर तीस सेकंदांच्या आत \'पेअर\' वर टॅप करा. ब्रिज कीबोर्डला स्वतःची एक की देईल.</string>
     <string name="hue_paired">पेअर केले. ब्रिजचे प्रमाणपत्र पिन केलेले आहे: या पत्त्यावरील दुसरा ब्रिज नाकारला जाईल.</string>
     <string name="imagegen_module_title">स्टिकर जनरेटर</string>
-    <string name="ime_name">WM कीबोर्ड</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">ही एक Anki डेक फाइल आहे. ॲप याचे रूपांतर शब्दसंग्रह पॅकमध्ये करते.</string>
     <string name="import_anki_title">फ्लॅशकार्ड्स आयात करायचे?</string>
     <string name="import_api_keys_note">फाईलमध्ये API कीज आहेत. त्या तुम्ही येथे सेट केलेल्या कीजची जागा घेतील.</string>

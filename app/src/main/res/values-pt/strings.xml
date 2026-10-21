@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Temas</string>
     <string name="ai_chat_picture_desc">Imagem</string>
     <string name="ai_chat_picture_remove_desc">Remover a imagem</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts ou importe seu próprio arquivo de fonte</string>
     <string name="appearance_font_title">Fonte do teclado</string>
     <plurals name="appearance_icons_changed_count">
@@ -2487,7 +2487,7 @@
     <string name="hue_pair_subtitle">Pressione o botão redondo na ponte e, em seguida, toque em Parear dentro de trinta segundos. A ponte fornece ao teclado uma chave própria.</string>
     <string name="hue_paired">Emparelhado. O certificado da ponte está fixado: uma ponte diferente neste endereço será recusada.</string>
     <string name="imagegen_module_title">Gerador de figurinhas</string>
-    <string name="ime_name">Teclado WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Este é um baralho Anki. O aplicativo o transforma em um pacote de vocabulário.</string>
     <string name="import_anki_title">Importar flashcards?</string>
     <string name="import_api_keys_note">O arquivo contém chaves de API. Elas substituirão as chaves que você definiu aqui.</string>

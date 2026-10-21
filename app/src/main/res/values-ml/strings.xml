@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">തീമുകൾ</string>
     <string name="ai_chat_picture_desc">ചിത്രം</string>
     <string name="ai_chat_picture_remove_desc">ചിത്രം നീക്കം ചെയ്യുക</string>
-    <string name="app_name">WM കീബോർഡ്</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">ഗൂഗിൾ ഫോണ്ടുകൾ, അല്ലെങ്കിൽ നിങ്ങളുടെ സ്വന്തം ഫോണ്ട് ഫയൽ ഇറക്കുമതി ചെയ്യുക</string>
     <string name="appearance_font_title">കീബോർഡ് ഫോണ്ട്</string>
     <plurals name="appearance_icons_changed_count">
@@ -2488,7 +2488,7 @@
     <string name="hue_pair_subtitle">ബ്രിഡ്ജിലെ വൃത്താകൃതിയിലുള്ള ബട്ടൺ അമർത്തുക, തുടർന്ന് മുപ്പത് സെക്കൻഡിനുള്ളിൽ \'പെയർ\' (Pair) ടാപ്പ് ചെയ്യുക. ബ്രിഡ്ജ് കീബോർഡിന് അതിന്റേതായ ഒരു കീ നൽകുന്നു.</string>
     <string name="hue_paired">പെയർ ചെയ്തു. ബ്രിഡ്ജിന്റെ സർട്ടിഫിക്കറ്റ് പിൻ ചെയ്തിരിക്കുന്നു: ഈ വിലാസത്തിലുള്ള മറ്റൊരു ബ്രിഡ്ജ് നിരസിക്കപ്പെടും.</string>
     <string name="imagegen_module_title">സ്റ്റിക്കർ ജനറേറ്റർ</string>
-    <string name="ime_name">WM കീബോർഡ്</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">ഇതൊരു Anki ഡെക്കാണ്. ആപ്പ് ഇതിനെ ഒരു വൊക്കാബുലറി പാക്കാക്കി മാറ്റുന്നു.</string>
     <string name="import_anki_title">ഫ്ലാഷ് കാർഡുകൾ ഇമ്പോർട്ട് ചെയ്യണോ?</string>
     <string name="import_api_keys_note">ഈ ഫയലിൽ API കീകൾ അടങ്ങിയിരിക്കുന്നു. നിങ്ങൾ ഇവിടെ സജ്ജീകരിച്ചിട്ടുള്ള കീകളെ ഇവ മാറ്റിസ്ഥാപിക്കും.</string>

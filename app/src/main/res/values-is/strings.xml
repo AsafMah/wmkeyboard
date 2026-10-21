@@ -425,7 +425,7 @@
     <string name="addon_use_target_theme_label">Þemu</string>
     <string name="ai_chat_picture_desc">Mynd</string>
     <string name="ai_chat_picture_remove_desc">Fjarlægja myndina</string>
-    <string name="app_name">WM lyklaborð</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, eða flyttu inn þína eigin leturskrá</string>
     <string name="appearance_font_title">Leturgerð lyklaborðs</string>
     <plurals name="appearance_icons_changed_count">
@@ -2485,7 +2485,7 @@
     <string name="hue_pair_subtitle">Ýttu á hringlaga hnappinn á brúnni og bankaðu síðan á Pörun innan þrjátíu sekúndna. Brúin gefur lyklaborðinu sinn eigin lykil.</string>
     <string name="hue_paired">Pöruð. Skilríki brúarinnar eru læst: annarri brú á þessu vistfangi verður hafnað.</string>
     <string name="imagegen_module_title">Límmiðaframleiðandi</string>
-    <string name="ime_name">WM lyklaborð</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Þetta er Anki-stokkur. Forritið breytir honum í orðaforðapakka.</string>
     <string name="import_anki_title">Flytja inn spjaldkort?</string>
     <string name="import_api_keys_note">Skráin inniheldur API-lykla. Þeir koma í stað lyklanna sem þú stilltir hér.</string>

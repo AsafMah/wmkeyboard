@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Temes</string>
     <string name="ai_chat_picture_desc">Imatge</string>
     <string name="ai_chat_picture_remove_desc">Elimina la imatge</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, o importeu el vostre propi fitxer de tipus de lletra</string>
     <string name="appearance_font_title">Tipus de lletra del teclat</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Prem el botó rodó del pont i, a continuació, toca Vincular en un termini de trenta segons. El pont dóna al teclat una clau pròpia.</string>
     <string name="hue_paired">Vinculat. El certificat del pont està fixat: es refusarà qualsevol altre pont en aquesta adreça.</string>
     <string name="imagegen_module_title">Generador d\'adhesius</string>
-    <string name="ime_name">Teclat WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Aquest és un mall d\'Anki. L\'aplicació el converteix en un paquet de vocabulari.</string>
     <string name="import_anki_title">Voleu importar targetes de memòria?</string>
     <string name="import_api_keys_note">El fitxer conté claus d\'API. Aquestes substituiran les claus que has configurat aquí.</string>

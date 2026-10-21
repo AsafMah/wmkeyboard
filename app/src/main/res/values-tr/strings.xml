@@ -427,7 +427,7 @@
     <string name="addon_use_target_theme_label">Temalar</string>
     <string name="ai_chat_picture_desc">Resim</string>
     <string name="ai_chat_picture_remove_desc">Resmi kaldır</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Yazı Tipleri veya kendi yazı tipi dosyanızı içe aktarın</string>
     <string name="appearance_font_title">Klavye yazı tipi</string>
     <plurals name="appearance_icons_changed_count">
@@ -2486,7 +2486,7 @@
     <string name="hue_pair_subtitle">Köprü üzerindeki yuvarlak düğmeye basın, ardından otuz saniye içinde Eşleştir\'e dokunun. Köprü, klavyeye kendine ait bir anahtar verir.</string>
     <string name="hue_paired">Eşleştirildi. Köprünün sertifikası sabitlendi: bu adresteki farklı bir köprü reddedilecektir.</string>
     <string name="imagegen_module_title">Çıkartma oluşturucu</string>
-    <string name="ime_name">WM Klavye</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Bu bir Anki destesi. Uygulama bunu bir kelime bilgisi paketine dönüştürür.</string>
     <string name="import_anki_title">Bilgi kartları içe aktarılsın mı?</string>
     <string name="import_api_keys_note">Dosya API anahtarlarını içeriyor. Bunlar, burada ayarladığınız anahtarların yerini alır.</string>

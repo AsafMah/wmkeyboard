@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Temaer</string>
     <string name="ai_chat_picture_desc">Billede</string>
     <string name="ai_chat_picture_remove_desc">Fjern billedet</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, eller importer din egen skrifttypefil</string>
     <string name="appearance_font_title">Tastaturskrifttype</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Tryk på den runde knap på broen, og tryk derefter på Par inden for tredive sekunder. Broen giver tastaturet sin egen nøgle.</string>
     <string name="hue_paired">Parret. Broens certifikat er fastlåst: en anden bro på denne adresse vil blive afvist.</string>
     <string name="imagegen_module_title">Klistermærkegenerator</string>
-    <string name="ime_name">WM Tastatur</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Dette er et Anki-sæt. Appen omdanner det til en ordforrådspakke.</string>
     <string name="import_anki_title">Importer flashcards?</string>
     <string name="import_api_keys_note">Filen indeholder API-nøgler. De erstatter de nøgler, du har angivet her.</string>

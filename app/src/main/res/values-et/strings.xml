@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Teemad</string>
     <string name="ai_chat_picture_desc">Pilt</string>
     <string name="ai_chat_picture_remove_desc">Eemalda pilt</string>
-    <string name="app_name">WM-klaviatuur</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google\'i fondid või impordi oma fondifail</string>
     <string name="appearance_font_title">Klaviatuuri font</string>
     <plurals name="appearance_icons_changed_count">
@@ -2491,7 +2491,7 @@
     <string name="hue_pair_subtitle">Vajutage sillal olevat ümmargust nuppu ja puudutage seejärel kolmekümne sekundi jooksul valikut „Paarista“. Sild annab klaviatuurile oma võtme.</string>
     <string name="hue_paired">Paaritatud. Silla sertifikaat on kinnitatud: teistsugusest sillast sellel aadressil keeldutakse.</string>
     <string name="imagegen_module_title">Kleebiste generaator</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">See on Anki pakk. Rakendus muudab selle sõnavarapakiks.</string>
     <string name="import_anki_title">Importida mälukaardid?</string>
     <string name="import_api_keys_note">Fail sisaldab API-võtmeid. Need asendavad siin määratud võtmed.</string>

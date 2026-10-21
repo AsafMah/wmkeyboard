@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Motívy</string>
     <string name="ai_chat_picture_desc">Obrázok</string>
     <string name="ai_chat_picture_remove_desc">Odstrániť obrázok</string>
-    <string name="app_name">WM Klávesnica</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts alebo importujte vlastný súbor písma</string>
     <string name="appearance_font_title">Písmo klávesnice</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Stlačte okrúhle tlačidlo na mostíku a potom do tridsiatich sekúnd ťuknite na Spárovať. Mostík pridelí klávesnici vlastný kľúč.</string>
     <string name="hue_paired">Spárované. Certifikát mostíka je pripnutý: iný mostík na tejto adrese bude odmietnutý.</string>
     <string name="imagegen_module_title">Generátor nálepiek</string>
-    <string name="ime_name">Klávesnica WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Toto je balíček Anki. Aplikácia ho zmení na balík slovnej zásoby.</string>
     <string name="import_anki_title">Importovať kartičky?</string>
     <string name="import_api_keys_note">Súbor obsahuje kľúče API. Nahradia kľúče, ktoré ste tu nastavili.</string>

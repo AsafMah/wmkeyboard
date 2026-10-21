@@ -426,7 +426,7 @@
     <string name="addon_use_target_theme_label">Témák</string>
     <string name="ai_chat_picture_desc">Kép</string>
     <string name="ai_chat_picture_remove_desc">Kép eltávolítása</string>
-    <string name="app_name">WM Billentyűzet</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google betűtípusok, vagy saját betűtípusfájl importálása</string>
     <string name="appearance_font_title">Billentyűzet betűtípusa</string>
     <plurals name="appearance_icons_changed_count">
@@ -2487,7 +2487,7 @@
     <string name="hue_pair_subtitle">Nyomd meg a kerek gombot a bridge-en, majd harminc másodpercen belül koppints a Párosítás gombra. A bridge saját kulcsot ad a billentyűzetnek.</string>
     <string name="hue_paired">Párosítva. A bridge tanúsítványa rögzítve: egy másik bridge ezen a címen elutasításra kerül.</string>
     <string name="imagegen_module_title">Matricagenerátor</string>
-    <string name="ime_name">WM billentyűzet</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Ez egy Anki-pakli. Az alkalmazás szókincs-csomaggá alakítja.</string>
     <string name="import_anki_title">Importálja a kártyákat?</string>
     <string name="import_api_keys_note">A fájl API-kulcsokat tartalmaz. Ezek felülírják az itt beállított kulcsokat.</string>

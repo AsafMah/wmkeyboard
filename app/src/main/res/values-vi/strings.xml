@@ -426,7 +426,7 @@
     <string name="addon_use_target_theme_label">Chủ đề</string>
     <string name="ai_chat_picture_desc">Hình ảnh</string>
     <string name="ai_chat_picture_remove_desc">Xóa hình ảnh</string>
-    <string name="app_name">Bàn phím WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, hoặc nhập tệp phông chữ của riêng bạn</string>
     <string name="appearance_font_title">Phông chữ bàn phím</string>
     <plurals name="appearance_icons_changed_count">
@@ -2485,7 +2485,7 @@
     <string name="hue_pair_subtitle">Nhấn nút tròn trên cầu nối, sau đó nhấn Ghép nối trong vòng ba mươi giây. Cầu nối sẽ cung cấp cho bàn phím một khóa riêng.</string>
     <string name="hue_paired">Đã ghép nối. Chứng chỉ của cầu nối đã được ghim: một cầu nối khác tại địa chỉ này sẽ bị từ chối.</string>
     <string name="imagegen_module_title">Trình tạo nhãn dán</string>
-    <string name="ime_name">Bàn phím WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Đây là một bộ thẻ Anki. Ứng dụng sẽ chuyển nó thành một gói từ vựng.</string>
     <string name="import_anki_title">Nhập thẻ ghi nhớ?</string>
     <string name="import_api_keys_note">Tệp có chứa các khóa API. Chúng sẽ thay thế các khóa bạn đã thiết lập ở đây.</string>

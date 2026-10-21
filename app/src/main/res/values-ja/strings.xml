@@ -427,7 +427,7 @@
     <string name="addon_use_target_theme_label">テーマ</string>
     <string name="ai_chat_picture_desc">画像</string>
     <string name="ai_chat_picture_remove_desc">画像を削除</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts、または独自のフォントファイルをインポート</string>
     <string name="appearance_font_title">キーボードフォント</string>
     <plurals name="appearance_icons_changed_count">
@@ -2486,7 +2486,7 @@
     <string name="hue_pair_subtitle">ブリッジの丸いボタンを押してから、30秒以内に「ペアリング」をタップしてください。ブリッジはキーボードに独自のキーを割り当てます。</string>
     <string name="hue_paired">ペアリング済み。ブリッジの証明書が固定されています。このアドレスにある別のブリッジは拒否されます。</string>
     <string name="imagegen_module_title">ステッカー生成</string>
-    <string name="ime_name">WM Keyboard</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">これはAnkiデッキです。アプリはこれを語彙パックに変換します。</string>
     <string name="import_anki_title">フラッシュカードをインポートしますか？</string>
     <string name="import_api_keys_note">このファイルにはAPIキーが含まれています。ここで設定したキーが置き換えられます。</string>
