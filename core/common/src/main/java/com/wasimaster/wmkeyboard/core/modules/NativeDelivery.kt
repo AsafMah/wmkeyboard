@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.modules
 import android.content.Context
 import android.system.Os
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,9 @@ import java.io.File
 
 /**
  * Native delivery for the builds Play Feature Delivery does not reach: the
- * GitHub build, and the F-Droid build once the user opts in.
+ * GitHub build, the F-Droid build once the user opts in, and the offline
+ * build, which has no internet permission and takes each library only as an
+ * import of the file published for it ([import], [importArchive]).
  *
  * Such a build leaves a set of native libraries out of the APK and writes a
  * [NativePins] table in their place. [install] reads it at startup and puts
@@ -178,6 +181,41 @@ object NativeDelivery {
         return pin
     }
 
+    /**
+     * Installs every library of this build that [archive] holds at its
+     * pinned entry: an Android library (`.aar`) from the vendor's Maven
+     * repository, the file a [NativeSource.Maven] pin is read out of. Each
+     * entry found is reported with whether it matched its pin; a library the
+     * archive does not hold is left out.
+     */
+    fun importArchive(archive: File): Map<NativePin, Boolean> {
+        val nativeStore = store ?: return emptyMap()
+        val result = nativeStore.installFromArchive(archive, pins)
+        result.keys.mapTo(HashSet()) { it.gate }.forEach { name -> (gate(name) as? DownloadedModuleGate)?.refresh() }
+        return result
+    }
+
+    /** The pins of [gates] that are not on the phone yet. */
+    fun missing(gates: Collection<String>): List<NativePin> {
+        val nativeStore = store ?: return emptyList()
+        return pins.filter { it.gate in gates && !nativeStore.installed(it) }
+    }
+
+    /**
+     * Where [pin] is published, for fetching it on another device: the data
+     * repository's release asset, or the vendor's `.aar` that holds it.
+     */
+    fun publishedUrl(pin: NativePin): String? = when (val source = pin.source) {
+        NativeSource.Data -> NativeDownloader.dataUrl(pin)
+        is NativeSource.Maven -> source.url
+    }
+
+    /** The name [pin] is published under: `<sha256>-<name>`, or the `.aar` it is inside. */
+    fun publishedName(pin: NativePin): String = when (val source = pin.source) {
+        NativeSource.Data -> "${pin.sha256}-${pin.name}"
+        is NativeSource.Maven -> source.url.substringAfterLast('/')
+    }
+
     /** `arm64` → `arm64-v8a`: the ABI this process loads its own libraries for. */
     private fun processAbi(context: Context): String =
         when (File(context.applicationInfo.nativeLibraryDir).name) {
@@ -216,7 +254,13 @@ class DownloadedModuleGate(
 
     @Volatile private var job: Job? = null
 
-    private fun current(): ModuleState = if (pins.all(store::installed)) ModuleState.Installed else ModuleState.Missing()
+    private fun current(): ModuleState = when {
+        pins.all(store::installed) -> ModuleState.Installed
+        // The offline build: nothing to fetch with, so say so from the start
+        // rather than offer a download that cannot work.
+        !InternetPermission.granted -> ModuleState.Missing(failed = true, consent = NativeConsent.IMPORT)
+        else -> ModuleState.Missing()
+    }
 
     /** Re-reads the store, after an import. */
     fun refresh() {
@@ -230,6 +274,10 @@ class DownloadedModuleGate(
             return
         }
         if (job?.isActive == true) return
+        if (!InternetPermission.granted) {
+            mutable.value = current()
+            return
+        }
         NativeConsent.missingFor(pins)?.let { needed ->
             mutable.value = ModuleState.Missing(failed = true, consent = needed)
             return

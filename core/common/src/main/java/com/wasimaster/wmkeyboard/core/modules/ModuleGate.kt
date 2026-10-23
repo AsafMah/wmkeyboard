@@ -23,7 +23,8 @@ sealed interface ModuleState {
      * Not here. [failed] when the last attempt to fetch it went wrong.
      * [consent] names what the user has to agree to first, when that is why
      * it is missing: [NativeConsent.DOWNLOADS] on an F-Droid build that has
-     * not opted in, or a licence id. Such a state counts as [failed], so a
+     * not opted in, a licence id, or [NativeConsent.IMPORT] on the offline
+     * build, which can only import it. Such a state counts as [failed], so a
      * caller waiting for the module stops waiting.
      */
     data class Missing(val failed: Boolean = false, val consent: String? = null) : ModuleState

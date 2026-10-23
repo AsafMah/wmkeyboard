@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.format.Formatter
@@ -19,16 +20,25 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.modules.NativePin
+import com.wasimaster.wmkeyboard.core.modules.NativeSource
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
  * The rows for native delivery on the Privacy screen's Downloads group, on a
- * build that has it ([NativeDelivery.active]): F-Droid's opt-in, and each
- * vendor licence this build's libraries need. Nothing on any other build.
+ * build that has it ([NativeDelivery.active]): F-Droid's opt-in, each vendor
+ * licence this build's libraries need, and on the offline build, which cannot
+ * download them, where to get every library and the import. Nothing on any
+ * other build.
  */
 @Composable
 internal fun FeatureLibrariesRows() {
     if (!NativeDelivery.active) return
+    if (!InternetPermission.granted) {
+        OfflineLibrariesRow()
+        return
+    }
     val agreements by NativeConsent.agreements.collectAsState()
     if (NativeConsent.downloadsNeedOptIn) {
         var confirmOn by remember { mutableStateOf(false) }
@@ -120,3 +130,82 @@ internal fun QualcommLicenceDialog(onDone: (Boolean) -> Unit) {
         },
     )
 }
+
+/**
+ * The offline build's one row for its feature libraries: how many are here,
+ * every missing one's published file under **Get the files**, and **Import**.
+ * Re-reads the count after an import.
+ */
+@Composable
+private fun OfflineLibrariesRow() {
+    val context = LocalContext.current
+    var revision by remember { mutableStateOf(0) }
+    val all = NativeDelivery.pins()
+    val missing = remember(revision) { NativeDelivery.missing(all.mapTo(HashSet()) { it.gate }) }
+    OfflineImportRow(
+        title = stringResource(R.string.privacy_native_import_title),
+        subtitle = stringResource(R.string.privacy_native_import_subtitle, all.size - missing.size, all.size),
+        links = remember(missing) { nativeLibraryLinks(context, missing) },
+        onImported = { revision++ },
+    )
+}
+
+/**
+ * What a feature says on the offline build when its library is missing, or on
+ * F-Droid before the download opt-in: [consent] is the gate's
+ * [ModuleState.Missing.consent][com.wasimaster.wmkeyboard.core.modules.ModuleState.Missing.consent].
+ * The offline build's banner opens the files of [gates] still missing, each
+ * with where it is published, and the import.
+ */
+@Composable
+internal fun NativeConsentBanner(consent: String, vararg gates: String) {
+    if (consent != NativeConsent.IMPORT) {
+        StateBanner(stringResource(R.string.models_native_consent_needed_info), tone = BannerTone.WARNING)
+        return
+    }
+    val context = LocalContext.current
+    var showLinks by remember { mutableStateOf(false) }
+    val runner = rememberOfflineImport()
+    StateBanner(
+        stringResource(R.string.models_native_import_needed_info),
+        action = stringResource(R.string.offline_import_get_action),
+        tone = BannerTone.WARNING,
+        onAction = { showLinks = true },
+    )
+    if (showLinks) {
+        val links = remember { nativeLibraryLinks(context, NativeDelivery.missing(gates.toSet())) }
+        OfflineLinksDialog(
+            links,
+            onImport = {
+                showLinks = false
+                runner.pick()
+            },
+        ) { showLinks = false }
+    }
+}
+
+/**
+ * The line of text a screen with no room for [NativeConsentBanner] shows for
+ * [consent]: where to import on the offline build, where to opt in on F-Droid.
+ */
+@Composable
+internal fun nativeConsentInfo(consent: String): String = stringResource(
+    if (consent == NativeConsent.IMPORT) R.string.models_native_import_where_info else R.string.models_native_consent_needed_info,
+)
+
+/**
+ * Where each of [pins] is published: the data repository's `<sha256>-<name>`,
+ * or the vendor's `.aar`, which imports whole. Pins in one archive share a link.
+ */
+internal fun nativeLibraryLinks(context: Context, pins: List<NativePin>): List<OfflineLink> =
+    pins.groupBy { NativeDelivery.publishedUrl(it) }.mapNotNull { (url, group) ->
+        url ?: return@mapNotNull null
+        val size = Formatter.formatShortFileSize(context, group.sumOf { it.size })
+        val names = group.joinToString(", ") { it.name }
+        val label = if (group.first().source is NativeSource.Maven) {
+            context.getString(R.string.offline_import_native_archive_label, names, NativeDelivery.publishedName(group.first()), size)
+        } else {
+            context.getString(R.string.offline_import_native_label, names, size)
+        }
+        OfflineLink(label, url)
+    }

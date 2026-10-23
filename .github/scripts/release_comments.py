@@ -199,15 +199,15 @@ def git(*args: str, check: bool = True) -> str:
 
 
 def previous_tag(tag: str) -> str | None:
-    """The release before this one, by version, among the tags this one contains.
+    """The release before this one, by version, whether or not this one contains it.
 
-    ``git describe`` over the first parent would do for a straight line of
-    releases; walking the ``v*`` tags that are ancestors also copes with a tag
-    cut from a branch.
+    Ancestry is not enough: a re-cut tag sits on its own commit off main (0.6.2
+    did), so 0.6.3 contained 0.6.1 but not 0.6.2 and was measured from 0.6.1.
+    ``prev..tag`` is still the right range for a tag that is not an ancestor.
     """
     mine = version_key(tag)
     candidates = [
-        t for t in git("tag", "--list", "v*", "--merged", tag).split()
+        t for t in git("tag", "--list", "v*").split()
         if t != tag and version_key(t) < mine
     ]
     return max(candidates, key=version_key) if candidates else None

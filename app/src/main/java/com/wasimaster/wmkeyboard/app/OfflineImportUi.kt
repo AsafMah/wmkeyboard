@@ -295,10 +295,11 @@ private fun OfflineImportReport(outcomes: List<OfflineImport.Outcome>, onDismiss
  * Where to fetch [links] on another device: each one opens in the browser or
  * copies, and **Share** sends the whole list to wherever the user will do the
  * downloading. The browser does the fetching, so this works in a build that
- * cannot reach the network itself.
+ * cannot reach the network itself. [onImport], when given, adds **Import**
+ * for the files once they are on the phone.
  */
 @Composable
-internal fun OfflineLinksDialog(links: List<OfflineLink>, onDismiss: () -> Unit) {
+internal fun OfflineLinksDialog(links: List<OfflineLink>, onImport: (() -> Unit)? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -341,7 +342,14 @@ internal fun OfflineLinksDialog(links: List<OfflineLink>, onDismiss: () -> Unit)
                 Text(stringResource(R.string.offline_import_share_links_action))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) } },
+        dismissButton = {
+            Row {
+                if (onImport != null) {
+                    TextButton(onClick = onImport) { Text(stringResource(R.string.offline_import_action)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
+            }
+        },
     )
 }
 

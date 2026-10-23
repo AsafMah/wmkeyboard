@@ -861,6 +861,16 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.scrollable,
             ) { scope.launch { repository.setSuggestionScrollable(it) } }
         }
+        // The arrow only exists on a strip that scrolls (#890).
+        if (scrollable) item {
+            ToggleSetting(
+                R.string.typing_suggestion_more_arrow_title,
+                stringResource(R.string.typing_suggestion_more_arrow_subtitle),
+                settings.watch { it.suggestionStrip.moreArrow },
+                info = stringResource(R.string.typing_suggestion_more_arrow_info),
+                default = SettingsDefaults.suggestionStrip.moreArrow,
+            ) { scope.launch { repository.setSuggestionMoreArrow(it) } }
+        }
         item {
             val once = stringResource(R.string.typing_learn_threshold_once)
             SliderSetting(

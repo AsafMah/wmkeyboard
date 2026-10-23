@@ -45,6 +45,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Assistant
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Architecture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoMode
@@ -985,6 +986,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_suggestion_fixed_slots_title) { Icons.Outlined.ViewColumn }
         put(R.string.typing_suggestion_tinted_title) { Icons.Outlined.Palette }
         put(R.string.typing_suggestion_scroll_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.typing_suggestion_more_arrow_title) { Icons.Outlined.ArrowDropDown }
         put(R.string.typing_primary_center_title) { Icons.Outlined.CenterFocusStrong }
         put(R.string.typing_contact_names_title) { Icons.Outlined.Contacts }
         put(R.string.typing_contact_emails_title) { Icons.Outlined.AlternateEmail }

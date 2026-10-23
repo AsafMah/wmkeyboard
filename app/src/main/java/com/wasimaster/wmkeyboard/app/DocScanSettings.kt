@@ -53,10 +53,7 @@ internal fun DocScanModuleBanner(settings: LiveSettings, builtIn: Boolean) {
             },
         )
         // F-Droid, before the user has opted in to library downloads.
-        is ModuleState.Missing if state.consent != null -> StateBanner(
-            stringResource(R.string.models_native_consent_needed_info),
-            tone = BannerTone.WARNING,
-        )
+        is ModuleState.Missing if state.consent != null -> NativeConsentBanner(state.consent.orEmpty(), "docscan")
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (state.failed) {

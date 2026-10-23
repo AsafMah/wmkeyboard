@@ -105,6 +105,9 @@
     <string name="privacy_native_downloads_info">This F-Droid build leaves out the native libraries behind some features, such as offline voice typing and grammar checking. With this setting on, the keyboard downloads a library the first time its feature needs it, from the WM Keyboard data repository on GitHub. By turning this on, you choose to bypass F-Droid\'s checks: F-Droid did not build or review these files. Before the keyboard uses a file, it compares the file with a checksum that is built into this app. You can also import the files yourself from Settings › About › Storage.</string>
     <string name="privacy_native_downloads_confirm_title">Download files that F-Droid has not checked?</string>
     <string name="privacy_native_downloads_confirm_action">Turn on</string>
+    <string name="privacy_native_import_title">Feature libraries</string>
+    <!-- %1$d of %2$d: libraries on the phone, of all this build can use. -->
+    <string name="privacy_native_import_subtitle">%1$d of %2$d on this phone. This offline build cannot download them: get the files on another device and import them here</string>
     <string name="privacy_qualcomm_licence_title">Qualcomm NPU runtime</string>
     <string name="privacy_qualcomm_licence_accepted">Licence accepted. The NPU runtime downloads from Maven Central.</string>
     <string name="privacy_qualcomm_licence_not_accepted">Not accepted. On-device AI can\'t use the NPU.</string>

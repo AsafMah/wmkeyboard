@@ -161,10 +161,7 @@ private fun MozcLibraryBanner(module: ModuleState, onDownload: () -> Unit) {
             },
         )
         // F-Droid, before the user has opted in to library downloads.
-        is ModuleState.Missing if module.consent != null -> StateBanner(
-            stringResource(R.string.models_native_consent_needed_info),
-            tone = BannerTone.WARNING,
-        )
+        is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "mozc")
         is ModuleState.Missing -> {
             val size = (FeatureModules.mozc as? DownloadedModuleGate)?.missingBytes ?: 0L
             StateBanner(

@@ -5261,8 +5261,8 @@ private fun RowScope.StripWords(
         // past the words it scrolls through, the rest of the ranked list opens
         // in the same grid a swipe down does. Outside the scroll, as there, so
         // it cannot scroll away itself.
-        if (state.settings.suggestionStrip.scrollable && !glideStripOnly &&
-            shownSuggestions.size > wordSlots
+        if (state.settings.suggestionStrip.scrollable && state.settings.suggestionStrip.moreArrow &&
+            !glideStripOnly && shownSuggestions.size > wordSlots
         ) {
             IconHint(stringResource(R.string.ime_candidates_more_desc)) {
                 IconButton(onClick = onCandidatesExpand, enabled = suggestionsShowing) {

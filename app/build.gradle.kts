@@ -145,10 +145,13 @@ val googleSourceDir = "src/google/java".takeIf { googleSdks }
 
 val channelSourceDirs = listOfNotNull(playServicesSourceDir, updaterSourceDir, gmsSourceDir, googleSourceDir)
 
-// A build with no internet permission at all (#292), for anyone who wants one:
-// `-Pwmkb.noInternet=true`. Not a release variant, there are enough of those.
-// Everything on the device keeps working; each feature that fetches something
-// fails the way it does offline.
+// A build with no internet permission at all (#292): `-Pwmkb.noInternet=true`,
+// GitHub's offline build. Everything on the device keeps working; each feature
+// that fetches something fails the way it does offline. From 0.6.4 it is as
+// slim as the standard build: native delivery stays on, so its feature
+// libraries are pinned rather than bundled, and the `en` flavour keeps its
+// language packs. Neither can be fetched without the permission; both come in
+// as imports of the files the release and the data repository publish.
 val noInternet = flag("wmkb.noInternet", "WMKB_NO_INTERNET")
 
 // A build that cannot ask for location at all (#350): `-Pwmkb.noLocation=true`.
@@ -160,11 +163,12 @@ val noLocation = flag("wmkb.noLocation", "WMKB_NO_LOCATION")
 // leave the native libraries behind optional features out of the APK and
 // fetch each one the first time its feature asks, the way Play's on-demand
 // modules do for a Play install. On by default; off on Play, which has its own
-// modules and whose policy forbids downloading code anywhere else, and off in
-// the no-internet build, which could never fetch them.
+// modules and whose policy forbids downloading code anywhere else. On in the
+// no-internet build too, which cannot fetch a library but imports the same
+// pinned file fetched elsewhere (NativeDelivery.import).
 // `-Pwmkb.nativeDelivery=false` bundles everything as before.
 val nativeDelivery = flag("wmkb.nativeDelivery", "WMKB_NATIVE_DELIVERY", default = "true") &&
-    !playStoreChannel && !noInternet
+    !playStoreChannel
 if (nativeDelivery) apply(plugin = "wmkeyboard.native-pins")
 
 // Manifest entries that belong to exactly one channel. REQUEST_INSTALL_PACKAGES
@@ -333,7 +337,8 @@ android {
         // its translations into the bundle at upload, and Android 13+ fetches
         // the language split when the app language changes. So does `en` on
         // GitHub, the standard build: it fetches each language as a pack from
-        // its release (LANGUAGE_PACKS), on Android 11 and up.
+        // its release (LANGUAGE_PACKS), on Android 11 and up. The offline
+        // build's `en` takes the same packs, imported from a file.
         create("intl") {
             dimension = "languages"
             buildConfigField("String", "APP_LOCALES", "\"$translatedLocales\"")
@@ -341,7 +346,7 @@ android {
         }
         create("en") {
             dimension = "languages"
-            val packs = githubChannel && !noInternet
+            val packs = githubChannel
             val shipped = if (playStoreChannel || packs) translatedLocales else "en"
             buildConfigField("String", "APP_LOCALES", "\"$shipped\"")
             buildConfigField("Boolean", "LANGUAGE_PACKS", "$packs")

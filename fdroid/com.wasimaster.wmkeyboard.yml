@@ -296,8 +296,8 @@ Builds:
       - wmkb.abi=x86_64
 
   - versionName: 0.6.3
-    versionCode: 371
-    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
+    versionCode: 381
+    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
     timeout: 18000
     subdir: app
     sudo:
@@ -352,8 +352,8 @@ Builds:
       - wmkb.abi=armeabi-v7a
 
   - versionName: 0.6.3
-    versionCode: 372
-    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
+    versionCode: 382
+    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
     timeout: 18000
     subdir: app
     sudo:
@@ -408,8 +408,8 @@ Builds:
       - wmkb.abi=arm64-v8a
 
   - versionName: 0.6.3
-    versionCode: 373
-    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
+    versionCode: 383
+    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
     timeout: 18000
     subdir: app
     sudo:
@@ -473,4 +473,4 @@ VercodeOperation:
   - 10*%c + 3
 UpdateCheckData: gradle.properties|wmkb.versionCode=(\d+)|.|wmkb.versionName=(.+)
 CurrentVersion: 0.6.3
-CurrentVersionCode: 373
+CurrentVersionCode: 383

@@ -134,6 +134,10 @@
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>
     <string name="offline_import_cutout_done">Background remover model</string>
     <string name="offline_import_native_done">Feature library %1$s</string>
+    <!-- A feature library's download link. %1$s: library file names, %2$s: size. -->
+    <string name="offline_import_native_label">%1$s · %2$s</string>
+    <!-- A library inside a vendor's archive. %1$s: library names, %2$s: the .aar file, imported whole, %3$s: the libraries' size. -->
+    <string name="offline_import_native_archive_label">%1$s, inside %2$s (import the whole file) · %3$s</string>
     <string name="offline_import_gesture_library_done">Google\'s gesture library. Pick it under Typing › Gestures › Glide engine to use it</string>
     <string name="offline_import_language_pack_done">Interface language %1$s</string>
     <string name="offline_import_khipro_glide_done">Khipro spellings, for gliding on the Khipro layout</string>
@@ -159,8 +163,10 @@
     <string name="offline_import_language_pack_title">Language pack</string>
     <string name="offline_import_language_pack_subtitle">Word list, word pairs and emoji names in one file, to fetch anywhere and import here</string>
     <string name="offline_import_language_pack_label">%1$s language pack</string>
+    <string name="offline_import_language_packs_link">Interface languages: this version\'s release page, one lang-… .apk per language</string>
+    <string name="offline_import_natives_link">Feature libraries: Settings › Privacy › Feature libraries names the exact files</string>
     <string name="offline_import_storage_title">Import downloaded files</string>
-    <string name="offline_import_storage_subtitle">Language packs, voice and AI models, text recognition data and GIF packs, fetched on another device</string>
+    <string name="offline_import_storage_subtitle">Language packs, interface languages, feature libraries, voice and AI models, text recognition data and GIF packs, fetched on another device</string>
     <string name="offline_gifs_group">Offline GIF packs</string>
     <string name="offline_gifs_info">GIF packs kept on the phone and shown under Offline in the GIF panel. They need no internet and no API key. They are CleverKeys\' offline GIF packs: the Discord community packs carry animated GIFs, while the thumbnail packs hold only still previews and are not imported.</string>
     <plurals name="offline_gifs_pack_detail">

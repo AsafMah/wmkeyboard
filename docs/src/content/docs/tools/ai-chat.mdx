@@ -191,10 +191,10 @@ Type in the box and hit send. The app's message box is laid out like the keyboar
 
 | Model | On | Off |
 |---|---|---|
-| Claude | Claude thinks as much as it decides the question needs, and its thinking shows in the [Reasoning step](#reasoning-and-tool-calls) | No thinking |
+| Claude | Claude thinks as much as it decides the question needs, and a summary of its thinking shows in the [Reasoning step](#reasoning-and-tool-calls). Models before Claude 4.6 get a thinking budget of half the maximum response length | No thinking. Claude Sonnet 5.5 is set to think only between tool calls, its own way of turning thinking off. Claude Opus 5.5, Fable and Mythos can't stop thinking, so they're set to the lowest effort |
 | Gemini | Gemini's thoughts come back and show in the Reasoning step | Thinking off on Gemini 2.5 Flash and Flash-Lite. Gemini 2.5 Pro and Gemini 3 can't stop thinking, so they're set to the least they allow |
 | Ollama | The model's own default, which for a thinking model is to think | No thinking |
-| OpenAI reasoning models (GPT-5, o-series) | The model's own default | Low reasoning effort, the least every one of them accepts |
+| OpenAI reasoning models (GPT-5, GPT-6, o-series) | The model's own default | Low reasoning effort, the least every one of them accepts |
 | On-device reasoning models (Qwen 3 and the like) | The model reasons, as before | `/no_think` is added to your message, which those models read as "answer straight away" |
 
 Other providers have no field for it that they all agree on, so the switch isn't there for them, and neither is it for models with no reasoning to switch: Claude 3 models before 3.7, and Gemini 1.5 and 2.0.

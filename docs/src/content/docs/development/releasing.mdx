@@ -16,7 +16,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 
 | | GitHub release | F-Droid | Play Store |
 |---|---|---|---|
-| Flavor | standard: `en`; offline: `intl` (`intl` is also built to cut the language packs from) | `intl` | `en` |
+| Flavor | standard: `en`; offline: `en`, and `intl` for its all-languages build (`intl` is also built to cut the language packs from) | `intl` | `en` |
 | Gradle task | `assembleEnRelease` and `assembleIntlRelease` | `assembleLiteRelease`, an alias for `assembleIntlRelease` | `bundleEnRelease` |
 | `wmkb.enablePlayStore` | `false` | `false` | `true` |
 | `wmkb.enableGms` | `true` | `false` | `true` |
@@ -24,7 +24,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | `wmkb.splitApks` | `true` | not used | ignored by `bundle*` |
 | `wmkb.enableCrashScreen` | not set | not set | `false`, forced by the Fastfile over `local.properties` |
 | Automation `TYPE_TEXT` | offered | offered | left out |
-| Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK) and `SHA256SUMS.txt`; the `offline` job adds `full-intl-nointernet` in `arm64-v8a` and `universal`. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
+| Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK; the standard build's only); the `offline` job adds `full-en-nointernet` in `arm64-v8a` and `universal` and `full-intl-nointernet` in `universal`. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
 | Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 3 for `x86_64`, 0 for `universal` | the same three digits, one APK each | `× 10`, digit 0 |
 | ML Kit | bundled in the APK | absent | unbundled, fetched from Play services |
 | Local LLM | bundled | absent | on-demand `:feature:llm` module |
@@ -130,7 +130,7 @@ predates the property (`v0.1.0` and `v0.2.0` kept the version in
 comparing the tag against an empty string, and that release is written by hand.
 Neither of those two tags carries this workflow, so pushing them starts no run
 at all; the guard is for a tag that does reach it without a version to check. It signs with your release key, then
-attaches the standard build, one APK per ABI, plus a `SHA256SUMS.txt`, to the
+attaches the standard build, one APK per ABI, to the
 release.
 
 The standard build fetches its feature libraries and its interface languages
@@ -149,8 +149,15 @@ That upload needs a `DATA_REPO_TOKEN` secret with `contents: write` on the data
 repository, and the release fails without it rather than pointing phones at
 files that are not there.
 
-The `offline` job adds the [no-internet build](/development/building/#a-build-with-no-internet-permission):
-`full-intl` with `wmkb.noInternet=true`, `arm64-v8a` and `universal` only, with every feature library and language built in. It
+The `offline` job adds the [no-internet builds](/development/building/#a-build-with-no-internet-permission):
+`full-en` with `wmkb.noInternet=true` in `arm64-v8a` and `universal`, and
+`full-intl` the same way in `universal` only, for Android 7 to 10. From 0.6.4
+both keep native delivery, so neither carries a feature library, and both
+take the libraries and language packs the standard build downloads as imports.
+The English one takes this release's language packs, so the `pack-ids` job
+compares its resource IDs with the standard build's and fails the release if
+they differ; the two jobs compile on separate runners and only the manifest
+should tell them apart. The `offline` job
 runs on its own runner because the flag applies to the whole Gradle
 invocation, and it fails the release if `aapt2 dump permissions` still finds
 `INTERNET`, since ML Kit's manifest would put the permission back without a
@@ -162,7 +169,7 @@ two differ, and warns when they do.
 
 The release also carries the files you need to read a crash report from those
 APKs. The `*-mapping.txt.gz` files are the R8 mappings: `full-en` for the
-standard build, `full-intl` for the offline build, and
+standard and offline builds, `full-intl` for the all-languages ones, and
 `*-play-mapping.txt.gz`. The file `*-full-en-native-symbols.zip` holds the
 native debug symbols. The two language
 builds are separate R8 runs, so their mappings are not interchangeable even

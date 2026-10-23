@@ -151,6 +151,38 @@ class NativeDeliveryTest {
         assertNull(store.pinFor(file, listOf(mavenPin)))
     }
 
+    @Test fun archiveImportTakesThePinnedEntryOfThisAbi() {
+        val store = NativeStore(temp.newFolder("natives"))
+        val arm64 = Random(9).nextBytes(8192)
+        val armv7 = Random(10).nextBytes(8192)
+        val pin = mavenPin.copy(sha256 = sha(arm64), size = arm64.size.toLong())
+        val other = dataPin.copy(sha256 = sha(arm64), size = arm64.size.toLong())
+        val aar = temp.newFile("qnn-runtime-2.51.0.aar").apply {
+            writeBytes(
+                zip(
+                    "classes.jar" to Random(11).nextBytes(100),
+                    "jni/armeabi-v7a/libQnnHtp.so" to armv7,
+                    "jni/arm64-v8a/libQnnHtp.so" to arm64,
+                ),
+            )
+        }
+        assertEquals(mapOf(pin to true), store.installFromArchive(aar, listOf(pin, other)))
+        assertArrayEquals(arm64, store.fileOf(pin).readBytes())
+        assertTrue("the archive is the user's", aar.exists())
+    }
+
+    @Test fun archiveImportOfAnotherVersionFailsItsHash() {
+        val store = NativeStore(temp.newFolder("natives"))
+        val pin = mavenPin.copy(sha256 = sha(Random(12).nextBytes(64)), size = 4096)
+        val aar = temp.newFile("other.aar").apply {
+            writeBytes(zip("jni/arm64-v8a/libQnnHtp.so" to Random(13).nextBytes(4096)))
+        }
+        assertEquals(mapOf(pin to false), store.installFromArchive(aar, listOf(pin)))
+        assertFalse(store.installed(pin))
+        val empty = temp.newFile("unrelated.aar").apply { writeBytes(zip("classes.jar" to ByteArray(10))) }
+        assertTrue(store.installFromArchive(empty, listOf(pin)).isEmpty())
+    }
+
     @Test fun pruneKeepsOnlyPinnedLibraries() {
         val root = temp.newFolder("natives")
         val store = NativeStore(root)

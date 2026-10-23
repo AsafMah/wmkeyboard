@@ -43,7 +43,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.BuildConfig
+import com.wasimaster.wmkeyboard.app.LanguagePackDownloads
 import com.wasimaster.wmkeyboard.app.OfflineImportRow
+import com.wasimaster.wmkeyboard.app.OfflineLink
 import com.wasimaster.wmkeyboard.app.SectionHeader
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.LockTarget
@@ -55,6 +58,9 @@ import com.wasimaster.wmkeyboard.app.ChartIntroScope
 import com.wasimaster.wmkeyboard.app.LocalReduceMotion
 import com.wasimaster.wmkeyboard.app.rememberCount
 import com.wasimaster.wmkeyboard.app.stateSwapTransform
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.modules.NativeDownloader
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -193,7 +199,7 @@ private fun StorageBody(
             OfflineImportRow(
                 title = stringResource(R.string.offline_import_storage_title),
                 subtitle = stringResource(R.string.offline_import_storage_subtitle),
-                links = emptyList(),
+                links = offlineSourceLinks(),
                 onImported = {
                     StorageSnapshot.invalidate()
                     resort = true
@@ -572,3 +578,21 @@ private const val PROGRESS_GLIDE_MS = 300
 private const val DISABLED_ALPHA = 0.38f
 private const val NOTE_ALPHA = 0.75f
 private const val SETTINGS_CATEGORY = "settings_data"
+
+/**
+ * Where the offline build's downloads are published, for **Get the files**:
+ * this version's release page (its interface language packs) and the data
+ * repository's feature libraries. Nothing on a build that can download.
+ */
+@Composable
+private fun offlineSourceLinks(): List<OfflineLink> {
+    if (InternetPermission.granted) return emptyList()
+    val packs = stringResource(R.string.offline_import_language_packs_link)
+    val libraries = stringResource(R.string.offline_import_natives_link)
+    return remember(packs, libraries) {
+        listOfNotNull(
+            OfflineLink(packs, LanguagePackDownloads.releasePage()).takeIf { BuildConfig.LANGUAGE_PACKS },
+            NativeDownloader.releasePage()?.takeIf { NativeDelivery.active }?.let { OfflineLink(libraries, it) },
+        )
+    }
+}

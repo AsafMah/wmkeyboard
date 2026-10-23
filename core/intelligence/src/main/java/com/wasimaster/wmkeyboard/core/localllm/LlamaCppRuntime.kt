@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
@@ -76,7 +77,12 @@ object LlamaCpp {
         if (!gate.installed) {
             val state = gate.state.value
             if (state is ModuleState.Missing && state.consent != null) {
-                throw IOException(context.getString(R.string.core_intel_llm_llama_consent_needed))
+                val message = if (state.consent == NativeConsent.IMPORT) {
+                    R.string.core_intel_llm_llama_import_needed
+                } else {
+                    R.string.core_intel_llm_llama_consent_needed
+                }
+                throw IOException(context.getString(message))
             }
             gate.requestInstall()
             throw IOException(context.getString(R.string.core_intel_llm_module_downloading))

@@ -37,6 +37,15 @@ object NativeConsent {
     const val MMS = "mms"
 
     /**
+     * Not an agreement: what a gate reports on a build without the internet
+     * permission (the offline build). It cannot fetch a library at all, so
+     * the only way one arrives is an import of the published file
+     * ([NativeDelivery.import], [NativeDelivery.importArchive]), and the
+     * screens say which file and where instead of offering a download.
+     */
+    const val IMPORT = "import"
+
+    /**
      * The CreativeML OpenRAIL++-M licence of SDXS, the sticker generator's
      * default model, and [OPENRAIL_M] the OpenRAIL-M one of Stable Diffusion
      * 1.5 that Qualcomm's NPU builds keep. Both pass on the same use

@@ -258,7 +258,7 @@ dictionary is in every build.
 - **GitHub releases** carry the standard build for `arm64-v8a`, `armeabi-v7a`, `x86_64` and a
   universal APK, which fetches its other UI languages and feature libraries on demand, and the
   offline build for `arm64-v8a` and universal. Almost every phone made since 2017
-  wants `arm64-v8a`. A `SHA256SUMS.txt` sits next to them.
+  wants `arm64-v8a`. GitHub lists each file's SHA-256 beside it.
 - **Obtainium** tracks the GitHub releases and updates you automatically. The release APKs also
   carry their own update check, which asks GitHub and shows a card on the Home screen.
 

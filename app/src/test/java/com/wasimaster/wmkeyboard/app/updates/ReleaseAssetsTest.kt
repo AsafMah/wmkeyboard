@@ -80,6 +80,8 @@ class ReleaseAssetsTest {
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.12-vc30-full-intl-nointernet-arm64-v8a.apk"))
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.12-vc30-full-intl-nointernet-universal.apk"))
         assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.5.14-vc32-lite-en-nointernet-arm64-v8a.apk"))
+        assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.6.4-vc380-full-en-nointernet-arm64-v8a.apk"))
+        assertNull(ReleaseAssets.parseAssetName("wmkeyboard-0.6.4-vc380-full-en-nointernet-universal.apk"))
     }
 
     @Test

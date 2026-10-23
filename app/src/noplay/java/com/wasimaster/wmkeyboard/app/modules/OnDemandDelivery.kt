@@ -10,11 +10,12 @@ import com.wasimaster.wmkeyboard.core.transliteration.NativeLinker
 /**
  * The [installOnDemandDelivery] of every channel that is not Play.
  *
- * A build with native delivery (the GitHub build, and F-Droid's behind its
- * opt-in) left the native libraries behind optional features out of its APK
- * and pinned them in assets/native/pins.tsv: [NativeDelivery] reads the pins
- * and puts a downloading gate behind every gate they name. A build without
- * the pins (`-Pwmkb.nativeDelivery=false`, the no-internet build) compiles
+ * A build with native delivery (the GitHub build, F-Droid's behind its
+ * opt-in, and the offline build, which imports instead of downloading) left
+ * the native libraries behind optional features out of its APK and pinned
+ * them in assets/native/pins.tsv: [NativeDelivery] reads the pins and puts a
+ * downloading gate behind every gate they name. A build without the pins
+ * (`-Pwmkb.nativeDelivery=false`) compiles
  * everything in, the default always-installed gates in FeatureModules are
  * already telling the truth, and this does nothing.
  *

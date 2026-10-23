@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.tools.feature.R
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
@@ -210,12 +211,12 @@ object AiClient {
      * "Blank = …" hints — they must not drift apart.
      */
     object DefaultModels {
-        const val ANTHROPIC = "claude-sonnet-5"
-        const val OPENAI = "gpt-5.6-luna"
-        const val GEMINI = "gemini-3.5-flash"
+        const val ANTHROPIC = "claude-sonnet-5-5"
+        const val OPENAI = "gpt-6-luna"
+        const val GEMINI = "gemini-3.8-flash"
         const val OLLAMA = "qwen3"
-        const val XAI = "grok-4.5"
-        const val DEEPSEEK = "deepseek-v4-flash"
+        const val XAI = "grok-4.7"
+        const val DEEPSEEK = "deepseek-flash"
 
         /** Brave's Answers API has one model, and this is its name. */
         const val BRAVE = "brave"
@@ -310,8 +311,8 @@ object AiClient {
      */
     private val REASONING_MODEL_HINTS = listOf(
         "thinking", "reason", "-r1", "qwq", "magistral",
-        "gpt-5", "o1-", "o3", "o4-", "qwen3", "qwen-3",
-        "grok-4", "deepseek-v4",
+        "gpt-5", "gpt-6", "o1-", "o3", "o4-", "qwen3", "qwen-3",
+        "grok-4", "deepseek-v4", "deepseek-flash",
     )
 
     /** Reasoning models get this much more room than the user's setting. */
@@ -1091,6 +1092,62 @@ object AiClient {
         }
     }
 
+    /**
+     * How a Claude model takes the Reasoning switch. Each generation rejects
+     * some shape the others need: models before 4.6 know only a token budget,
+     * Sonnet 5.5 400s on `disabled` and turns thinking off with
+     * `between_tools`, and Opus 5.5, Fable and Mythos cannot turn it off at
+     * all, so off there is the lowest effort instead.
+     */
+    private enum class ClaudeThinking { BUDGET, ADAPTIVE, BETWEEN_TOOLS, ALWAYS_ON }
+
+    private val CLAUDE_VERSION = Regex("""claude-(opus|sonnet|haiku)-(\d+)(?:-(\d)(?!\d))?""")
+
+    /** The smallest thinking budget Anthropic accepts on a pre-4.6 model. */
+    private const val CLAUDE_MIN_THINKING_BUDGET = 1024
+
+    private fun JsonObjectBuilder.putClaudeThinking(model: String, on: Boolean, maxTokens: Int) {
+        val name = model.lowercase()
+        val match = CLAUDE_VERSION.find(name)
+        // 4.5 is 45, 5 is 50: the minor digit is absent on whole versions and
+        // a date suffix (claude-sonnet-4-20250514) is not a minor at all.
+        val version = match?.let { it.groupValues[2].toInt() * 10 + (it.groupValues[3].toIntOrNull() ?: 0) }
+        val tier = match?.groupValues?.get(1)
+        val kind = when {
+            "fable" in name || "mythos" in name -> ClaudeThinking.ALWAYS_ON
+            name.startsWith("claude-3") -> ClaudeThinking.BUDGET
+            version == null -> ClaudeThinking.ADAPTIVE
+            version < 46 -> ClaudeThinking.BUDGET
+            tier == "opus" && version >= 55 -> ClaudeThinking.ALWAYS_ON
+            tier == "sonnet" && version >= 55 -> ClaudeThinking.BETWEEN_TOOLS
+            else -> ClaudeThinking.ADAPTIVE
+        }
+        if (on) {
+            if (kind == ClaudeThinking.BUDGET) {
+                // The budget comes out of max_tokens and must stay below it.
+                val budget = (maxTokens / 2).coerceAtLeast(CLAUDE_MIN_THINKING_BUDGET)
+                if (budget < maxTokens) {
+                    putJsonObject("thinking") { put("type", "enabled"); put("budget_tokens", budget) }
+                }
+                return
+            }
+            putJsonObject("thinking") {
+                put("type", "adaptive")
+                // From 4.7 on the thinking text streams back empty unless
+                // asked for, which leaves the switch showing nothing.
+                if (kind == ClaudeThinking.ALWAYS_ON || (version ?: 0) >= 47) put("display", "summarized")
+            }
+            return
+        }
+        when (kind) {
+            // Thinking is off unless asked for.
+            ClaudeThinking.BUDGET -> Unit
+            ClaudeThinking.ADAPTIVE -> putJsonObject("thinking") { put("type", "disabled") }
+            ClaudeThinking.BETWEEN_TOOLS -> putJsonObject("thinking") { put("type", "between_tools") }
+            ClaudeThinking.ALWAYS_ON -> putJsonObject("output_config") { put("effort", "low") }
+        }
+    }
+
     internal fun anthropicBody(
         config: Config,
         system: String,
@@ -1103,10 +1160,9 @@ object AiClient {
         put("max_tokens", maxTokens)
         put("system", system)
         put("stream", true)
-        // The chat's Reasoning switch (#882): adaptive lets Claude decide how
-        // much to think, and its thinking streams back in its own blocks.
+        // The chat's Reasoning switch (#882), in the shape the model accepts.
         config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }
-            ?.let { on -> putJsonObject("thinking") { put("type", if (on) "adaptive" else "disabled") } }
+            ?.let { on -> putClaudeThinking(config.model, on, maxTokens) }
         if (tools.isNotEmpty()) {
             put("tools", buildJsonArray {
                 for (tool in tools) {

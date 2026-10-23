@@ -99,7 +99,7 @@ Claude (Anthropic), OpenAI, Gemini, Grok, and DeepSeek are bring-your-own-key on
 - **Grok**: from `console.x.ai` → API keys
 - **DeepSeek**: from `platform.deepseek.com` → API keys
 
-Each service's setup also has a **Model** field. Leave it blank and the app falls back to a built-in default, shown right in the field's hint: `claude-sonnet-5` for Claude, `gpt-5.6-luna` for OpenAI, `gemini-3.5-flash` for Gemini, `grok-4.5` for Grok, `deepseek-v4-flash` for DeepSeek. Type a model name here to use something else.
+Each service's setup also has a **Model** field. Leave it blank and the app falls back to a built-in default, shown right in the field's hint: `claude-sonnet-5-5` for Claude, `gpt-6-luna` for OpenAI, `gemini-3.8-flash` for Gemini, `grok-4.7` for Grok, `deepseek-flash` for DeepSeek. Type a model name here to use something else.
 
 DeepSeek's reasoning models stream their thinking on a separate field. The app folds that into the same `<think>` handling everything else uses, so **Show model reasoning** and the reasoning progress readout behave there exactly as they do elsewhere.
 
@@ -541,7 +541,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 - **AI isn't pinned to the toolbar or the onboarding wizard's starter set by default.** You add it yourself from the toolbox once you want it, the same as most non-essential tools.
 - **Not available on the lock screen.** AI needs credentials the direct-boot-safe mirror of your data deliberately doesn't carry, so it's one of the tools that only works after you've unlocked the device once since restart.
 - **The Writing keyboard mode pins AI first** on its toolbar for apps it recognizes as writing-heavy (see [Keyboard modes](/typing/modes/)). The pin shows in every build, same as the tool itself. Only the On-device provider is missing from the F-Droid build.
-- **A reasoning model's guess is a substring match** against the model ID, on strings like "thinking", "-r1", "qwen3", "gpt-5", "grok-4", "deepseek-v4". It can be wrong in either direction. A false positive only costs a larger token ceiling. A false negative risks a response cut off mid-thought.
+- **A reasoning model's guess is a substring match** against the model ID, on strings like "thinking", "-r1", "qwen3", "gpt-5", "gpt-6", "grok-4", "deepseek-v4". It can be wrong in either direction. A false positive only costs a larger token ceiling. A false negative risks a response cut off mid-thought.
 - **Custom has no stored default prompt.** Every other action's prompt can be edited and still has a built-in fallback. Custom's instruction only ever exists for the run you type it for.
 - **On-device answers never claim to have been cut off.** The local engine reports no stop reason, so there's nothing to read, and the app says nothing rather than guessing. Every other provider does report it.
 - **The changes view can't spot moved text.** A paragraph the model relocated reads as a deletion where it was and an insertion where it went. Detecting moves properly needs a second pass that git only does on request. The actions that move text, Summarize and Rewrite, reword it at the same time, so that pass would fire rarely and mislead when it did.

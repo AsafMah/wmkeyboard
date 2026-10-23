@@ -94,10 +94,8 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                 val textStatus = states[SemanticModels.Pack.TEXT]
                 val shown = if (pack == SemanticModels.Pack.PICTURES && textStatus is SemanticDownloads.Status.Downloading) textStatus else status
                 when {
-                    module is ModuleState.Missing && (module as ModuleState.Missing).consent != null -> StateBanner(
-                        stringResource(R.string.models_native_consent_needed_info),
-                        tone = BannerTone.WARNING,
-                    )
+                    module is ModuleState.Missing && (module as ModuleState.Missing).consent != null ->
+                        NativeConsentBanner((module as ModuleState.Missing).consent.orEmpty(), "litert")
                     shown is SemanticDownloads.Status.Downloading -> StateBanner(
                         stringResource(R.string.semantic_status_downloading, size(shown.bytes), size(shown.total)),
                         action = stringResource(CommonR.string.common_cancel),

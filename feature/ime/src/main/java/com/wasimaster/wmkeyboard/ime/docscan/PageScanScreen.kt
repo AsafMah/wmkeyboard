@@ -107,6 +107,7 @@ import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.app.DocScanPages
 import com.wasimaster.wmkeyboard.ime.R
@@ -788,6 +789,7 @@ private fun LibraryPrompt(
         val text = when {
             module is ModuleState.Installing -> stringResource(R.string.ime_docscan_library_downloading)
             module == ModuleState.Installed -> stringResource(R.string.ime_docscan_library_unavailable)
+            missing?.consent == NativeConsent.IMPORT -> stringResource(R.string.ime_scanner_library_import)
             missing?.consent != null -> stringResource(R.string.ime_scanner_library_consent)
             downloads == MeteredDecision.BLOCKED -> stringResource(R.string.ime_metered_off_body)
             meteredAsked -> stringResource(R.string.ime_metered_ask_body)

@@ -8817,6 +8817,12 @@ data class SuggestionStripSettings(
      */
     val scrollable: Boolean = false,
     /**
+     * The arrow at the end of a [scrollable] strip that opens every ranked
+     * word in the grid a swipe down opens (#890). Off leaves the swipe as the
+     * only way in, for a strip that wants its whole width for words.
+     */
+    val moreArrow: Boolean = true,
+    /**
      * An emoji candidate takes one of the [slotCount] slots instead of riding
      * after them (#413). On, the strip never shows more chips than the count
      * asks for: the best emoji sits in the last slot and the words get one
@@ -10815,6 +10821,7 @@ class SettingsRepository(private val context: Context) {
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
         private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
+        private val SUGGESTION_MORE_ARROW = booleanPreferencesKey("suggestion_more_arrow")
         private val SUGGESTION_EMOJI_TAKES_SLOT = booleanPreferencesKey("suggestion_emoji_takes_slot")
         private val SUGGESTION_FIXED_SLOTS = booleanPreferencesKey("suggestion_fixed_slots")
         private val SUGGESTION_EMOJI_COUNT = intPreferencesKey("suggestion_emoji_count")
@@ -12390,6 +12397,7 @@ class SettingsRepository(private val context: Context) {
             slotCount = p[SUGGESTION_SLOT_COUNT] ?: defaults.suggestionStrip.slotCount,
             textScale = p[SUGGESTION_TEXT_SCALE] ?: defaults.suggestionStrip.textScale,
             scrollable = p[SUGGESTION_SCROLLABLE] ?: defaults.suggestionStrip.scrollable,
+            moreArrow = p[SUGGESTION_MORE_ARROW] ?: defaults.suggestionStrip.moreArrow,
             emojiTakesSlot = p[SUGGESTION_EMOJI_TAKES_SLOT] ?: defaults.suggestionStrip.emojiTakesSlot,
             fixedSlots = p[SUGGESTION_FIXED_SLOTS] ?: defaults.suggestionStrip.fixedSlots,
             emojiCount = (p[SUGGESTION_EMOJI_COUNT] ?: defaults.suggestionStrip.emojiCount).coerceIn(1, 4),
@@ -19563,6 +19571,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSuggestionScrollable(value: Boolean) =
         editPrefs { it[SUGGESTION_SCROLLABLE] = value }
+
+    suspend fun setSuggestionMoreArrow(value: Boolean) =
+        editPrefs { it[SUGGESTION_MORE_ARROW] = value }
 
     suspend fun setSuggestionEmojiTakesSlot(value: Boolean) =
         editPrefs { it[SUGGESTION_EMOJI_TAKES_SLOT] = value }

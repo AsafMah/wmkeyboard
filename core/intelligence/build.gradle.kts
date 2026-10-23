@@ -84,8 +84,7 @@ val nativeDelivery = run {
     }
     fun prop(name: String, env: String, default: String) =
         providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: System.getenv(env) ?: default
-    prop("wmkb.nativeDelivery", "WMKB_NATIVE_DELIVERY", "true").toBoolean() && !playStoreChannel &&
-        !prop("wmkb.noInternet", "WMKB_NO_INTERNET", "false").toBoolean()
+    prop("wmkb.nativeDelivery", "WMKB_NATIVE_DELIVERY", "true").toBoolean() && !playStoreChannel
 }
 if (npuRuntime && !playStoreChannel && !nativeDelivery) apply(plugin = "wmkeyboard.npu-runtime")
 

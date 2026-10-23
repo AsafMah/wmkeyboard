@@ -37,15 +37,15 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
 2. Take the **standard** build, unless you want a keyboard that can never reach the network.
 
-   **Standard** carries the keyboard and English, and fetches the rest when you use it. Features that need their own code (offline voice typing, grammar checking, the scanner, handwriting, on-device translation and on-device AI) download it the first time you use them. On Android 11 and later, the app's own screens download another language when you pick it, about 1.3 MB each. On Android 7 to 10, the standard build's screens stay in English. Every download is checked against a checksum built into the app.
+   **Standard** carries the keyboard and English, and fetches the rest when you use it. Features that need their own code (offline voice typing, grammar checking, the scanner, handwriting, on-device translation and on-device AI) download it the first time you use them. On Android 11 and later, the app's own screens download another language when you pick it, about 2 MB each. On Android 7 to 10, the standard build's screens stay in English. Every download is checked against a checksum built into the app.
 
-   **Offline** has the internet permission removed and everything built in: all 48 interface languages and every feature library. Anything that downloads stops working, including its own update check, though language packs, models and GIF packs fetched on another device can be [imported instead](/privacy/offline/). See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
+   **Offline** has the internet permission removed, and is otherwise the standard build: English, with no feature libraries inside. It can't download anything, including its own update check, so you fetch the interface languages and feature libraries you want on another device and [import them](/privacy/offline/#the-offline-build), along with any language packs, models and GIF packs. Interface languages need Android 11 or later; on Android 7 to 10, take **offline, all languages** instead, which has all 48 built in. See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
 
-3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size. The offline build comes in `arm64-v8a` and `universal`.
+3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size. The offline build comes in `arm64-v8a` and `universal`, the offline all-languages build in `universal` only.
 
 4. Download the APK to your device.
 
-5. Optional: verify the download against `SHA256SUMS.txt` from the same release. Run `sha256sum <file>` on a computer, or use a checksum app on the phone. Compare the result to the line for your file.
+5. Optional: verify the download. The release page shows a SHA-256 next to each file. Run `sha256sum <file>` on a computer, or use a checksum app on the phone, and compare the two.
 
 6. Open the APK to install it.
 
@@ -92,7 +92,7 @@ The GitHub builds and the Google Play copy have every feature. F-Droid's is the 
 
 This is about the words the app shows you, not the ones you type. Every layout, every dictionary and every prediction model is in every build.
 
-The app's own text exists in 48 languages besides English. The offline build, F-Droid and the Google Play copy carry or fetch them on their own. The standard GitHub build carries English and downloads a language when you pick it under About, then App language, on Android 11 and later. You can also set it under Settings, then Apps, then WM Keyboard, then Language, on Android 13 and up.
+The app's own text exists in 48 languages besides English. F-Droid, the Google Play copy and the offline all-languages build carry or fetch them on their own. The standard GitHub build carries English and, on Android 11 and later, downloads your phone's language by itself a few seconds after it first starts (about 2 MB). Pick another under About, then App language. The offline build takes the same language files, but [imported](/privacy/offline/#interface-languages) from the release page. You can also set it under Settings, then Apps, then WM Keyboard, then Language, on Android 13 and up.
 
 The translations are machine translations from Google Play, and nobody has read them line by line, so expect the occasional clumsy sentence. A string with no translation yet falls back to English. See [Languages overview](/languages/overview/) for the list and the caveats.
 

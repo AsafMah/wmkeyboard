@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.input.zinnia.ZinniaData
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.intelligence.R
@@ -122,14 +123,20 @@ object ZinniaModels {
         val pack = packFor(tag) ?: throw IOException("No zinnia model for $tag")
         val gate = FeatureModules.zinnia
         if (!gate.installed) {
-            InternetPermission.check()
+            // No InternetPermission.check() here: the offline build's gate
+            // fails at once with the import it needs, which says more.
             val here = gate.awaitInstalled { bytes, total ->
                 onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total))
             }
             if (!here) {
                 val state = gate.state.value
                 if (state is ModuleState.Missing && state.consent != null) {
-                    throw HandwritingDownloadException(context.getString(R.string.core_intel_handwriting_zinnia_consent_needed))
+                    val message = if (state.consent == NativeConsent.IMPORT) {
+                        R.string.core_intel_handwriting_zinnia_import_needed
+                    } else {
+                        R.string.core_intel_handwriting_zinnia_consent_needed
+                    }
+                    throw HandwritingDownloadException(context.getString(message))
                 }
                 throw IOException("The zinnia library did not arrive")
             }

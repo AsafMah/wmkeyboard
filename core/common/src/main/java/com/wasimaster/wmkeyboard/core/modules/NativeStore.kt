@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.MessageDigest
+import java.util.zip.ZipFile
 
 /**
  * The delivered native libraries on disk: `<root>/<sha256>/<name>`, where
@@ -62,6 +63,31 @@ class NativeStore(val root: File) {
         if (candidates.isEmpty()) return null
         val hash = sha256(file)
         return candidates.firstOrNull { it.sha256 == hash }
+    }
+
+    /**
+     * Installs each of [pins] that [archive] (a vendor's `.aar`, a zip) holds
+     * at its [NativeSource.Maven] entry, and reports whether each one found
+     * matched. An entry of another ABI, or another version of the artifact,
+     * fails its hash like any other wrong file.
+     */
+    fun installFromArchive(archive: File, pins: List<NativePin>): Map<NativePin, Boolean> {
+        val result = LinkedHashMap<NativePin, Boolean>()
+        ZipFile(archive).use { zip ->
+            for (pin in pins) {
+                val source = pin.source as? NativeSource.Maven ?: continue
+                val entry = zip.getEntry(source.entry) ?: continue
+                if (installed(pin)) {
+                    result[pin] = true
+                    continue
+                }
+                val part = partOf(pin)
+                part.parentFile?.mkdirs()
+                zip.getInputStream(entry).use { input -> FileOutputStream(part).use { input.copyTo(it, BUFFER) } }
+                result[pin] = install(pin, part)
+            }
+        }
+        return result
     }
 
     /**

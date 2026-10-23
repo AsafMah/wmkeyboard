@@ -46,6 +46,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
 import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
@@ -102,6 +103,7 @@ internal fun ScannerLibraryPrompt(state: KeyboardUiState, gate: ModuleGate = Fea
         val consent = (current as? ModuleState.Missing)?.consent
         Text(
             when {
+                consent == NativeConsent.IMPORT -> stringResource(R.string.ime_scanner_library_import)
                 consent != null -> stringResource(R.string.ime_scanner_library_consent)
                 meteredBlocked -> stringResource(R.string.ime_metered_off_body)
                 meteredAsked -> stringResource(R.string.ime_metered_ask_body)

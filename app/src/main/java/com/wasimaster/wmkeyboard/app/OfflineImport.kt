@@ -110,6 +110,7 @@ internal object OfflineImport {
             PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
             OfflineDictionaries.recognises(leaf) ||
             isNativeLibrary(leaf) ||
+            isLibraryArchive(leaf) ||
             (LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf)) ||
             LanguagePackDownloads.isPackName(leaf)
     }
@@ -122,6 +123,15 @@ internal object OfflineImport {
     private fun isNativeLibrary(leaf: String): Boolean =
         NativeDelivery.active && leaf.endsWith(".so") &&
             NativeDelivery.pins().any { leaf == it.name || leaf.endsWith("-${it.name}") }
+
+    /**
+     * A vendor's Android library (`.aar`) that one of this build's libraries
+     * is read out of (ML Kit, LiteRT, ONNX Runtime, Qualcomm's QNN), by the
+     * name its Maven repository serves it under. Imported whole.
+     */
+    private fun isLibraryArchive(leaf: String): Boolean =
+        NativeDelivery.active && leaf.endsWith(".aar") &&
+            NativeDelivery.pins().any { NativeDelivery.publishedName(it) == leaf }
 
     /**
      * [recognises], plus the files told by their name *and* their size, or
@@ -181,10 +191,17 @@ internal object OfflineImport {
                     outcomes += failure(name, it)
                     return@forEachIndexed
                 }
+                // Any .aar, whatever a browser renamed it to: the entries
+                // the pins name decide, and the rest of it is not ours.
+                if (NativeDelivery.active && name.endsWith(".aar", ignoreCase = true)) {
+                    outcomes += installLibraryArchive(name, staged)
+                    staged.delete()
+                    return@forEachIndexed
+                }
                 // A handwriting pack is a zip ML Kit unpacks itself, and a
                 // published RIME pack is checked against its pin whole, so
                 // both are installed as files rather than opened here.
-                if (!isZip(staged) || CjkDictCatalog.byFileName(name) != null || InkPackImports.isPack(context, staged)) {
+                if (!isZip(staged) || keptWhole(name) || InkPackImports.isPack(context, staged)) {
                     files += staged
                     return@forEachIndexed
                 }
@@ -222,6 +239,16 @@ internal object OfflineImport {
             staging.deleteRecursively()
         }
     }
+
+    /**
+     * Zips installed as they are rather than opened: a published RIME pack,
+     * checked against its pin whole, and any APK. An APK is a zip too, and an
+     * interface language pack has to reach [LanguagePackDownloads.import]
+     * intact for its signature to be checked; unpacked, it is a manifest and a
+     * resource table nothing here uses.
+     */
+    internal fun keptWhole(name: String): Boolean =
+        name.endsWith(".apk", ignoreCase = true) || CjkDictCatalog.byFileName(name) != null
 
     /**
      * Sorts [files] by what they are, then installs them. Sorting first is
@@ -497,6 +524,19 @@ internal object OfflineImport {
             }
         }
         Outcome(name, true, R.string.offline_import_yomichan_done, listOf(info.title, count(info.terms)))
+    }
+
+    /** The pinned libraries an `.aar` holds, one line each. */
+    private fun installLibraryArchive(name: String, archive: File): List<Outcome> {
+        val installed = runCatching { NativeDelivery.importArchive(archive) }.getOrElse { return listOf(failure(name, it)) }
+        if (installed.isEmpty()) return listOf(Outcome(name, false, R.string.offline_import_unknown))
+        return installed.map { (pin, ok) ->
+            if (ok) {
+                Outcome(name, true, R.string.offline_import_native_done, listOf(pin.name))
+            } else {
+                Outcome(name, false, R.string.offline_import_mismatch)
+            }
+        }
     }
 
     /** A RIME schema zip of the user's own, for the RIME engine to compile on its next deploy. */

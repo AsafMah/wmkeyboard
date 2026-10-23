@@ -37,6 +37,13 @@ object NativeDownloader {
         return "https://${repo.host}/${repo.owner}/${repo.repo}/releases/download/$RELEASE_TAG/${pin.sha256}-${pin.name}"
     }
 
+    /** The page listing every published library, or null when the data repository is not on GitHub. */
+    fun releasePage(): String? {
+        val repo = ServiceEndpoints.repo(ServiceRepo.DATA)
+        if (repo.forge != GitForge.GITHUB) return null
+        return "https://${repo.host}/${repo.owner}/${repo.repo}/releases/tag/$RELEASE_TAG"
+    }
+
     /**
      * Downloads [pin] and installs it into [store]. [onBytes] gets this
      * file's running byte count. Throws on any failure; a data download goes

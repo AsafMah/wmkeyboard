@@ -1057,10 +1057,7 @@ private fun WhisperModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         )
         // F-Droid, before the user has opted in to library downloads: a
         // retry would only stop at the same place, so say where to turn it on.
-        is ModuleState.Missing if module.consent != null -> StateBanner(
-            stringResource(R.string.models_native_consent_needed_info),
-            tone = BannerTone.WARNING,
-        )
+        is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "litert")
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (module.failed) {

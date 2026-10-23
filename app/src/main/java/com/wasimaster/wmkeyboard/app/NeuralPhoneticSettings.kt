@@ -128,7 +128,7 @@ internal fun NeuralPhoneticModelRow(settings: LiveSettings, repository: Settings
             }
         is IndicXlitDownloads.Status.Failed ->
             if ((module as? ModuleState.Missing)?.consent != null) {
-                stringResource(R.string.models_native_consent_needed_info)
+                nativeConsentInfo((module as ModuleState.Missing).consent.orEmpty())
             } else if (s.messageArg.isEmpty()) {
                 stringResource(s.messageRes)
             } else {

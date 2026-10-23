@@ -2666,7 +2666,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - The row in use is written into `AiSettings` on every settings read (`withProviderChoices`), so the client and every caller read one answer; an emptied list reports the AI as not set up whatever old keys remain
   - Cloud providers with fixed endpoints `RARE` — 6: Anthropic, OpenAI, Gemini, xAI (Grok), DeepSeek, Brave Answers
     - Brave (#438) — `/res/v1/chat/completions` on the Brave Search host, model `brave`, `X-Subscription-Token`; one user message only, so system prompt + history fold into it; `<usage>`/`<citation>` tags stripped from the stream; blank key falls back to the user's own web search Brave key (never the built-in one); needs the Answers plan
-    - Per-provider default model — claude-sonnet-5, gpt-5.6-luna, gemini-3.5-flash, grok-4.5, deepseek-v4-flash; shown as the field hint
+    - Per-provider default model — claude-sonnet-5-5, gpt-6-luna, gemini-3.8-flash, grok-4.7, deepseek-flash; shown as the field hint
     - Model field is free text — blank falls back to the default above
   - Self-hosted servers `RARE` — Ollama and LM Studio by LAN address, no key required
     - Ollama speaks NDJSON on /api/chat — num_predict under options; thinking on message.thinking
@@ -2684,7 +2684,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Truncation detected per provider `RARE` — stop_reason=max_tokens, finish_reason=length, finishReason=MAX_TOKENS, done_reason=length
   - Response-length control `uncommon` — 8 presets 1024–131072 plus "Provider maximum"; default 8192
     - Provider maximum omits the field entirely — so the service applies its own default
-    - Reasoning models get 4x the ceiling — capped at 131072; guessed from 13 model-id substrings (thinking, reason, -r1, qwq, magistral, gpt-5, o1-, o3, o4-, qwen3, grok-4, deepseek-v4)
+    - Reasoning models get 4x the ceiling — capped at 131072; guessed from 15 model-id substrings (thinking, reason, -r1, qwq, magistral, gpt-5, gpt-6, o1-, o3, o4-, qwen3, qwen-3, grok-4, deepseek-v4, deepseek-flash)
     - Anthropic over-ceiling auto-retry — Anthropic requires max_tokens and hard-rejects an oversize value; the app reads the real limit out of the error and retries once
   - Conversation normalisation before send `RARE` — blank turns dropped, leading/trailing assistant turns removed, same-role runs merged — Anthropic rejects all three
 - **On-device LLM (LiteRT-LM)** `RARE` — A full LLM running locally with no network; 8-model curated catalog

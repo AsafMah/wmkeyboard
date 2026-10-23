@@ -646,10 +646,7 @@ private fun LlamaModuleBanner(settings: LiveSettings) {
     when (val state = module) {
         ModuleState.Installed -> Unit
         is ModuleState.Installing -> StateBanner(stringResource(R.string.models_llm_llama_module_installing_info))
-        is ModuleState.Missing if state.consent != null -> StateBanner(
-            stringResource(R.string.models_native_consent_needed_info),
-            tone = BannerTone.WARNING,
-        )
+        is ModuleState.Missing if state.consent != null -> NativeConsentBanner(state.consent.orEmpty(), "llama")
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (state.failed) R.string.models_whisper_module_failed_info else R.string.models_llm_llama_module_missing_info,
