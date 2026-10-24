@@ -42,6 +42,9 @@
     <string name="shell_debug_log_copy_title">Copy to clipboard</string>
     <string name="shell_debug_log_copy_subtitle">The same report, as text</string>
     <string name="shell_debug_log_system_title">Include the system log</string>
+    <string name="shell_debug_log_enter_trace_title">Trace Enter and keyboard visibility</string>
+    <string name="shell_debug_log_enter_trace_subtitle">Off by default. Record timestamps and event names only, never typed text.</string>
+    <string name="shell_debug_log_enter_trace_info">Turn this on, switch to the affected app and reproduce the keyboard dismissal, then return here and turn it off. Share diagnostics includes the EnterTrace entries without needing the system log or a computer. Export promptly: the app log keeps only its last 500 entries. This switch resets when the keyboard service or app process restarts. Text, editor contents, key codes and method arguments are never included in this trace.</string>
     <string name="shell_debug_log_system_subtitle">Add the Android log of this app to the report</string>
     <!-- Long explanation behind the "?" button on the "Include the system log" row. -->
     <string name="shell_debug_log_system_info">The keyboard writes the app log above. It holds only what the keyboard chose to record. The system log is everything this app printed, including its libraries. It helps more with a problem that is difficult to repeat. The keyboard does not control what goes into it. Read the system log before you send it to anyone.</string>

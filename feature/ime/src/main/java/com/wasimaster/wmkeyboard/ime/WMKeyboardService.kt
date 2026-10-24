@@ -376,6 +376,7 @@ import com.wasimaster.wmkeyboard.core.settings.onMeteredNetwork
 import com.wasimaster.wmkeyboard.core.power.PowerSaver
 import com.wasimaster.wmkeyboard.core.net.NetworkWatcher
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.debug.EnterTraceEvent
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyDeviceForm
@@ -2444,16 +2445,19 @@ open class WMKeyboardService : InputMethodService() {
     /** The connection [traced] last decided about, and what it decided. */
     private var tracedFor: InputConnection? = null
     private var tracedConnection: InputConnection? = null
+    private var tracedForDiagnostics = false
 
     /**
      * [raw] wrapped in a [TracingInputConnection] when the trace is switched on
-     * for the device. Decided once per connection, so with it off the cost is
-     * one identity check.
+     * for the device or in Diagnostics. The in-process switch is checked even
+     * for an existing connection, so enabling it never needs an editor restart.
      */
     private fun traced(raw: InputConnection): InputConnection {
-        if (tracedFor !== raw) {
+        val diagnostics = DebugLog.enterTraceEnabled.value
+        if (tracedFor !== raw || tracedForDiagnostics != diagnostics) {
             tracedFor = raw
-            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(raw) else raw
+            tracedForDiagnostics = diagnostics
+            tracedConnection = if (diagnostics || TracingInputConnection.enabled()) TracingInputConnection(raw) else raw
         }
         return tracedConnection ?: raw
     }
@@ -6936,6 +6940,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        DebugLog.traceEnter(EnterTraceEvent.START_INPUT)
         super.onStartInput(attribute, restarting)
         inputStarts++
         // Runs for every field even while the soft view stays hidden
@@ -7101,6 +7106,7 @@ open class WMKeyboardService : InputMethodService() {
         trace(ImeTrace.START_INPUT_VIEW) { startInputView(info, restarting) }
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
+        DebugLog.traceEnter(EnterTraceEvent.START_INPUT_VIEW)
         super.onStartInputView(info, restarting)
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
@@ -7872,6 +7878,7 @@ open class WMKeyboardService : InputMethodService() {
         candidatesStart: Int,
         candidatesEnd: Int,
     ) {
+        DebugLog.traceEnter(EnterTraceEvent.UPDATE_SELECTION)
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         if (tracedConnection is TracingInputConnection) {
             TracingInputConnection.noteSelection(
@@ -8513,11 +8520,22 @@ open class WMKeyboardService : InputMethodService() {
         (inputRootView?.parent as? StableMeasureFrame)?.onShownAgain()
     }
 
+    override fun onShowInputRequested(flags: Int, configChange: Boolean): Boolean {
+        DebugLog.traceEnter(EnterTraceEvent.SHOW_INPUT_REQUESTED)
+        return super.onShowInputRequested(flags, configChange)
+    }
+
+    override fun onFinishInput() {
+        DebugLog.traceEnter(EnterTraceEvent.FINISH_INPUT)
+        super.onFinishInput()
+    }
+
     /**
      * The window is really on screen. onStartInputView has normally resumed the
      * owner already; this is the OEM path where a window arrives without one.
      */
     override fun onWindowShown() {
+        DebugLog.traceEnter(EnterTraceEvent.WINDOW_SHOWN)
         super.onWindowShown()
         onScreenAgain()
         onKeyguardGone()
@@ -8532,6 +8550,7 @@ open class WMKeyboardService : InputMethodService() {
      * that there is nothing left to keep up to date.
      */
     override fun onWindowHidden() {
+        DebugLog.traceEnter(EnterTraceEvent.WINDOW_HIDDEN)
         super.onWindowHidden()
         // Off screen: a screenshot from now on has no keyboard in it (#234).
         noteBoardTop(0)
@@ -8554,6 +8573,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        DebugLog.traceEnter(EnterTraceEvent.FINISH_INPUT_VIEW)
         // Before the base class lets go of the connection: the address is
         // read off the field that is closing.
         rememberTypedEmail()
@@ -8731,6 +8751,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        DebugLog.traceEnter(EnterTraceEvent.SERVICE_DESTROYED)
+        DebugLog.setEnterTracing(false)
         DebugLog.i("ime", "service destroyed")
         holdMediaFocus(false)
         // The controls promise a keyboard to come back to; without one running
@@ -9150,7 +9172,18 @@ open class WMKeyboardService : InputMethodService() {
 
     // No vibrate() here: press-time haptics fire from the UI's pointer-down
     // callback (onKeyPressed) so feedback lands on touch, not on release.
-    fun onKey(key: Key) = trace(ImeTrace.KEY) { if (!deferBehindDuet(key)) handleKey(key) }
+    fun onKey(key: Key) = trace(ImeTrace.KEY) {
+        when (val action = key.action) {
+            KeyAction.Enter -> DebugLog.traceEnter(EnterTraceEvent.ENTER_TAP)
+            KeyAction.Newline -> DebugLog.traceEnter(EnterTraceEvent.NEWLINE_TAP)
+            KeyAction.EditorAction -> DebugLog.traceEnter(EnterTraceEvent.EDITOR_ACTION_TAP)
+            is KeyAction.SendKey -> if (action.keyCode == KeyEvent.KEYCODE_ENTER) {
+                DebugLog.traceEnter(EnterTraceEvent.ENTER_TAP)
+            }
+            else -> Unit
+        }
+        if (!deferBehindDuet(key)) handleKey(key)
+    }
 
     /**
      * Keys pressed while a two-thumb word's latest gesture is still being
@@ -15279,6 +15312,7 @@ open class WMKeyboardService : InputMethodService() {
         ignoreShift: Boolean = false,
         heldShift: Boolean = false,
     ) {
+        DebugLog.traceEnter(EnterTraceEvent.ENTER_DISPATCH)
         val state = _uiState.value
         glueNextWord = false
         setNoSpaceArmed(false)
@@ -15471,12 +15505,14 @@ open class WMKeyboardService : InputMethodService() {
      * turn the next Enter in the emptied box into a line break too.
      */
     private fun onEditorAction() {
+        DebugLog.traceEnter(EnterTraceEvent.EDITOR_ACTION_DISPATCH)
         val shiftForNewlines = _uiState.value.softShiftForcesNewline
         onEnter(ignoreShift = true)
         if (shiftForNewlines) consumeShift()
     }
 
     private fun onNewline() {
+        DebugLog.traceEnter(EnterTraceEvent.NEWLINE_DISPATCH)
         val ic = currentInputConnection ?: return
         recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
         val state = _uiState.value

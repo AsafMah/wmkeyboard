@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +86,7 @@ internal fun DebugLogScreen() {
     val entries by produceState(emptyList<LogEntry>(), revision) {
         value = DebugLog.snapshot().asReversed()
     }
+    val enterTraceEnabled by DebugLog.enterTraceEnabled.collectAsState()
     val crashes by produceState("", revision) {
         value = withContext(Dispatchers.IO) { DebugLog.crashes() }
     }
@@ -126,6 +128,17 @@ internal fun DebugLogScreen() {
                 R.string.shell_debug_log_copy_title,
                 stringResource(R.string.shell_debug_log_copy_subtitle),
             ) { copyReport(context, showSystemLog, systemLog) }
+        }
+        item {
+            ToggleSetting(
+                R.string.shell_debug_log_enter_trace_title,
+                stringResource(R.string.shell_debug_log_enter_trace_subtitle),
+                enterTraceEnabled,
+                info = stringResource(R.string.shell_debug_log_enter_trace_info),
+            ) {
+                DebugLog.setEnterTracing(it)
+                revision++
+            }
         }
         item {
             ToggleSetting(

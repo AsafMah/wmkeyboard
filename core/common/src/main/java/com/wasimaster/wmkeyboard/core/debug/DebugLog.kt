@@ -6,6 +6,8 @@ import android.os.Build
 import com.wasimaster.wmkeyboard.app.CrashReportActivity
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -76,6 +78,31 @@ object DebugLog {
     private const val LAUNCH_GRACE_MILLIS = 200L
 
     private val entries = ArrayDeque<LogEntry>(CAPACITY)
+
+    /** Process-local opt-in, also switched off when the IME service is destroyed. */
+    private val traceEnabled = MutableStateFlow(false)
+    val enterTraceEnabled = traceEnabled.asStateFlow()
+
+    @Synchronized
+    fun setEnterTracing(enabled: Boolean) {
+        if (traceEnabled.value == enabled) return
+        traceEnabled.value = enabled
+        recordEnterTrace(if (enabled) EnterTraceEvent.ENABLED else EnterTraceEvent.DISABLED)
+    }
+
+    fun traceEnter(event: EnterTraceEvent) {
+        if (!traceEnabled.value) return
+        recordEnterTraceIfEnabled(event)
+    }
+
+    @Synchronized
+    private fun recordEnterTraceIfEnabled(event: EnterTraceEvent) {
+        if (traceEnabled.value) recordEnterTrace(event)
+    }
+
+    private fun recordEnterTrace(event: EnterTraceEvent) {
+        record(LogLevel.DEBUG, "EnterTrace", event.methodName)
+    }
 
     /** Set by [attach]; device-protected so it is writable from boot. */
     @Volatile
@@ -308,6 +335,11 @@ object DebugLog {
      */
     fun exportText(): String = buildString {
         append(headerText())
+        appendLine(
+            "Enter trace: ${if (traceEnabled.value) "enabled" else "disabled"} " +
+                "(process-local; timestamps and event names only)",
+        )
+        appendLine("EnterTrace entries share the last $CAPACITY session entries; oldest entries are dropped.")
         appendLine()
         val crashes = crashes()
         if (crashes.isNotBlank()) {

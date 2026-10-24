@@ -122,6 +122,14 @@ The screen has four parts:
 
 A **Delete the app log** button at the bottom empties the in-memory log (separate from **Delete crashes**, which only touches the crash file). The ring holds the last 500 entries and drops the oldest as new ones land.
 
+### Investigating a keyboard dismissal after Enter
+
+Turn on **Trace Enter and keyboard visibility** in Diagnostics, switch to the affected app, and reproduce the dismissal. Return to Diagnostics, turn the switch off, then use **Share diagnostics** or **Copy to clipboard**. No computer, ADB, or **Include the system log** is needed.
+
+The `EnterTrace` app-log entries record timestamps and fixed method/event names only: Enter dispatch, input-connection calls, and input/window callbacks such as `onFinishInputView` and `onWindowHidden`. Calls are recorded before reaching the editor, so an editor-triggered hide follows the operation that preceded it. No text, editor contents, key codes, or method arguments are recorded. Read the entries in export order, oldest first; timestamps may be equal for adjacent calls.
+
+Tracing is off by default and is not saved as a preference. It turns off when the keyboard service is destroyed or the app process restarts. Turning it off keeps the collected entries for export. Export promptly: tracing shares the app log's bounded ring, so older entries are dropped as new ones arrive, and a process restart loses the session log. The report states whether tracing is enabled and identifies its storage limit.
+
 The report itself always opens with the build version, edition, Android release and API level, and device manufacturer and model, so if you share or copy diagnostics, you don't need to separately look up or type any of that for a bug report.
 
 ## Filing a useful bug report
