@@ -431,7 +431,7 @@
     <string name="addon_use_target_theme_label">تم‌ها</string>
     <string name="ai_chat_picture_desc">تصویر</string>
     <string name="ai_chat_picture_remove_desc">حذف تصویر</string>
-    <string name="app_name">صفحه‌کلید WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">فونت‌های گوگل، یا وارد کردن فایل فونت شخصی خود</string>
     <string name="appearance_font_title">قلم صفحه‌کلید</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">دکمه گرد روی پل را فشار دهید، سپس ظرف سی ثانیه روی جفت‌سازی ضربه بزنید. پل یک کلید اختصاصی به صفحه‌کلید می‌دهد.</string>
     <string name="hue_paired">جفت شد. گواهی پل متصل شده است: از اتصال به پل متفاوت در این آدرس خودداری خواهد شد.</string>
     <string name="imagegen_module_title">تولیدکننده استیکر</string>
-    <string name="ime_name">صفحه‌کلید WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">این یک دسته کارت Anki است. برنامه آن را به یک بسته واژگان تبدیل می‌کند.</string>
     <string name="import_anki_title">فلش‌کارت‌ها وارد شوند؟</string>
     <string name="import_api_keys_note">این فایل دارای کلیدهای API است. آن‌ها جایگزین کلیدهایی می‌شوند که در اینجا تنظیم کرده‌اید.</string>

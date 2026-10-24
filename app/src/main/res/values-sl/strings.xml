@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Teme</string>
     <string name="ai_chat_picture_desc">Slika</string>
     <string name="ai_chat_picture_remove_desc">Odstrani sliko</string>
-    <string name="app_name">Tipkovnica WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts ali uvoz lastne datoteke pisave</string>
     <string name="appearance_font_title">Pisava tipkovnice</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Pritisnite okrogel gumb na mostu in v tridesetih sekundah tapnite Seznani. Most dodeli tipkovnici lasten ključ.</string>
     <string name="hue_paired">Seznanjeno. Potrdilo mostu je pripeto: drug most na tem naslovu bo zavrnjen.</string>
     <string name="imagegen_module_title">Generator nalepk</string>
-    <string name="ime_name">WM tipkovnica</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">To je komplet Anki. Aplikacija ga spremeni v paket besedišča.</string>
     <string name="import_anki_title">Uvoziti kartice za pomnjenje?</string>
     <string name="import_api_keys_note">Datoteka vsebuje ključe API. Ti bodo nadomestili ključe, ki ste jih nastavili tukaj.</string>

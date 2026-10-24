@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Teman</string>
     <string name="ai_chat_picture_desc">Bild</string>
     <string name="ai_chat_picture_remove_desc">Ta bort bilden</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, eller importera din egen typsnittsfil</string>
     <string name="appearance_font_title">Tangentbordsfont</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Tryck på den runda knappen på bryggan och tryck sedan på Parkoppla inom trettio sekunder. Bryggan ger tangentbordet en egen nyckel.</string>
     <string name="hue_paired">Ihopparad. Bryggans certifikat är låst: en annan brygga på denna adress kommer att nekas.</string>
     <string name="imagegen_module_title">Klistermärkesgenerator</string>
-    <string name="ime_name">WM-tangentbord</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Detta är en Anki-kortlek. Appen gör om den till ett ordförrådspaket.</string>
     <string name="import_anki_title">Importera flashcards?</string>
     <string name="import_api_keys_note">Filen innehåller API-nycklar. De ersätter nycklarna som du har ställt in här.</string>

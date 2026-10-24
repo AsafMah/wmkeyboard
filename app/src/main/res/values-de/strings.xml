@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Themen</string>
     <string name="ai_chat_picture_desc">Bild</string>
     <string name="ai_chat_picture_remove_desc">Bild entfernen</string>
-    <string name="app_name">WM Keyboard</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts oder importieren Sie Ihre eigene Schriftartdatei</string>
     <string name="appearance_font_title">Tastaturschriftart</string>
     <plurals name="appearance_icons_changed_count">
@@ -2489,7 +2489,7 @@
     <string name="hue_pair_subtitle">Drücken Sie die runde Taste an der Bridge und tippen Sie innerhalb von dreißig Sekunden auf Koppeln. Die Bridge gibt der Tastatur einen eigenen Schlüssel.</string>
     <string name="hue_paired">Gekoppelt. Das Zertifikat der Bridge ist fixiert: Eine andere Bridge an dieser Adresse wird abgelehnt.</string>
     <string name="imagegen_module_title">Sticker-Generator</string>
-    <string name="ime_name">WM Tastatur</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Dies ist ein Anki-Stapel. Die App wandelt ihn in ein Vokabelpaket um.</string>
     <string name="import_anki_title">Lernkarten importieren?</string>
     <string name="import_api_keys_note">Die Datei enthält API-Schlüssel. Sie ersetzen die Schlüssel, die du hier festgelegt hast.</string>

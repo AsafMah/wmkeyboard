@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Teme</string>
     <string name="ai_chat_picture_desc">Imagine</string>
     <string name="ai_chat_picture_remove_desc">Elimină imaginea</string>
-    <string name="app_name">Tastatură WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts sau importă propriul fișier de font</string>
     <string name="appearance_font_title">Fontul tastaturii</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Apasă butonul rotund de pe bridge, apoi atinge Asociere în decurs de treizeci de secunde. Bridge-ul oferă tastaturii propria cheie.</string>
     <string name="hue_paired">Împerecheat. Certificatul bridge-ului este fixat: un alt bridge la această adresă va fi refuzat.</string>
     <string name="imagegen_module_title">Generator de stickere</string>
-    <string name="ime_name">Tastatură WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Acesta este un pachet Anki. Aplicația îl transformă într-un pachet de vocabular.</string>
     <string name="import_anki_title">Importi carduri flash?</string>
     <string name="import_api_keys_note">Fișierul conține chei API. Acestea le înlocuiesc pe cele setate aici.</string>

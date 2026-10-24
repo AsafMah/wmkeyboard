@@ -431,7 +431,7 @@
     <string name="addon_use_target_theme_label">थीम्स</string>
     <string name="ai_chat_picture_desc">चित्र</string>
     <string name="ai_chat_picture_remove_desc">तस्वीर हटाएं</string>
-    <string name="app_name">WM कीबोर्ड</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google फ़ॉन्ट्स, या अपनी खुद की फ़ॉन्ट फ़ाइल आयात करें</string>
     <string name="appearance_font_title">कीबोर्ड फ़ॉन्ट</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">ब्रिज पर गोल बटन दबाएं, फिर तीस सेकंड के भीतर पेयर (Pair) पर टैप करें। ब्रिज कीबोर्ड को अपनी एक अलग की (key) देता है।</string>
     <string name="hue_paired">पेयर किया गया। ब्रिज का प्रमाणपत्र पिन किया गया है: इस पते पर किसी अन्य ब्रिज को अस्वीकार कर दिया जाएगा।</string>
     <string name="imagegen_module_title">स्टिकर जनरेटर</string>
-    <string name="ime_name">WM कीबोर्ड</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">यह एक Anki डेक है। ऐप इसे शब्दावली पैक में बदल देता है।</string>
     <string name="import_anki_title">क्या फ़्लैशकार्ड आयात करें?</string>
     <string name="import_api_keys_note">फ़ाइल में API कुंजियाँ हैं। वे उन कुंजियों को बदल देती हैं जिन्हें आपने यहाँ सेट किया है।</string>

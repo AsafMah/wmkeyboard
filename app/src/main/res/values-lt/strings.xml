@@ -430,7 +430,7 @@
     <string name="addon_use_target_theme_label">Temos</string>
     <string name="ai_chat_picture_desc">Paveikslėlis</string>
     <string name="ai_chat_picture_remove_desc">Pašalinti paveikslėlį</string>
-    <string name="app_name">WM klaviatūra</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">„Google Fonts“ arba importuokite savo šrifto failą</string>
     <string name="appearance_font_title">Klaviatūros šriftas</string>
     <plurals name="appearance_icons_changed_count">
@@ -2491,7 +2491,7 @@
     <string name="hue_pair_subtitle">Paspauskite apvalų tilto mygtuką, tada per trisdešimt sekundžių palieskite „Susieti“. Tiltas suteikia klaviatūrai savo raktą.</string>
     <string name="hue_paired">Suporuota. Tilto sertifikatas yra užfiksuotas: kitas tiltas šiuo adresu bus atmestas.</string>
     <string name="imagegen_module_title">Lipdukų generatorius</string>
-    <string name="ime_name">WM klaviatūra</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Tai „Anki“ kortelių rinkinys. Programa paverčia jį žodyno paketu.</string>
     <string name="import_anki_title">Importuoti atminties korteles?</string>
     <string name="import_api_keys_note">Faile yra API raktai. Jie pakeičia čia nustatytus raktus.</string>

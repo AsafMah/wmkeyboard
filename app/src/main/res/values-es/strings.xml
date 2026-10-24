@@ -431,7 +431,7 @@
     <string name="addon_use_target_theme_label">Temas</string>
     <string name="ai_chat_picture_desc">Imagen</string>
     <string name="ai_chat_picture_remove_desc">Eliminar la imagen</string>
-    <string name="app_name">Teclado WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, o importa tu propio archivo de fuente</string>
     <string name="appearance_font_title">Fuente del teclado</string>
     <plurals name="appearance_icons_changed_count">
@@ -2491,7 +2491,7 @@
     <string name="hue_pair_subtitle">Presiona el botón redondo en el puente, luego toca Emparejar en treinta segundos. El puente le da al teclado su propia clave.</string>
     <string name="hue_paired">Emparejado. El certificado del puente está anclado: se rechazará un puente diferente en esta dirección.</string>
     <string name="imagegen_module_title">Generador de pegatinas</string>
-    <string name="ime_name">Teclado WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Este es un mazo de Anki. La aplicación lo convierte en un paquete de vocabulario.</string>
     <string name="import_anki_title">¿Importar tarjetas de memoria?</string>
     <string name="import_api_keys_note">El archivo contiene claves API. Estas reemplazarán las claves que hayas configurado aquí.</string>

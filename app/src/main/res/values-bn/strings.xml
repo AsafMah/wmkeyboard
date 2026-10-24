@@ -430,7 +430,7 @@
     <string name="addon_use_target_theme_label">থিম</string>
     <string name="ai_chat_picture_desc">ছবি</string>
     <string name="ai_chat_picture_remove_desc">ছবিটি সরান</string>
-    <string name="app_name">WM কীবোর্ড</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google ফন্ট, অথবা আপনার নিজস্ব ফন্ট ফাইল ইম্পোর্ট করুন</string>
     <string name="appearance_font_title">কিবোর্ড ফন্ট</string>
     <plurals name="appearance_icons_changed_count">
@@ -2492,7 +2492,7 @@
     <string name="hue_pair_subtitle">ব্রিজে থাকা গোল বোতামটি চাপুন, তারপর ত্রিশ সেকেন্ডের মধ্যে পেয়ার ট্যাপ করুন। ব্রিজটি কিবোর্ডকে নিজস্ব একটি কি প্রদান করে।</string>
     <string name="hue_paired">পেয়ার করা হয়েছে। ব্রিজের সার্টিফিকেট পিন করা হয়েছে: এই ঠিকানায় অন্য কোনো ব্রিজ থাকলে তা প্রত্যাখ্যান করা হবে।</string>
     <string name="imagegen_module_title">স্টিকার জেনারেটর</string>
-    <string name="ime_name">WM কীবোর্ড</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">এটি একটি Anki ডেক। অ্যাপটি এটিকে একটি ভোকাবুলারি প্যাকে পরিণত করে।</string>
     <string name="import_anki_title">ফ্ল্যাশকার্ড ইম্পোর্ট করবেন?</string>
     <string name="import_api_keys_note">ফাইলটিতে এপিআই কী (API keys) আছে। এগুলো আপনার এখানে সেট করা কীগুলোকে প্রতিস্থাপন করবে।</string>

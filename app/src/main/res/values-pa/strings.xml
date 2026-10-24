@@ -430,7 +430,7 @@
     <string name="addon_use_target_theme_label">ਥੀਮ</string>
     <string name="ai_chat_picture_desc">ਤਸਵੀਰ</string>
     <string name="ai_chat_picture_remove_desc">ਤਸਵੀਰ ਹਟਾਓ</string>
-    <string name="app_name">WM ਕੀਬੋਰਡ</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, ਜਾਂ ਆਪਣੀ ਖੁਦ ਦੀ ਫੌਂਟ ਫਾਈਲ ਆਯਾਤ ਕਰੋ</string>
     <string name="appearance_font_title">ਕੀਬੋਰਡ ਫੌਂਟ</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">ਬ੍ਰਿਜ \'ਤੇ ਗੋਲ ਬਟਨ ਦਬਾਓ, ਫਿਰ ਤੀਹ ਸਕਿੰਟਾਂ ਦੇ ਅੰਦਰ ਪੇਅਰ (Pair) \'ਤੇ ਟੈਪ ਕਰੋ। ਬ੍ਰਿਜ ਕੀਬੋਰਡ ਨੂੰ ਆਪਣੀ ਇੱਕ ਵੱਖਰੀ ਕੁੰਜੀ ਦਿੰਦਾ ਹੈ।</string>
     <string name="hue_paired">ਪੇਅਰ ਕੀਤਾ ਗਿਆ। ਬ੍ਰਿਜ ਦਾ ਸਰਟੀਫਿਕੇਟ ਪਿੰਨ ਕੀਤਾ ਗਿਆ ਹੈ: ਇਸ ਪਤੇ \'ਤੇ ਕਿਸੇ ਵੱਖਰੇ ਬ੍ਰਿਜ ਨੂੰ ਅਸਵੀਕਾਰ ਕਰ ਦਿੱਤਾ ਜਾਵੇਗਾ।</string>
     <string name="imagegen_module_title">ਸਟਿੱਕਰ ਜਨਰੇਟਰ</string>
-    <string name="ime_name">WM ਕੀਬੋਰਡ</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">ਇਹ ਇੱਕ Anki ਡੈੱਕ ਹੈ। ਐਪ ਇਸਨੂੰ ਸ਼ਬਦਾਵਲੀ ਪੈਕ ਵਿੱਚ ਬਦਲ ਦਿੰਦੀ ਹੈ।</string>
     <string name="import_anki_title">ਫਲੈਸ਼ਕਾਰਡ ਇੰਪੋਰਟ ਕਰੀਏ?</string>
     <string name="import_api_keys_note">ਫਾਈਲ ਵਿੱਚ API ਕੁੰਜੀਆਂ ਹਨ। ਉਹ ਇੱਥੇ ਤੁਹਾਡੇ ਦੁਆਰਾ ਸੈੱਟ ਕੀਤੀਆਂ ਕੁੰਜੀਆਂ ਨੂੰ ਬਦਲ ਦਿੰਦੀਆਂ ਹਨ।</string>

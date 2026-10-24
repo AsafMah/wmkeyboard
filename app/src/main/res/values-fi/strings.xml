@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Teemat</string>
     <string name="ai_chat_picture_desc">Kuva</string>
     <string name="ai_chat_picture_remove_desc">Poista kuva</string>
-    <string name="app_name">WM-näppäimistö</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts tai tuo oma fonttitiedostosi</string>
     <string name="appearance_font_title">Näppäimistön fontti</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Paina sillan pyöreää painiketta ja napauta sitten Muodosta pari kolmenkymmenen sekunnin kuluessa. Silta antaa näppäimistölle oman avaimen.</string>
     <string name="hue_paired">Pariliitetty. Sillan varmenne on lukittu: eri siltaa tässä osoitteessa ei hyväksytä.</string>
     <string name="imagegen_module_title">Tarra-generaattori</string>
-    <string name="ime_name">WM-näppäimistö</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Tämä on Anki-pakka. Sovellus muuttaa sen sanastopaketiksi.</string>
     <string name="import_anki_title">Tuodaanko muistikortit?</string>
     <string name="import_api_keys_note">Tiedosto sisältää API-avaimia. Ne korvaavat täällä asettamasi avaimet.</string>

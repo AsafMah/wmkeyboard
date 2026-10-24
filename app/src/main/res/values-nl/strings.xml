@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">Thema\'s</string>
     <string name="ai_chat_picture_desc">Afbeelding</string>
     <string name="ai_chat_picture_remove_desc">Verwijder de afbeelding</string>
-    <string name="app_name">WM-toetsenbord</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, of importeer je eigen lettertypebestand</string>
     <string name="appearance_font_title">Toetsenbordlettertype</string>
     <plurals name="appearance_icons_changed_count">
@@ -2490,7 +2490,7 @@
     <string name="hue_pair_subtitle">Druk op de ronde knop op de bridge en tik binnen dertig seconden op Koppelen. De bridge geeft het toetsenbord een eigen sleutel.</string>
     <string name="hue_paired">Gekoppeld. Het certificaat van de bridge is vastgezet: een andere bridge op dit adres wordt geweigerd.</string>
     <string name="imagegen_module_title">Stickergenerator</string>
-    <string name="ime_name">WM Toetsenbord</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">Dit is een Anki-deck. De app verandert het in een vocabulairepakket.</string>
     <string name="import_anki_title">Flashcards importeren?</string>
     <string name="import_api_keys_note">Het bestand bevat API-sleutels. Deze vervangen de sleutels die je hier hebt ingesteld.</string>

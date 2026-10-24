@@ -433,7 +433,7 @@
     <string name="addon_use_target_theme_label">ಥೀಮ್‌ಗಳು</string>
     <string name="ai_chat_picture_desc">ಚಿತ್ರ</string>
     <string name="ai_chat_picture_remove_desc">ಚಿತ್ರವನ್ನು ತೆಗೆದುಹಾಕಿ</string>
-    <string name="app_name">WM ಕೀಬೋರ್ಡ್</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google ಫಾಂಟ್‌ಗಳು, ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ಫಾಂಟ್ ಫೈಲ್ ಅನ್ನು ಆಮದು ಮಾಡಿಕೊಳ್ಳಿ</string>
     <string name="appearance_font_title">ಕೀಬೋರ್ಡ್ ಫಾಂಟ್</string>
     <plurals name="appearance_icons_changed_count">
@@ -2494,7 +2494,7 @@
     <string name="hue_pair_subtitle">ಬ್ರಿಡ್ಜ್‌ನಲ್ಲಿರುವ ದುಂಡಗಿನ ಬಟನ್ ಒತ್ತಿ, ನಂತರ ಮೂವತ್ತು ಸೆಕೆಂಡುಗಳ ಒಳಗೆ \'ಜೋಡಿಸಿ\' ಟ್ಯಾಪ್ ಮಾಡಿ. ಬ್ರಿಡ್ಜ್ ಕೀಬೋರ್ಡ್‌ಗೆ ತನ್ನದೇ ಆದ ಕೀಯನ್ನು ನೀಡುತ್ತದೆ.</string>
     <string name="hue_paired">ಜೋಡಿಸಲಾಗಿದೆ. ಬ್ರಿಡ್ಜ್‌ನ ಪ್ರಮಾಣಪತ್ರವನ್ನು ಪಿನ್ ಮಾಡಲಾಗಿದೆ: ಈ ವಿಳಾಸದಲ್ಲಿರುವ ಬೇರೆ ಬ್ರಿಡ್ಜ್ ಅನ್ನು ನಿರಾಕರಿಸಲಾಗುತ್ತದೆ.</string>
     <string name="imagegen_module_title">ಸ್ಟಿಕ್ಕರ್ ಜನರೇಟರ್</string>
-    <string name="ime_name">WM ಕೀಬೋರ್ಡ್</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">ಇದು Anki ಡೆಕ್ ಆಗಿದೆ. ಆ್ಯಪ್ ಇದನ್ನು ಶಬ್ದಕೋಶದ ಪ್ಯಾಕ್ ಆಗಿ ಪರಿವರ್ತಿಸುತ್ತದೆ.</string>
     <string name="import_anki_title">ಫ್ಲ್ಯಾಶ್‌ಕಾರ್ಡ್‌ಗಳನ್ನು ಆಮದು ಮಾಡಿಕೊಳ್ಳಬೇಕೆ?</string>
     <string name="import_api_keys_note">ಫೈಲ್ API ಕೀಗಳನ್ನು ಹೊಂದಿದೆ. ಅವು ನೀವು ಇಲ್ಲಿ ಹೊಂದಿಸಿರುವ ಕೀಗಳನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ.</string>

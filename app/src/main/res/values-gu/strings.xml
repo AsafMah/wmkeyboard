@@ -429,7 +429,7 @@
     <string name="addon_use_target_theme_label">થીમ્સ</string>
     <string name="ai_chat_picture_desc">ચિત્ર</string>
     <string name="ai_chat_picture_remove_desc">ચિત્ર દૂર કરો</string>
-    <string name="app_name">WM કીબોર્ડ</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts, અથવા તમારી પોતાની ફોન્ટ ફાઇલ આયાત કરો</string>
     <string name="appearance_font_title">કીબોર્ડ ફોન્ટ</string>
     <plurals name="appearance_icons_changed_count">
@@ -2488,7 +2488,7 @@
     <string name="hue_pair_subtitle">બ્રિજ પરના ગોળ બટનને દબાવો, પછી ત્રીસ સેકન્ડની અંદર પેર (Pair) પર ટેપ કરો. બ્રિજ કીબોર્ડને પોતાની એક કી આપશે.</string>
     <string name="hue_paired">જોડાયેલ છે. બ્રિજનું પ્રમાણપત્ર પિન કરેલું છે: આ સરનામે અલગ બ્રિજને નકારવામાં આવશે.</string>
     <string name="imagegen_module_title">સ્ટીકર જનરેટર</string>
-    <string name="ime_name">WM કીબોર્ડ</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">આ એક Anki ડેક છે. એપ તેને શબ્દભંડોળ પેકમાં ફેરવે છે.</string>
     <string name="import_anki_title">ફ્લેશકાર્ડ્સ આયાત કરવા છે?</string>
     <string name="import_api_keys_note">ફાઇલમાં API કી છે. તે તમે અહીં સેટ કરેલી કીને બદલી નાખે છે.</string>

@@ -431,7 +431,7 @@
     <string name="addon_use_target_theme_label">السمات</string>
     <string name="ai_chat_picture_desc">صورة</string>
     <string name="ai_chat_picture_remove_desc">إزالة الصورة</string>
-    <string name="app_name">لوحة مفاتيح WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">خطوط Google، أو استيراد ملف الخط الخاص بك</string>
     <string name="appearance_font_title">خط لوحة المفاتيح</string>
     <plurals name="appearance_icons_changed_count">
@@ -2492,7 +2492,7 @@
     <string name="hue_pair_subtitle">اضغط على الزر المستدير الموجود على الجسر، ثم اضغط على \"إقران\" خلال ثلاثين ثانية. سيقوم الجسر بمنح لوحة المفاتيح مفتاحاً خاصاً بها.</string>
     <string name="hue_paired">تم الاقتران. شهادة الجسر مثبتة: سيتم رفض أي جسر مختلف على هذا العنوان.</string>
     <string name="imagegen_module_title">مولد الملصقات</string>
-    <string name="ime_name">لوحة مفاتيح WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">هذه مجموعة بطاقات Anki. سيقوم التطبيق بتحويلها إلى حزمة مفردات.</string>
     <string name="import_anki_title">استيراد البطاقات التعليمية؟</string>
     <string name="import_api_keys_note">يحتوي الملف على مفاتيح API. ستحل محل المفاتيح التي قمت بتعيينها هنا.</string>

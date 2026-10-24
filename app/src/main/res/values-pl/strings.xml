@@ -428,7 +428,7 @@
     <string name="addon_use_target_theme_label">Motywy</string>
     <string name="ai_chat_picture_desc">Zdjęcie</string>
     <string name="ai_chat_picture_remove_desc">Usuń zdjęcie</string>
-    <string name="app_name">Klawiatura WM</string>
+    <string name="app_name">wmpersonal</string>
     <string name="appearance_font_subtitle">Google Fonts lub zaimportuj własny plik czcionki</string>
     <string name="appearance_font_title">Czcionka klawiatury</string>
     <plurals name="appearance_icons_changed_count">
@@ -2489,7 +2489,7 @@
     <string name="hue_pair_subtitle">Naciśnij okrągły przycisk na mostku, a następnie dotknij „Sparuj” w ciągu trzydziestu sekund. Mostek przekaże klawiaturze własny klucz.</string>
     <string name="hue_paired">Sparowano. Certyfikat mostka jest przypięty: inny mostek pod tym adresem zostanie odrzucony.</string>
     <string name="imagegen_module_title">Generator naklejek</string>
-    <string name="ime_name">Klawiatura WM</string>
+    <string name="ime_name">wmpersonal</string>
     <string name="import_anki_body">To jest talia Anki. Aplikacja przekształca ją w pakiet słownictwa.</string>
     <string name="import_anki_title">Zaimportować fiszki?</string>
     <string name="import_api_keys_note">Plik zawiera klucze API. Zastępują one klucze ustawione tutaj.</string>
