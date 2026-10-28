@@ -102,4 +102,32 @@
     <string name="shell_debug_log_level_warn_label">Warn</string>
     <string name="shell_debug_log_level_error_label">Error</string>
 
+    <!-- Enter incident recorder (Debug log screen) -->
+    <string name="shell_enter_incident_title">Enter incident recorder</string>
+    <string name="shell_enter_incident_info">For the keyboard closing when you press Enter. While it is on, the keyboard keeps a short on-phone trace of what happens around Enter: which route the press took, what the app answered, focus and hide events, window size and direction, and touches on the bottom row and screen edges. It never records the letters you type, the text in the field, word touches or screenshots. It does record which app had focus (for example com.whatsapp). It turns itself off after 7 days. After the keyboard closes on you, save an incident right away, then share the file.</string>
+    <string name="shell_enter_incident_toggle_title">Record Enter incidents</string>
+    <string name="shell_enter_incident_toggle_on">On until %1$s</string>
+    <string name="shell_enter_incident_toggle_off">Off</string>
+    <string name="shell_enter_incident_status">%1$d lines kept (%2$d KB), %3$d saved incidents</string>
+    <string name="shell_enter_incident_save_title">Save Enter incident</string>
+    <string name="shell_enter_incident_save_subtitle">Freezes the trace into a file, and copies it to Download/WMKeyboard. The newest 5 are kept in each place.</string>
+    <string name="shell_enter_incident_share_title">Share latest incident</string>
+    <string name="shell_enter_incident_share_subtitle">Sends the newest saved incident file</string>
+    <string name="shell_enter_incident_share_none">No saved incident yet</string>
+    <string name="shell_enter_incident_pin_title">Add Save incident to home screen</string>
+    <string name="shell_enter_incident_pin_subtitle">Or add the \"Save Enter incident\" tile in Quick Settings, which works without leaving the chat</string>
+    <string name="shell_enter_incident_clear_title">Delete recorded trace</string>
+    <string name="shell_enter_incident_clear_subtitle">Deletes the trace, the saved incidents and the copies this install put in Download/WMKeyboard. Files you moved or shared elsewhere, and copies left by an earlier install, stay.</string>
+    <string name="shell_enter_incident_cleared">Enter recorder trace deleted</string>
+    <string name="shell_enter_incident_shortcut_short">Save Enter incident</string>
+    <string name="shell_enter_incident_saved">Enter incident saved</string>
+    <string name="shell_enter_incident_saved_download">Enter incident saved to Download/%1$s</string>
+    <string name="shell_enter_incident_saved_off">Saved, but the Enter recorder is off, so there is little in it</string>
+    <string name="shell_enter_incident_saved_recently">Already saved a moment ago</string>
+    <string name="shell_enter_incident_save_failed">Could not save the Enter incident: %1$s</string>
+    <string name="shell_enter_incident_saved_no_download">Enter incident saved on the phone, but not copied to Download: %1$s</string>
+    <string name="shell_enter_incident_error">Storage problem: %1$s. Recording may be incomplete.</string>
+    <string name="shell_enter_incident_lost">%1$d lines lost to a full write queue, %2$d failed writes</string>
+    <string name="shell_enter_incident_toggle_not_saved">Could not save the switch; it stays on only until the keyboard restarts</string>
+    <string name="shell_enter_incident_clear_failed">Some recorder files could not be deleted</string>
 </resources>

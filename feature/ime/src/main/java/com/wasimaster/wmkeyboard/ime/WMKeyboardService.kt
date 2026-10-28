@@ -397,6 +397,8 @@ import com.wasimaster.wmkeyboard.core.settings.onMeteredNetwork
 import com.wasimaster.wmkeyboard.core.power.PowerSaver
 import com.wasimaster.wmkeyboard.core.net.NetworkWatcher
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.debug.EnterIncidentRecorder
+import com.wasimaster.wmkeyboard.core.debug.IncidentEvent
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.applyDeviceForm
@@ -4427,6 +4429,8 @@ open class WMKeyboardService : InputMethodService() {
         // keyboard without a word to the user, so the crash record has to be
         // armed before anything that could crash runs.
         DebugLog.attach(this)
+        EnterIncidentRecorder.attach(this)
+        EnterIncidentProbe.note(IncidentEvent.SERVICE_CREATE)
         // The keyboard's own strings in a language the standard GitHub build
         // downloaded (LanguagePackResources); nothing on other builds.
         com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.attach(resources)
@@ -4439,6 +4443,9 @@ open class WMKeyboardService : InputMethodService() {
         // below Android 15 and does not from 15, so the keyboard had to guess
         // which, and every guess broke on some phone.
         window.window?.let { WindowCompat.setDecorFitsSystemWindows(it, false) }
+        window.window?.let { imeWindow ->
+            EnterIncidentProbe.install(imeWindow, { inputRootView }, { _uiState.value.language.id })
+        }
 
         userUnlocked = DirectBoot.isUserUnlocked(this)
         DebugLog.i("ime", "service created (unlocked=$userUnlocked)")
@@ -7243,6 +7250,7 @@ open class WMKeyboardService : InputMethodService() {
      * this way, and those are the ones pinning exists to override.
      */
     override fun requestHideSelf(flags: Int) {
+        EnterIncidentProbe.hide(IncidentEvent.REQUEST_HIDE_SELF, "flags" to flags)
         if (_uiState.value.settings.persistentKeyboard) pinSuspended = true
         clearSummon()
         super.requestHideSelf(flags)
@@ -7428,6 +7436,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        EnterIncidentProbe.editor(IncidentEvent.START_INPUT, attribute, restarting)
         super.onStartInput(attribute, restarting)
         inputStarts++
         // Runs for every field even while the soft view stays hidden
@@ -7617,6 +7626,7 @@ open class WMKeyboardService : InputMethodService() {
         trace(ImeTrace.START_INPUT_VIEW) { startInputView(info, restarting) }
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
+        EnterIncidentProbe.editor(IncidentEvent.START_INPUT_VIEW, info, restarting)
         super.onStartInputView(info, restarting)
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
@@ -9101,6 +9111,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowShown() {
         super.onWindowShown()
+        EnterIncidentProbe.note(IncidentEvent.WINDOW_SHOWN)
+        EnterIncidentProbe.views(window?.window, inputRootView, _uiState.value.language.id)
         onScreenAgain()
         onKeyguardGone()
         lifecycleOwner.onResume()
@@ -9115,6 +9127,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowHidden() {
         super.onWindowHidden()
+        EnterIncidentProbe.note(IncidentEvent.WINDOW_HIDDEN)
         // Off screen: a screenshot from now on has no keyboard in it (#234).
         noteBoardTop(0)
         // Nothing to draw from here until the window comes back, so the
@@ -9136,6 +9149,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        EnterIncidentProbe.note(IncidentEvent.FINISH_INPUT_VIEW, "finishingInput" to finishingInput)
         // Before the base class lets go of the connection: the address is
         // read off the field that is closing.
         rememberTypedEmail()
@@ -9318,7 +9332,25 @@ open class WMKeyboardService : InputMethodService() {
         reshowPinned()
     }
 
+    /** Only noted for the Enter incident trace; the hide itself is the platform's. */
+    override fun hideWindow() {
+        EnterIncidentProbe.hide(IncidentEvent.HIDE_WINDOW, "shown" to isInputViewShown)
+        super.hideWindow()
+    }
+
+    override fun onFinishInput() {
+        EnterIncidentProbe.note(IncidentEvent.FINISH_INPUT)
+        super.onFinishInput()
+    }
+
+    override fun onShowInputRequested(flags: Int, configChange: Boolean): Boolean {
+        val show = super.onShowInputRequested(flags, configChange)
+        EnterIncidentProbe.note(IncidentEvent.SHOW_REQUESTED, "flags" to flags, "configChange" to configChange, "show" to show)
+        return show
+    }
+
     override fun onDestroy() {
+        EnterIncidentProbe.note(IncidentEvent.SERVICE_DESTROY)
         DebugLog.i("ime", "service destroyed")
         holdMediaFocus(false)
         // The controls promise a keyboard to come back to; without one running
@@ -9743,7 +9775,24 @@ open class WMKeyboardService : InputMethodService() {
 
     // No vibrate() here: press-time haptics fire from the UI's pointer-down
     // callback (onKeyPressed) so feedback lands on touch, not on release.
-    fun onKey(key: Key) = trace(ImeTrace.KEY) { if (!deferBehindDuet(key)) handleKey(key) }
+    fun onKey(key: Key) = trace(ImeTrace.KEY) {
+        val deferred = deferBehindDuet(key)
+        if (EnterIncidentProbe.on()) enterActionName(key)?.let { EnterIncidentProbe.enterKey(it, deferred) }
+        if (!deferred) handleKey(key)
+    }
+
+    /** The name of [key]'s action when it is one of Enter's, for the Enter incident trace. */
+    private fun enterActionName(key: Key): String? = when (val action = key.action) {
+        KeyAction.Enter -> "Enter"
+        KeyAction.Newline -> "Newline"
+        KeyAction.EditorAction -> "EditorAction"
+        is KeyAction.SendKey -> when {
+            action.isShiftEnter() -> "ShiftEnter"
+            action.keyCode == KeyEvent.KEYCODE_ENTER -> "SendEnter"
+            else -> null
+        }
+        else -> null
+    }
 
     /**
      * Keys pressed while a two-thumb word's latest gesture is still being
@@ -16291,14 +16340,21 @@ open class WMKeyboardService : InputMethodService() {
         setNoSpaceArmed(false)
         // Enter belongs to whichever keyboard-owned field has the keys, and
         // never to the app behind the panel.
-        if (captureEnter()) return
-        val ic = currentInputConnection ?: return
+        if (captureEnter()) {
+            EnterIncidentProbe.route("capture")
+            return
+        }
+        val ic = currentInputConnection?.let(EnterIncidentProbe::enterConnection) ?: run {
+            EnterIncidentProbe.route("noConnection")
+            return
+        }
         // A conversion reading still waiting: Enter confirms it as typed, and
         // that is all it does — the hiragana or the letters, no candidate, no
         // newline, no send (#514, #515). Space and a tapped candidate convert.
         // Unless a candidate has been highlighted with the arrow keys or a
         // stepping space bar, in which case Enter is what picks it (#419).
         if (composing.isNotEmpty() && state.composer.isConversion) {
+            EnterIncidentProbe.route("conversion")
             if (!commitHighlightedCandidate()) commitConversionAsTyped(ic)
             return
         }
@@ -16309,6 +16365,7 @@ open class WMKeyboardService : InputMethodService() {
         // Unless the user asked Enter to leave the word alone (#457): a query
         // sent with Enter is sent before the correction can be read.
         recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        val hadComposing = composing.isNotEmpty()
         commitComposing(
             ic,
             autocorrect = state.settings.correction.enabledFor(state.language.id) &&
@@ -16324,6 +16381,7 @@ open class WMKeyboardService : InputMethodService() {
         // expansion would break the text the snippet just inserted.
         if (swallowTerminatorAfterCommit) {
             swallowTerminatorAfterCommit = false
+            EnterIncidentProbe.route("swallowedAfterExpansion", "hadComposing" to hadComposing)
             return
         }
         // Shift held over Enter overrides the field's action: in a chat app the
@@ -16341,6 +16399,7 @@ open class WMKeyboardService : InputMethodService() {
         // item it ends the list, and that is all this Enter does.
         val listStep = if (action == null) listStepAtCaret(ic, state) else null
         if (listStep is ListContinuation.Step.End) {
+            EnterIncidentProbe.route("listEnd", "hadComposing" to hadComposing)
             ic.deleteSurroundingText(listStep.length, 0)
             maybeAutoCapitalize()
             return
@@ -16354,6 +16413,10 @@ open class WMKeyboardService : InputMethodService() {
             previousWord3 = null
         }
         if (action != null) {
+            EnterIncidentProbe.route(
+                "editorAction", "actionId" to action, "fromAppLabel" to (appEnterAction != null),
+                "hadComposing" to hadComposing,
+            )
             ic.performEditorAction(action)
             // The action is the app's to answer, and a message box answers it by
             // emptying itself. Neither the cached caret nor the words the
@@ -16369,6 +16432,7 @@ open class WMKeyboardService : InputMethodService() {
             // KEYCODE_ENTER on one of those by firing the editor action — so the
             // raw event sent the WhatsApp message the override had just decided
             // not to send. commitText has nothing to intercept it.
+            EnterIncidentProbe.route("shiftNewline", "actionId" to fieldAction, "hadComposing" to hadComposing)
             typeNewline(ic)
             listMarker?.let { ic.commitText(it, 1) }
             // The shift deliberately survives, unlike the letter case that
@@ -16392,6 +16456,7 @@ open class WMKeyboardService : InputMethodService() {
             // the on-screen key breaks the line — which is what Discord and
             // every desktop chat client do — is entitled to keep telling them
             // apart.
+            EnterIncidentProbe.route("committedNewline", "hadComposing" to hadComposing)
             typeNewline(ic)
             listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
@@ -16407,8 +16472,10 @@ open class WMKeyboardService : InputMethodService() {
             // "\n" is the bare one to all of them. A plain multi-line EditText
             // types the same newline either way.
             if (shifted) {
+                EnterIncidentProbe.route("shiftedEnterKeyEvent", "hadComposing" to hadComposing)
                 sendShiftedEnter(ic)
             } else {
+                EnterIncidentProbe.route("enterKeyEvent", "hadComposing" to hadComposing)
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
             }
@@ -16500,7 +16567,11 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onNewline() {
-        val ic = currentInputConnection ?: return
+        val ic = currentInputConnection?.let(EnterIncidentProbe::enterConnection) ?: run {
+            EnterIncidentProbe.route("newlineNoConnection")
+            return
+        }
+        EnterIncidentProbe.route("newlineKey")
         recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
         val state = _uiState.value
         val settings = state.settings
@@ -50478,6 +50549,7 @@ open class WMKeyboardService : InputMethodService() {
         val dispatcher = window?.window?.onBackInvokedDispatcher ?: return
         if (backHasLayer && panelBackCallback == null) {
             val callback = android.window.OnBackInvokedCallback {
+                EnterIncidentProbe.note(IncidentEvent.BACK_CALLBACK)
                 if (!dismissTopLayer(fromBack = true)) onPinnedBack()
             }
             dispatcher.registerOnBackInvokedCallback(
@@ -50650,7 +50722,10 @@ open class WMKeyboardService : InputMethodService() {
      * Consume the DOWN too so the app underneath never sees half an event
      * stream.
      */
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        handleKeyDownEvent(keyCode, event).also { EnterIncidentProbe.systemKey(event, it, isInputViewShown) }
+
+    private fun handleKeyDownEvent(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && (backClosesLayer() || floatingMenuOpen.value)) {
             return true
         }
@@ -50737,7 +50812,10 @@ open class WMKeyboardService : InputMethodService() {
         if (typing) setHardwareKeysShown(false)
     }
 
-    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        handleKeyUpEvent(keyCode, event).also { EnterIncidentProbe.systemKey(event, it, isInputViewShown) }
+
+    private fun handleKeyUpEvent(keyCode: Int, event: KeyEvent): Boolean {
         // Before the swallow below, which would eat it: this is where a ring
         // press types, and the key it releases is one the DOWN consumed.
         if (handleKeyGridNavKeyUp(event)) {

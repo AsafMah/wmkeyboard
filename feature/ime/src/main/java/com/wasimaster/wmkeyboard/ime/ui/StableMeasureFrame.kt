@@ -300,6 +300,7 @@ internal class StableMeasureFrame(
     override fun dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
         navigationBars?.update(insets, this)
         logInsets(insets)
+        com.wasimaster.wmkeyboard.ime.EnterIncidentProbe.insets(insets, this)
         return super.dispatchApplyWindowInsets(insets)
     }
 

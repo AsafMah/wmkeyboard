@@ -29,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.core.content.FileProvider
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.debug.EnterIncidentRecorder
 import com.wasimaster.wmkeyboard.core.debug.LogEntry
 import com.wasimaster.wmkeyboard.core.debug.LogLevel
 import kotlinx.coroutines.Dispatchers
@@ -137,6 +139,8 @@ internal fun DebugLogScreen() {
             ) { showSystemLog = it }
         }
     }
+
+    EnterIncidentGroup()
 
     // Only in a build made with -Pwmkb.enableCrashScreen=true. The row is here
     // rather than hidden behind a gesture because the whole point of such a
@@ -445,4 +449,112 @@ private fun shareReport(context: Context, includeSystemLog: Boolean, systemLog: 
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     AppShareSheet.start(context, intent, context.getString(R.string.shell_debug_log_share_title))
+}
+
+/**
+ * The Enter incident recorder's switch and its save/share/delete rows. The
+ * recorder itself lives in core so the keyboard service can write to it.
+ */
+@Composable
+private fun EnterIncidentGroup() {
+    val context = LocalContext.current
+    val recording by EnterIncidentRecorder.enabled.collectAsState()
+    val storageError by EnterIncidentRecorder.error.collectAsState()
+    var revision by remember { mutableIntStateOf(0) }
+    val status by produceState<EnterIncidentRecorder.Status?>(null, recording, revision) {
+        value = withContext(Dispatchers.IO) {
+            EnterIncidentRecorder.attach(context)
+            EnterIncidentRecorder.status()
+        }
+    }
+    SettingsGroup(
+        stringResource(R.string.shell_enter_incident_title),
+        info = stringResource(R.string.shell_enter_incident_info),
+    ) {
+        item {
+            val until = status?.until ?: 0L
+            ToggleSetting(
+                R.string.shell_enter_incident_toggle_title,
+                if (recording && until > 0L) {
+                    stringResource(
+                        R.string.shell_enter_incident_toggle_on,
+                        SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(java.util.Date(until)),
+                    )
+                } else {
+                    stringResource(R.string.shell_enter_incident_toggle_off)
+                },
+                recording,
+            ) {
+                if (!EnterIncidentRecorder.setEnabled(context, it) && it) {
+                    Toast.makeText(context, R.string.shell_enter_incident_toggle_not_saved, Toast.LENGTH_LONG).show()
+                }
+                revision++
+            }
+        }
+        status?.let { s ->
+            item {
+                CaptionText(
+                    stringResource(
+                        R.string.shell_enter_incident_status,
+                        s.lineCount,
+                        (s.bytes / 1024).toInt(),
+                        s.incidents,
+                    ),
+                )
+            }
+            if (s.lostLines > 0 || s.writeFailures > 0) {
+                item { CaptionText(stringResource(R.string.shell_enter_incident_lost, s.lostLines, s.writeFailures)) }
+            }
+        }
+        storageError?.let { message ->
+            item { CaptionText(stringResource(R.string.shell_enter_incident_error, message)) }
+        }
+        item {
+            NavRow(
+                R.string.shell_enter_incident_save_title,
+                stringResource(R.string.shell_enter_incident_save_subtitle),
+            ) {
+                val message = EnterIncidentExport.saveWithMessage(context, "settings")
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                revision++
+            }
+        }
+        item {
+            NavRow(
+                R.string.shell_enter_incident_share_title,
+                stringResource(R.string.shell_enter_incident_share_subtitle),
+            ) {
+                val latest = EnterIncidentExport.latest(context)
+                if (latest == null) {
+                    Toast.makeText(context, R.string.shell_enter_incident_share_none, Toast.LENGTH_SHORT).show()
+                } else {
+                    EnterIncidentExport.share(context, latest)
+                }
+            }
+        }
+        item {
+            NavRow(
+                R.string.shell_enter_incident_pin_title,
+                stringResource(R.string.shell_enter_incident_pin_subtitle),
+            ) {
+                if (!EnterIncidentExport.pinShortcut(context)) {
+                    Toast.makeText(context, R.string.home_shortcut_unsupported, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        item {
+            NavRow(
+                R.string.shell_enter_incident_clear_title,
+                stringResource(R.string.shell_enter_incident_clear_subtitle),
+            ) {
+                val cleared = EnterIncidentExport.clearAll(context)
+                Toast.makeText(
+                    context,
+                    if (cleared) R.string.shell_enter_incident_cleared else R.string.shell_enter_incident_clear_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                revision++
+            }
+        }
+    }
 }
