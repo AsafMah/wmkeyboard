@@ -64,6 +64,11 @@ class ImeNavigationBars {
      * to stay as high as before over an empty band (#681). While the caption
      * bar is hidden its height comes off the bottom, down to the strip the
      * home gesture still needs.
+     *
+     * While the caption bar is shown it is never less than its height: One UI
+     * reports the navigation bar as 0 with the keyboard bar a visible 168px
+     * caption bar, and the keys laid under it lost their lower part to the
+     * bar's hide button, a tap on Enter hiding the keyboard instead.
      */
     fun update(insets: android.view.WindowInsets, view: View) {
         val compat = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
@@ -77,8 +82,15 @@ class ImeNavigationBars {
             val gestures = compat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom
             maxOf(bars.bottom - captionBar, gestures).coerceAtMost(bars.bottom)
         } else {
-            bars.bottom
+            maxOf(bars.bottom, shownKeyboardBarHeight(compat))
         }
+    }
+
+    /** The height of the system's keyboard bar while it is shown, else 0. */
+    private fun shownKeyboardBarHeight(insets: WindowInsetsCompat): Int {
+        val captionBar = WindowInsetsCompat.Type.captionBar()
+        if (!insets.isVisible(captionBar)) return 0
+        return insets.getInsets(captionBar).bottom
     }
 
     /** The height of the system's keyboard bar while it is hidden, else 0. */
