@@ -9789,6 +9789,7 @@ open class WMKeyboardService : InputMethodService() {
         is KeyAction.SendKey -> when {
             action.isShiftEnter() -> "ShiftEnter"
             action.keyCode == KeyEvent.KEYCODE_ENTER -> "SendEnter"
+            action.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER -> "SendNumpadEnter"
             else -> null
         }
         else -> null
@@ -10212,12 +10213,20 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun sendShortcut(key: Key, modifiers: Modifiers): Boolean {
-        val ic = currentInputConnection ?: return false
+        val raw = currentInputConnection ?: return false
         val state = _uiState.value
         val shift = state.shiftState != ShiftState.OFF
 
         val action = key.action
         val explicit = action as? KeyAction.SendKey
+        // A layout's own Enter key: its editor calls go in the Enter recorder;
+        // no other shortcut is traced.
+        val ic = if (explicit?.keyCode == KeyEvent.KEYCODE_ENTER || explicit?.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) {
+            EnterIncidentProbe.route("sendShortcut", "keyCode" to explicit.keyCode, "meta" to explicit.meta)
+            EnterIncidentProbe.enterConnection(raw)
+        } else {
+            raw
+        }
 
         // Ctrl+A/C/V/X have a first-class InputConnection route that works in
         // WebViews and Compose text fields, where a raw Ctrl+C reaches nothing.

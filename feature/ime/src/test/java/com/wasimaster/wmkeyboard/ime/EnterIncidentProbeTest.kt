@@ -43,6 +43,7 @@ class EnterIncidentProbeTest {
     @Before
     fun setUp() {
         context = RuntimeEnvironment.getApplication()
+        EnterIncidentProbe.resetForTest()
         EnterIncidentRecorder.setEnabled(context, false)
         EnterIncidentRecorder.clear()
     }
@@ -163,6 +164,37 @@ class EnterIncidentProbeTest {
     }
 
     @Test
+    fun `turning the recorder on takes effect on the same connection at the next Enter`() {
+        val editor = RecordingEditor()
+        val field = info(InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_SEND)
+        pressEnter(editor, field)
+        assertTrue(recorded().isEmpty())
+        EnterIncidentRecorder.setEnabled(context, true)
+        pressEnter(editor, field)
+        assertEquals(listOf(EditorInfo.IME_ACTION_SEND, EditorInfo.IME_ACTION_SEND), editor.editorActions)
+        val lines = recorded()
+        assertTrue(lines.toString(), lines.contains("IC op=performEditorAction phase=before actionId=${EditorInfo.IME_ACTION_SEND}"))
+    }
+
+    @Test
+    fun `a layout's own Enter key notes its route and the key events around each call`() {
+        val editor = RecordingEditor()
+        EnterIncidentRecorder.setEnabled(context, true)
+        pressEnter(
+            editor,
+            info(InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_NONE),
+            KeyAction.SendKey(KeyEvent.KEYCODE_NUMPAD_ENTER),
+        )
+        val lines = recorded()
+        assertTrue(lines.toString(), lines.first() == "ENTER_KEY action=SendNumpadEnter deferred=false")
+        assertTrue(lines.toString(), lines.contains("ENTER_ROUTE route=sendShortcut keyCode=${KeyEvent.KEYCODE_NUMPAD_ENTER} meta=0"))
+        val before = lines.filter { it.startsWith("IC op=sendKeyEvent phase=before") }
+        assertTrue(lines.toString(), before.isNotEmpty())
+        assertTrue(lines.toString(), before.all { it.contains(" key=NUMPAD_ENTER ") })
+        assertTrue(lines.toString(), lines.any { it.startsWith("IC op=sendKeyEvent phase=after result=") })
+    }
+
+    @Test
     fun `other keys sent through the wrapper are not named`() {
         val editor = RecordingEditor()
         EnterIncidentRecorder.setEnabled(context, true)
@@ -179,5 +211,62 @@ class EnterIncidentProbeTest {
         assertTrue(EnterIncidentProbe.inZone(50f, 1900f, 1000, 1000, 2000))
         assertFalse(EnterIncidentProbe.inZone(500f, 1900f, 1000, 1000, 2000))
         assertFalse(EnterIncidentProbe.inZone(950f, 1300f, 1000, 1000, 2000))
+    }
+
+    private fun touches() = EnterIncidentRecorder.lines()
+        .map { it.split(' ').drop(5).joinToString(" ") }
+        .filter { it.startsWith("TOUCH ") }
+
+    private fun cornerTap(downTime: Long = android.os.SystemClock.uptimeMillis()) {
+        EnterIncidentProbe.keyTouch(downTime, true, arrayOf("action" to "DOWN", "x" to 950, "downTime" to downTime))
+        EnterIncidentProbe.keyTouch(downTime, false, arrayOf("action" to "UP", "x" to 951, "downTime" to downTime))
+    }
+
+    @Test
+    fun `a corner touch that no Enter or hide follows is never written`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        cornerTap()
+        EnterIncidentProbe.note(com.wasimaster.wmkeyboard.core.debug.IncidentEvent.START_INPUT)
+        assertTrue(touches().toString(), touches().isEmpty())
+    }
+
+    @Test
+    fun `a corner touch is written when an Enter press follows it`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        val down = android.os.SystemClock.uptimeMillis()
+        cornerTap(down)
+        EnterIncidentProbe.enterKey("Enter", false)
+        // A line of the same gesture after the release goes straight in.
+        EnterIncidentProbe.keyTouch(down, false, arrayOf("phase" to "after", "downTime" to down))
+        assertEquals(
+            listOf(
+                "TOUCH action=DOWN x=950 downTime=$down held=true",
+                "TOUCH action=UP x=951 downTime=$down held=true",
+                "TOUCH phase=after downTime=$down held=true",
+            ),
+            touches(),
+        )
+    }
+
+    @Test
+    fun `a corner touch long before the Enter press is dropped`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        cornerTap()
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofSeconds(1))
+        EnterIncidentProbe.enterKey("Enter", false)
+        assertTrue(touches().toString(), touches().isEmpty())
+    }
+
+    @Test
+    fun `no touch is written in a password field even when Enter follows`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        EnterIncidentProbe.editor(
+            com.wasimaster.wmkeyboard.core.debug.IncidentEvent.START_INPUT_VIEW,
+            info(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD, EditorInfo.IME_ACTION_DONE),
+            false,
+        )
+        cornerTap()
+        EnterIncidentProbe.enterKey("Enter", false)
+        assertTrue(touches().toString(), touches().isEmpty())
     }
 }

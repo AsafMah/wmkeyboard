@@ -132,16 +132,32 @@ internal object EnterIncidentExport {
         val publicCleared = runCatching {
             publishedCopies(context).all { (_, uri) -> context.contentResolver.delete(uri, null, null) > 0 }
         }.getOrDefault(false)
-        return privateCleared && publicCleared
+        val stagingCleared = runCatching {
+            File(context.cacheDir, SHARE_STAGING).let { !it.exists() || it.deleteRecursively() }
+        }.getOrDefault(false)
+        if (!publicCleared || !stagingCleared) {
+            Log.w(EnterIncidentRecorder.LOG_TAG, "clear: downloads=$publicCleared shareCopy=$stagingCleared")
+        }
+        return privateCleared && publicCleared && stagingCleared
     }
 
-    fun share(context: Context, file: File) {
-        val uri = runCatching {
-            val dir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
+    private const val SHARE_STAGING = "diagnostics/enter-incident"
+
+    /**
+     * Shares [file] through a single staging copy: earlier staged incidents are
+     * replaced, not piled up in the cache. Null on success, otherwise what failed.
+     */
+    fun share(context: Context, file: File): String? {
+        val uri = try {
+            val dir = File(context.cacheDir, SHARE_STAGING).apply { mkdirs() }
+            dir.listFiles()?.filter { it.name.startsWith("enter-incident-") && it.name != file.name }?.forEach { it.delete() }
             val copy = File(dir, file.name)
             file.copyTo(copy, overwrite = true)
             FileProvider.getUriForFile(context, "${context.packageName}.clipboard", copy)
-        }.getOrNull() ?: return
+        } catch (e: Exception) {
+            Log.w(EnterIncidentRecorder.LOG_TAG, "could not stage the incident for sharing", e)
+            return e.javaClass.simpleName
+        }
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -149,6 +165,7 @@ internal object EnterIncidentExport {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         AppShareSheet.start(context, intent, context.getString(R.string.shell_enter_incident_share_title))
+        return null
     }
 
     /** Asks the launcher for a home-screen icon that saves an incident; false if it cannot. */

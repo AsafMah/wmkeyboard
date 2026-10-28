@@ -159,6 +159,53 @@ class EnterIncidentRecorderTest {
     }
 
     @Test
+    fun `an interrupted switch write keeps the previous switch`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        // Fails between writing the new bytes and committing them, as a kill mid-write would.
+        EnterIncidentRecorder.faultForTest = { op -> if (op == "state") throw java.io.IOException("killed") }
+        assertFalse(EnterIncidentRecorder.setEnabled(context, false))
+        EnterIncidentRecorder.faultForTest = null
+        // A torn temporary file left behind by a real kill must not count either.
+        File(dir, "state.properties.new").writeText("until=")
+        restart()
+        assertTrue(EnterIncidentRecorder.isRecording())
+        assertEquals(null, EnterIncidentRecorder.error.value)
+    }
+
+    @Test
+    fun `an unreadable switch is reported, not silently taken for off`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        File(dir, "state.properties").writeText("until=\\uZZZZ\n")
+        restart()
+        assertFalse(EnterIncidentRecorder.isRecording())
+        val error = EnterIncidentRecorder.error.value
+        assertNotNull(error)
+        assertTrue(error, error!!.startsWith("stateRead: IllegalArgumentException"))
+    }
+
+    @Test
+    fun `clear refuses while the writer is stalled and nothing comes back afterwards`() {
+        EnterIncidentRecorder.setEnabled(context, true)
+        EnterIncidentRecorder.flush()
+        val release = java.util.concurrent.CountDownLatch(1)
+        EnterIncidentRecorder.faultForTest = { op -> if (op == "append") release.await() }
+        EnterIncidentRecorder.record(IncidentEvent.ENTER_KEY, "action" to "enter")
+        EnterIncidentRecorder.record(IncidentEvent.ENTER_ROUTE, "route" to "editorAction")
+        assertFalse(EnterIncidentRecorder.clear())
+        assertEquals("clear: IOException: the write queue did not drain; nothing was deleted", EnterIncidentRecorder.error.value)
+        release.countDown()
+        EnterIncidentRecorder.faultForTest = null
+        assertTrue(EnterIncidentRecorder.flush(10_000))
+        // Nothing was deleted, so the evidence is all still there.
+        assertEquals(listOf("RECORDER_ON", "PROCESS_START", "ENTER_KEY", "ENTER_ROUTE"), events())
+        // Once drained, clear succeeds and stays clear.
+        assertTrue(EnterIncidentRecorder.clear())
+        EnterIncidentRecorder.flush()
+        assertTrue(EnterIncidentRecorder.lines().isEmpty())
+        assertEquals(null, EnterIncidentRecorder.error.value)
+    }
+
+    @Test
     fun `a switch that cannot be saved says so`() {
         EnterIncidentRecorder.attach(context)
         EnterIncidentRecorder.faultForTest = { op -> if (op == "state") throw java.io.IOException("disk full") }

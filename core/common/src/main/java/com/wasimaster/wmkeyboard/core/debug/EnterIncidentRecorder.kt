@@ -81,6 +81,7 @@ object EnterIncidentRecorder {
 
     private const val DIR = "enter-incident"
     private const val STATE_FILE = "state.properties"
+    private const val STATE_PENDING = "state.properties.new"
     private const val RING = "ring-0.log"
     private const val RING_OLD = "ring-1.log"
     private const val INCIDENT_DIR = "incidents"
@@ -300,8 +301,13 @@ object EnterIncidentRecorder {
     /** Deletes the trace and every incident saved on the phone; the switch is left as it is. */
     @Synchronized
     fun clear(): Boolean {
-        flush()
         val target = dir ?: return false
+        // record() shares this lock, so once the queue drains nothing new can land until the files are gone.
+        // Undrained, a queued line would recreate the trace right after it was reported deleted.
+        if (!flush()) {
+            fail("clear", java.io.IOException("the write queue did not drain; nothing was deleted"))
+            return false
+        }
         val deleted = listOf(File(target, RING), File(target, RING_OLD)).all { !it.exists() || it.delete() } and
             File(target, INCIDENT_DIR).let { !it.exists() || it.deleteRecursively() }
         val stateSaved = writeState(target) { remove("lastExit") }
@@ -485,18 +491,53 @@ object EnterIncidentRecorder {
     private fun bootCount(context: Context): Int =
         runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT) }.getOrDefault(-1)
 
+    /**
+     * The saved switch. A missing file is a recorder never switched on; one
+     * that cannot be read is reported, not taken silently for "off".
+     */
     private fun readState(target: File): Properties = Properties().apply {
-        runCatching { File(target, STATE_FILE).inputStream().use(::load) }
+        val live = File(target, STATE_FILE)
+        val pending = File(target, STATE_PENDING)
+        val source = when {
+            // A pending file beside a live one is a write that never committed.
+            live.exists() -> live.also { pending.delete() }
+            // Committed and synced, but killed between removing the old file and the rename.
+            pending.exists() -> pending
+            else -> return@apply
+        }
+        try {
+            source.inputStream().use(::load)
+        } catch (e: Exception) {
+            fail("stateRead", e)
+        }
     }
 
-    private fun writeState(target: File, change: Properties.() -> Unit): Boolean = try {
-        faultForTest?.invoke("state")
-        val state = readState(target).apply(change)
-        File(target, STATE_FILE).outputStream().use { state.store(it, null) }
-        true
-    } catch (e: Exception) {
-        fail("state", e)
-        false
+    /**
+     * Writes the switch so a process killed mid-write leaves the previous one,
+     * never a truncated file: the new state is written and synced aside, then
+     * renamed over the live file.
+     */
+    private fun writeState(target: File, change: Properties.() -> Unit): Boolean {
+        val live = File(target, STATE_FILE)
+        val pending = File(target, STATE_PENDING)
+        return try {
+            val state = readState(target).apply(change)
+            java.io.FileOutputStream(pending).use { out ->
+                state.store(out, null)
+                faultForTest?.invoke("state")
+                out.fd.sync()
+            }
+            // Android's rename replaces atomically; a host that refuses to replace gets delete-then-rename,
+            // whose gap readState covers by reading the synced pending file.
+            if (!pending.renameTo(live) && !(live.delete() && pending.renameTo(live))) {
+                throw java.io.IOException("could not commit the switch")
+            }
+            true
+        } catch (e: Exception) {
+            pending.delete()
+            fail("state", e)
+            false
+        }
     }
 
     /** Only what a token can be: a package name, an enum name, a short code, a timestamp. */

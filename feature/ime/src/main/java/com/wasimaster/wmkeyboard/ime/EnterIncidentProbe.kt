@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextUtils
 import android.view.ActionMode
 import android.view.KeyEvent
@@ -28,11 +29,13 @@ import java.util.Locale
  * The keyboard's side of [EnterIncidentRecorder]: what to note at each
  * boundary an Enter press crosses, and nothing about what was typed.
  *
- * Touches are noted only where the bottom row's outer keys and the system's
- * keyboard bar sit — the bottom of the window, at either edge — so letters,
- * the space bar and gesture typing never are. Which view the touch landed on
- * is noted by class and resource name, which is what tells a press the
- * keyboard read from one the system's Back button took.
+ * Touches are considered only where the bottom row's outer keys and the
+ * system's keyboard bar sit — the bottom of the window, at either edge — and
+ * even there are held in memory and written only if an Enter press or a hide
+ * follows within half a second, never in a password field. So a corner letter
+ * typed in passing is not written. Which view the touch landed on is noted by
+ * class and resource name, a candidate for which of the keyboard and the
+ * system's Back button took the press.
  */
 internal object EnterIncidentProbe {
 
@@ -43,6 +46,7 @@ internal object EnterIncidentProbe {
     // ---- lifecycle ----
 
     fun editor(event: IncidentEvent, info: EditorInfo?, restarting: Boolean) {
+        info?.let { secureField = isSecret(it.inputType) }
         if (!on()) return
         rec.record(
             event,
@@ -65,6 +69,7 @@ internal object EnterIncidentProbe {
      */
     fun hide(event: IncidentEvent, vararg fields: Pair<String, Any?>) {
         if (!on()) return
+        releaseHeldTouch()
         rec.record(event, *fields, *callers())
     }
 
@@ -110,7 +115,75 @@ internal object EnterIncidentProbe {
 
     /** An on-screen key whose action is one of Enter's, as it reaches the service. */
     fun enterKey(action: String, deferred: Boolean) {
-        if (on()) rec.record(IncidentEvent.ENTER_KEY, "action" to action, "deferred" to deferred)
+        if (!on()) return
+        releaseHeldTouch()
+        rec.record(IncidentEvent.ENTER_KEY, "action" to action, "deferred" to deferred)
+    }
+
+    // ---- held touches ----
+
+    // A zone touch on the keys themselves could, on a known layout, give away a
+    // bottom-corner letter. So it is kept in memory only, one gesture at a time,
+    // and written only when an Enter press or a hide follows it within
+    // [HOLD_MILLIS] of its latest line: then it is the touch that matters, and
+    // otherwise it is dropped unseen. Never at all in a password field.
+    private const val HOLD_MILLIS = 500L
+
+    @Volatile
+    private var secureField = false
+
+    private val held = ArrayList<Array<Pair<String, Any?>>>()
+    private var heldAt = 0L
+
+    /** The gesture already released, by its downTime: its later lines go straight to the trace. */
+    private var releasedDownTime = Long.MIN_VALUE
+
+    private fun isSecret(inputType: Int): Boolean {
+        val variation = inputType and android.text.InputType.TYPE_MASK_VARIATION
+        return when (inputType and android.text.InputType.TYPE_MASK_CLASS) {
+            android.text.InputType.TYPE_CLASS_TEXT ->
+                variation == android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                    variation == android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+                    variation == android.text.InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+            android.text.InputType.TYPE_CLASS_NUMBER ->
+                variation == android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            else -> false
+        }
+    }
+
+    /** Writes or holds a touch line on the keys; [downTime] names its gesture, [first] starts one. */
+    @Synchronized
+    internal fun keyTouch(downTime: Long, first: Boolean, fields: Array<Pair<String, Any?>>) {
+        if (secureField) {
+            held.clear()
+            return
+        }
+        if (downTime == releasedDownTime) {
+            rec.record(IncidentEvent.TOUCH, *fields, "held" to true)
+            return
+        }
+        if (first) held.clear()
+        held += fields
+        heldAt = SystemClock.uptimeMillis()
+    }
+
+    @Synchronized
+    private fun releaseHeldTouch() {
+        if (held.isEmpty()) return
+        if (!secureField && SystemClock.uptimeMillis() - heldAt <= HOLD_MILLIS) {
+            held.forEach { rec.record(IncidentEvent.TOUCH, *it, "held" to true) }
+            releasedDownTime = held.first().firstOrNull { it.first == "downTime" }?.second as? Long ?: Long.MIN_VALUE
+        }
+        held.clear()
+    }
+
+    /** Forgets held touches. Tests only. */
+    @Synchronized
+    internal fun resetForTest() {
+        held.clear()
+        heldAt = 0L
+        releasedDownTime = Long.MIN_VALUE
+        secureField = false
     }
 
     fun route(route: String, vararg fields: Pair<String, Any?>) {
@@ -310,12 +383,16 @@ internal object EnterIncidentProbe {
             val handled = base.dispatchTouchEvent(event)
             if (noted) {
                 runCatching {
-                    rec.record(
-                        IncidentEvent.TOUCH,
-                        "phase" to "after",
-                        "action" to actionName(event.actionMasked),
-                        "eventTime" to event.eventTime,
-                        "handled" to handled,
+                    keyTouch(
+                        event.downTime,
+                        false,
+                        arrayOf(
+                            "phase" to "after",
+                            "action" to actionName(event.actionMasked),
+                            "downTime" to event.downTime,
+                            "eventTime" to event.eventTime,
+                            "handled" to handled,
+                        ),
                     )
                 }
             }
@@ -341,8 +418,7 @@ internal object EnterIncidentProbe {
                     if (!inZone(x, y, decor.width, r.top, r.bottom)) return false
                     tracked[id] = Tracked(x, y)
                     val hit = deepestAt(decor, x.toInt(), y.toInt())
-                    rec.record(
-                        IncidentEvent.TOUCH,
+                    keyTouch(event.downTime, masked == MotionEvent.ACTION_DOWN, arrayOf(
                         "action" to actionName(masked),
                         "pointer" to id,
                         "x" to x.toInt(),
@@ -358,7 +434,7 @@ internal object EnterIncidentProbe {
                         "source" to hex(event.source),
                         "downTime" to event.downTime,
                         "eventTime" to event.eventTime,
-                    )
+                    ))
                     return true
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -380,8 +456,7 @@ internal object EnterIncidentProbe {
                     for (pid in ids) {
                         val t = tracked.remove(pid) ?: continue
                         val i = event.findPointerIndex(pid).takeIf { it >= 0 } ?: index
-                        rec.record(
-                            IncidentEvent.TOUCH,
+                        keyTouch(event.downTime, false, arrayOf(
                             "action" to actionName(masked),
                             "pointer" to pid,
                             "x" to event.getX(i).toInt(),
@@ -391,7 +466,7 @@ internal object EnterIncidentProbe {
                                 event.flags and MotionEvent.FLAG_CANCELED != 0),
                             "downTime" to event.downTime,
                             "eventTime" to event.eventTime,
-                        )
+                        ))
                         any = true
                     }
                     return any

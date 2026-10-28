@@ -104,7 +104,7 @@
 
     <!-- Enter incident recorder (Debug log screen) -->
     <string name="shell_enter_incident_title">Enter incident recorder</string>
-    <string name="shell_enter_incident_info">For the keyboard closing when you press Enter. While it is on, the keyboard keeps a short on-phone trace of what happens around Enter: which route the press took, what the app answered, focus and hide events, window size and direction, and touches on the bottom row and screen edges. It never records the letters you type, the text in the field, word touches or screenshots. It does record which app had focus (for example com.whatsapp). It turns itself off after 7 days. After the keyboard closes on you, save an incident right away, then share the file.</string>
+    <string name="shell_enter_incident_info">For the keyboard closing when you press Enter. While it is on, the keyboard keeps a short on-phone trace of what happens around Enter: which route the press took, what the app answered, focus and hide events, window size and direction, and a touch at the bottom corners only when Enter or a keyboard close follows it within half a second (never in a password field). It never records the letters you type, the text in the field, word touches or screenshots. It does record which app had focus (for example com.whatsapp). It turns itself off after 7 days. After the keyboard closes on you, save an incident right away, then share the file.</string>
     <string name="shell_enter_incident_toggle_title">Record Enter incidents</string>
     <string name="shell_enter_incident_toggle_on">On until %1$s</string>
     <string name="shell_enter_incident_toggle_off">Off</string>
@@ -114,10 +114,11 @@
     <string name="shell_enter_incident_share_title">Share latest incident</string>
     <string name="shell_enter_incident_share_subtitle">Sends the newest saved incident file</string>
     <string name="shell_enter_incident_share_none">No saved incident yet</string>
+    <string name="shell_enter_incident_share_failed">Could not share the incident: %1$s</string>
     <string name="shell_enter_incident_pin_title">Add Save incident to home screen</string>
     <string name="shell_enter_incident_pin_subtitle">Or add the \"Save Enter incident\" tile in Quick Settings, which works without leaving the chat</string>
     <string name="shell_enter_incident_clear_title">Delete recorded trace</string>
-    <string name="shell_enter_incident_clear_subtitle">Deletes the trace, the saved incidents and the copies this install put in Download/WMKeyboard. Files you moved or shared elsewhere, and copies left by an earlier install, stay.</string>
+    <string name="shell_enter_incident_clear_subtitle">Deletes the trace, the saved incidents, the staged share copy and the copies this install put in Download/WMKeyboard. Files you moved or shared elsewhere, and copies left by an earlier install, stay.</string>
     <string name="shell_enter_incident_cleared">Enter recorder trace deleted</string>
     <string name="shell_enter_incident_shortcut_short">Save Enter incident</string>
     <string name="shell_enter_incident_saved">Enter incident saved</string>

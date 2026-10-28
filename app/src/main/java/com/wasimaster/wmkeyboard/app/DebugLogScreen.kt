@@ -528,7 +528,13 @@ private fun EnterIncidentGroup() {
                 if (latest == null) {
                     Toast.makeText(context, R.string.shell_enter_incident_share_none, Toast.LENGTH_SHORT).show()
                 } else {
-                    EnterIncidentExport.share(context, latest)
+                    EnterIncidentExport.share(context, latest)?.let { error ->
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.shell_enter_incident_share_failed, error),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
                 }
             }
         }
