@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Computer
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Laptop
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInBrowser
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Smartphone
@@ -62,6 +63,9 @@ import com.wasimaster.wmkeyboard.core.kdeconnect.KdeTransferState
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import com.wasimaster.wmkeyboard.core.send.LanTransfer
+import com.wasimaster.wmkeyboard.ime.send.BrowserFailure
+import com.wasimaster.wmkeyboard.ime.send.BrowserUi
 import com.wasimaster.wmkeyboard.ime.send.DirectFailure
 import com.wasimaster.wmkeyboard.ime.send.DirectUi
 import com.wasimaster.wmkeyboard.ime.send.JoinStep
@@ -101,6 +105,7 @@ internal fun SendNearbyBody(state: KeyboardUiState, ui: SendUi, act: (SendAction
     val hub by KdeConnectHub.state.collectAsState()
     val draft = ui.draft
     val direct = ui.nearby.direct
+    val browser = ui.nearby.browser
     val motion = kb.motion.any
     Column(Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 6.dp)) {
         // What is going: the draft, or the ways to fill it.
@@ -125,9 +130,18 @@ internal fun SendNearbyBody(state: KeyboardUiState, ui: SendUi, act: (SendAction
             Radar(Modifier.size(18.dp), animate = hub.running)
             MetaText(stringResource(R.string.ime_send_nearby_searching))
             ToolPanelChip(stringResource(R.string.ime_send_nearby_refresh)) { act(SendAction.RefreshDevices) }
+            if (browser == BrowserUi.Off) {
+                ToolPanelChip(stringResource(R.string.ime_send_browser_start), icon = Icons.Outlined.OpenInBrowser) { act(SendAction.StartBrowser) }
+            }
             if (direct == DirectUi.Off) {
                 ToolPanelChip(stringResource(R.string.ime_send_direct_host), icon = Icons.Outlined.WifiTethering) { act(SendAction.HostDirect) }
                 if (ui.canScan) ToolPanelChip(stringResource(R.string.ime_send_direct_scan), icon = Icons.Outlined.QrCodeScanner) { act(SendAction.ScanDirect) }
+            }
+        }
+        AnimatedVisibility(visible = browser != BrowserUi.Off, enter = fadeIn(tween(if (motion) 160 else 0)), exit = fadeOut(tween(if (motion) 120 else 0))) {
+            Column {
+                Spacer(Modifier.height(6.dp))
+                BrowserCard(browser, draft.files.size, act)
             }
         }
         AnimatedVisibility(visible = direct != DirectUi.Off, enter = fadeIn(tween(if (motion) 160 else 0)), exit = fadeOut(tween(if (motion) 120 else 0))) {
@@ -365,6 +379,131 @@ private fun DirectCard(direct: DirectUi, act: (SendAction) -> Unit) {
         }
     }
 }
+
+/**
+ * The page served to browsers (#927): opening a Wi-Fi for it, up with its
+ * address and what went through it, or why it could not start.
+ */
+@Composable
+private fun BrowserCard(browser: BrowserUi, fileCount: Int, act: (SendAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    ClockCard(Modifier.fillMaxWidth(), highlighted = true) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(28.dp).clip(CircleShape).background(kb.accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+                if (browser is BrowserUi.Starting) {
+                    Radar(Modifier.size(18.dp))
+                } else {
+                    Icon(Icons.Outlined.OpenInBrowser, contentDescription = null, tint = kb.accent, modifier = Modifier.size(16.dp))
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                when (browser) {
+                    BrowserUi.Off -> Unit
+                    BrowserUi.Starting -> Text(stringResource(R.string.ime_send_direct_starting), color = kb.chipText, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    is BrowserUi.Serving -> {
+                        Text(
+                            if (fileCount == 0) stringResource(R.string.ime_send_browser_receiving_only)
+                            else pluralStringResource(R.plurals.ime_send_browser_sharing, fileCount, fileCount),
+                            color = kb.chipText, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                        MetaText(
+                            browser.hotspot?.let { stringResource(R.string.ime_send_direct_wifi, it.ssid) } ?: browser.url.removePrefix("http://"),
+                        )
+                    }
+                    is BrowserUi.Failed -> Text(
+                        stringResource(
+                            when (browser.hotspot) {
+                                DirectFailure.NO_PERMISSION -> R.string.ime_send_direct_failed_permission
+                                DirectFailure.WIFI_OFF -> R.string.ime_send_direct_failed_wifi_off
+                                DirectFailure.UNSUPPORTED -> R.string.ime_send_direct_failed_unsupported
+                                null -> when (browser.reason) {
+                                    BrowserFailure.NO_NETWORK -> R.string.ime_send_browser_failed_network
+                                    BrowserFailure.SERVER -> R.string.ime_send_browser_failed_server
+                                    BrowserFailure.HOTSPOT -> R.string.ime_send_direct_failed_group
+                                }
+                                else -> R.string.ime_send_direct_failed_group
+                            },
+                        ),
+                        color = kb.chipText, fontSize = 12.sp,
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            when (browser) {
+                is BrowserUi.Serving -> {
+                    ToolPanelChip(stringResource(R.string.ime_send_direct_show_code), icon = Icons.Outlined.QrCode2) { act(SendAction.OpenSheet(SendSheet.BROWSER_CODE)) }
+                    Spacer(Modifier.width(4.dp))
+                    ToolPanelChip(stringResource(R.string.ime_send_browser_stop)) { act(SendAction.StopBrowser) }
+                }
+                is BrowserUi.Failed -> {
+                    when {
+                        browser.hotspot == DirectFailure.NO_PERMISSION ->
+                            ToolPanelChip(stringResource(R.string.ime_send_direct_allow), selected = true) { act(SendAction.OpenBrowserHotspot) }
+                        browser.reason == BrowserFailure.NO_NETWORK ->
+                            ToolPanelChip(stringResource(R.string.ime_send_browser_open_hotspot), selected = true) { act(SendAction.OpenBrowserHotspot) }
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    ToolPanelChip(stringResource(R.string.ime_send_close)) { act(SendAction.StopBrowser) }
+                }
+                BrowserUi.Off -> Unit
+                BrowserUi.Starting -> ToolPanelChip(stringResource(R.string.ime_send_browser_stop)) { act(SendAction.StopBrowser) }
+            }
+        }
+        if (browser is BrowserUi.Serving) {
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                ToolPanelChip(stringResource(R.string.ime_send_browser_uploads), selected = browser.uploads) { act(SendAction.BrowserUploads(!browser.uploads)) }
+                if (browser.hotspot == null) {
+                    ToolPanelChip(stringResource(R.string.ime_send_browser_hotspot), icon = Icons.Outlined.WifiTethering) { act(SendAction.OpenBrowserHotspot) }
+                }
+                ToolPanelChip(stringResource(R.string.ime_send_copy)) { act(SendAction.CopyBrowserLink) }
+            }
+            browser.transfers.take(BROWSER_ROWS).forEach { t ->
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(fileIcon(t.type, t.name), contentDescription = null, tint = kb.accent, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(t.name, color = kb.chipText, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        MetaText(
+                            listOf(
+                                t.peer,
+                                stringResource(
+                                    when (t.state) {
+                                        LanTransfer.State.RUNNING -> if (t.incoming) R.string.ime_send_transfer_receiving else R.string.ime_send_transfer_sending
+                                        LanTransfer.State.DONE -> R.string.ime_send_transfer_done
+                                        LanTransfer.State.FAILED -> R.string.ime_send_transfer_failed
+                                    },
+                                ),
+                                if (t.size > 0) bytesText(context, t.size) else "",
+                            ).filter { it.isNotEmpty() }.joinToString(" · "),
+                            color = if (t.state == LanTransfer.State.FAILED) FailedRed else null,
+                        )
+                        if (t.state == LanTransfer.State.RUNNING && t.size > 0) {
+                            Spacer(Modifier.height(3.dp))
+                            LinearProgressIndicator(
+                                progress = { (t.done.toFloat() / t.size).coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth().height(3.dp).clip(CircleShape),
+                                color = kb.accent,
+                                trackColor = kb.divider,
+                            )
+                        }
+                    }
+                    val location = t.location
+                    if (t.incoming && t.state == LanTransfer.State.DONE && location != null) {
+                        Spacer(Modifier.width(6.dp))
+                        ToolPanelChip(stringResource(R.string.ime_send_open), selected = true) { act(SendAction.OpenTransfer(location, t.name)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Transfers the browser card lists under itself; the rest are in History. */
+private const val BROWSER_ROWS = 3
 
 private fun deviceIcon(type: KdeDeviceType): ImageVector = when (type) {
     KdeDeviceType.DESKTOP -> Icons.Outlined.Computer

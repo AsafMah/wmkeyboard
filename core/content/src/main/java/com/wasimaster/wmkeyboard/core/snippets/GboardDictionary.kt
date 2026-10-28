@@ -70,15 +70,23 @@ object GboardDictionary {
          * Spelled the way the file spells them, first spelling wins.
          */
         val words: List<String>
+            get() = localizedWords.map { it.first }
+
+        /**
+         * [words], each with the locale its entry was filed under, empty for
+         * "all languages", so the personal dictionary can file it the same
+         * way (#930).
+         */
+        val localizedWords: List<Pair<String, String>>
             get() {
                 val seen = HashSet<String>()
-                val out = ArrayList<String>()
+                val out = ArrayList<Pair<String, String>>()
                 for (entry in entries) {
                     if (entry.shortcut.isNotEmpty()) continue
                     for (part in entry.word.split(WHITESPACE_RUN)) {
                         val word = part.trim()
                         if (word.length < MIN_WORD_LENGTH) continue
-                        if (seen.add(word.lowercase(Locale.ROOT))) out += word
+                        if (seen.add(word.lowercase(Locale.ROOT))) out += word to entry.locale
                     }
                 }
                 return out

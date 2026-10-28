@@ -26,6 +26,7 @@
     <string name="common_default">Predefinito</string>
     <string name="common_delete">Elimina</string>
     <string name="common_disable">Disattiva</string>
+    <string name="common_disabled_open_setting">Apri le impostazioni</string>
     <string name="common_disclosure_blocked_body">Android non mostrerà più questa richiesta perché hai rifiutato l\'autorizzazione in precedenza. Puoi comunque attivarla dalla schermata delle impostazioni dell\'app.</string>
     <string name="common_disclosure_not_now">Non ora</string>
     <string name="common_done">Fatto</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installa</string>
     <string name="common_installing">Installazione in corso…</string>
     <string name="common_loading">Caricamento...</string>
+    <string name="common_more">Altro</string>
     <string name="common_next">Avanti</string>
     <string name="common_none">Nessuno</string>
     <string name="common_notify_channel_backup_body">Solo quando un backup automatico fallisce. I backup riusciti sono silenziosi.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Mostra notifiche</string>
     <string name="common_permission_storage_body">Su Android 9 e versioni precedenti, la tastiera necessita dell\'autorizzazione di archiviazione per salvare un\'immagine nella tua galleria. La vecchia autorizzazione Android copre anche la lettura dell\'archiviazione. La tastiera scrive solo l\'immagine che le chiedi di salvare. La tastiera non legge nulla e non carica nulla. Le versioni più recenti di Android non necessitano di questa autorizzazione.</string>
     <string name="common_permission_storage_title">Accesso all\'archiviazione per salvare nella tua galleria</string>
+    <string name="common_permission_tasks_body">La tastiera WM mantiene sincronizzati il suo elenco di cose da fare e un elenco di attività nell\'app Attività: le attività, i loro passaggi, le spunte e le date di scadenza, in entrambe le direzioni. L\'autorizzazione copre ogni elenco di attività nell\'app. La tastiera legge gli elenchi dell\'app solo per permetterti di sceglierne uno, e legge e scrive solo l\'elenco selezionato. La tastiera non invia nulla da nessuna parte. DAVx5, se lo usi, sincronizza quell\'elenco con il tuo server CalDAV. Senza questa autorizzazione, l\'elenco di cose da fare rimane su questo telefono.</string>
+    <string name="common_permission_tasks_opentasks_title">Accesso a OpenTasks per l\'elenco delle cose da fare</string>
+    <string name="common_permission_tasks_tasks_org_title">Accesso a Tasks.org per l\'elenco delle cose da fare</string>
+    <string name="common_preview_scale_desc">Dimensioni anteprima</string>
+    <string name="common_preview_scale_larger">Ingrandisci l\'anteprima</string>
+    <string name="common_preview_scale_smaller">Rendi l\'anteprima più piccola</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Rimuovi</string>
     <string name="common_reset">Ripristina</string>
     <string name="common_reset_defaults">Ripristina impostazioni predefinite</string>

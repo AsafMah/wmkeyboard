@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Publishing a theme or layout to the community addon repository -->
+    <string name="community_publish_theme_desc">Share <xliff:g id="theme_name" example="Midnight">%1$s</xliff:g> with everyone</string>
+    <string name="community_publish_layout_desc">Share <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g> with everyone</string>
+    <string name="community_publish_title">Share with everyone</string>
+    <string name="community_publish_intro">This opens a GitHub issue in the community addon repository with your <xliff:g id="kind" example="theme">%1$s</xliff:g> filled in. A bot checks it and shows a preview, and once it is approved anyone can install it from Addons. You need a GitHub account.</string>
+    <string name="community_publish_kind_theme">theme</string>
+    <string name="community_publish_kind_layout">layout</string>
+    <string name="community_publish_name_label">Name</string>
+    <string name="community_publish_description_label">Description</string>
+    <string name="community_publish_tags_label">Tags</string>
+    <string name="community_publish_tags_hint">Separated by commas: dark, pastel, minimal</string>
+    <string name="community_publish_license_label">Licence</string>
+    <string name="community_publish_license_cc0">Anyone can use and change it, no credit needed.</string>
+    <string name="community_publish_license_cc_by">Anyone can use and change it if they credit you.</string>
+    <string name="community_publish_license_cc_by_sa">Anyone can use and change it if they credit you and share their changes the same way.</string>
+    <string name="community_publish_updates_label">Replaces your earlier one (optional)</string>
+    <string name="community_publish_updates_hint">The id of a <xliff:g id="kind" example="theme">%1$s</xliff:g> you published before, to send a new version of it</string>
+    <string name="community_publish_remix">Credited as a remix of “<xliff:g id="name" example="Night Owl">%1$s</xliff:g>” by <xliff:g id="author" example="someone">%2$s</xliff:g>.</string>
+    <string name="community_publish_remix_no_author">Credited as a remix of “<xliff:g id="name" example="Night Owl">%1$s</xliff:g>”.</string>
+    <string name="community_publish_open">Open GitHub</string>
+    <string name="community_publish_preparing">Preparing…</string>
+    <string name="community_publish_failed">Could not read the <xliff:g id="kind" example="theme">%1$s</xliff:g> to share it.</string>
+    <string name="community_publish_paste_title">Copied</string>
+    <string name="community_publish_paste_body">Your <xliff:g id="kind" example="theme">%1$s</xliff:g> is too long to fit in a link, so it has been copied. On GitHub, paste it into the Addon box, then press Submit.</string>
+    <string name="community_publish_attach_title">Too big for a link</string>
+    <string name="community_publish_attach_body">The pictures in this theme make it too big to paste. Save it as a file and drag that into the Addon box on GitHub, or make the pictures smaller first.</string>
+    <string name="community_publish_attach_body_layout">This layout is too big to paste. Save it as a file and drag that into the Addon box on GitHub.</string>
+    <string name="community_publish_shrink">Make smaller</string>
+    <string name="community_publish_save">Save file</string>
+    <string name="community_publish_saved_title">Saved</string>
+    <string name="community_publish_saved_body">On GitHub, drag <xliff:g id="file_name" example="Midnight.zip">%1$s</xliff:g> into the Addon box, then press Submit.</string>
+    <string name="theme_community_title">Community themes</string>
+    <string name="theme_community_subtitle">Themes other people made and shared</string>
+    <string name="layout_community_title">Community layouts</string>
+    <string name="layout_community_subtitle">Layouts other people made and shared</string>
+    <string name="addon_based_on">Remix of <xliff:g id="original" example="Night Owl">%1$s</xliff:g></string>
+</resources>

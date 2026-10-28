@@ -178,6 +178,8 @@
     <string name="ime_service_ansi_off_toast">Bengali is written as Unicode</string>
     <string name="ime_service_zawgyi_on_toast">Burmese is written as Zawgyi</string>
     <string name="ime_service_zawgyi_off_toast">Burmese is written as Unicode</string>
+    <string name="ime_service_traditional_on_toast">Chinese is written in Traditional characters (繁體)</string>
+    <string name="ime_service_traditional_off_toast">Chinese is written in Simplified characters (简体)</string>
     <string name="ime_zawgyi_field_toast">Writing Zawgyi in this text box</string>
     <string name="ime_zawgyi_paste_moved_toast">The pasted text is no longer before the cursor, so it was left as it is</string>
     <string name="ime_service_selection_actions_on_toast">Selection actions are on</string>
@@ -272,8 +274,25 @@
     <string name="ime_floating_menu_empty">The quick menu is empty. Add actions to it in the floating button settings.</string>
     <string name="ime_floating_button_hidden_toast">Floating button hidden until the keyboard next opens</string>
     <string name="ime_floating_button_hidden_open_toast">Floating button hidden until the keyboard closes</string>
+    <!-- A slot that opens an app (#922), named here only when the app is gone. -->
+    <string name="ime_floating_app_label">Open an app</string>
+    <string name="ime_floating_app_missing">That app is no longer installed</string>
+    <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->
+    <string name="ime_floating_category_label">Category</string>
+    <string name="ime_floating_category_empty">This category is empty. Add actions to it in the floating button settings.</string>
+    <string name="ime_floating_back_menu">Back to the quick menu</string>
 
     <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
     <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>
     <string name="ime_hw_pick_mode_off_toast">Pick mode off</string>
+
+    <!-- What holding a greyed-out button on the keyboard says: why it cannot
+         be pressed yet. Short sentences, read in a small bubble. -->
+    <string name="ime_disabled_translate_nothing">Nothing is translated yet. Type or paste the text to translate first.</string>
+    <string name="ime_disabled_translate_same_language">The text is already in the language you translate to.</string>
+    <string name="ime_disabled_media_app_blocks">The app that is playing does not allow this.</string>
+    <string name="ime_disabled_voice_undo">Nothing to undo yet. Undo takes back the last phrase you spoke.</string>
+    <string name="ime_disabled_spell_unchanged">Change the spelling first. An empty or unchanged spelling has nothing to apply.</string>
+    <string name="ime_disabled_clip_tidy">Select a text clip first. Tidy works on text, not on images.</string>
+    <string name="ime_disabled_clip_combine">Select two or more text clips to combine them.</string>
 </resources>

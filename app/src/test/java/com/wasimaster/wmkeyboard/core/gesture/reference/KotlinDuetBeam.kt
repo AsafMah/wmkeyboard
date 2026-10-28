@@ -56,10 +56,10 @@ class KotlinDuetBeam(
         val results = HashMap<String, GlideBeam.Candidate>()
         var floor = Double.NEGATIVE_INFINITY
         val ordered = sources.sortedByDescending {
-            it.logWeight + ln1p(it.walker.maxSubtree(it.walker.root))
+            it.logWeight + tuning.freqWeight * ln1p(it.walker.maxSubtree(it.walker.root))
         }
         for (src in ordered) {
-            val rootBound = src.logWeight + ln1p(src.walker.maxSubtree(src.walker.root))
+            val rootBound = src.logWeight + tuning.freqWeight * ln1p(src.walker.maxSubtree(src.walker.root))
             if (rootBound < floor - EPS) continue
             floor = searchOne(src, keys, ws, k, results, floor, partial)
         }
@@ -374,7 +374,7 @@ class KotlinDuetBeam(
         ws.push(
             node = walker.root, parent = -1, viaLabel = KotlinGlideWorkspace.NO_LABEL, letterCp = 0,
             lastTok = -1, lastKey = -1, length = 0, done = 0, settled = 0f,
-            bound = src.logWeight + ln1p(walker.maxSubtree(walker.root)),
+            bound = src.logWeight + tuning.freqWeight * ln1p(walker.maxSubtree(walker.root)),
         )
 
         var pops = 0
@@ -407,7 +407,7 @@ class KotlinDuetBeam(
                 // knows which loops none of its doubled letters claim. It can
                 // only lower a score, so the bound stays admissible.
                 val cost = settled + unclaimedLoop(s, ws)
-                val score = src.logWeight + ln1p(frequency) - weight * cost
+                val score = src.logWeight + tuning.freqWeight * ln1p(frequency) - weight * cost
                 if (score > floor - EPS || results.size < k) {
                     val word = ws.materialize(s)
                     if (partial ||
@@ -433,7 +433,7 @@ class KotlinDuetBeam(
                 ws.scratchMin[slot] = 0
                 ws.scratchFloor[slot] = 0f
                 val childSettled = settled + end
-                val bound = src.logWeight + ln1p(walker.maxSubtree(node)) -
+                val bound = src.logWeight + tuning.freqWeight * ln1p(walker.maxSubtree(node)) -
                     weight * (childSettled + openFloors(ws))
                 if (bound < floor - EPS) continue
                 val id = ws.push(
@@ -467,7 +467,7 @@ class KotlinDuetBeam(
                 val child = ws.children.nodes[c]
                 val subtree = walker.maxSubtree(child)
                 if (subtree < minFrequency) continue
-                val head = src.logWeight + ln1p(subtree)
+                val head = src.logWeight + tuning.freqWeight * ln1p(subtree)
 
                 val codePoint: Int
                 if (pendingHigh != null) {

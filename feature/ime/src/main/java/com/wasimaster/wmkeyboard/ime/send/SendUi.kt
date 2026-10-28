@@ -5,6 +5,8 @@ import com.wasimaster.wmkeyboard.core.send.SendDirectCode
 import com.wasimaster.wmkeyboard.core.send.SendError
 import com.wasimaster.wmkeyboard.core.send.SendInfo
 import com.wasimaster.wmkeyboard.core.send.SendInstance
+import com.wasimaster.wmkeyboard.core.send.LanShare
+import com.wasimaster.wmkeyboard.core.send.LanTransfer
 import com.wasimaster.wmkeyboard.core.send.SendLink
 import com.wasimaster.wmkeyboard.core.send.SendReceived
 import com.wasimaster.wmkeyboard.core.send.SendRemoteFile
@@ -164,7 +166,7 @@ data class InstanceStatus(val config: SendServerConfig?, val checkedAtMs: Long) 
 }
 
 /** The cards drawn over the panel, one at a time. */
-enum class SendSheet { INSTANCES, HISTORY, UPLOAD_MENU, QR, DIRECT_CODE }
+enum class SendSheet { INSTANCES, HISTORY, UPLOAD_MENU, QR, DIRECT_CODE, BROWSER_CODE }
 
 /** What the panel's text box is for. */
 enum class SendTextField {
@@ -188,7 +190,46 @@ data class NearbyUi(
     val direct: DirectUi = DirectUi.Off,
     /** The device the last Nearby send went to, for the "sent" line. */
     val sentTo: String? = null,
+    val browser: BrowserUi = BrowserUi.Off,
 )
+
+/** The draft served to any browser on this Wi-Fi from a QR code (#927); no app needed on the other side. */
+sealed interface BrowserUi {
+    data object Off : BrowserUi
+
+    /** Opening a Wi-Fi for it first. */
+    data object Starting : BrowserUi
+
+    data class Serving(
+        /** The page, token included: what the code carries. */
+        val url: String,
+        /** The Wi-Fi this phone opened for it, to join before the page; null on a Wi-Fi both are on. */
+        val hotspot: BrowserHotspot? = null,
+        /** Browsers may send files to this phone. */
+        val uploads: Boolean = true,
+        /** Newest first, the last few. */
+        val transfers: List<LanTransfer> = emptyList(),
+    ) : BrowserUi
+
+    /** [hotspot] says why the Wi-Fi did not open, when that was the step that failed. */
+    data class Failed(val reason: BrowserFailure, val hotspot: DirectFailure? = null) : BrowserUi
+}
+
+data class BrowserHotspot(val ssid: String, val passphrase: String) {
+    /** The code a phone camera joins the Wi-Fi from. */
+    val joinCode: String get() = LanShare.wifiCode(ssid, passphrase)
+}
+
+enum class BrowserFailure {
+    /** No Wi-Fi, hotspot or tether to serve on. */
+    NO_NETWORK,
+
+    /** The socket would not open. */
+    SERVER,
+
+    /** The hotspot asked for did not open. */
+    HOTSPOT,
+}
 
 /** A Wi-Fi link that needs no network between the two phones: one hosts, the other joins. */
 sealed interface DirectUi {
@@ -304,6 +345,13 @@ sealed interface SendAction {
     data class CancelTransfer(val transferId: Long) : SendAction
     data class ClearTransfers(val deviceId: String) : SendAction
     data object AskNearbyPermission : SendAction
+
+    // Nearby, in a browser (#927)
+    data object StartBrowser : SendAction
+    data object OpenBrowserHotspot : SendAction
+    data object StopBrowser : SendAction
+    data class BrowserUploads(val on: Boolean) : SendAction
+    data object CopyBrowserLink : SendAction
 
     // The strip's link chip (a copied share link)
     data object OpenOffer : SendAction

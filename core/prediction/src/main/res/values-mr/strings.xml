@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">सबटायटल्स आणि वेब मजकुरातून मोजले आहे. अधिक नावे, स्लॅंग आणि टायपोससह बरेच अधिक शब्द.</string>
     <string name="core_pred_wordlist_source_frequency_label">वारंवारता</string>
+    <string name="core_pred_wordlist_variant_australia_label">ऑस्ट्रेलिया</string>
     <string name="core_pred_wordlist_variant_brazil_label">ब्राझील</string>
+    <string name="core_pred_wordlist_variant_canada_label">कॅनडा</string>
     <string name="core_pred_wordlist_variant_europe_label">युरोप</string>
     <string name="core_pred_wordlist_variant_uk_label">युनायटेड किंगडम</string>
     <string name="core_pred_wordlist_variant_us_label">युनायटेड स्टेट्स</string>

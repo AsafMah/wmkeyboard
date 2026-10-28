@@ -57,12 +57,41 @@ object NotificationOtpBus {
     /** Newest unconsumed code; the IME collects this to raise its chip. */
     val latest: StateFlow<NotificationOtp?> = _latest.asStateFlow()
 
+    /**
+     * Codes already seen, keyed by app and code, with when each was first
+     * seen. An app that re-posts its notification (a new message in the same
+     * thread, a re-sort) hands the listener a fresh post time, so without this
+     * the same code came straight back after it was used or closed, and its
+     * expiry clock restarted with every re-post: one chip stayed up for a
+     * quarter of an hour. Codes only, never written down, oldest dropped.
+     */
+    private val firstSeen = object : LinkedHashMap<String, Long>(32, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>) = size > 32
+    }
+
+    /** The subset of [firstSeen] that was used, closed or aged out. */
+    private val retired = HashSet<String>()
+
+    private fun keyOf(otp: NotificationOtp) = "${otp.sourcePackage}\u0000${otp.code}"
+
     fun publish(otp: NotificationOtp) {
-        _latest.value = otp
+        val key = keyOf(otp)
+        val seen = synchronized(firstSeen) {
+            if (key in retired) return
+            firstSeen.getOrPut(key) { otp.postedAt }.also { retired.retainAll(firstSeen.keys) }
+        }
+        _latest.value = if (seen < otp.postedAt) otp.copy(postedAt = seen) else otp
     }
 
     /** The code was used, dismissed, or expired — drop it everywhere at once. */
     fun clear() {
+        _latest.value?.let { otp ->
+            val key = keyOf(otp)
+            synchronized(firstSeen) {
+                firstSeen.getOrPut(key) { otp.postedAt }
+                retired.add(key)
+            }
+        }
         _latest.value = null
     }
 }

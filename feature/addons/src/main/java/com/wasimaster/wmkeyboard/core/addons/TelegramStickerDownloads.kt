@@ -151,7 +151,9 @@ object TelegramStickerDownloads {
     /**
      * Downloads every sticker of [set] and registers them with [store] as one
      * pack. Animated and video stickers are turned into animated WebP on the
-     * way in, which is the slow part.
+     * way in, which is the slow part, and why [only] exists: when given, it
+     * names the [TelegramSticker.uniqueId]s the user ticked in the preview
+     * (#965), and the rest are neither downloaded nor converted.
      *
      * Throws [IOException] when not one sticker could be fetched and the
      * network is why.
@@ -163,15 +165,19 @@ object TelegramStickerDownloads {
         set: TelegramStickerSet,
         defaultName: String,
         cacheDir: File,
+        only: Set<String>? = null,
         onProgress: (phase: Phase, done: Int, total: Int) -> Unit,
     ): StickerImportResult = withContext(Dispatchers.IO) {
-        val wanted = set.stickers
+        // Numbered before the cut, so a repair note names a sticker by its
+        // place in the set the user looked at.
+        val numbered = set.stickers.withIndex().filter { only == null || it.value.uniqueId in only }
+        val wanted = numbered.map { it.value }
         val fetching = minOf(wanted.size, StickerPackStore.MAX_STICKERS_PER_PACK)
         val files = download(token, set.name, wanted, cacheDir) { done ->
             onProgress(Phase.DOWNLOADING, done, fetching)
         }
         ensureActive()
-        val incoming = wanted.mapIndexed { index, sticker ->
+        val incoming = numbered.map { (index, sticker) ->
             StickerPackAdoption.Incoming(
                 label = "${sticker.emoji} #${index + 1}".trim(),
                 emojis = listOfNotNull(sticker.emoji.takeIf { it.isNotBlank() }),

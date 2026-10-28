@@ -16,7 +16,7 @@
 //! `;`, the blinder) has no spelling here and is typed.
 
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::{Arc, RwLock};
 
 use crate::khipro::{self, Variant};
 use crate::sort;
@@ -72,9 +72,19 @@ fn convert(keys: &str) -> String {
     khipro::convert(keys, Variant::Touchscreen)
 }
 
-fn tables() -> &'static Tables {
-    static TABLES: OnceLock<Tables> = OnceLock::new();
-    TABLES.get_or_init(build)
+/// The pieces, read off the touchscreen spec in use: built once, and again
+/// after a newer spec is installed ([`khipro::generation`]).
+fn tables() -> Arc<Tables> {
+    static TABLES: RwLock<Option<(u64, Arc<Tables>)>> = RwLock::new(None);
+    let generation = khipro::generation();
+    if let Some((built, tables)) = &*TABLES.read().unwrap_or_else(|poisoned| poisoned.into_inner()) {
+        if *built == generation {
+            return tables.clone();
+        }
+    }
+    let tables = Arc::new(build());
+    *TABLES.write().unwrap_or_else(|poisoned| poisoned.into_inner()) = Some((generation, tables.clone()));
+    tables
 }
 
 /// Builds the pieces now, off the thread that will first need them.

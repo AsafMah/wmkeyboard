@@ -1,15 +1,47 @@
 //! `GlideWorkspace`: the decoder's pooled state, per thread. The heap is
 //! the Kotlin one's, so states of equal bound pop in the same order.
 
-pub const SAMPLE_POINTS: usize = 64;
+/// The most samples a stroke is resampled to, and what every per-sample
+/// array holds. See [`samples_for`].
+pub const SAMPLE_POINTS: usize = 96;
 pub const SHORT_SAMPLES: usize = 48;
 /// Strokes at least this long, in key widths, get the finer sampling.
 pub const LONG_STROKE: f32 = 40.0;
+/// Samples a stroke of exactly `LONG_STROKE` gets.
+pub const LONG_SAMPLES: usize = 64;
+/// A letter's worth of stroke, in key widths: the mean key-to-key step over
+/// the English list, drawn centre to centre, is 2.95.
+pub const LETTER_ARC: f32 = 3.0;
+/// Samples each `LETTER_ARC` past `LONG_STROKE` adds.
+pub const SAMPLES_PER_LETTER: usize = 2;
 pub const SHAPE_POINTS: usize = 48;
+
+/// `KotlinGlideWorkspace.samplesFor`: how many samples a stroke of `arc`
+/// key widths is resampled to. `SHORT_SAMPLES` under `LONG_STROKE`,
+/// `LONG_SAMPLES` at it, and `SAMPLES_PER_LETTER` more for every
+/// `LETTER_ARC` beyond, up to `SAMPLE_POINTS` (issue #966 §5.3). The
+/// letter count is read off the arc because the stroke is resampled before
+/// any word is known; the arc predicts it well (r = 0.93 on the issue's
+/// real strokes). Every stroke under `LONG_STROKE` is sampled exactly as it
+/// was before the scaling, and so is one at it, so the eval floors on
+/// strokes of up to fourteen letters stand.
+pub fn samples_for(arc: f32) -> usize {
+    if arc < LONG_STROKE {
+        SHORT_SAMPLES
+    } else {
+        let letters = ((arc - LONG_STROKE) / LETTER_ARC) as usize;
+        (LONG_SAMPLES + SAMPLES_PER_LETTER * letters).min(SAMPLE_POINTS)
+    }
+}
 pub const MAX_STATES: usize = 8192;
-pub const MAX_IDEAL_POINTS: usize = 32;
+/// Longest key sequence a candidate's ideal path can have: a word of
+/// `MAX_WORD_LENGTH` letters visits at most that many keys, plus the two
+/// anchor leads the shape channel adds.
+pub const MAX_IDEAL_POINTS: usize = 34;
 pub const UNREACHABLE: f32 = f32::MAX / 4.0;
 pub const NO_LABEL: u16 = 0;
+/// `part_freq` of a state that has joined nothing: no cap on the frequency.
+pub const NO_PART: i32 = i32::MAX;
 
 pub struct Workspace {
     pub node: Vec<u32>,
@@ -22,6 +54,17 @@ pub struct Workspace {
     pub extra: Vec<f32>,
     pub floor_cost: Vec<f32>,
     pub bound: Vec<f64>,
+    /// Compounds (#966): the least frequency among the parts this state has
+    /// already finished, `NO_PART` before any join; the length at which the
+    /// current part began; and how many joins the chain has made. Copied
+    /// from the parent on every push, so the walk only touches them where
+    /// it joins.
+    pub part_freq: Vec<i32>,
+    pub part_from: Vec<i32>,
+    pub joins: Vec<i32>,
+    /// The `join_part_penalty` nats the parts this state has joined past
+    /// have earned between them; 0.0 before any join.
+    pub join_penalty: Vec<f64>,
     pub samples: usize,
     pub cols: Vec<f32>,
     heap: Vec<u32>,
@@ -48,6 +91,15 @@ pub struct Workspace {
 
     pub arc_at: [f32; SAMPLE_POINTS],
     pub collapsed_samples: i32,
+    /// Open ends (#968): the first letter may stand on any sample up to
+    /// `open_head_to`, and the word may end on any sample from
+    /// `open_tail_from`; the samples before or after are the walk from or
+    /// to the spacebar and cost nothing when no letter claims them. `0` and
+    /// `samples - 1` for an ordinary stroke.
+    pub open_head_to: usize,
+    pub open_tail_from: usize,
+    /// Whether either end is open: the shape channel then stands down.
+    pub open_ends: bool,
     pub loop_from: [usize; SAMPLE_POINTS],
     pub loop_to: [usize; SAMPLE_POINTS],
     pub loop_x: [f32; SAMPLE_POINTS],
@@ -93,6 +145,10 @@ impl Workspace {
             extra: Vec::new(),
             floor_cost: Vec::new(),
             bound: Vec::new(),
+            part_freq: Vec::new(),
+            part_from: Vec::new(),
+            joins: Vec::new(),
+            join_penalty: Vec::new(),
             samples: SHORT_SAMPLES,
             cols: Vec::new(),
             heap: Vec::new(),
@@ -114,6 +170,9 @@ impl Workspace {
             pause_count: 0,
             arc_at: [0.0; SAMPLE_POINTS],
             collapsed_samples: 0,
+            open_head_to: 0,
+            open_tail_from: 0,
+            open_ends: false,
             loop_from: [0; SAMPLE_POINTS],
             loop_to: [0; SAMPLE_POINTS],
             loop_x: [0.0; SAMPLE_POINTS],
@@ -155,6 +214,10 @@ impl Workspace {
         self.extra.clear();
         self.floor_cost.clear();
         self.bound.clear();
+        self.part_freq.clear();
+        self.part_from.clear();
+        self.joins.clear();
+        self.join_penalty.clear();
         self.heap.clear();
         self.saturated = false;
     }
@@ -216,6 +279,18 @@ impl Workspace {
         self.extra.push(extra);
         self.floor_cost.push(floor_cost);
         self.bound.push(bound);
+        if parent >= 0 {
+            let p = parent as usize;
+            self.part_freq.push(self.part_freq[p]);
+            self.part_from.push(self.part_from[p]);
+            self.joins.push(self.joins[p]);
+            self.join_penalty.push(self.join_penalty[p]);
+        } else {
+            self.part_freq.push(NO_PART);
+            self.part_from.push(0);
+            self.joins.push(0);
+            self.join_penalty.push(0.0);
+        }
         let needed = (id + 1) * self.samples.max(1);
         if self.cols.len() < needed {
             self.cols.resize(needed.max(self.cols.len() * 2), 0.0);

@@ -26,6 +26,7 @@
     <string name="common_default">Chaguomsingi</string>
     <string name="common_delete">Futa</string>
     <string name="common_disable">Zima</string>
+    <string name="common_disabled_open_setting">Fungua mipangilio</string>
     <string name="common_disclosure_blocked_body">Android haionyeshi ombi hili tena, kwa sababu ulikataa ruhusa hapo awali. Bado unaweza kuiwasha kutoka skrini ya mipangilio ya programu.</string>
     <string name="common_disclosure_not_now">Si sasa</string>
     <string name="common_done">Imekamilika</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Sakinisha</string>
     <string name="common_installing">Inasakinisha…</string>
     <string name="common_loading">Inapakia...</string>
+    <string name="common_more">Zaidi</string>
     <string name="common_next">Inayofuata</string>
     <string name="common_none">Hakuna</string>
     <string name="common_notify_channel_backup_body">Wakati tu hifadhi nakala ya kiotomatiki inaposhindwa. Hifadhi nakala zilizofanikiwa huwa kimya.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Onyesha arifa</string>
     <string name="common_permission_storage_body">Kwenye Android 9 na matoleo ya zamani, kibodi inahitaji ruhusa ya hifadhi ili kuhifadhi picha kwenye ghala yako. Ruhusa ya zamani ya Android pia inashughulikia kusoma hifadhi yako. Kibodi huandika tu picha unayoiomba ihifadhi. Kibodi haisomi chochote na haipakii chochote. Matoleo mapya ya Android hayahitaji ruhusa hii.</string>
     <string name="common_permission_storage_title">Ufikiaji wa hifadhi ili kuhifadhi kwenye ghala yako</string>
+    <string name="common_permission_tasks_body">WM Keyboard hufanya orodha yake ya mambo ya kufanya na orodha moja ya kazi katika programu ya kazi kuwa sawa: kazi, hatua zake, tiki zake na tarehe zake za mwisho, kwa njia zote mbili. Ruhusa hii inahusu kila orodha ya kazi katika programu. Kibodi husoma orodha za programu pekee ili uweze kuchagua moja, na husoma na kuandika orodha uliyochagua pekee. Kibodi haitumi kitu chochote popote. DAVx5, ukiitumia, inasawazisha orodha hiyo na seva yako ya CalDAV. Bila ruhusa hii, orodha ya mambo ya kufanya inabaki kwenye simu hii.</string>
+    <string name="common_permission_tasks_opentasks_title">Ufikiaji wa OpenTasks kwa orodha ya mambo ya kufanya</string>
+    <string name="common_permission_tasks_tasks_org_title">Ufikiaji wa Tasks.org kwa ajili ya orodha ya mambo ya kufanya</string>
+    <string name="common_preview_scale_desc">Ukubwa wa onyesho la awali</string>
+    <string name="common_preview_scale_larger">Fanya hakikisho kuwa kubwa zaidi</string>
+    <string name="common_preview_scale_smaller">Fanya hakikisho kuwa dogo zaidi</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Ondoa</string>
     <string name="common_reset">Weka upya</string>
     <string name="common_reset_defaults">Weka upya kwa chaguomsingi</string>

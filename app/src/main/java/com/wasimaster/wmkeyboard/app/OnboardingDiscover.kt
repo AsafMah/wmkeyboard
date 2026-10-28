@@ -24,7 +24,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFormat
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wallpaper
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
 import androidx.compose.material3.Icon
@@ -48,7 +47,6 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
-import com.wasimaster.wmkeyboard.core.settings.PersonaPrivacy
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
@@ -219,27 +217,6 @@ private val Modes = DiscoverFeature(
 )
 
 /**
- * Incognito and the autocorrect toggle in one card: the point is not either
- * switch but that both live on the toolbar, flippable while typing, without a
- * settings trip.
- */
-private val QuickToggles = DiscoverFeature(
-    id = "quick_toggles",
-    title = R.string.onboarding_discover_quick_toggles_title,
-    pitch = R.string.onboarding_discover_quick_toggles_pitch,
-    icon = Icons.Outlined.ToggleOn,
-    accent = Color(0xFFEF5350),
-    kind = DiscoverKind.TOGGLE,
-    isOn = {
-        ToolbarTool.INCOGNITO in it.enabledTools && ToolbarTool.AUTOCORRECT in it.enabledTools
-    },
-    setOn = { repo, on ->
-        repo.setToolEnabled(ToolbarTool.INCOGNITO, on)
-        repo.setToolEnabled(ToolbarTool.AUTOCORRECT, on)
-    },
-)
-
-/**
  * How many cards each depth answer gets; enough to be a tour, never a wall.
  *
  * Both went up by one when the modes card moved to the head of the list
@@ -251,9 +228,7 @@ private const val DISCOVER_CAP_BALANCED = 8
 
 /**
  * The card list for a persona, in pitch order. Power users see everything,
- * strict-privacy users see the keyboard-side toggles first (theirs is the
- * persona that reaches for incognito) with the network-adjacent AI card moved
- * last, and everyone else gets the head of the list.
+ * and everyone else gets the head of the list.
  */
 internal fun discoverFeatures(
     persona: OnboardingSettings,
@@ -268,11 +243,6 @@ internal fun discoverFeatures(
     )
     if (persona.personaDepth == PersonaDepth.POWER) {
         base += Whisper
-    }
-    if (persona.personaPrivacy == PersonaPrivacy.STRICT) {
-        base.remove(Ai)
-        base += Ai
-        base.add(0, QuickToggles)
     }
     val available = base.filter { feature ->
         (feature.requiresTool?.let(isToolSupported) != false) &&

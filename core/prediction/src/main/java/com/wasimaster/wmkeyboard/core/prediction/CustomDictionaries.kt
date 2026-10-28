@@ -414,6 +414,11 @@ object CustomDictionaries {
         var refusal: Refusal? = null
         for (item in items) {
             if (item.name.endsWith(BODY_SUFFIX) || Hunspell.isAff(item.name)) continue
+            // A Sogou cell file, read as the Chinese word list it holds.
+            if (SogouScel.looksLikeScel(item.bytes)) {
+                scelCandidate(item)?.let(candidates::add)
+                continue
+            }
             if (Hunspell.looksLikeDic(item.name, item.bytes)) {
                 // Paired by name, or, when only one of each was picked, with
                 // each other: a download often names the two differently.
@@ -492,6 +497,18 @@ object CustomDictionaries {
         if (!AospCombined.looksLikeCombined(first)) return null
         val result = AospCombined.read(item.bytes.inputStream())
         return (result as? AospDictionary.Result.Contents)?.let { candidate(item.name, it) }
+    }
+
+    /** A `.scel` file's words, as a Chinese list whose lines carry their pinyin. */
+    private fun scelCandidate(item: ImportFile): ImportCandidate? {
+        val entries = SogouScel.read(item.bytes)
+        if (entries.isEmpty()) return null
+        val text = SogouScel.toText(item.bytes)
+        val name = item.name.substringBeforeLast('.') + ".txt"
+        return ImportCandidate(
+            name, entries.map { it.word to it.count }, emptyList(), emptyList(), "zh", null,
+            verbatim = text.toByteArray(),
+        )
     }
 
     private fun textCandidate(item: ImportFile): ImportCandidate? {

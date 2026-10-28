@@ -81,6 +81,8 @@ data class CaptureCallbacks(
     val onSelectionAction: (CaptureSelectionAction) -> Unit = {},
     /** A word was picked off the field's own suggestion strip. */
     val onSuggestion: (String) -> Unit = {},
+    /** The ✕ in the emoji panel's search box (#907). */
+    val onEmojiQueryClear: () -> Unit = {},
     /**
      * The AI panel's chat mode (#280). It rides here rather than as a parameter
      * of its own for the reason this bundle exists at all, and it belongs: the
@@ -104,6 +106,8 @@ data class CaptureCallbacks(
     val onVoice: (com.wasimaster.wmkeyboard.ime.CaptureVoiceAction) -> Unit = {},
     /** The focus switch on the field (#665): its keys to the app's field, or back. */
     val onFocusSwitch: () -> Unit = {},
+    /** The button at the end of the field's strip: its key rows go down to show the panel (#961). */
+    val onKeysLower: () -> Unit = {},
 )
 
 /**

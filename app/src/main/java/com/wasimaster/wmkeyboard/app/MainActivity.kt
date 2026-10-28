@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.ShareSheetSettingsScreen
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
@@ -126,12 +128,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
+import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import androidx.compose.ui.platform.LocalContext
@@ -383,6 +389,7 @@ class MainActivity : FragmentActivity() {
                 CompositionLocalProvider(
                     LocalAppUpdater provides updater,
                     LocalAppLock provides appLock,
+                    LocalOpenSettingLink provides remember { { link: String -> openSettingLink(link) } },
                 ) {
                     // From Android 15 the window is edge to edge, the
                     // keyboard's inset reaches the screens, and the pan the
@@ -561,24 +568,44 @@ class MainActivity : FragmentActivity() {
     }
 
     /**
+     * Opens a settings link from inside the app: a favourite (#898). Goes
+     * the way an incoming link does, so a favourite whose row a later version
+     * moved still opens. One that names nothing this build has opens nothing:
+     * it is the user's own list, and the "needs a newer version" prompt is
+     * for links somebody else sent.
+     */
+    private fun openSettingLink(link: String) {
+        val nav = SettingsDeepLink.parse(link)?.let(::pendingFor) ?: return
+        if (nav.route != null) pendingNav.value = nav.copy(missing = null)
+    }
+
+    /**
      * Fills in what a link left to the index: the screen holding a row it
      * named on its own, and the row's title resource, which is what the flash
      * matches on.
      */
     private fun pendingFor(target: SettingsDeepLink.Target): PendingNav? {
-        val entry = SettingsDeepLink.resolve(target) { searchIndex }
-        val group = if (entry == null) groupTitle(target) else 0
-        // A row this build has on another screen is a link that went stale,
-        // and still opens the screen it named. Only a row the index has
-        // nowhere, and no heading answers to, is one this version is missing.
-        val missing = if (target.setting.isNotEmpty() && entry == null && group == 0 &&
-            SettingsDeepLink.resolve(target.copy(route = "")) { searchIndex } == null
-        ) {
+        val scoped = SettingsDeepLink.resolve(target) { searchIndex }
+        val group = if (scoped == null) groupTitle(target) else 0
+        // A row this build has on another screen is a link that went stale: a
+        // favourite pinned before its hub was split, say. It opens where the
+        // row is drawn now rather than on the screen it named, so the pin
+        // keeps landing on the row (SETTINGS_REDESIGN.md §4). A heading on the
+        // named screen still wins, since it answers the link as written.
+        val moved = if (scoped == null && group == 0 && target.setting.isNotEmpty()) {
+            SettingsDeepLink.resolve(target.copy(route = "")) { searchIndex }
+        } else {
+            null
+        }
+        val entry = scoped ?: moved
+        // Only a row the index has nowhere, and no heading answers to, is one
+        // this version is missing.
+        val missing = if (target.setting.isNotEmpty() && entry == null && group == 0) {
             MissingLink(target.since, row = true)
         } else {
             null
         }
-        val route = entry?.route?.takeIf { target.route.isEmpty() } ?: target.route
+        val route = entry?.route?.takeIf { target.route.isEmpty() || moved != null } ?: target.route
         if (route.isEmpty()) return missing?.let { PendingNav(missing = it) }
         return PendingNav(route = route, highlight = entry?.titleRes ?: group, missing = missing)
     }
@@ -733,6 +760,17 @@ private fun SettingsNavHost(
             foldScope.launch { repository.setAdvancedFoldOpen(key, open) }
         }
     }
+    // How much of the app is showing (settings depth), resolved once here and
+    // read by every group; changed from Home, a page's footer or Accessibility.
+    val depthResolved = settings.watch { it.settingsDepthResolved() }
+    val hiddenRows = settings.watch { it.appUi.hiddenSettingsRows }
+    val depthControl = remember(depthResolved, hiddenRows) {
+        DepthControl(depthResolved, hiddenRows) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
+    }
+    // Which feature bundles are on (Extensions), read by Home, Advanced, the
+    // Tools list and every picker; a route a switched-off bundle owns is
+    // turned towards the Extensions screen before navigate() sees it.
+    val extensionsOn = settings.watch { it.extensionsResolved() }
     // A section's icon and name fly from its home row to the heading of the
     // screen it opens, so the two read as one object being opened rather than
     // as a list and an unrelated page. Published for the whole graph here;
@@ -804,7 +842,21 @@ private fun SettingsNavHost(
     val openChat: () -> Unit = remember(navController) {
         { navController.navigate("ai_chat") { launchSingleTop = true } }
     }
-    val navigate: (String) -> Unit = remember(navController) { { route -> navController.navigate(route) } }
+    val navigate: (String) -> Unit = remember(navController) {
+        { route -> navController.navigate(routeWithExtensions(route, settings.value.extensionsResolved())) }
+    }
+    // The rows an update brought (#970), worked out once per launch. Off the
+    // main thread: it builds the whole search index.
+    LaunchedEffect(Unit) { kotlinx.coroutines.withContext(Dispatchers.Default) { NewSettings.load(context) } }
+    // As a search result opens one: flash the row, then go.
+    val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController) {
+        { entry ->
+            SettingsHighlight.request(entry.titleRes)
+            navController.navigate(routeWithExtensions(entry.route, settings.value.extensionsResolved())) {
+                launchSingleTop = true
+            }
+        }
+    }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
@@ -812,6 +864,8 @@ private fun SettingsNavHost(
             LocalSharedTransition provides if (twoPane) null else shared,
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
+            LocalSettingsDepth provides depthControl,
+            LocalExtensions provides extensionsOn,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
             // motions deep in a row can be still without every row being
@@ -820,10 +874,19 @@ private fun SettingsNavHost(
             LocalKeyboardPreview provides preview.takeIf { previewWanted },
             // The AI chat button on every screen, when asked for: the frame
             // draws it from this, so no screen has to know about it.
-            LocalAiChatFab provides openChat.takeIf { settings.watch { it.appUi.aiChatButtonEverywhere } },
+            // Gone with the AI bundle: the button is the chat's door.
+            LocalAiChatFab provides openChat.takeIf {
+                settings.watch { it.appUi.aiChatButtonEverywhere }
+            },
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
+            // Favourite screens and rows (#898), behind the button in every
+            // top bar, and gone with it.
+            LocalSettingsFavourites provides rememberSettingsFavourites(
+                settings.watch { it.appUi.settingsFavourites },
+                repository,
+            ).takeIf { settings.watch { it.appUi.favouritesButton } },
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
@@ -831,46 +894,54 @@ private fun SettingsNavHost(
                 still = reduceMotion,
             ),
         ) {
-            if (twoPane) {
-                SettingsTwoPane(
-                    list = {
-                        // One keyboard test button on the window: the list's
-                        // while the pane beside it is only the welcome panel,
-                        // the open screen's once there is one.
-                        CompositionLocalProvider(
-                            LocalKeyboardPreview provides
-                                LocalKeyboardPreview.current?.takeIf { topRoute == HomeRoute },
-                        ) {
-                            HomeScreen(
-                                settings = settings,
-                                selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
-                                onNavigate = { route ->
-                                    openedFrom = route
-                                    // From the list pane the detail always replaces
-                                    // what is in it rather than stacking on top:
-                                    // the pane beside it *is* the step back, so a
-                                    // stack of home rows would be one the user
-                                    // never took.
-                                    navController.navigate(route) {
-                                        popUpTo(HomeRoute)
-                                        launchSingleTop = true
-                                    }
-                                },
+            // The bar over every screen that walks through what an update
+            // brought (#970), once onboarding is out of the way.
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (twoPane) {
+                    SettingsTwoPane(
+                        list = {
+                            // One keyboard test button on the window: the list's
+                            // while the pane beside it is only the welcome panel,
+                            // the open screen's once there is one.
+                            CompositionLocalProvider(
+                                LocalKeyboardPreview provides
+                                    LocalKeyboardPreview.current?.takeIf { topRoute == HomeRoute },
+                            ) {
+                                HomeScreen(
+                                    settings = settings,
+                                    selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
+                                    onNavigate = { wanted ->
+                                        val route = routeWithExtensions(wanted, settings.value.extensionsResolved())
+                                        openedFrom = route
+                                        // From the list pane the detail always replaces
+                                        // what is in it rather than stacking on top:
+                                        // the pane beside it *is* the step back, so a
+                                        // stack of home rows would be one the user
+                                        // never took.
+                                        navController.navigate(route) {
+                                            popUpTo(HomeRoute)
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                )
+                            }
+                        },
+                        detail = {
+                            SettingsNavGraph(
+                                navController,
+                                repository,
+                                settings,
+                                pending,
+                                onPendingHandled,
                             )
-                        }
-                    },
-                    detail = {
-                        SettingsNavGraph(
-                            navController,
-                            repository,
-                            settings,
-                            pending,
-                            onPendingHandled,
-                        )
-                    },
-                )
-            } else {
-                SettingsNavGraph(navController, repository, settings, pending, onPendingHandled)
+                        },
+                    )
+                } else {
+                    SettingsNavGraph(navController, repository, settings, pending, onPendingHandled)
+                }
+                if (settings.watch { it.onboardingDone }) {
+                    NewSettingsBar(openNewSetting, Modifier.align(Alignment.BottomCenter))
+                }
             }
         }
     }
@@ -972,11 +1043,14 @@ private fun SettingsNavGraph(
                 // first composition, and a request made after would be a frame
                 // too late for the row to scroll itself into view.
                 if (pending.highlight != 0) SettingsHighlight.request(pending.highlight)
-                navController.navigate(pending.route)
+                // A link to a screen a switched-off bundle owns lands on the
+                // Extensions screen with that bundle flashed, not on the page.
+                navController.navigate(routeWithExtensions(pending.route, settings.value.extensionsResolved()))
             }
             pending.tool != null -> {
-                navController.navigate("tools")
-                navController.navigate("tool/${pending.tool.name}")
+                val target = routeWithExtensions("tool/${pending.tool.name}", settings.value.extensionsResolved())
+                if (target != ExtensionsRoute) navController.navigate("tools")
+                navController.navigate(target)
             }
         }
         onPendingHandled()
@@ -1042,7 +1116,9 @@ private fun SettingsNavGraph(
             } else {
                 HomeScreen(
                     settings = settings,
-                    onNavigate = { route -> navController.navigate(route) },
+                    onNavigate = { route ->
+                        navController.navigate(routeWithExtensions(route, settings.value.extensionsResolved()))
+                    },
                     anim = this,
                 )
             }
@@ -1071,7 +1147,7 @@ private fun SettingsNavGraph(
                         // The search screen stays on the back stack, so backing
                         // out of a setting that was not the one lands on the
                         // same results rather than on the home list (#92).
-                        navController.navigate(result.route)
+                        navController.navigate(routeWithExtensions(result.route, settings.value.extensionsResolved()))
                     },
                 )
             }
@@ -1102,7 +1178,17 @@ private fun SettingsNavGraph(
                     repository,
                     settings,
                     onOpenLearnedCorrections = { navController.navigate("learnedcorrections") },
+                    onNavigate = { navController.navigate(it) },
                 )
+            }
+        }
+        composable("typing/writing") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_writing_title),
+                { navController.popBackStack() },
+                route = "typing/writing",
+            ) {
+                TypingWritingSettings(repository, settings)
             }
         }
         composable("typing/suggestions") {
@@ -1164,7 +1250,43 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "typing/gestures",
             ) {
-                TypingGesturesSettings(repository, settings)
+                TypingGesturesSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("typing/gestures/glide") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_glide_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/glide",
+            ) {
+                TypingGlideSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("typing/gestures/glide/checkup") {
+            SettingsScreen(
+                stringResource(R.string.typing_glide_checkup_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/glide/checkup",
+            ) {
+                TypingGlideCheckupSettings(repository, settings)
+            }
+        }
+        composable("typing/gestures/spacebar") {
+            SettingsScreen(
+                stringResource(R.string.typing_page_spacebar_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/spacebar",
+            ) {
+                TypingSpacebarSettings(repository, settings)
+            }
+        }
+        composable("typing/gestures/flicks") {
+            SettingsScreen(
+                stringResource(R.string.typing_page_flicks_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/flicks",
+            ) {
+                TypingFlicksSettings(repository, settings)
             }
         }
         composable("typing/hardware") {
@@ -1294,6 +1416,17 @@ private fun SettingsNavGraph(
                 subtitleMaxLines = 2,
             ) {
                 EmojiCategorySettings(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("emojiadded") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_emoji_added_title),
+                { navController.popBackStack() },
+                route = "emojiadded",
+                subtitle = stringResource(R.string.langemoji_emoji_added_subtitle),
+                subtitleMaxLines = 2,
+            ) {
+                AddedEmojiSettings(repository, settings)
             }
         }
         composable(
@@ -1680,6 +1813,11 @@ private fun SettingsNavGraph(
                 com.wasimaster.wmkeyboard.app.homeassistant.HaEntitiesScreen(repository, settings)
             }
         }
+        composable(MUSIC_HISTORY_ROUTE) {
+            SettingsScreen(stringResource(R.string.music_history_title), { navController.popBackStack() }, route = MUSIC_HISTORY_ROUTE) {
+                MusicHistoryScreen(settings)
+            }
+        }
         composable("clock") {
             // A timer's or the stopwatch's notification opens its own section.
             val tab = (LocalContext.current as? android.app.Activity)?.intent
@@ -1712,6 +1850,11 @@ private fun SettingsNavGraph(
         composable("notes/trash") {
             SettingsScreen(stringResource(R.string.notes_trash_title), { navController.popBackStack() }, route = "notes/trash") {
                 NotesTrashScreen(settings)
+            }
+        }
+        composable(TODO_ROUTE) {
+            SettingsScreen(stringResource(R.string.todo_title), { navController.popBackStack() }, route = TODO_ROUTE) {
+                TodoListScreen(repository, settings)
             }
         }
         composable("sticker_packs") {
@@ -1926,7 +2069,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = STICKER_GENERATOR_ROUTE,
             ) {
-                StickerGeneratorScreen(settings, packId) { route -> navController.navigate(route) }
+                StickerGeneratorScreen(repository, settings, packId) { route -> navController.navigate(route) }
             }
         }
         composable(STICKER_EDITOR_ROUTE) {
@@ -2066,6 +2209,15 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("emoji/mixes") {
+            SettingsScreen(
+                stringResource(R.string.emojimix_row_title),
+                { navController.popBackStack() },
+                route = "emoji/mixes",
+            ) {
+                EmojiMixSettings(repository, settings)
+            }
+        }
         composable("kaomoji") {
             SettingsScreen(
                 stringResource(R.string.langemoji_kaomoji_title),
@@ -2115,6 +2267,34 @@ private fun SettingsNavGraph(
                 route = "clipboard",
             ) {
                 ClipboardSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("clipboard/history") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_history_title),
+                { navController.popBackStack() },
+                route = "clipboard/history",
+                subtitle = stringResource(R.string.clipboard_page_history_subtitle),
+            ) {
+                ClipboardHistorySettings(repository, settings)
+            }
+        }
+        composable("clipboard/chips") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_page_chips_title),
+                { navController.popBackStack() },
+                route = "clipboard/chips",
+            ) {
+                ClipboardChipsSettings(repository, settings)
+            }
+        }
+        composable("clipboard/rules") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_page_rules_title),
+                { navController.popBackStack() },
+                route = "clipboard/rules",
+            ) {
+                ClipboardRulesSettings(repository, settings) { navController.navigate(it) }
             }
         }
         composable("expander") {
@@ -2399,6 +2579,47 @@ private fun SettingsNavGraph(
                 AdvancedSettings { route -> navController.navigate(route) }
             }
         }
+        composable(ExtensionsRoute) {
+            SettingsScreen(
+                stringResource(R.string.extensions_title),
+                { navController.popBackStack() },
+                route = ExtensionsRoute,
+            ) {
+                ExtensionsSettings(repository, settings) { extension ->
+                    navController.navigate(extensionRoute(extension))
+                }
+            }
+        }
+        composable(ExtensionRoutePattern) { backStackEntry ->
+            val extension = backStackEntry.arguments?.getString("extension")
+                ?.let { name -> Extension.entries.firstOrNull { it.name == name } }
+            if (extension != null) {
+                // The bundle's own glyph and hue, as a tool page wears its
+                // tool's: the heading is the one thing naming which bundle
+                // this page is, and the row on the Extensions screen flies it.
+                SettingsScreen(
+                    stringResource(extensionTitle(extension)),
+                    { navController.popBackStack() },
+                    route = extensionRoute(extension),
+                    icon = {
+                        Icon(
+                            extensionIcon(extension),
+                            contentDescription = null,
+                            modifier = Modifier.size(HeaderGlyphSize),
+                        )
+                    },
+                    accent = extensionAccent(extension),
+                    subtitle = stringResource(extensionDescription(extension)),
+                    subtitleMaxLines = 3,
+                ) {
+                    ExtensionDetailSettings(repository, settings, extension) { route ->
+                        navController.navigate(route)
+                    }
+                }
+            } else {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            }
+        }
         composable(FloatingButtonRoute) {
             SettingsScreen(
                 stringResource(R.string.floating_button_title),
@@ -2406,6 +2627,15 @@ private fun SettingsNavGraph(
                 route = FloatingButtonRoute,
             ) {
                 FloatingButtonSettingsScreen(repository, settings)
+            }
+        }
+        composable(ShareSheetRoute) {
+            SettingsScreen(
+                stringResource(R.string.share_sheet_title),
+                { navController.popBackStack() },
+                route = ShareSheetRoute,
+            ) {
+                ShareSheetSettingsScreen(repository, settings)
             }
         }
         composable("rows") {
@@ -2640,7 +2870,11 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "statistics",
             ) {
-                StatisticsScreen(repository, settings)
+                StatisticsScreen(
+                    repository,
+                    settings,
+                    onOpenLearnedCorrections = { navController.navigate("learnedcorrections") },
+                )
             }
         }
         composable("storage/{category}") { backStackEntry ->
@@ -2800,8 +3034,13 @@ private fun HomeScreen(
             }
             // One list drives this screen and the search index's root entries,
             // so a row cannot exist on one and not the other.
+            val depthControl = LocalSettingsDepth.current
+            val depth = depthControl.depth
+            // A row a switched-off extension owns is not on the list at all;
+            // the Extensions row is where it comes back.
+            val entries = visibleRootEntries(LocalExtensions.current)
             for (group in RootGroup.entries) {
-                val rows = RootEntries.filter { it.group == group }
+                val rows = entries.filter { it.group == group && depth.shows(it.level) }
                 if (rows.isEmpty()) continue
                 SettingsGroup(stringResource(group.title)) {
                     for (row in rows) {
@@ -2813,6 +3052,28 @@ private fun HomeScreen(
                                 // no one right answer to hard-code here.
                                 if (row.route == "languages") enabledLanguagesSummary(settings)
                                 else stringResource(row.subtitle),
+                                onNavigate,
+                                selected = row.route == selectedRoute,
+                            )
+                        }
+                    }
+                }
+            }
+            // The rows above the depth, in one closed group at the end: still
+            // one press away, and named on the fold so they can be found.
+            val tucked = entries.filter { !depth.shows(it.level) }
+            // Pointed at only when asked (About › App); otherwise not there.
+            if (tucked.isNotEmpty() && depthControl.hiddenRows) {
+                SettingsGroup(
+                    stringResource(R.string.home_group_more_title),
+                    foldKey = "more",
+                    foldSummary = { tucked.map { stringResource(it.title) }.joinToString(", ") },
+                ) {
+                    for (row in tucked) {
+                        item {
+                            HomeItem(
+                                row.route, row.icon,
+                                stringResource(row.title), stringResource(row.subtitle),
                                 onNavigate,
                                 selected = row.route == selectedRoute,
                             )
@@ -3017,7 +3278,15 @@ internal fun SetupCard(
                 pending = !enabled,
                 onClick = {
                     onEnableRequested?.invoke()
-                    context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+                    // Some TV builds ship no screen for this action, and an
+                    // unguarded call crashes the app on the first button of
+                    // setup. The top of Settings is the nearest place left.
+                    if (runCatching {
+                            context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+                        }.isFailure
+                    ) {
+                        runCatching { context.startActivity(Intent(Settings.ACTION_SETTINGS)) }
+                    }
                 },
             )
             Spacer(Modifier.height(8.dp))
@@ -3075,8 +3344,17 @@ private fun SetupStep(label: String, done: Boolean, pending: Boolean, onClick: (
 /** The destinations a beginner should never meet on day one, one press away. */
 @Composable
 internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
+    val extensions = LocalExtensions.current
     SettingsGroup {
+        // The far-fetched features, on or off as one thing (SETTINGS_REDESIGN.md
+        // §3). First: Keyboard modes below is one of its bundles, and leaves
+        // when switched off.
         item {
+            NavRow(R.string.extensions_title, stringResource(R.string.extensions_subtitle), route = ExtensionsRoute) {
+                onNavigate(ExtensionsRoute)
+            }
+        }
+        item(visible = Extension.MODES in extensions) {
             NavRow(R.string.home_modes_title, stringResource(R.string.home_modes_subtitle), route = "modes") {
                 onNavigate("modes")
             }
@@ -3117,6 +3395,13 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.floating_button_subtitle),
                 route = FloatingButtonRoute,
             ) { onNavigate(FloatingButtonRoute) }
+        }
+        item {
+            NavRow(
+                R.string.share_sheet_title,
+                stringResource(R.string.share_sheet_subtitle),
+                route = ShareSheetRoute,
+            ) { onNavigate(ShareSheetRoute) }
         }
     }
 }
@@ -3222,7 +3507,11 @@ private fun AnimatedVisibilityScope.SettingsScreen(
         // It also means a deep link or an EXTRA_OPEN_ROUTE lands on the gate
         // rather than around it, because the gate is at the destination and
         // not at the navigate() call.
-        if (route == null) content() else LockedRoute(route, onCancel = onBack, content = content)
+        val body: @Composable () -> Unit = content
+        // Behind the lock, the extension check: a screen a switched-off
+        // bundle owns says so and points at the Extensions screen, whichever
+        // of the graph's navigate() calls reached it.
+        if (route == null) body() else LockedRoute(route, onCancel = onBack) { ExtensionGate(route, body) }
     }
 }
 
@@ -3246,6 +3535,8 @@ internal class SettingsGroupScope {
         val conditional: Boolean,
         /** Who the row is, for a row in a list the user edits; see [item]. */
         val key: Any?,
+        /** How far down the settings depth the row sits; see [SettingLevel]. */
+        val level: SettingLevel = SettingLevel.BASIC,
         val content: @Composable () -> Unit,
     )
 
@@ -3261,9 +3552,13 @@ internal class SettingsGroupScope {
      * it goes, instead of the rows under it jumping. See [GroupRows]. A keyed
      * row is still composed for the moment it takes to close, so its body
      * must not depend on the item still being in the list.
+     *
+     * [level] is how far down the settings depth the row sits. At a depth
+     * above it the row is not drawn in its place but behind the group's
+     * "more settings" row; see [SettingsDepth.kt]. Untagged rows are basic.
      */
-    fun item(key: Any? = null, content: @Composable () -> Unit) {
-        items += Entry(visible = true, conditional = false, key = key, content = content)
+    fun item(key: Any? = null, level: SettingLevel = SettingLevel.BASIC, content: @Composable () -> Unit) {
+        items += Entry(visible = true, conditional = false, key = key, level = level, content = content)
     }
 
     /**
@@ -3281,8 +3576,13 @@ internal class SettingsGroupScope {
      * through a null check the condition is doing, say — wants the `if` after
      * all.
      */
-    fun item(visible: Boolean, key: Any? = null, content: @Composable () -> Unit) {
-        items += Entry(visible = visible, conditional = true, key = key, content = content)
+    fun item(
+        visible: Boolean,
+        key: Any? = null,
+        level: SettingLevel = SettingLevel.BASIC,
+        content: @Composable () -> Unit,
+    ) {
+        items += Entry(visible = visible, conditional = true, key = key, level = level, content = content)
     }
 }
 
@@ -3317,17 +3617,78 @@ internal fun SettingsGroup(
     foldSummary: (@Composable () -> String)? = null,
     /** A control on the heading's right — the pencil that puts a list into reorder mode. */
     action: (@Composable () -> Unit)? = null,
+    /**
+     * How far down the settings depth the whole group sits. Above its depth
+     * a titled group draws closed under its heading, like a fold; one with no
+     * heading tucks every row behind its "more settings" row. Rows keep their
+     * own [SettingsGroupScope.item] level inside a group that is shown.
+     */
+    level: SettingLevel = SettingLevel.BASIC,
     builder: SettingsGroupScope.() -> Unit,
 ) {
     // The builder runs during composition, so rows may be added
     // conditionally on snapshot state (e.g. sliders that appear only
     // while their feature's toggle is on).
     val scope = SettingsGroupScope().apply(builder)
+    val route = LocalScreenRoute.current.orEmpty()
+    val depthControl = LocalSettingsDepth.current
+    val depth = depthControl.depth
+    val groupAbove = !depth.shows(level)
+    val folds = LocalAdvancedFolds.current
+    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    // A row above the depth is not drawn at all; that is what the depth is
+    // for. Two things bring it back: a pending highlight (a search result or
+    // an addon's Use button has to land on it, so it is drawn in its place as
+    // if the depth allowed it), and About › App › "Show where settings are
+    // hidden", which puts a "N more settings" row at the end of the group
+    // and folds a whole titled group closed under its heading instead.
+    val reveal = highlighted || depthControl.hiddenRows
+    if (groupAbove && !reveal) return
+    val foldsWhole = groupAbove && title != null && depthControl.hiddenRows
+    val tucked: (SettingsGroupScope.Entry) -> Boolean =
+        { e -> !foldsWhole && (groupAbove || !depth.shows(e.level)) }
+    val tuckedCount = scope.items.count { it.visible && tucked(it) }
+    val entries = when {
+        tuckedCount == 0 -> scope.items
+        // Not pointed at: the hidden rows are simply not there.
+        !depthControl.hiddenRows && !highlighted -> scope.items.filterNot { tucked(it) }
+        // A highlight pending and nothing to point with: every row in its place.
+        !depthControl.hiddenRows -> scope.items
+        else -> {
+            // Remembered per group like a fold, and drawn open while a
+            // highlight is pending so a search result can land inside.
+            val moreId = "$route/${foldKey ?: title ?: "group"}#more"
+            val moreOpen = highlighted || (folds?.isOpen(moreId) ?: false)
+            buildList<SettingsGroupScope.Entry> {
+                scope.items.filterNotTo(this) { tucked(it) }
+                add(
+                    SettingsGroupScope.Entry(visible = true, conditional = false, key = null) {
+                        MoreSettingsRow(tuckedCount, moreOpen) { folds?.toggle(moreId, !moreOpen) }
+                    },
+                )
+                // Conditional on the fold, so they grow in under the row
+                // rather than appear. Unkeyed on purpose: a keyed row's own
+                // arrive-and-leave motion is for a list the user edits.
+                for (entry in scope.items) {
+                    if (!tucked(entry)) continue
+                    add(
+                        SettingsGroupScope.Entry(
+                            visible = entry.visible && moreOpen,
+                            conditional = true,
+                            key = null,
+                            level = entry.level,
+                            content = entry.content,
+                        ),
+                    )
+                }
+            }
+        }
+    }
     // What the group is showing right now, which is what every count below is
     // about: a hidden conditional row is not a row the reader can see, so it
     // is not a slab in the skeleton and not one of the rows a closed fold
     // says it is holding.
-    val shown = scope.items.count { it.visible }
+    val shown = entries.count { it.visible }
     if (shown == 0) return
     // Below the fold while the screen is still animating in: come back for
     // the rows once the entrance can spare them — see [rememberGroupRevealed].
@@ -3337,9 +3698,9 @@ internal fun SettingsGroup(
         GroupSkeleton(shown, hasTitle = title != null)
         return
     }
-    val folds = LocalAdvancedFolds.current
-    val foldId = foldKey?.let { "${LocalScreenRoute.current.orEmpty()}/$it" }
-    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    // A group folded by its level is named by its title: two such groups on
+    // one screen must not share a remembered state.
+    val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
     val open = foldId == null || highlighted || (folds?.isOpen(foldId) ?: false)
     // A named group is a scroll target in its own right. Some things the user
     // arrives at from search — or from an addon's Use button — are a whole
@@ -3372,7 +3733,7 @@ internal fun SettingsGroup(
                 // Which rows are drawn, and how keyed ones arrive and leave,
                 // is GroupRows' business (SettingsGroupMotion.kt); the card
                 // each one sits on is this file's.
-                GroupRows(scope.items) { modifier, gapAbove, first, last, content ->
+                GroupRows(entries) { modifier, gapAbove, first, last, content ->
                     Column(modifier = modifier) {
                         if (gapAbove) Spacer(Modifier.height(3.dp))
                         GroupCard(
@@ -3430,7 +3791,10 @@ private fun GroupCard(top: Dp, bottom: Dp, content: @Composable () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) { content() }
+        // No padding of its own: a row brings its own (ListItem's 8 dp, a
+        // slider row's 8 dp), and 4 dp on top of that made every row 80 dp
+        // where 72 is the height the list is designed around.
+        Column { content() }
     }
 }
 
@@ -3460,11 +3824,12 @@ private fun FoldHeader(
     onToggle: () -> Unit,
 ) {
     val numberFormat = stringResource(R.string.values_number)
+    val hold = rememberRowHold()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .settingLinkHold()
+            .settingLinkHold(hold)
             .clickable(onClick = onToggle)
             .then(GroupHeadingPadding),
     ) {
@@ -3498,6 +3863,7 @@ private fun FoldHeader(
             SettingLinkButton(title)
             ExpandChevron(open)
         }
+        RowHoldMenu(hold)
     }
 }
 
@@ -3648,9 +4014,15 @@ internal fun ExpandChevron(expanded: Boolean) {
 internal fun transparentListColors(): ListItemColors =
     ListItemDefaults.colors(containerColor = Color.Transparent)
 
-/** "?" affordance that opens a dialog with the full explanation of a setting. */
+/**
+ * "?" affordance that opens a dialog with the full explanation of a setting.
+ * Draws nothing inside a [RowExtras] at the Simple depth, where the row's
+ * long press offers the same explanation as "What is this?" (see
+ * [RowHoldMenu]); a heading's "?" is outside any RowExtras and stays.
+ */
 @Composable
 internal fun InfoButton(title: String, detail: String) {
+    if (LocalRowExtrasBare.current) return
     var open by remember { mutableStateOf(false) }
     IconButton(onClick = { open = true }, modifier = Modifier.size(RowExtraSize)) {
         Icon(
@@ -3660,18 +4032,22 @@ internal fun InfoButton(title: String, detail: String) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         )
     }
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(title) },
-            text = { Text(detail) },
-            confirmButton = {
-                TextButton(onClick = { open = false }) {
-                    Text(stringResource(CommonR.string.common_ok))
-                }
-            },
-        )
-    }
+    if (open) InfoDialog(title, detail) { open = false }
+}
+
+/** The explanation [InfoButton] opens: the setting's name over its [detail], and OK. */
+@Composable
+internal fun InfoDialog(title: String, detail: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(detail) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(CommonR.string.common_ok))
+            }
+        },
+    )
 }
 
 /**
@@ -3747,7 +4123,8 @@ internal fun SectionHeader(
     linkable: Boolean = false,
 ) {
     val link = linkable && settingLinkButtonShown() && currentRowLink() != null
-    val outer = if (linkable) Modifier.settingLinkHold().then(modifier) else modifier
+    val hold = if (linkable) rememberRowHold() else null
+    val outer = Modifier.settingLinkHold(hold).then(modifier)
     if (trailing != null) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = outer.fillMaxWidth()) {
             Text(
@@ -3771,16 +4148,19 @@ internal fun SectionHeader(
                 // content ends 16dp further in, and so does this.
                 modifier = Modifier.padding(start = 8.dp, end = 16.dp),
             )
+            RowHoldMenu(hold)
         }
         return
     }
     if (info == null && action == null && !link) {
-        Text(
-            text,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = outer,
-        )
+        Box(outer) {
+            Text(
+                text,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            RowHoldMenu(hold)
+        }
         return
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = outer) {
@@ -3795,6 +4175,7 @@ internal fun SectionHeader(
             if (link) SettingLinkButton(text)
             action?.invoke()
         }
+        RowHoldMenu(hold)
     }
 }
 
@@ -3862,7 +4243,7 @@ internal fun NavRow(
     val beside = value != null && fitsBesideTitle(
         value,
         MaterialTheme.typography.labelLarge,
-        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (settingLinkButtonShown()) SettingLinkTargetSize else 0.dp),
+        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (rowLinkButtonShown()) SettingLinkTargetSize else 0.dp),
         hasIcon = rowHasTile(icon),
     )
     val below = value.takeIf { it != null && !beside }
@@ -3874,6 +4255,10 @@ internal fun NavRow(
             icon = icon,
             flightTo = route,
             swipeActions = swipeActions,
+            // A value beside the title sits on the title's own line. In the
+            // trailing slot it took a column the whole height of the row, and
+            // a long subtitle was squeezed to three words a line beside it.
+            trailingOnTitleLine = beside,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RowExtras { SettingLinkButton(title) }
@@ -3913,6 +4298,19 @@ private fun RowValueText(
 
 /** An outlined button's content padding, which its label does not get to use. */
 private val BUTTON_FURNITURE = 48.dp
+
+/**
+ * The slider a short-named row draws on its title line: long enough to drag
+ * by thumb, short enough to leave the name its room (SETTINGS_REDESIGN.md,
+ * section 5).
+ */
+private val SliderOnTitleLineWidth = 140.dp
+
+/** The gap either side of that slider. */
+private val SliderPillGap = 8.dp
+
+/** The readout pill's own horizontal padding, both sides. */
+private val SliderPillPadding = 16.dp
 
 /**
  * The narrowest a row's title may be left. Below this it stops reading as
@@ -3955,11 +4353,13 @@ private fun settingsRowWidth(): Dp =
  * knows its own trailing text measures it here and puts it under the title
  * instead of beside it when it will not fit.
  *
- * What fits is what is left of [rowWidth] once the title keeps
- * [ROW_TITLE_FLOOR], capped at [RowTrailingTextMaxWidth]. Measuring against
- * that cap alone — which is what this did — passes a value that fits the cap
- * and still leaves the title nothing, because the cap knows nothing about the
- * "?", the reset, the glyph and the arrow sharing the row's end with it.
+ * What fits is what is left of [rowWidth] once the title keeps [floor]
+ * ([ROW_TITLE_FLOOR]), capped at [cap] ([RowTrailingTextMaxWidth]). Measuring
+ * against that cap alone — which is what this did — passes a value that fits
+ * the cap and still leaves the title nothing, because the cap knows nothing
+ * about the "?", the reset, the glyph and the arrow sharing the row's end
+ * with it. A row measuring its *title* against the rest of the line (the
+ * slider row) passes a floor of zero and no cap: the title is the text.
  */
 @Composable
 private fun fitsBesideTitle(
@@ -3968,16 +4368,27 @@ private fun fitsBesideTitle(
     furniture: Dp,
     hasIcon: Boolean,
     rowWidth: Dp = settingsRowWidth(),
+    floor: Dp = ROW_TITLE_FLOOR,
+    cap: Dp = RowTrailingTextMaxWidth,
 ): Boolean {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val lane = if (hasIcon) ROW_ICON_LANE else 0.dp
-    val max = (rowWidth - ROW_PADDING - lane - furniture - ROW_TITLE_FLOOR)
-        .coerceAtMost(RowTrailingTextMaxWidth)
+    val max = (rowWidth - ROW_PADDING - lane - furniture - floor).coerceAtMost(cap)
     return remember(text, style, max, density) {
         max > 0.dp &&
             measurer.measure(text, style, maxLines = 1).size.width <=
             with(density) { max.toPx() }
+    }
+}
+
+/** The widest of [texts] drawn in [style] on one line, for a row budgeting a slot whose text changes. */
+@Composable
+private fun widestText(texts: List<String>, style: TextStyle): Dp {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(texts, style, density) {
+        with(density) { texts.maxOf { measurer.measure(it, style, maxLines = 1).size.width }.toDp() }
     }
 }
 
@@ -4009,6 +4420,7 @@ internal fun ToggleSetting(
     switchKey: String? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Boolean? = null,
     onChange: (Boolean) -> Unit,
 ) = ToggleSetting(
@@ -4020,6 +4432,7 @@ internal fun ToggleSetting(
     icon = icon,
     highlightKey = title,
     enabled = enabled,
+    disabledReason = disabledReason,
     default = default,
     onChange = onChange,
 )
@@ -4042,8 +4455,10 @@ internal fun ToggleSetting(
     @StringRes highlightKey: Int = 0,
     // Off for a setting that cannot be turned on yet — the row still reads and
     // still opens, it just has nothing to switch. The subtitle is where the
-    // caller says why.
+    // caller says why, and [disabledReason] what a long press on the row says,
+    // with the way to the setting that unblocks it.
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Boolean? = null,
     onChange: (Boolean) -> Unit,
 ) {
@@ -4054,7 +4469,7 @@ internal fun ToggleSetting(
         haptics.toggle(on)
         onChange(on)
     }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }, info = info) {
         WmRow(
             title = title,
             subtitle = subtitle,
@@ -4074,6 +4489,9 @@ internal fun ToggleSetting(
                             change(default == true)
                         }
                     }
+                    // A little air before the switch (#970): with the "?" right
+                    // against it, a tap meant for one landed on the other.
+                    Spacer(Modifier.width(6.dp))
                     Switch(
                         checked = checked,
                         onCheckedChange = change,
@@ -4110,7 +4528,7 @@ internal fun ToggleNavRow(
     onOpen: () -> Unit,
 ) {
     val name = stringResource(title)
-    HighlightableRow(name, title) {
+    HighlightableRow(name, title, info = info) {
         WmRow(
             title = name,
             subtitle = subtitle,
@@ -4240,7 +4658,7 @@ internal fun ControlSetting(
     @StringRes highlightKey: Int = 0,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4268,6 +4686,7 @@ internal fun SliderSetting(
     info: String? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Float? = null,
     onReset: (() -> Unit)? = null,
     preview: ((Float) -> Unit)? = null,
@@ -4283,6 +4702,7 @@ internal fun SliderSetting(
     icon = icon,
     highlightKey = title,
     enabled = enabled,
+    disabledReason = disabledReason,
     default = default,
     onReset = onReset,
     preview = preview,
@@ -4312,8 +4732,9 @@ internal fun SliderSetting(
     @StringRes highlightKey: Int = 0,
     // Off for a slider whose value cannot take effect yet — the row still
     // reads, and the subtitle is where the caller says why. Matches
-    // [ToggleSetting]'s own `enabled`.
+    // [ToggleSetting]'s own `enabled`, and so is [disabledReason].
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Float? = null,
     /**
      * For a setting whose default is "unset", not a number: the reset shows
@@ -4353,7 +4774,32 @@ internal fun SliderSetting(
     val haptics = rememberSettingsHaptics()
     val readout = display(slider.value)
     LaunchedEffect(readout) { if (slider.dragging) haptics.tick() }
-    HighlightableRow(title, highlightKey) {
+    // A short name shares its line with the slider (SETTINGS_REDESIGN.md,
+    // section 5): the row is then one line and its control, about 72 dp
+    // rather than 110. What else the line has to hold is measured first — the
+    // slider, the widest the pill gets, and the "?", link and reset the row
+    // could grow — so a long name keeps the two-storey row rather than being
+    // squeezed to a word a line beside a slider. The pill is measured at the
+    // range's ends and middle rather than at the live readout, so the answer
+    // holds still under a drag.
+    val extras = listOf(
+        info != null && rowInfoButtonShown(),
+        rowLinkButtonShown(),
+        onReset != null || default != null,
+    ).count { it }
+    val pillWidth = widestText(
+        listOf(display(range.start), display((range.start + range.endInclusive) / 2f), display(range.endInclusive)),
+        MaterialTheme.typography.labelLarge,
+    ) + SliderPillPadding
+    val onTitleLine = fitsBesideTitle(
+        title,
+        MaterialTheme.typography.bodyLarge,
+        furniture = SliderOnTitleLineWidth + SliderPillGap * 2 + pillWidth + RowExtraSize * extras,
+        hasIcon = rowHasTile(icon),
+        floor = 0.dp,
+        cap = Dp.Infinity,
+    )
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4388,6 +4834,17 @@ internal fun SliderSetting(
                         }
                     }
                 }
+                if (onTitleLine) {
+                    WmSlider(
+                        value = slider.value,
+                        onValueChange = slider::onDrag,
+                        modifier = Modifier.width(SliderOnTitleLineWidth),
+                        onValueChangeFinished = slider::onRelease,
+                        valueRange = range,
+                        enabled = enabled,
+                    )
+                    Spacer(Modifier.width(SliderPillGap))
+                }
                 // A slider cannot be landed on one exact millisecond by thumb,
                 // so the number is a button that takes it typed (#415). The
                 // pill is what says so; a bare number reads as a label.
@@ -4410,13 +4867,15 @@ internal fun SliderSetting(
                 )
             },
         ) {
-            WmSlider(
-                value = slider.value,
-                onValueChange = slider::onDrag,
-                onValueChangeFinished = slider::onRelease,
-                valueRange = range,
-                enabled = enabled,
-            )
+            if (!onTitleLine) {
+                WmSlider(
+                    value = slider.value,
+                    onValueChange = slider::onDrag,
+                    onValueChangeFinished = slider::onRelease,
+                    valueRange = range,
+                    enabled = enabled,
+                )
+            }
         }
     }
     if (typing) {
@@ -4498,7 +4957,7 @@ internal fun StepperSetting(
         haptics.tick()
         onChange(next)
     }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4598,6 +5057,8 @@ internal fun ActionRow(
     lock: LockTarget? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    /** What a long press says while [enabled] is off; see [DisabledReason]. */
+    disabledReason: DisabledReason? = null,
     onAction: () -> Unit,
 ) {
     var asking by remember { mutableStateOf(false) }
@@ -4615,7 +5076,7 @@ internal fun ActionRow(
         furniture = BUTTON_FURNITURE,
         hasIcon = rowHasTile(icon),
     )
-    HighlightableRow(label, title) {
+    HighlightableRow(label, title, disabledReason = disabledReason.takeUnless { enabled }) {
         WmRow(
             title = label,
             subtitle = subtitle.takeIf { beside },
@@ -4732,7 +5193,7 @@ internal fun <T> ChoiceSetting(
             segmentStyle(options, available, measurer, tiers, density) != null
         }
         if (fits) {
-            HighlightableRow(title, highlightKey) {
+            HighlightableRow(title, highlightKey, info = info) {
                 IconedRow(
                     icon = icon,
                     subtitle = subtitle,
@@ -4776,13 +5237,13 @@ internal fun <T> ChoiceSetting(
             MaterialTheme.typography.labelLarge,
             furniture = TRAILING_ICON_WIDTH +
                 rowExtrasWidth(
-                    listOf(info != null, default != null, settingLinkButtonShown()).count { it },
+                    listOf(info != null && rowInfoButtonShown(), default != null, rowLinkButtonShown()).count { it },
                 ) +
                 (if (glyph != null) ChoiceValueGlyphSize + ChoiceValueGlyphGap else 0.dp),
             hasIcon = rowHasTile(icon),
             rowWidth = maxWidth,
         )
-        HighlightableRow(title, highlightKey) {
+        HighlightableRow(title, highlightKey, info = info) {
             WmRow(
                 title = title,
                 subtitle = subtitle.takeIf { beside },
@@ -5177,7 +5638,7 @@ internal fun <T> MultiChoiceSetting(
     onChange: (Set<T>) -> Unit,
 ) {
     val name = stringResource(title)
-    HighlightableRow(name, title) {
+    HighlightableRow(name, title, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,

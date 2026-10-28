@@ -293,9 +293,9 @@ class KeymanPipelineTest {
         for (layer in spec.layers.values) {
             for (row in layer.rows) {
                 for (key in row) {
-                    for (ch in (key.output ?: key.label)) {
-                        if (ch.code < 0x80 || !ch.isLetter()) continue
-                        val script = ScriptRegistry.all.firstOrNull { it.contains(ch.code) }
+                    for (cp in (key.output ?: key.label).codePoints()) {
+                        if (cp < 0x80 || !Character.isLetter(cp)) continue
+                        val script = ScriptRegistry.all.firstOrNull { it.contains(cp) }
                             ?: continue
                         counts.merge(script.id, 1, Int::plus)
                     }
@@ -315,9 +315,9 @@ class KeymanPipelineTest {
      * An earlier version preferred any non-Latin script over Latin, to stop
      * digits and punctuation from calling every keyboard Latin. It over-corrected
      * badly: a handful of stray characters outvoted a 95% Latin grid, and an
-     * Albanian keyboard came out as Tamil. Excluding ASCII and combining marks
-     * from the count deals with the original problem without letting a minority
-     * win.
+     * Albanian keyboard came out as Tamil. Leaving ASCII out of the vote, while
+     * still letting it overrule a script with under a quarter of its count,
+     * deals with the original problem without letting a minority win.
      *
      * This is still a guess, and it is wrong in one known way: a *mnemonic*
      * keyboard has Latin key caps and types its own script through rules, so it
@@ -329,31 +329,39 @@ class KeymanPipelineTest {
         scriptFromTag(tag)?.let { return it to CONFIDENCE_FROM_TAG }
 
         val counts = mutableMapOf<ScriptId, Int>()
-        var total = 0
+        var ascii = 0
         for (layer in spec.layers.values) {
             for (row in layer.rows) {
                 for (key in row) {
-                    for (ch in (key.output ?: key.label)) {
-                        if (!ch.isLetter()) continue
-                        if (ch.code < 0x80) {
-                            // ASCII letters are on nearly every grid as digits'
-                            // shifted forms and as the odd Latin label; counting
-                            // them makes everything Latin.
-                            counts.merge(ScriptId.LATIN, 1, Int::plus)
-                            total++
+                    // By code point: a Char loop sees a supplementary letter
+                    // as two surrogates, neither of which is a letter, so every
+                    // Gothic, Brahmi or Adlam key used to drop out of the vote.
+                    for (cp in (key.output ?: key.label).codePoints()) {
+                        if (!Character.isLetter(cp)) continue
+                        if (cp < 0x80) {
+                            ascii++
                             continue
                         }
-                        val script = ScriptRegistry.all.firstOrNull { it.contains(ch.code) }
+                        val script = ScriptRegistry.all.firstOrNull { it.contains(cp) }
                             ?: continue
                         counts.merge(script.id, 1, Int::plus)
-                        total++
                     }
                 }
             }
         }
+        val total = ascii + counts.values.sum()
         if (total == 0) return null
-        val winner = counts.maxByOrNull { it.value } ?: return null
-        return winner.key.name to (winner.value * 100 / total)
+        // ASCII letters sit on nearly every grid as the odd Latin label, a
+        // shift layer of QWERTY hints, or a keyboard's own name, so they do not
+        // vote: a Dzongkha grid with 41 Tibetan and 43 ASCII letters is
+        // Tibetan. They only overrule a script too thin to be the point of the
+        // board, under a quarter of their count, which is a Latin keyboard
+        // carrying a stray symbol (an IPA board's one Greek letter).
+        val winner = counts.maxByOrNull { it.value }
+        if (winner == null || (winner.key != ScriptId.LATIN && winner.value * 4 < ascii)) {
+            return ScriptId.LATIN.name to ((ascii + (counts[ScriptId.LATIN] ?: 0)) * 100 / total)
+        }
+        return winner.key.name to (winner.value * 100 / (total - ascii))
     }
 
     /** `xx-Yyyy` to a [ScriptId] name, when the subtag names one we carry. */
@@ -372,25 +380,54 @@ class KeymanPipelineTest {
         /** A script named by the tag itself is stated, not inferred. */
         const val CONFIDENCE_FROM_TAG = 100
 
-        /** The ISO 15924 codes the corpus actually uses, to our ScriptIds. */
+        /**
+         * ISO 15924 codes to our ScriptIds, one for every ScriptId Unicode
+         * names (from Unicode 17.0 PropertyValueAliases.txt). Listing only the
+         * codes the corpus happened to use left `got-Goth`, `sa-Brah` and 60
+         * more without a match, and an unmatched tag falls through to counting.
+         */
         val ISO_15924 = mapOf(
-            "Latn" to "LATIN", "Cyrl" to "CYRILLIC", "Grek" to "GREEK",
-            "Arab" to "ARABIC", "Hebr" to "HEBREW", "Deva" to "DEVANAGARI",
-            "Beng" to "BENGALI", "Guru" to "GURMUKHI", "Gujr" to "GUJARATI",
-            "Orya" to "ORIYA", "Taml" to "TAMIL", "Telu" to "TELUGU",
-            "Knda" to "KANNADA", "Mlym" to "MALAYALAM", "Sinh" to "SINHALA",
-            "Thai" to "THAI", "Laoo" to "LAO", "Khmr" to "KHMER",
-            "Mymr" to "MYANMAR", "Ethi" to "ETHIOPIC", "Tibt" to "TIBETAN",
-            "Syrc" to "SYRIAC", "Thaa" to "THAANA", "Armn" to "ARMENIAN",
-            "Geor" to "GEORGIAN", "Cans" to "CANADIAN_ABORIGINAL_SYLLABICS",
-            "Cher" to "CHEROKEE", "Tfng" to "TIFINAGH", "Nkoo" to "NKO",
-            "Olck" to "OL_CHIKI", "Mtei" to "MEETEI_MAYEK", "Vaii" to "VAI",
-            "Osge" to "OSAGE", "Adlm" to "ADLAM", "Bali" to "BALINESE",
-            "Java" to "JAVANESE", "Mong" to "MONGOLIAN", "Plrd" to "MIAO",
-            "Lisu" to "LISU", "Newa" to "NEWA", "Runr" to "RUNIC",
-            "Copt" to "COPTIC", "Limb" to "LIMBU", "Cakm" to "CHAKMA",
-            "Rohg" to "HANIFI_ROHINGYA", "Bopo" to "BOPOMOFO", "Yiii" to "YI",
-            "Wara" to "WARANG_CITI",
+            "Adlm" to "ADLAM", "Aghb" to "CAUCASIAN_ALBANIAN", "Ahom" to "AHOM", "Arab" to "ARABIC",
+            "Armn" to "ARMENIAN", "Avst" to "AVESTAN", "Bali" to "BALINESE", "Bamu" to "BAMUM",
+            "Bass" to "BASSA_VAH", "Batk" to "BATAK", "Beng" to "BENGALI", "Bhks" to "BHAIKSUKI",
+            "Bopo" to "BOPOMOFO", "Brah" to "BRAHMI", "Brai" to "BRAILLE", "Bugi" to "BUGINESE",
+            "Buhd" to "BUHID", "Cakm" to "CHAKMA", "Cans" to "CANADIAN_ABORIGINAL_SYLLABICS",
+            "Cham" to "CHAM", "Cher" to "CHEROKEE", "Copt" to "COPTIC", "Cpmn" to "CYPRO_MINOAN",
+            "Cprt" to "CYPRIOT", "Cyrl" to "CYRILLIC", "Deva" to "DEVANAGARI",
+            "Diak" to "DIVES_AKURU", "Dogr" to "DOGRA", "Dsrt" to "DESERET", "Elba" to "ELBASAN",
+            "Ethi" to "ETHIOPIC", "Geor" to "GEORGIAN", "Glag" to "GLAGOLITIC",
+            "Gong" to "GUNJALA_GONDI", "Gonm" to "MASARAM_GONDI", "Goth" to "GOTHIC",
+            "Gran" to "GRANTHA", "Grek" to "GREEK", "Gujr" to "GUJARATI", "Guru" to "GURMUKHI",
+            "Hang" to "HANGUL", "Hani" to "HAN", "Hano" to "HANUNOO", "Hatr" to "HATRAN",
+            "Hebr" to "HEBREW", "Hira" to "JAPANESE", "Hmng" to "PAHAWH_HMONG",
+            "Hmnp" to "NYIAKENG_PUACHUE_HMONG", "Hung" to "OLD_HUNGARIAN", "Ital" to "OLD_ITALIC",
+            "Java" to "JAVANESE", "Kali" to "KAYAH_LI", "Kana" to "JAPANESE", "Kawi" to "KAWI",
+            "Khar" to "KHAROSHTHI", "Khmr" to "KHMER", "Khoj" to "KHOJKI", "Knda" to "KANNADA",
+            "Krai" to "KIRAT_RAI", "Kthi" to "KAITHI", "Lana" to "TAI_THAM", "Laoo" to "LAO",
+            "Latn" to "LATIN", "Lepc" to "LEPCHA", "Limb" to "LIMBU", "Linb" to "LINEAR_B",
+            "Lisu" to "LISU", "Lyci" to "LYCIAN", "Lydi" to "LYDIAN", "Mahj" to "MAHAJANI",
+            "Maka" to "MAKASAR", "Mand" to "MANDAIC", "Mani" to "MANICHAEAN", "Marc" to "MARCHEN",
+            "Medf" to "MEDEFAIDRIN", "Mend" to "MENDE_KIKAKUI", "Merc" to "MEROITIC_CURSIVE",
+            "Mero" to "MEROITIC_HIEROGLYPHS", "Mlym" to "MALAYALAM", "Modi" to "MODI",
+            "Mong" to "MONGOLIAN", "Mroo" to "MRO", "Mtei" to "MEETEI_MAYEK", "Mult" to "MULTANI",
+            "Mymr" to "MYANMAR", "Nagm" to "NAG_MUNDARI", "Nand" to "NANDINAGARI",
+            "Nbat" to "NABATAEAN", "Newa" to "NEWA", "Nkoo" to "NKO", "Ogam" to "OGHAM",
+            "Olck" to "OL_CHIKI", "Orya" to "ORIYA", "Osge" to "OSAGE", "Osma" to "OSMANYA",
+            "Ougr" to "OLD_UYGHUR", "Palm" to "PALMYRENE", "Pauc" to "PAU_CIN_HAU",
+            "Perm" to "OLD_PERMIC", "Phag" to "PHAGS_PA", "Phli" to "INSCRIPTIONAL_PAHLAVI",
+            "Phlp" to "PSALTER_PAHLAVI", "Phnx" to "PHOENICIAN", "Plrd" to "MIAO",
+            "Prti" to "INSCRIPTIONAL_PARTHIAN", "Rjng" to "REJANG", "Rohg" to "HANIFI_ROHINGYA",
+            "Runr" to "RUNIC", "Samr" to "SAMARITAN", "Sarb" to "OLD_SOUTH_ARABIAN",
+            "Saur" to "SAURASHTRA", "Shaw" to "SHAVIAN", "Shrd" to "SHARADA", "Sidd" to "SIDDHAM",
+            "Sind" to "KHUDAWADI", "Sinh" to "SINHALA", "Sogd" to "SOGDIAN",
+            "Sogo" to "OLD_SOGDIAN", "Sora" to "SORA_SOMPENG", "Soyo" to "SOYOMBO",
+            "Sund" to "SUNDANESE", "Sylo" to "SYLOTI_NAGRI", "Syrc" to "SYRIAC",
+            "Tagb" to "TAGBANWA", "Takr" to "TAKRI", "Tale" to "TAI_LE", "Talu" to "NEW_TAI_LUE",
+            "Taml" to "TAMIL", "Tavt" to "TAI_VIET", "Telu" to "TELUGU", "Tfng" to "TIFINAGH",
+            "Tglg" to "TAGALOG", "Thaa" to "THAANA", "Thai" to "THAI", "Tibt" to "TIBETAN",
+            "Tirh" to "TIRHUTA", "Todr" to "TODHRI", "Toto" to "TOTO", "Ugar" to "UGARITIC",
+            "Vaii" to "VAI", "Vith" to "VITHKUQI", "Wara" to "WARANG_CITI", "Xpeo" to "OLD_PERSIAN",
+            "Yezi" to "YEZIDI", "Yiii" to "YI", "Zanb" to "ZANABAZAR_SQUARE",
         )
 
         val LANGUAGE_ELEMENT = Regex("""<Language\s+ID="([^"]+)"\s*>(.*?)</Language>""")

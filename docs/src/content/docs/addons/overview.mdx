@@ -82,7 +82,7 @@ The same store is on this site at [wmkeyboard.pages.dev/addons](/addons/): every
 
 ## Finding repositories to add
 
-WM Keyboard ships pointed at two repositories, so the Addons screen isn't empty the first time you open it. The first is the sample: [`wmkeyboard-addon-repository`](https://github.com/wasi-master/wmkeyboard-addon-repository) on GitHub. It's a plain repository (a `wmkeyboard-repo.json` index plus the addon files it lists, served over https with no build step), so forking it is the fastest way to start publishing your own. It also doubles as the canonical copy of the repository spec and JSON Schema. The second is `wmkeyboard-monkeytype-sounds`, a companion repository of typing sounds.
+WM Keyboard ships pointed at three repositories, so the Addons screen isn't empty the first time you open it. The first is the sample: [`wmkeyboard-addon-repository`](https://github.com/wasi-master/wmkeyboard-addon-repository) on GitHub. It's a plain repository (a `wmkeyboard-repo.json` index plus the addon files it lists, served over https with no build step), so forking it is the fastest way to start publishing your own. It also doubles as the canonical copy of the repository spec and JSON Schema. The second is `wmkeyboard-monkeytype-sounds`, a companion repository of typing sounds. The third is `wmkeyboard-community-addons`, themes and layouts people made in the app and sent in; see [Sharing with everyone](/addons/community/).
 
 If you remove either one, the app won't add it back on its own. The seeding pass remembers which addresses it has already offered, so a repository you removed stays gone, and a new default shipped in a later version still turns up on your next visit.
 

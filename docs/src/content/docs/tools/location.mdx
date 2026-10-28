@@ -128,6 +128,8 @@ The reading stays in memory for 15 minutes, so reopening the panel doesn't ask a
 - **Saved places**: each place, to rename, move or delete, and **Add a place**.
 - **Location access**: Precise, Approximate or Not granted. Tapping it asks Android, or, once precise is granted, opens the app's page in Android's settings, where it can be taken back.
 
+Location is part of the **Weather and location** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool leaves the toolbar, the toolbox and the Tools list until the bundle is switched back on.
+
 ## Details & edge cases
 
 - **A build can leave location out entirely.** Building with `-Pwmkb.noLocation=true` removes both location permissions. The tool then keeps its saved places, and **Locate me** and **Use my location** disappear. See [Building](/development/building/#a-build-with-no-location-permission).

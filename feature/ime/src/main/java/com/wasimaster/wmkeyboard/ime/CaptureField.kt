@@ -403,6 +403,9 @@ enum class CaptureTarget(
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
 
+    /** The To-do panel's box (#920): a task or a step, one line; Enter adds it, or keeps an edit. */
+    TODO_TEXT(takesWords = true, prose = true),
+
     /** The Home Assistant panel's search: filters tiles as it is typed, Enter opens the first. */
     HA_SEARCH(takesWords = true),
 
@@ -443,6 +446,9 @@ enum class CaptureTarget(
     /** A toolbox folder's name (#709): one line, Enter keeps it. */
     TOOLBOX_FOLDER_NAME(takesWords = true),
 
+    /** An app folder's name in the app launcher (#919): one line, Enter keeps it. */
+    LAUNCHER_FOLDER_NAME(takesWords = true),
+
     /** The kaomoji tab's search: filters by tag and face as it is typed, Enter puts the first in. */
     KAOMOJI_SEARCH(takesWords = true),
 
@@ -469,11 +475,21 @@ enum class CaptureTarget(
      * Whether the focus switch (#665) can hand this field's keys to the app's
      * field and back. Not the typing test, whose run is the keys; not the
      * word card, a card over the keyboard rather than a tool's field; and not
-     * the toolbox's own boxes, which take the whole keyboard and are gone the
-     * moment a tool is picked.
+     * the toolbox's own boxes or an app folder's name, which take the whole
+     * keyboard and are gone the moment a tool or an app is picked.
      */
     val handsKeysToApp: Boolean
-        get() = this != TYPING_TEST && this != WORD_SPELL && this != TOOLBOX_SEARCH && this != TOOLBOX_FOLDER_NAME
+        get() = this != TYPING_TEST && this != WORD_SPELL && this != TOOLBOX_SEARCH &&
+            this != TOOLBOX_FOLDER_NAME && this != LAUNCHER_FOLDER_NAME
+
+    /**
+     * Whether the field's key rows can be put down to see the panel under them
+     * (#961). The same fields as [handsKeysToApp]: the typing test's keys are
+     * the test, the word card's spelling bar sits on its own row, and the
+     * toolbox's boxes and an app folder's name take the whole keyboard and
+     * have Back to close them.
+     */
+    val lowersKeys: Boolean get() = handsKeysToApp
 
     /**
      * Whether the field's own strip carries a microphone that dictates into it

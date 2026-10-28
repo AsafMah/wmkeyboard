@@ -110,7 +110,7 @@ internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec {
     if (kind == PanelKind.EMOJI) return BuiltInPanelLayouts.emoji(mediaSwitcherPlacement(settings))
     // GIFs and stickers the user never laid out end the way the emoji panel
     // does, whatever shape that is (#538).
-    if (kind == PanelKind.GIF || kind == PanelKind.STICKER) {
+    if (kind == PanelKind.GIF || kind == PanelKind.STICKER || kind == PanelKind.EMOJI_MIX) {
         return mediaPanelLayout(kind, panelLayout(PanelKind.EMOJI), mediaSwitcherPlacement(settings))
     }
     // The shipped clipboard with the abc / space / enter row its setting adds

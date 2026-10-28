@@ -44,7 +44,15 @@ object OfflineDictionaryCatalog {
         "oewn", "Open English WordNet", "en", 78_928, 5_027_668L, "CC BY 4.0",
     )
 
-    val entries: List<OfflineDictionaryPack> = listOf(WIKTIONARY, OEWN)
+    /**
+     * Bengali words with their English meanings (Telegram group): English
+     * Wiktionary's Bengali entries, inflected forms pointing at their entry.
+     */
+    val BENGALI_WIKTIONARY = OfflineDictionaryPack(
+        "bn_wiktionary", "Bengali–English Wiktionary (offline)", "bn", 7_481, 494_548L, "CC BY-SA 4.0, GFDL",
+    )
+
+    val entries: List<OfflineDictionaryPack> = listOf(WIKTIONARY, OEWN, BENGALI_WIKTIONARY)
 
     fun byId(id: String): OfflineDictionaryPack? = entries.firstOrNull { it.id == id }
 }

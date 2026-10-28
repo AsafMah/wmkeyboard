@@ -28,6 +28,12 @@ time, and no runtime code is involved. They only exist on Android 7.1
 (API 24), where the platform ignores the shortcuts file entirely and
 long-pressing the icon does nothing extra.
 
+Three tools that work outside the keyboard can also go on the home screen as
+icons of their own: **Add to home screen** on the Clock, Notes and To-do list
+pages pins a shortcut to `wmkeyboard://settings/clock`, `…/notes` or `…/todo`.
+The launcher asks first. A tool that works inside the keyboard, like the text
+scanner, needs a text field under it and so has no such icon.
+
 <PhoneFrame caption="A settings screen reached from a launcher shortcut. This one opened straight to Themes.">
   <Shot id="reference/settings-deep-link-destination" alt="A settings screen reached from a launcher shortcut. This one opened straight to Themes." />
 </PhoneFrame>

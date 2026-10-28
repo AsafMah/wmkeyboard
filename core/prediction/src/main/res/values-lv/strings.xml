@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Saskaitīts no subtitriem un tīmekļa teksta. Daudz vairāk vārdu, ar vairāk vārdiem, slengu un drukas kļūdām.</string>
     <string name="core_pred_wordlist_source_frequency_label">Biežums</string>
+    <string name="core_pred_wordlist_variant_australia_label">Austrālija</string>
     <string name="core_pred_wordlist_variant_brazil_label">Brazīlija</string>
+    <string name="core_pred_wordlist_variant_canada_label">Kanāda</string>
     <string name="core_pred_wordlist_variant_europe_label">Eiropa</string>
     <string name="core_pred_wordlist_variant_uk_label">Apvienotā Karaliste</string>
     <string name="core_pred_wordlist_variant_us_label">Amerikas Savienotās Valstis</string>

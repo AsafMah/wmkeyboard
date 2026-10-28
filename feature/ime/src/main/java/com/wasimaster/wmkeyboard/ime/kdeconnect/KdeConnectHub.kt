@@ -16,6 +16,7 @@ import android.os.BatteryManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
+import com.wasimaster.wmkeyboard.core.kdeconnect.KdeClipboardPause
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeConnectEngine
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDeviceNames
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDeviceType
@@ -155,8 +156,43 @@ object KdeConnectHub {
 
     fun applySettings(next: KdeConnectSettings) {
         if (next == settings) return
+        val resumed = settings.clipboardPauses.isNotEmpty() &&
+            KdeClipboardPause.live(next.clipboardPauses, System.currentTimeMillis()).isEmpty()
         settings = next
+        // Resumed from the panel or the settings: the shade's "paused" row is stale.
+        if (resumed) app?.let { WmNotifications.cancel(it, NotificationIds.CONNECT_PAUSE) }
         reconcile()
+    }
+
+    /**
+     * Holds clipboard sharing with [deviceId], or with every computer when
+     * null, for [minutes] (0: until it is turned back on), #918. Written to
+     * settings, so the pause outlives the process; the engine sees it once
+     * the new settings reach [applySettings].
+     */
+    fun pauseClipboard(context: Context, deviceId: String?, minutes: Int) {
+        val now = System.currentTimeMillis()
+        val until = KdeClipboardPause.endFor(minutes, now)
+        val appContext = context.applicationContext
+        val name = deviceId?.let { state.value.device(it)?.name }
+        io.launch {
+            SettingsRepository(appContext).updateKdeClipboardPauses { KdeClipboardPause.pause(it, deviceId, until, now) }
+        }
+        notifyClipboardPaused(appContext, deviceId, name, until)
+    }
+
+    /** Sharing back on with [deviceId], or with everything when null. [done] runs once it is written. */
+    fun resumeClipboard(context: Context, deviceId: String?, done: () -> Unit = {}) {
+        val appContext = context.applicationContext
+        io.launch {
+            try {
+                SettingsRepository(appContext).updateKdeClipboardPauses {
+                    KdeClipboardPause.resume(it, deviceId, System.currentTimeMillis())
+                }
+            } finally {
+                done()
+            }
+        }
     }
 
     fun hold(reason: Reason) {
@@ -552,6 +588,35 @@ object KdeConnectHub {
         }
     }
 
+    /**
+     * A row in the shade while sharing is held, with Resume on it: the pause
+     * is easy to forget, and this is where it can be ended without opening the
+     * keyboard. A timed one leaves the shade when it ends.
+     */
+    private fun notifyClipboardPaused(context: Context, deviceId: String?, deviceName: String?, untilMs: Long) {
+        val forever = untilMs == KdeClipboardPause.FOREVER
+        val time = if (forever) "" else android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(untilMs))
+        val body = when {
+            deviceName != null && forever -> context.getString(R.string.ime_kde_notify_paused_device_forever, deviceName)
+            deviceName != null -> context.getString(R.string.ime_kde_notify_paused_device_until, deviceName, time)
+            forever -> context.getString(R.string.ime_kde_notify_paused_all_forever)
+            else -> context.getString(R.string.ime_kde_notify_paused_all_until, time)
+        }
+        val resume = PendingIntent.getBroadcast(
+            context, 5,
+            Intent(ACTION_RESUME_CLIPBOARD).setPackage(context.packageName).putExtra(EXTRA_DEVICE, deviceId),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        WmNotifications.post(context, NotificationKind.CONNECT, NotificationIds.CONNECT_PAUSE) {
+            setContentTitle(context.getString(R.string.ime_kde_notify_paused_title))
+            setContentText(body)
+            setOnlyAlertOnce(true)
+            setSilent(true)
+            if (!forever) setTimeoutAfter((untilMs - System.currentTimeMillis()).coerceAtLeast(1))
+            addAction(0, context.getString(R.string.ime_kde_clipboard_resume), resume)
+        }
+    }
+
     private fun notifyText(context: Context, title: String, body: String) {
         WmNotifications.post(context, NotificationKind.CONNECT, NotificationIds.CONNECT_EVENT) {
             setContentTitle(title)
@@ -566,6 +631,11 @@ object KdeConnectHub {
     /** From [KdeActionReceiver]: the user answered a pair request in the shade. */
     internal fun onNotificationAction(context: Context, action: String?, deviceId: String?) {
         attach(context)
+        if (action == ACTION_RESUME_CLIPBOARD) {
+            resumeClipboard(context, deviceId)
+            WmNotifications.cancel(context, NotificationIds.CONNECT_PAUSE)
+            return
+        }
         deviceId ?: return
         when (action) {
             ACTION_ACCEPT -> engine?.acceptPair(deviceId)
@@ -605,6 +675,7 @@ object KdeConnectHub {
             autoConnect = autoConnect,
             clipboardReceive = clipboardReceive,
             clipboardSend = clipboardSend,
+            clipboardPauses = clipboardPauses,
             remoteTyping = remoteTyping,
             batteryReport = batteryReport,
             sendCodes = sendCodes,
@@ -619,6 +690,7 @@ object KdeConnectHub {
     private const val PAIR_NOTIFICATION_MS = 25_000L
     const val ACTION_ACCEPT = "com.wasimaster.wmkeyboard.kdeconnect.ACCEPT"
     const val ACTION_REJECT = "com.wasimaster.wmkeyboard.kdeconnect.REJECT"
+    const val ACTION_RESUME_CLIPBOARD = "com.wasimaster.wmkeyboard.kdeconnect.RESUME_CLIPBOARD"
     const val EXTRA_DEVICE = "device"
 
     /** The manifest's `activity-alias`; never rename it, launchers and share targets remember component names. */
@@ -634,7 +706,7 @@ object KdeConnectHub {
     const val LINE_MAX = 2_000
 }
 
-/** Answers the Accept / Reject buttons on a pair-request notification. Not exported. */
+/** Answers the Accept / Reject buttons on a pair-request notification, and Resume on a clipboard pause. Not exported. */
 class KdeActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         KdeConnectHub.onNotificationAction(context, intent?.action, intent?.getStringExtra(KdeConnectHub.EXTRA_DEVICE))

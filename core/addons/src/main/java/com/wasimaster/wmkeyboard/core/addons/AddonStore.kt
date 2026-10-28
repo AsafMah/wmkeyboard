@@ -162,6 +162,13 @@ class AddonStore(private var baseDir: File?) {
         /** The first repository the app shipped pre-added. Kept for the legacy marker. */
         const val SEED_URL = "https://github.com/wasi-master/wmkeyboard-addon-repository"
 
+        /** Where people's own themes and layouts are published; see `CommunitySubmission`. */
+        const val COMMUNITY_URL = "https://github.com/wasi-master/wmkeyboard-community-addons"
+
+        /** The community repository as [SEED_URLS] offers it, for screens that link to it. */
+        val COMMUNITY_SEED: String
+            get() = seedUrl(ServiceRepo.COMMUNITY, COMMUNITY_URL)
+
         /**
          * The repositories the app ships pre-added, each removable and sticky
          * once removed.
@@ -176,6 +183,7 @@ class AddonStore(private var baseDir: File?) {
             get() = listOf(
                 seedUrl(ServiceRepo.ADDONS, SEED_URL),
                 seedUrl(ServiceRepo.SOUNDS, "https://github.com/wasi-master/wmkeyboard-monkeytype-sounds"),
+                COMMUNITY_SEED,
             )
 
         /**

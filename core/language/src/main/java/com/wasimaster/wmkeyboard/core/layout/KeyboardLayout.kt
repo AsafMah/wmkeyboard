@@ -239,6 +239,13 @@ data class Key(
      */
     val labelScale: Float? = null,
     /**
+     * This key's corner hint as a multiple of the size every hint is drawn at
+     * (#970), for the one key whose hint is a mark too small to read (Arabic
+     * harakat). Null follows the setting. Clamped at draw time to
+     * [KeyHintScaleRange].
+     */
+    val hintScale: Float? = null,
+    /**
      * Every letter this one key stands for — `"abc"` on a T9 keypad's 2, `"qw"`
      * on a compact grid's first key — for a layout that puts more than one
      * letter on a key and lets the language model say which was meant
@@ -670,6 +677,13 @@ fun Key.multitapKey(step: Int): Key {
  * fitting a key it shares a row with.
  */
 val KeyLabelScaleRange = 0.3f..2f
+
+/** What a [Key.hintScale] is honoured at. */
+val KeyHintScaleRange = 0.5f..3f
+
+/** This key's [Key.hintScale], clamped; 1 when it follows the setting. */
+fun Key.drawnHintScale(): Float =
+    hintScale?.takeIf { it.isFinite() }?.coerceIn(KeyHintScaleRange) ?: 1f
 
 /**
  * This key's [Key.labelScale] as a drawer should use it: clamped, and null when

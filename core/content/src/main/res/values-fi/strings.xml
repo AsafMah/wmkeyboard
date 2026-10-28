@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Kopioi</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Numerot</string>
+    <string name="core_content_selection_macro_edit_word">Muokkaa sanaa</string>
     <string name="core_content_selection_macro_email">Sähköposti</string>
     <string name="core_content_selection_macro_fancy">Hieno</string>
     <string name="core_content_selection_macro_find">Etsi</string>

@@ -105,7 +105,7 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 
 ### Device
 
-**Ping** the computer, **Ring it** to find a laptop in a bag, and **Lock** or **Unlock** its session where the desktop supports it. The device's address, battery and certificate fingerprint are here, along with **Unpair**.
+**Ping** the computer, **Ring it** to find a laptop in a bag, and **Lock** or **Unlock** its session where the desktop supports it. The device's address, battery and certificate fingerprint are here, along with **Unpair**, and **Pause clipboard**: see [Pausing clipboard sharing](#pausing-clipboard-sharing).
 
 ## What the computer can do
 
@@ -114,20 +114,32 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 - **Send text, links and files.** Text and links arrive on the clipboard. Files are saved to **Downloads/WM Keyboard** and added to the [clipboard history](/tools/clipboard/), so you can paste a picture from the computer straight into a chat.
 - **See the phone's battery**, and **control the phone's media** if you allow it.
 
+## Pausing clipboard sharing
+
+Sometimes you want the clipboard to stay on one side for a while, say while you copy passwords on the computer or show your screen to someone, without unpairing and without flipping the clipboard switches one by one.
+
+In the panel, open the **Device** tab and press **Pause clipboard**. Pick how long: **15 min**, **1 hour**, or **Until I resume**. Tick **All computers** first to pause every paired computer at once instead of only the one you are on. The same choice is on the **Devices** screen under <SettingsPath path="Tools / KDE Connect / Devices" />: a **Pause clipboard** button under each computer, and an **All computers** row at the top when more than one is paired.
+
+While a computer is paused, nothing you copy on the phone goes to it, and nothing it copies lands on the phone. Everything else keeps working: typing, the touchpad, media, files. A timed pause ends by itself, and a pause outlasts a restart of the phone or the keyboard. To end it sooner, press **Resume clipboard** in the panel, **Resume** on the Devices screen, or **Resume** on the notification that shows while a pause is on. A computer held by a pause on all of them is resumed together with the rest.
+
+**Send › Clipboard** still sends while paused, because pressing it is asking for that one clip to go. Pauses are kept on this phone only and never sync to another device.
+
 ## Options
 
 <SettingsPath path="Tools / KDE Connect" />
 
+KDE Connect is the **KDE Connect** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool, the devices screen and the pairing leave the keyboard and the app; the pairing itself is kept until you switch it back on.
+
 **Use KDE Connect**: on by default. The master switch. Nothing goes on the network until a computer is paired or a device list is open.
 
-**Devices**: paired computers and the ones nearby, with a switch per computer for clipboard, typing, files, phone media, battery and sync. Also the list of addresses added by hand, and this phone's certificate fingerprint.
+**Devices**: paired computers and the ones nearby, with a switch per computer for clipboard, typing, files, phone media, battery and sync, and a [pause for the clipboard](#pausing-clipboard-sharing). Also the list of addresses added by hand, and this phone's certificate fingerprint.
 
 **Name shown on the computer**: blank uses the phone's model followed by *WM Keyboard*, shortened to *WMK* when the model name is long. Up to 32 characters, and the protocol does not allow punctuation.
 
 **Stay connected**: default **Keyboard showing**.
 - *Panel open*: only while the KDE Connect panel is open.
 - *Keyboard showing*: while the keyboard is on screen and for a minute after, so switching apps does not reconnect every time.
-- *Always*: whenever WM Keyboard is the active keyboard, shown or not. The clipboard stays in sync while you are not typing. There is no background service behind this. The link lives inside the keyboard, so it ends when Android closes the keyboard, and power saving, with its *Background network* switch on, puts it back to *Keyboard showing*.
+- *In the background too* (called *Always* before 0.6.4): the link also stays up after the keyboard hides, so the clipboard can keep syncing while you are not typing. There is no background service behind it. The link lives inside the keyboard, and once the keyboard is off screen Android is free to pause or close it, which many phones do within minutes and some at once; the link drops then, and comes back the next time the keyboard shows. Setting WM Keyboard's battery use to *Unrestricted* in Android's app settings keeps it up longer on most phones, but nothing guarantees it. Power saving, with its *Background network* switch on, puts it back to *Keyboard showing*.
 
 **Connect automatically**: default on. Reconnect to paired computers when they are found.
 
@@ -153,7 +165,7 @@ Only files another app shares from its own storage go through. A share that name
 
 **Send one-time codes**: default off. A verification code that arrives in a notification goes to the paired computer, the code alone and never the message around it. WM Keyboard for the desktop offers it above the cursor; a KDE Connect desktop shows it as a notification. It needs **Codes from notifications** on under <SettingsPath path="Typing" />, which is what reads them.
 
-Notifications for a pair request, a file or a ping that arrives while the keyboard is hidden have their own switch under <SettingsPath path="Notifications" />.
+Notifications for a pair request, a file or a ping that arrives while the keyboard is hidden, and the one shown while clipboard sharing is paused, have their own switch under <SettingsPath path="Notifications" />.
 
 ## Details and edge cases
 

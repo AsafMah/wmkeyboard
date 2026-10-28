@@ -31,6 +31,21 @@
     <!-- The switch in the edit dialog that pins a word's capitals. -->
     <string name="backup_word_keep_case_title">Keep these capitals</string>
     <string name="backup_word_keep_case_info">Typing the word with other capitals does not change how it is spelled</string>
+    <!-- Personal dictionary by language (#930). A word's row starts with the
+         language it is filed under. %1$s is the language, %2$s the row's
+         ordinary subtitle. -->
+    <string name="backup_dictionary_language_subtitle"><xliff:g id="language" example="Bangla">%1$s</xliff:g> · <xliff:g id="standing" example="Seen 3 times">%2$s</xliff:g></string>
+    <!-- A word filed under no one language, on its row, its chip and in the
+         language choice. -->
+    <string name="backup_dictionary_every_language">All languages</string>
+    <!-- The filter chip that shows every word, whatever its language. -->
+    <string name="backup_dictionary_filter_everything">All words</string>
+    <!-- A filter chip: %1$s is a language (or "All languages"), %2$d how
+         many words are filed under it. -->
+    <string name="backup_dictionary_language_chip"><xliff:g id="language" example="Bangla">%1$s</xliff:g> · <xliff:g id="count" example="34">%2$d</xliff:g></string>
+    <!-- Heading over the language choice in the add and edit dialogs. -->
+    <string name="backup_word_language_label">Language</string>
+    <string name="backup_word_language_info">A word you file under one language is offered less while you type another. Typing it elsewhere does not move it.</string>
     <!-- Heading over the words moved up or down from the keyboard's word card. -->
     <string name="backup_rank_adjustments_title">Rank adjustments</string>
     <!-- Row subtitles under that heading. %1$d is the number of steps. -->
@@ -74,6 +89,15 @@
         <item quantity="one">%1$d word here has only been seen once. That is usually a typo or a stray swipe. Words you added yourself are kept.</item>
         <item quantity="other">%1$d words here have only been seen once each. Those are usually typos and stray swipes. Words you added yourself are kept.</item>
     </plurals>
+    <!-- Bulk clean-up of words a downloaded, bundled or imported word list
+         already holds (#981). -->
+    <string name="backup_trim_listed_action">Remove words the lists know</string>
+    <string name="backup_trim_listed_title">Remove words the lists know?</string>
+    <!-- %1$d is how many personal words a word list already holds. -->
+    <plurals name="backup_trim_listed_body">
+        <item quantity="one">%1$d word here is already in a word list, so the keyboard knows it without this copy. It forgets how often you typed it. Words with pinned capitals are kept, and so are rank changes made from the word card.</item>
+        <item quantity="other">%1$d words here are already in a word list, so the keyboard knows them without this copy. It forgets how often you typed them. Words with pinned capitals are kept, and so are rank changes made from the word card.</item>
+    </plurals>
 
     <!-- ================================================================== -->
     <!-- Never suggest: the words the keyboard keeps out of suggestions.    -->
@@ -95,6 +119,9 @@
     <string name="backup_add_word_title">Add word</string>
     <!-- Label of the text field in the Add word dialog. -->
     <string name="backup_word_field_label">Word</string>
+    <string name="backup_word_shortcut_label">Shortcut (optional)</string>
+    <!-- Under the shortcut box when adding a word to the personal dictionary. -->
+    <string name="backup_word_shortcut_hint">Type this and the word is offered as a suggestion</string>
     <!-- Screen reader name of the delete button on a word row. %1$s is the word. -->
     <string name="backup_delete_word_desc">Delete %1$s</string>
 
@@ -133,6 +160,7 @@
     <string name="backup_section_clock_label">Clock</string>
     <string name="backup_section_kaomoji_label">Kaomoji</string>
     <string name="backup_section_ai_memory_label">AI memory</string>
+    <string name="backup_section_todo_label">To-do list</string>
 
     <!-- The same names in the middle of a sentence, for the list in     -->
     <!-- backup_restore_done ("The app restored themes, snippets.").      -->
@@ -154,6 +182,7 @@
     <string name="backup_section_clock_label_lowercase">clock</string>
     <string name="backup_section_kaomoji_label_lowercase">kaomoji</string>
     <string name="backup_section_ai_memory_label_lowercase">AI memory</string>
+    <string name="backup_section_todo_label_lowercase">to-do list</string>
 
     <!-- How much of each part a backup file holds. %1$d is the count. These -->
     <!-- go after the name of the part: "Themes: 3 custom themes".           -->
@@ -222,6 +251,10 @@
         <item quantity="one">%1$d kaomoji</item>
         <item quantity="other">%1$d kaomoji</item>
     </plurals>
+    <plurals name="backup_section_todo_count">
+        <item quantity="one">%1$d task</item>
+        <item quantity="other">%1$d tasks</item>
+    </plurals>
     <plurals name="backup_section_ai_memory_count">
         <item quantity="one">%1$d memory</item>
         <item quantity="other">%1$d memories</item>
@@ -260,6 +293,7 @@
     <string name="backup_include_notes_info">Locked notes stay out of the file unless Include API keys is on. A backup file is easy to share, and a locked note is one you asked to keep from view.</string>
     <string name="backup_include_clock_subtitle">Alarms, timer presets, countdowns and the clock settings</string>
     <string name="backup_include_kaomoji_subtitle">Your kaomoji library: the faces you added, their tags, the order and your favourites</string>
+    <string name="backup_include_todo_subtitle">Your tasks and their steps, done or not</string>
     <string name="backup_include_ai_memory_subtitle">What the AI remembers about you, from Settings › AI › Memory</string>
     <string name="backup_include_ai_memory_info">Off unless you turn it on. These facts come from your chats, so a backup that holds them is as personal as the chats. Sync never carries them to another phone.</string>
     <string name="backup_include_clock_info">Running timers, the stopwatch and the history stay on this phone. Sync leaves the clock out unless you turn it on, so two phones do not ring for one alarm.</string>
@@ -284,7 +318,9 @@
     <!-- ================================================================== -->
 
     <string name="backup_import_confirm_title">Import backup?</string>
+    <string name="backup_location_no_internet">This build has no internet access, so it can\'t reach this place. A folder on the phone still works.</string>
     <string name="backup_import_contains">The file has these items:</string>
+    <string name="backup_import_missing">Not in this file, so left as they are: %1$s. A file holds only the parts that were picked when it was made, and the automatic backup, sync and Export to a file each have their own list of parts.</string>
     <!-- One line per part of the backup. %1$s is the name of the part, for
          example "Themes". %2$s is how much of it the file holds, for example
          "3 custom themes". -->
@@ -346,6 +382,21 @@
         <item quantity="one">%d backup</item>
         <item quantity="other">%d backups</item>
     </plurals>
+    <string name="backup_auto_staggered_title">Keep older backups spread out</string>
+    <string name="backup_auto_staggered_subtitle">Also keep one a day for a week, one a week for five weeks and one a month for a year</string>
+    <string name="backup_auto_staggered_info">Backups to keep counts the newest backups. With this on, the app also spares some older ones instead of deleting them: the newest backup of each of the last 7 days, of each of the last 5 weeks, and of each of the last 12 months. That is at most 24 more files, and fewer when one backup stands for several of them. A setting you changed by mistake a month ago can then still be taken back, without keeping a month of daily backups to do it. The ages count back from your newest backup, so a phone that stops backing up for a while keeps its old copies until new ones replace them. This setting is off by default.</string>
+    <!-- #970: a second automatic backup on its own schedule, smaller and more often than the main one. -->
+    <string name="backup_frequent_title">Frequent backup</string>
+    <string name="backup_frequent_info">A second automatic backup beside the main one, with its own schedule, sections and number of copies. Use it for what changes often and is small, like your settings and layouts, every hour or so, and leave the bulky and personal things to the main backup once a day. It goes to the same locations under the same conditions, and pausing backups pauses it too. Its files are named apart, so each kind keeps its own copies, and the restore list shows both. It never includes API keys.</string>
+    <string name="backup_frequent_enabled_title">Also back up often</string>
+    <string name="backup_frequent_enabled_subtitle">A second, smaller backup on its own schedule, to the same locations</string>
+    <string name="backup_frequent_interval_title">How often, frequent backup</string>
+    <string name="backup_frequent_keep_title">Frequent backups to keep</string>
+    <string name="backup_frequent_keep_subtitle">Counted apart from the main backups</string>
+    <string name="backup_frequent_encrypt_title">Encrypt frequent backups</string>
+    <string name="backup_frequent_encrypt_subtitle">With the passphrase under Protect with a passphrase</string>
+    <string name="backup_frequent_encrypt_needs_passphrase">Set a passphrase under Protect with a passphrase first</string>
+    <string name="backup_frequent_contents_title">What goes in a frequent backup</string>
     <string name="backup_auto_unmetered_title">Only on Wi-Fi</string>
     <string name="backup_auto_unmetered_subtitle">Wait for a connection that costs you nothing</string>
     <string name="backup_auto_unmetered_info">A backup can be a few megabytes, and it goes out every time the timer comes round. With this on, the app waits for Wi-Fi, or for any other connection that Android does not count as metered. With it off, a backup goes out over mobile data as soon as it is due. Folder locations need no connection at all, so this setting only shows when a backup goes to a server or a cloud account. This setting is on by default.</string>
@@ -516,6 +567,8 @@
     <string name="backup_sync_targets_title">Sync through</string>
     <string name="backup_sync_targets_info">Your devices must share at least one of these locations. If you tick more than one, the app writes the sync file to each of them, so sync keeps working while one service is down. That uses a little more data.</string>
     <string name="backup_sync_paired_title">Sync with paired devices</string>
+    <string name="backup_sync_wifi_only_title">Sync only on Wi-Fi</string>
+    <string name="backup_sync_wifi_only_subtitle">On mobile data, sync waits for Wi-Fi. Sync now still runs</string>
     <string name="backup_sync_paired_subtitle">A computer with WM Keyboard that you pair over KDE Connect syncs with this phone</string>
     <string name="backup_sync_paired_info">A paired computer becomes a location here, Nearby device, and is ticked. Sync this device is turned on with it. The two send each other their sync files while both are on the same network and the keyboard is open.</string>
     <string name="backup_auto_needs_target">Tick a location in Back up to.</string>
@@ -567,7 +620,8 @@
     <string name="backup_sync_keep_toolbar_subtitle">Which tools, in what order, and how they look</string>
     <string name="backup_sync_keep_layouts_title">Languages and layouts</string>
     <string name="backup_sync_keep_layouts_subtitle">The layouts you switch between, extra languages, and the layout for each app</string>
-    <string name="backup_sync_keep_needs_settings">Needs Settings ticked in What syncs</string>
+    <string name="backup_sync_keep_theme_title">Theme</string>
+    <string name="backup_sync_keep_theme_subtitle">The theme in use, light and dark, and when it switches. Your own themes still sync</string>
     <string name="backup_sync_first_note">Each device keeps one sync file at a location. Every device reads the files of the others, and the newest change to each setting wins. The first time a device syncs, the settings of your other devices win, and anything that only this device has goes to the others.</string>
     <string name="backup_sync_error_passphrase">Another device uses a different passphrase. Use the same passphrase on every device.</string>
     <string name="backup_sync_done_nothing">Synced. Nothing was new.</string>
@@ -729,4 +783,43 @@
     <string name="backup_imap_mailbox_hint">The app makes this folder. Keep only backups in it, because the app deletes old backups from it.</string>
     <string name="backup_imap_cleartext">Without TLS, your password and your backup cross the network as plain text that anyone in between can read.</string>
     <string name="backup_imap_info">Each backup is one email in this folder. Some services, such as Gmail, keep a deleted email in another folder, so old backups can still use space in your account.</string>
+    <!-- Pausing the scheduled backup and sync. -->
+    <string name="backup_pause_title">Pause backups</string>
+    <string name="backup_pause_subtitle">Skip the scheduled backups for a while. Locations, schedule and passphrase stay as they are</string>
+    <string name="backup_paused_title">Backups are paused</string>
+    <string name="sync_pause_title">Pause sync</string>
+    <string name="sync_pause_subtitle">Skip the scheduled syncs for a while. Sync now still works</string>
+    <string name="sync_paused_title">Sync is paused</string>
+    <!-- %1$s is a date and time, such as "Oct 26, 14:00". -->
+    <string name="backup_paused_until">Until %1$s. Tap to resume</string>
+    <string name="backup_paused_forever">Until you resume. Tap to resume</string>
+    <string name="backup_pause_resume">Resume</string>
+    <string name="backup_pause_dialog_title">Pause for how long?</string>
+    <string name="backup_pause_hour">1 hour</string>
+    <string name="backup_pause_day">1 day</string>
+    <string name="backup_pause_week">1 week</string>
+    <string name="backup_pause_until_resumed">Until I resume</string>
+    <string name="backup_hub_backup_paused">Automatic backup is paused</string>
+    <string name="backup_hub_sync_paused">Sync is paused</string>
+    <string name="backup_hub_paused">Paused</string>
+    <!-- Sync groups: several people sharing one location. -->
+    <string name="backup_sync_group_title">Sync group</string>
+    <string name="backup_sync_group_none">None. Syncs with the devices here that have no group</string>
+    <!-- %1$s is the group name. -->
+    <string name="backup_sync_group_value">%1$s. Syncs only with devices in this group</string>
+    <string name="backup_sync_group_info">Use a group when several people share one location, such as a family folder. Give all your devices the same group name, and pick a different name from the other people. Devices sync only with the devices in their own group, and devices with no group sync with each other. The group also shows next to each backup when you restore.</string>
+    <string name="backup_sync_group_label">Group name</string>
+    <string name="backup_sync_group_supporting">Letters, digits and hyphens, up to 12. Leave it empty for no group</string>
+    <!-- %1$s is the group name as it will be saved. -->
+    <string name="backup_sync_group_saved_as">Saved as %1$s</string>
+    <string name="backup_sync_group_found">Groups at your sync locations</string>
+    <string name="backup_sync_group_loading">Looking for groups…</string>
+    <string name="backup_sync_group_found_none">No other device syncs at these locations yet.</string>
+    <string name="backup_sync_group_no_group">No group</string>
+    <!-- %1$s is a location's name. -->
+    <string name="backup_sync_group_join_note">Other devices sync at %1$s, in groups that this device is not in. Pick the group to join, or keep this device\'s group.</string>
+    <string name="backup_sync_group_change_note">In a new group, this device syncs as if for the first time: the settings of the group win, and anything that only this device has goes to the group.</string>
+    <string name="backup_remote_restore_all_groups">All</string>
+    <!-- %1$s is a device name, %2$s the sync group it was in. -->
+    <string name="backup_remote_restore_device_group">%1$s · %2$s</string>
 </resources>

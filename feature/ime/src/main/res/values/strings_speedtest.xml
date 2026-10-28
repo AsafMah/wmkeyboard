@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The internet speed test tool: the toolbar label and its panel. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ime_tool_speed_test">Speed test</string>
+
+    <string name="ime_speed_start">Start test</string>
+    <string name="ime_speed_again">Run again</string>
+    <!-- %1$d is a number of megabytes. -->
+    <string name="ime_speed_data_note">Uses about <xliff:g id="megabytes" example="120">%1$d</xliff:g> MB</string>
+    <!-- Data saver's question before a run. %1$d is a number of megabytes. -->
+    <string name="ime_speed_metered_ask">Android counts this connection as metered. A run moves about <xliff:g id="megabytes" example="120">%1$d</xliff:g> MB.</string>
+    <string name="ime_speed_metered_blocked">Data saver holds the speed test back on this connection. Change that under Privacy › Data saver.</string>
+    <string name="ime_speed_run_anyway">Run anyway</string>
+
+    <!-- The phase under way, over the dial. -->
+    <string name="ime_speed_phase_meta">Connecting</string>
+    <string name="ime_speed_phase_ping">Ping</string>
+    <string name="ime_speed_phase_download">Download</string>
+    <string name="ime_speed_phase_upload">Upload</string>
+    <string name="ime_speed_label_jitter">Jitter</string>
+    <!-- On the card's footer. %1$s is a signed percentage such as +12%. -->
+    <string name="ime_speed_vs_last"><xliff:g id="change" example="+12%">%1$s</xliff:g> vs last run</string>
+
+    <!-- The result's action chips. -->
+    <string name="ime_speed_send">Send</string>
+    <string name="ime_speed_save">Save</string>
+    <string name="ime_speed_share">Share</string>
+    <string name="ime_speed_insert_text">As text</string>
+
+    <!-- The card's style chips. -->
+    <string name="ime_speed_style_theme">Theme</string>
+    <string name="ime_speed_style_dark">Dark</string>
+    <string name="ime_speed_style_light">Light</string>
+    <string name="ime_speed_style_gradient">Gradient</string>
+    <string name="ime_speed_style_mono">Mono</string>
+    <!-- The card's size chips. -->
+    <string name="ime_speed_size_square">Square</string>
+    <string name="ime_speed_size_portrait">Portrait</string>
+    <string name="ime_speed_size_story">Story</string>
+    <string name="ime_speed_size_wide">Wide</string>
+    <string name="ime_speed_size_sticker">Sticker</string>
+    <!-- The card's layout chips. -->
+    <string name="ime_speed_layout_full">Full</string>
+    <string name="ime_speed_layout_gauge">Gauge</string>
+    <string name="ime_speed_layout_compact">Compact</string>
+    <string name="ime_speed_layout_minimal">Minimal</string>
+
+    <string name="ime_speed_error">The speed test could not reach the server.</string>
+    <!-- %1$s is the server's name, such as Cloudflare. Shown after the server answered HTTP 429 to every request of a phase. -->
+    <string name="ime_speed_rate_limited"><xliff:g id="server" example="Cloudflare">%1$s</xliff:g> is limiting speed tests from this connection for now. Try again in a few minutes, or pick another server.</string>
+    <!-- %1$s is the server's name, %2$d an HTTP status such as 503, %3$s the phase (Download or Upload). -->
+    <string name="ime_speed_http_error"><xliff:g id="server" example="Cloudflare">%1$s</xliff:g> answered HTTP <xliff:g id="status" example="503">%2$d</xliff:g> during <xliff:g id="phase" example="Download">%3$s</xliff:g>.</string>
+    <!-- %1$s is the phase (Download or Upload): every request of it failed without an HTTP answer. -->
+    <string name="ime_speed_phase_failed"><xliff:g id="phase" example="Download">%1$s</xliff:g> moved nothing: the connection dropped every request.</string>
+    <string name="ime_speed_no_server">No speed test server is on. Add one under Tools › Speed test.</string>
+    <string name="ime_speed_card_error">The card could not be drawn.</string>
+</resources>

@@ -340,6 +340,171 @@ class TypingStatsTest {
         assertEquals(3, TypingStatsMath.spokenWords("OK 你好"))
     }
 
+    @Test
+    fun `typos are counted as events and end the clean run`() {
+        val stats = store(null)
+        var uptime = stats.type("one two three ")
+        assertEquals(3, stats.lifetime().bestCleanRun)
+        stats.onAutocorrect(offer = false, nowMillis = noon)
+        uptime = stats.type("four ", uptime)
+        stats.onAutocorrect(offer = true, nowMillis = noon)
+        stats.onAutocorrectKept()
+        stats.onAutocorrectKept()
+        stats.onAutocorrectUndone()
+        stats.onHandFix(noon)
+        uptime = stats.type("five six ", uptime)
+        stats.onBackspace(noon, uptime + CADENCE)
+        val totals = stats.lifetime()
+        assertEquals(2, totals.autocorrects)
+        assertEquals(1, totals.offersTaken)
+        assertEquals(2, totals.autocorrectsKept)
+        assertEquals(1, totals.autocorrectsUndone)
+        assertEquals(1, totals.handFixes)
+        assertEquals("the first run of three stands", 3, totals.bestCleanRun)
+        val day = stats.dayEntries().single()
+        assertEquals(2, day.autocorrects)
+        assertEquals(1, day.handFixes)
+        assertEquals(3, TypingStatsMath.rollup(stats.dayEntries(), StatsPeriod.DAY, day.epochDay).last().typos)
+    }
+
+    @Test
+    fun `a clean run in progress counts towards the best`() {
+        val stats = store(null)
+        stats.type("a b c d e ")
+        assertEquals("no typo yet, so the run so far is the best", 5, stats.lifetime().bestCleanRun)
+        stats.onAutocorrect(offer = false, nowMillis = noon)
+        stats.type("f ", 60_000L)
+        assertEquals(5, stats.lifetime().bestCleanRun)
+    }
+
+    @Test
+    fun `punctuation is counted by mark and three dots make an ellipsis`() {
+        val stats = store(null)
+        stats.type("hi! ok? yes, no... so…")
+        val marks = stats.lifetime().punctuation
+        assertEquals(1L, marks['!'])
+        assertEquals(1L, marks['?'])
+        assertEquals(1L, marks[','])
+        assertEquals("the three dots moved over", 0L, marks['.'])
+        assertEquals(2L, marks[TypingStats.ELLIPSIS])
+        // A dot, a letter, two dots: no run of three.
+        stats.type(".a..", 90_000L)
+        assertEquals(3L, stats.lifetime().punctuation['.'])
+        assertEquals(2L, stats.lifetime().punctuation[TypingStats.ELLIPSIS])
+    }
+
+    @Test
+    fun `a word in capitals is a shout, a capital initial is not`() {
+        val stats = store(null)
+        stats.type("WOW Hello OK I a1B ")
+        // WOW and OK; "I" is one letter, "a1B" has a lowercase letter.
+        assertEquals(2, stats.lifetime().shoutedWords)
+    }
+
+    @Test
+    fun `the record book keeps the longest of everything`() {
+        val stats = store(null)
+        var uptime = stats.type("hi extraordinary ")
+        stats.onGlideWord(letters = 7, distanceMm = 10.0, nowMillis = noon)
+        stats.onWordsPicked(1, typed = 0, letters = 4, spaced = true, nowMillis = noon)
+        repeat(4) {
+            uptime += CADENCE
+            stats.onBackspace(noon, uptime)
+        }
+        uptime = stats.type("x ", uptime)
+        stats.onBackspace(noon, uptime + CADENCE)
+        stats.onWordDeleted()
+        stats.onEmoji()
+        stats.onEmoji()
+        val totals = stats.lifetime()
+        assertEquals(13, totals.longestWordLetters)
+        assertEquals(7, totals.longestGlideLetters)
+        assertEquals(4, totals.longestBackspaceRun)
+        assertEquals(1, totals.wordsDeletedWhole)
+        assertEquals(2, totals.emojiSent)
+        assertTrue("the burst so far is the longest", totals.longestBurstMs > 0L)
+        // A pause ends the burst; a shorter one after it cannot lower the record.
+        val record = totals.longestBurstMs
+        stats.type("ab", uptime + TypingStats.BURST_GAP_MS + 10_000L)
+        assertEquals(record, stats.lifetime().longestBurstMs)
+    }
+
+    @Test
+    fun `words go to the language they were typed under`() {
+        val stats = store(null)
+        stats.language = "en"
+        val uptime = stats.type("one two ")
+        stats.language = "bn"
+        stats.onWordsCommitted(1, noon)
+        stats.language = ""
+        stats.type("none ", uptime)
+        val byLanguage = stats.lifetime().wordsByLanguage
+        assertEquals(2L, byLanguage["en"])
+        assertEquals(1L, byLanguage["bn"])
+        assertEquals("no language, no entry", 2, byLanguage.size)
+    }
+
+    @Test
+    fun `the language table makes room past the cap`() {
+        val stats = store(null)
+        for (i in 0 until TypingStats.MAX_LANGUAGES) {
+            stats.language = "lang$i"
+            stats.onWordsCommitted(i + 2, noon)
+        }
+        stats.language = "new"
+        stats.onWordsCommitted(1, noon)
+        val byLanguage = stats.lifetime().wordsByLanguage
+        assertEquals(TypingStats.MAX_LANGUAGES, byLanguage.size)
+        assertFalse("lang0" in byLanguage)
+        assertTrue("new" in byLanguage)
+    }
+
+    @Test
+    fun `the typo and record counts survive the round trip and merge across devices`() {
+        val first = store()
+        first.language = "en"
+        first.type("WOW! ok... yes ")
+        first.onAutocorrect(offer = true, nowMillis = noon)
+        first.onAutocorrectKept()
+        first.onHandFix(noon)
+        first.onEmoji()
+        first.onWordDeleted()
+        first.save()
+        val second = store()
+        assertEquals(first.lifetime(), second.lifetime())
+        assertEquals(first.dayEntries(), second.dayEntries())
+
+        val devices = """{"other":{"autocorrects":5,"handFixes":2,"bestCleanRun":40,"punctuation":{"!":3,"…":1},
+            "shoutedWords":1,"longestWordLetters":20,"longestBackspaceRun":9,"emojiSent":4,
+            "wordsByLanguage":{"en":10,"de":3}}}"""
+        val view = store().also { it.absorbDevices(devices) }
+        val totals = view.lifetime()
+        assertEquals(1L + 5, totals.autocorrects)
+        assertEquals(1L + 2, totals.handFixes)
+        assertEquals("a best is a best on any device", 40L, totals.bestCleanRun)
+        assertEquals(1L + 3, totals.punctuation['!'])
+        assertEquals(1L + 1, totals.punctuation[TypingStats.ELLIPSIS])
+        assertEquals(2L, totals.shoutedWords)
+        assertEquals(20, totals.longestWordLetters)
+        assertEquals(9L, totals.longestBackspaceRun)
+        assertEquals(5L, totals.emojiSent)
+        assertEquals(3L + 10, totals.wordsByLanguage["en"])
+        assertEquals(3L, totals.wordsByLanguage["de"])
+    }
+
+    @Test
+    fun `an old snapshot without the typo fields loads as zeros`() {
+        val target = file()
+        target.parentFile?.mkdirs()
+        target.writeText("""{"totalWords":7,"days":{"100":{"chars":10,"words":2}}}""")
+        val totals = store().lifetime()
+        assertEquals(7, totals.words)
+        assertEquals(0, totals.autocorrects)
+        assertTrue(totals.punctuation.isEmpty())
+        assertTrue(totals.wordsByLanguage.isEmpty())
+        assertEquals(0, store().dayEntries().single().autocorrects)
+    }
+
     private companion object {
         const val DAY = 86_400_000L
         const val HOUR = 3_600_000L

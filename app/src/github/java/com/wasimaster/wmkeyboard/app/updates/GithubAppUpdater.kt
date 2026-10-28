@@ -106,8 +106,10 @@ internal class GithubAppUpdater(
     override val releaseNotes: StateFlow<String?> = GithubUpdateManager.releaseNotes
     override val switchingToAllLanguages: StateFlow<Boolean> = GithubUpdateManager.switching
 
+    // The standard build too: on Android 7 to 10 it cannot load a language
+    // pack, and the release carries the all-languages build again.
     override val canSwitchToAllLanguages: Boolean =
-        BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN && !BuildConfig.LANGUAGE_PACKS
+        BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN
 
     override val sourceNameRes: Int = R.string.update_source_github
 

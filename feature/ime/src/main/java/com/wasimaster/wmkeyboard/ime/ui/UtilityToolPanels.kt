@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 // Shared building blocks for the utility tool panels (symbols, calculator,
 // unit & currency converters): a pill chip and a compact keypad button.
@@ -79,6 +80,8 @@ internal fun ToolPanelChip(
     enabled: Boolean = true,
     // Drawn in place of the words, which are then what TalkBack reads.
     icon: ImageVector? = null,
+    // What holding the chip says while it is greyed out; see [IconHint].
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -87,26 +90,28 @@ internal fun ToolPanelChip(
     // defines a "disabled" colour pair that would stay legible across all of them.
     fun Color.dim() = if (enabled) this else copy(alpha = alpha * DISABLED_ALPHA)
     val shape = kb.chipShape()
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background((if (selected) kb.chipActive else kb.chip).dim())
-            .chipBorder(kb, shape)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-    ) {
-        val content = (if (selected) kb.chipActiveText else kb.chipText).dim()
-        if (icon != null) {
-            Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(16.dp))
-        } else {
-            Text(
-                label,
-                color = content,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-            )
+    IconHint(null, modifier, disabledReason = disabledReason.takeUnless { enabled }) {
+        Box(
+            modifier = Modifier
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background((if (selected) kb.chipActive else kb.chip).dim())
+                .chipBorder(kb, shape)
+                .clickable(enabled = enabled, onClick = onClick)
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+        ) {
+            val content = (if (selected) kb.chipActiveText else kb.chipText).dim()
+            if (icon != null) {
+                Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(16.dp))
+            } else {
+                Text(
+                    label,
+                    color = content,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                )
+            }
         }
     }
 }

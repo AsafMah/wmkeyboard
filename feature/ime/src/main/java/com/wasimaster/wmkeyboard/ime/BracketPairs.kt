@@ -28,17 +28,23 @@ val AUTO_CLOSE_CLOSERS: Set<Char> = AUTO_CLOSE_PAIRS.values.mapTo(HashSet()) { i
  * The closer to type behind the caret when [typed] lands, or null when this
  * keypress closes nothing. [after] is the text in front of the caret.
  *
- * A bracket typed in front of a word is being put *around* that word by hand —
+ * A bracket typed in front of text is being put *around* that text by hand —
  * "(" before "world" is on its way to "(world)" — and a closer dropped into the
- * middle of it would have to be deleted again, so the rule stands down. Only a
- * letter or a digit counts as "a word": a space, the end of the text, a mark or
- * another bracket all leave room for the pair.
+ * middle of it would have to be deleted again, so the rule stands down. That
+ * holds for any text, not only letters: "@name", "#tag", "$5", an emoji or a
+ * quotation all get their bracket closed by hand (#970). The pair goes in only
+ * where nothing would end up inside it: before a space, a line break, the end
+ * of the text, another closer ("[(]"), or a mark that ends a clause.
  */
 fun autoCloseCloserFor(typed: Char, after: CharSequence?): String? {
     val closer = AUTO_CLOSE_PAIRS[typed] ?: return null
     val next = after?.firstOrNull() ?: return closer
-    return if (next.isLetterOrDigit()) null else closer
+    val room = next.isWhitespace() || next in AUTO_CLOSE_CLOSERS || next in CLAUSE_ENDS
+    return if (room) closer else null
 }
+
+/** Marks a bracket pair may sit in front of: "say ()." keeps its full stop outside. */
+private val CLAUSE_ENDS: Set<Char> = setOf('.', ',', ';', ':', '!', '?', '。', '、', '，', '；', '：', '！', '？')
 
 /**
  * Whether pressing [typed] should step the caret over the closer already in

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.send
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -357,7 +358,7 @@ class SendShareActivity : ComponentActivity() {
                         Spacer(Modifier.width(8.dp))
                         OutlinedButton(onClick = {
                             val share = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, upload.url)
-                            runCatching { startActivity(Intent.createChooser(share, upload.name)) }
+                            AppShareSheet.start(context, share, upload.name)
                         }) { Text(stringResource(R.string.send_share_share)) }
                         Spacer(Modifier.width(8.dp))
                         Button(onClick = onDone) { Text(stringResource(R.string.send_share_close)) }

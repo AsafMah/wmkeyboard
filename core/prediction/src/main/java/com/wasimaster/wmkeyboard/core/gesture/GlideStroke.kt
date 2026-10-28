@@ -50,6 +50,46 @@ class GlideStroke(
 
     companion object {
         /**
+         * How many samples at one end of [points] are a straight walk to or
+         * from the spacebar (#968): `wm-engine`'s `glide::open_run`, number
+         * for number. From the bar end inward, every sample that lies below
+         * the next one inward (within [OPEN_RUN_LEVEL] of level: the bar is
+         * under the keys) and stays within [OPEN_RUN_DRIFT] key widths of
+         * the bar end's column, as long as the run drops [OPEN_RUN_DESCENT]
+         * in all. The letter the walk left may sit on the run ("then": `n`
+         * is straight above the bar), which is why the decoder reads the
+         * run as optional rather than cut. 0 for no run, never more than
+         * leaves three samples closed.
+         */
+        fun openRun(points: List<GesturePoint>, keyWidthPx: Float, atEnd: Boolean): Int {
+            val n = points.size
+            if (n < 4 || keyWidthPx <= 0f) return 0
+            val level = OPEN_RUN_LEVEL * keyWidthPx
+            val drift = OPEN_RUN_DRIFT * keyWidthPx
+            val barEnd = if (atEnd) points[n - 1] else points[0]
+            var run = 0
+            val maxRun = n - 3
+            while (run < maxRun) {
+                val inner = if (atEnd) points[n - 2 - run] else points[run + 1]
+                val outer = if (atEnd) points[n - 1 - run] else points[run]
+                if (outer.y < inner.y - level || kotlin.math.abs(inner.x - barEnd.x) > drift) break
+                run++
+            }
+            if (run < 2) return 0
+            val innermost = if (atEnd) points[n - 1 - run] else points[run]
+            return if (barEnd.y - innermost.y < OPEN_RUN_DESCENT * keyWidthPx) 0 else run
+        }
+
+        /** [openRun]: how much a sample may sit above the next one inward, in key widths. */
+        const val OPEN_RUN_LEVEL = 0.05f
+
+        /** [openRun]: how far from the bar end's column the walk may wander, in key widths. */
+        const val OPEN_RUN_DRIFT = 0.6f
+
+        /** [openRun]: the least the walk must descend toward the bar in all, in key widths. */
+        const val OPEN_RUN_DESCENT = 0.5f
+
+        /**
          * How far, in key widths, a stroke's end may land from the letter it
          * stands for. Wider than the decoder's own start and end radius (1.6
          * by default), since a stroke the decoder misread is exactly one whose

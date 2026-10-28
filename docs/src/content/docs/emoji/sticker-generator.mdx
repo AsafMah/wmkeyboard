@@ -1,6 +1,6 @@
 ---
 title: "Sticker generator"
-description: "Describe a sticker and the phone draws it, offline: the models, what each phone gets, prompts in any language, the safety filter, and importing your own model."
+description: "Describe a sticker and the phone draws it offline, or an image service you pick does: the engines, the phone's models, prompts in any language, the safety filter, and importing your own model."
 sidebar:
   order: 5
 ---
@@ -8,11 +8,43 @@ sidebar:
 import KeyCap from '@components/KeyCap.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 
-The sticker generator draws stickers from a sentence you type. The model runs on the phone itself, so it works offline and the picture never goes anywhere until you send it. You pick a result, the background comes off, the [sticker editor](/emoji/stickers/#the-sticker-editor) opens on it, and from there it goes into one of your packs and out like any other sticker.
+The sticker generator draws stickers from a sentence you type. By default the model runs on the phone itself, so it works offline and the picture never goes anywhere until you send it. You can also have an image service draw them instead: two free ones that need no account, the big paid ones with your own key, or a Stable Diffusion server you run. You pick a result, the background comes off, the [sticker editor](/emoji/stickers/#the-sticker-editor) opens on it, and from there it goes into one of your packs and out like any other sticker.
 
 Open it from <SettingsPath path="Tools / Stickers / Your stickers / Sticker packs / Create stickers" />, from **Create from a prompt** on a pack's page, or from the keyboard: in the sticker panel's **My stickers**, the sparkle chip beside the <KeyCap>+</KeyCap> chip opens it, saving into the pack the panel is showing.
 
-## Models, and what each phone gets
+## Engines
+
+Who draws is a [provider list](/tools/providers/), **Engines**, at the bottom of the generator's screen. Each row is one engine you switch on, order, and set up with a key or an address; tap a row for its own screen, where **Test** checks the key with a request that draws nothing and costs nothing (fal.ai has no such request, so it has no Test). A new install lists **On this phone** switched on, and Pollinations and AI Horde switched off: those two send your prompt away, so they wait until you turn them on.
+
+With more than one engine on, chips above the prompt pick the one that draws, and the line under them says where the prompt goes. Set the list to **One at a time** under its **List settings** and a tap tries the engines in order instead, moving to the next when one fails or has no answer.
+
+| Engine | Key | What it is |
+|---|---|---|
+| **On this phone** | none | The models below, downloaded or imported. Nothing leaves the phone |
+| **Pollinations** | optional | Free and needs no account. Without a key it uses Pollinations' old host, which picks the model itself (Sana, today) and puts a small pollinations.ai mark in a corner. A key from [enter.pollinations.ai](https://enter.pollinations.ai) moves it to the newer API, where the model field takes any model it lists |
+| **AI Horde** | optional | Free Stable Diffusion on volunteers' graphics cards. Anonymous use waits in a queue, and the status line shows your place in it; a free key from [aihorde.net](https://aihorde.net/register) moves you up. Asked for 512 × 512 |
+| **OpenAI Images** | yours, or the AI list's | GPT Image (`gpt-image-1-mini` when the model field is blank). Draws on a transparent background, so no background removal is needed. Paid per picture |
+| **Gemini Images** | yours, or the AI list's | Google's Nano Banana models (`gemini-2.5-flash-image` when blank). One picture per request |
+| **Grok Imagine** | yours, or the AI list's | xAI's `grok-imagine-image-2.0` |
+| **Stability AI** | yours | Stable Image Core when blank; type `ultra`, or an SD 3.5 model such as `sd3.5-large`, to use those. A picture its filter blurs is held back |
+| **Black Forest Labs (FLUX)** | yours | FLUX from its makers, `flux-2-klein-4b` when blank; any of their endpoint names works, such as `flux-2-pro` |
+| **Recraft** | yours | Illustration, icon and vector-style models, the service's own default when blank |
+| **Replicate** | yours | Any text-to-image model there, as `owner/name` (or `owner/name:version`); FLUX Schnell when blank |
+| **fal.ai** | yours | Any image model's fal id, `fal-ai/flux/schnell` when blank |
+| **Together AI** | yours | FLUX and other open models, FLUX.1 Schnell when blank |
+| **Hugging Face** | yours | Models on Hugging Face's own inference servers, Stable Diffusion 3 Medium when blank. The token needs the Inference Providers permission |
+| **Cloudflare Workers AI** | yours, with the account id | FLUX.1 Schnell when blank, or another `@cf/` image model. The account id goes in its own field |
+| **Automatic1111, Forge or SD.Next** | optional | Your own web UI, started with `--api`. A key of `user:password` is its `--api-auth`. The model field switches the checkpoint for that one request |
+| **ComfyUI** | optional | Your own ComfyUI. Queues a plain text-to-image workflow with the checkpoint you name, or the first one the server lists |
+| **OpenAI-compatible images** | optional | Anything with OpenAI's image API, such as LocalAI, DeepInfra or Nebius: the address up to the version, and a model name |
+
+OpenAI Images, Gemini Images and Grok Imagine borrow the key you gave the same service on the [AI list](/tools/ai/#choosing-where-it-runs) when their own key field is empty, so one account works for both. Every engine but the phone can be added twice, for a second key or a second server, and works on every build, F-Droid's included: each is a plain web request, with no company's code in the app.
+
+An online engine gets the prompt in English with the style's words, and the seed, the size and how many pictures you asked for; nothing else about you. Its pictures come back to the app, are shrunk to at most 1024 pixels a side and shown with the phone's, and are deleted when you leave the screen unless you save one. Each request appears under **Sticker generator** in [Network activity](/privacy/network-activity/). On a metered connection, [Data saver](/privacy/data-saver/)'s **Cloud AI** row decides: at **Ask each time** the screen says so and a second press of **Generate** is the yes; at **Turn off** only the phone's model draws.
+
+With an online engine, **Pictures per tap** on **Auto** draws one, since each may be paid for. The negative prompt goes to the engines that read one; GPT Image, Gemini and Grok Imagine leave it out. Size, steps and guidance are the phone's model's settings and disappear while an online engine is picked.
+
+## Models on the phone, and what each phone gets
 
 Two models come with the app's catalog. Neither is in the APK: the phone downloads the one you pick, after you accept its licence.
 
@@ -60,12 +92,14 @@ Tap a finished picture, then **Cut out and edit**. The background remover lifts 
 - **Size**: 384 × 384 is faster and plenty for a sticker; 512 × 512 is SDXS's own size and holds more detail.
 - **Seed**: the number every picture starts from. **Keep the seed** draws the same picture again for the same prompt, which helps when you are adjusting the wording; off, every tap tries new ones.
 - **Steps**, **Guidance** and the **Negative prompt** (what to leave out) appear only for a model that uses them: the NPU model, or a model you imported. SDXS draws in one step without guidance, so it has none of them.
-- **Remove the background**: on by default. Off, the editor opens on the picture as drawn. The F-Droid build has no background remover, so there the editor's eraser does the job.
+- **Remove the background**: on by default. Off, the editor opens on the picture as drawn. A picture that came back with a transparent background (GPT Image draws them that way) skips it. The F-Droid build has no background remover, so there the editor's eraser does the job.
 - **Safety filter**: see below.
 
 ## The safety filter
 
 Every prompt is checked before anything is drawn, as typed and in its English translation, against a list of sexual terms, and a match is refused. With **Safety filter** on (the default), every picture then goes through an on-device classifier (Falconsai's NSFW detector, 87 MB, downloaded with the first model), and one it judges unsafe is never shown: its place says it was held back. Both checks run on the phone. A word list can refuse a harmless prompt that happens to contain one of its words; rephrase it.
+
+The prompt check applies to online engines too. Their pictures are not run through the phone's classifier; instead **Safety filter** turns on the service's own filter wherever it has a switch for one (Pollinations, AI Horde, fal.ai, Together AI, Replicate and FLUX's strictness), and a picture a service refuses or blurs is held back the same way. Every paid service also applies its own rules whatever the switch says.
 
 ## Licences
 
@@ -83,5 +117,7 @@ python tools/imagegen/convert_sd.py my_model.safetensors my_model --name "My mod
 The source can be a `.safetensors` or `.ckpt` file, a diffusers folder, or a Hugging Face model id. Use `--steps 4 --scheduler lcm` for an LCM model, `--steps 1 --timesteps 999 --guidance 0` for a one-step model like SDXS or SD-Turbo, and `--taesd` to swap the model's image decoder for the much cheaper TAESD, which looks the same at sticker size. `--int8` halves the files at a small cost in faithfulness. The script calls MNN's converter library directly rather than its `mnnconvert` command, which reports every conversion to Alibaba Cloud.
 
 The output folder holds five files: `text_encoder.mnn`, `unet.mnn`, `vae_decoder.mnn`, `merges.txt` and `wmimage.json`. Copy them to the phone, zipped or not, then **Import a model** and pick the zip or all five files. The generator checks that each network loads and takes the inputs `wmimage.json` describes before it lists the model; a model that doesn't fit is turned away with the reason. Imported models run on the processor, like SDXS. A 4-step LCM model at 512 × 512 takes several seconds a picture on a flagship and about 20 on a mid-range phone; an ordinary 20-step model with guidance makes 40 full-size passes, which on a phone's processor means minutes a picture.
+
+**Stable Diffusion 1.5 (NPU)** can be imported the same way, from the build [Qualcomm AI Hub](https://aihub.qualcomm.com/) publishes for your chip: the zip it downloads, or its `text_encoder.bin`, `unet.bin`, `vae.bin` and `metadata.json` picked together, alongside `merges.txt` (the same CLIP tokenizer SDXS uses, from this project's [data repository](https://github.com/wasi-master/wmkeyboard-data/releases#release-models)). It needs no `wmimage.json` — it runs on the schedule above — and it must be the build for your phone's chip, or the neural processor turns it away when it loads. This is the only route to the NPU model on the **offline build**, which has no network to download it with. Its runtime still has to be installed first, under <SettingsPath path="Storage / Downloads" />.
 
 The checkpoint's own licence still applies to an imported model.

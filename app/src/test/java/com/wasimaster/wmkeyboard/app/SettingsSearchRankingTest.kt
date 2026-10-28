@@ -119,6 +119,10 @@ class SettingsSearchRankingTest {
 
     /** The meant row must be in the first three: two rows are equally good answers. */
     private val top3 = listOf(
+        // #898: the tracker cleaner sat behind a row called Copy rules.
+        first("trackers", "clipboard_clean_links_title"),
+        first("remove trackers", "clipboard_clean_links_title"),
+        first("utm", "clipboard_clean_links_title"),
         first("haptic", "keypress_haptics_title"),
         first("haptics", "keypress_haptics_title"),
         first("auto correct", "typing_autocorrect_title"),

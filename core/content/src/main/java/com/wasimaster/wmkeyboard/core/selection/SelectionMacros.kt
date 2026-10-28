@@ -86,6 +86,13 @@ enum class SelectionMacro {
     DEEPL_WRITE,
     /** Open the AI tool on the selection. Direct buttons for single actions ride beside it. */
     AI,
+    /**
+     * Open the word card for a selection that is one word: the card holding
+     * a suggestion-strip word opens, with Never suggest, Add, Delete, the
+     * rank and the spelling. Only offered on one word; the service says
+     * which selections are one ([MacroGates.oneWord]).
+     */
+    EDIT_WORD,
     TO_BANGLA,
     TO_BANGLISH,
     /** Romanized Hindi in the selection rewritten in Devanagari, as the Hindi phonetic layout would have typed it. */
@@ -182,6 +189,7 @@ enum class SelectionMacro {
             GRAMMAR_FIX -> R.string.core_content_selection_macro_grammar
             DEEPL_WRITE -> R.string.core_content_selection_macro_deepl_write
             AI -> R.string.core_content_selection_macro_ai
+            EDIT_WORD -> R.string.core_content_selection_macro_edit_word
             TO_BANGLA -> R.string.core_content_selection_macro_to_bangla
             TO_BANGLISH -> R.string.core_content_selection_macro_to_banglish
             TO_HINDI -> R.string.core_content_selection_macro_to_hindi
@@ -231,7 +239,7 @@ enum class SelectionMacro {
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
             DIGITS_LATIN, ZAWGYI, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
-            SEARCH, READ_ALOUD, TIME_ZONES -> MacroCategory.LOOKUP
+            SEARCH, READ_ALOUD, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
         }
 
@@ -243,11 +251,12 @@ enum class SelectionMacro {
     /**
      * Whether the macro can run before the first unlock. Anything that starts
      * an activity cannot; nor can a paste (the clipboard is behind the lock),
-     * reading aloud (a speech engine is another app to bind), or saving a
-     * note (the notes file is behind the lock too).
+     * reading aloud (a speech engine is another app to bind), saving a
+     * note (the notes file is behind the lock too), or the word card (so is
+     * the personal dictionary it edits).
      */
     val directBootSafe: Boolean
-        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE
+        get() = !leavesApp && this != PASTE && this != READ_ALOUD && this != SAVE_NOTE && this != EDIT_WORD
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
@@ -578,7 +587,7 @@ object SelectionMacros {
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.STRIP_TRACKERS, SelectionMacro.QR, SelectionMacro.ADD_CONTACT,
         SelectionMacro.COPY, SelectionMacro.CUT, SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE,
-        SelectionMacro.SAVE_NOTE,
+        SelectionMacro.SAVE_NOTE, SelectionMacro.EDIT_WORD,
         SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.REPEAT,
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE, SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
         SelectionMacro.LINES_CHECKBOX, SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN,
@@ -614,7 +623,7 @@ object SelectionMacros {
         SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.COLOUR,
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.QR, SelectionMacro.ADD_CONTACT, SelectionMacro.FANCY,
-        SelectionMacro.STRIP_TRACKERS,
+        SelectionMacro.STRIP_TRACKERS, SelectionMacro.EDIT_WORD,
     )
 
     /**
@@ -755,6 +764,7 @@ object SelectionMacros {
         SelectionMacro.URL_DECODE -> gates.content.urlEncoded
         SelectionMacro.STRIP_TRACKERS -> gates.content.hasTrackers
         SelectionMacro.READ_ALOUD -> gates.ttsAvailable
+        SelectionMacro.EDIT_WORD -> gates.oneWord
         else -> true
     }
 

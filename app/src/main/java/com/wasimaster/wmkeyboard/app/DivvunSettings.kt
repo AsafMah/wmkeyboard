@@ -122,6 +122,7 @@ internal fun SpellerRow(langId: String, settings: LiveSettings) {
     Column {
         WmRow(
             title = stringResource(R.string.languages_speller_title),
+            icon = SettingsRowIcons[R.string.languages_speller_title],
             supporting = {
                 Text(
                     supporting,

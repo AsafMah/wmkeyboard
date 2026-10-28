@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The keyboard's actions in other apps' text selection menus (#916): the two
+  menu entries, the sheet they open, and their switches under Settings >
+  Advanced > Selection actions. The action names themselves are the
+  selection bar's, in :core:content.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Menu entries. Other apps' menus list them among their own, so each names the keyboard. -->
+    <string name="text_actions_menu_label">WM Keyboard</string>
+    <string name="text_actions_translate_menu_label">WM Translate</string>
+
+    <!-- The sheet. -->
+    <string name="text_actions_group_language">Language</string>
+    <string name="text_actions_group_rewrite">Rewrite</string>
+    <string name="text_actions_group_open">Open in</string>
+    <string name="text_actions_replace_action">Replace</string>
+    <string name="text_actions_back_desc">Back to the actions</string>
+    <string name="text_actions_running"><xliff:g id="action" example="Translate">%1$s</xliff:g>…</string>
+    <string name="text_actions_translated">Translated</string>
+    <string name="text_actions_translated_from">Translated from <xliff:g id="language" example="French">%1$s</xliff:g></string>
+    <string name="text_actions_already_in">Already in <xliff:g id="language" example="English">%1$s</xliff:g></string>
+    <string name="text_actions_translate_too_long">Too long to translate in one go. The most is <xliff:g id="count" example="5000">%1$d</xliff:g> characters.</string>
+    <string name="text_actions_translate_setup">This language needs its on-device models first. Download them in the Translate tool.</string>
+    <string name="text_actions_translate_undetermined">The language is not clear from this text. Pick it in the Translate tool and try again.</string>
+    <string name="text_actions_open_translate_action">Translate tool</string>
+    <string name="text_actions_metered_ask">Data saver is on. Tap the action again to send this over mobile data.</string>
+    <string name="text_actions_read_only_hint">This app does not take changes to this text. Copy the result instead.</string>
+    <string name="text_actions_copied">Copied</string>
+
+    <!-- Settings > Advanced > Selection actions. -->
+    <string name="text_actions_settings_group">In other apps\' selection menus</string>
+    <string name="text_actions_settings_info">Select text in any app, and the menu that offers Copy and Paste can offer the keyboard\'s actions too. You do not have to be typing with this keyboard, or copy the text anywhere first.\n\nEach switch here is one entry in every app\'s menu, so turn on the ones you use.</string>
+    <string name="text_actions_settings_actions_title">WM Keyboard in the selection menu</string>
+    <string name="text_actions_settings_actions_subtitle">Translate, AI and these actions on text selected in any app</string>
+    <string name="text_actions_settings_actions_info">Opens a sheet over the app with the text you selected. Translate it, run an AI action on it, or rewrite it with the actions from the list below (case, lines, the converters), one after another. Undo steps back.\n\nWhen the text is in a box you can edit, Replace puts the result in place of your selection. When it is not, such as a web page, Copy takes it instead.\n\nThis works whether the keyboard\'s own bar is on or off.</string>
+    <string name="text_actions_settings_translate_title">WM Translate in the selection menu</string>
+    <string name="text_actions_settings_translate_subtitle">An entry that opens straight on the translation. Needs the Translate tool</string>
+
+</resources>

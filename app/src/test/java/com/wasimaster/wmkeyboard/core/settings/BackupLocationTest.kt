@@ -81,7 +81,7 @@ class BackupLocationTest {
     @Test
     fun `per-device settings never sync`() {
         for (key in listOf("key_height", "key_height_landscape", "one_handed_mode", "floating_x", "hw_leader",
-            "kde_hosts", "lexicon_version", "sync_enabled", "auto_backup_locations", "number_row_landscape",
+            "kde_hosts", "kde_clipboard_pauses", "lexicon_version", "sync_enabled", "auto_backup_locations", "number_row_landscape",
             "app_lock_enabled", "app_lock_secret", "app_lock_method", "custom_themes")) {
             assertFalse(key, SyncKeys.syncable(key, includeSecrets = true))
         }

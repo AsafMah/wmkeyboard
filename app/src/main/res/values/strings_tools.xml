@@ -43,5 +43,7 @@
     <string name="tools_needs_key_subtitle">Needs an API key. Press this row to add one.</string>
     <string name="tools_needs_instance_subtitle">Needs a SearXNG instance</string>
     <string name="tools_voice_off_subtitle">Voice typing is off. Press this row to turn it on.</string>
+    <string name="tools_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
+    <string name="tools_needs_music_provider_subtitle">Needs a song recogniser with your key. Press this row to set one up.</string>
     <string name="tools_needs_layout_subtitle">Needs a secondary layout. Press this row, then Key layouts, to make one.</string>
 </resources>

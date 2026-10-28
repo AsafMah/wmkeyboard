@@ -157,11 +157,14 @@ internal fun DictionaryPanel(
                 stringResource(R.string.ime_dict_lookup_progress, dict.word),
             )
             is DictionaryUi.Error -> DictionaryMessage(stringResource(R.string.ime_dict_error))
+            // Another app on the phone may know it (#970): Aard 2, ColorDict, Kiwix.
             is DictionaryUi.NotFound -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),
+                lookupWord = dict.word,
             )
             is DictionaryUi.NotOnDevice -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_on_device, dict.word),
+                lookupWord = dict.word,
             )
             DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
             is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
@@ -170,8 +173,12 @@ internal fun DictionaryPanel(
 }
 
 @Composable
-private fun DictionaryMessage(text: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+private fun DictionaryMessage(text: String, lookupWord: String? = null) {
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text,
             color = LocalKbTheme.current.toolbarIcon,
@@ -179,6 +186,7 @@ private fun DictionaryMessage(text: String) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
+        if (lookupWord != null) LookupAppChip(Modifier.padding(top = 8.dp)) { lookupWord }
     }
 }
 
@@ -323,15 +331,22 @@ private fun DictionaryEntries(
         item(key = "source") {
             // An imported dictionary names itself; the rest name the source.
             val origins = entries.map { it.origin }.filter { it.isNotEmpty() }.distinct()
-            Text(
-                stringResource(
-                    R.string.ime_dict_from,
-                    if (origins.isEmpty()) stringResource(source.labelRes) else origins.joinToString(", "),
-                ),
-                color = kb.toolbarIcon,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(top = 12.dp),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(
+                        R.string.ime_dict_from,
+                        if (origins.isEmpty()) stringResource(source.labelRes) else origins.joinToString(", "),
+                    ),
+                    color = kb.toolbarIcon,
+                    fontSize = 11.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                // The same word in another app's dictionary (#970).
+                LookupAppChip { entries.first().word }
+            }
         }
     }
 }

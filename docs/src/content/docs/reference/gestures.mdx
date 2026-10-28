@@ -81,7 +81,7 @@ The full field-by-field list (haptics, sound, popup timing, and every long-press
 
 <SettingsPath path="Typing / Gestures" />
 
-A key with flick directions (the Japanese flick pad, the English flick (3×3) board, or any key given arms in the layout editor) reads a short swipe off it as a flick. Full mechanics on [Flick keys](/typing/gestures/#flick-keys).
+A key with flick directions (the Japanese flick pad, the English flick (3×3) board, any key given arms in the layout editor, or a key given [swipes on keys](/typing/gestures/#swipes-on-keys) in Settings) reads a short swipe off it as a flick. Full mechanics on [Flick keys](/typing/gestures/#flick-keys).
 
 | Gesture | Where | What it does | Setting |
 | --- | --- | --- | --- |
@@ -184,6 +184,22 @@ A grab-bag of drags that live on their own feature pages, linked below each row.
 | Drag the floating panel's handle bar | [Floating keyboard](/typing/size-position/#floating-the-keyboard) | Moves the panel | Floating keyboard (Off) |
 | Drag the floating panel's resize grip | Floating keyboard | Resizes width and height together (height clamped 60%–160% of normal) | (same) |
 
+## Holding a greyed-out button
+
+A greyed-out button, chip or switch can't be pressed yet, but it can still be held. Hold it for the press and hold delay and it says why, in the same small bubble that names an icon button when you hold it.
+
+| Gesture | Where | What it does | Setting |
+| --- | --- | --- | --- |
+| Hold a greyed-out AI action | [AI panel](/tools/ai/) | Says there is no text to act on yet | None |
+| Hold greyed-out **Replace**, **Insert** or swap | [Translate panel](/tools/translate/) | Says nothing is translated yet, or that the text is already in that language | None |
+| Hold greyed-out previous or next | [Media controls](/tools/media/) | Says the app that is playing doesn't allow it | None |
+| Hold greyed-out undo | Voice bar | Says there is no phrase to take back yet | None |
+| Hold the greyed-out check mark | Spelling bar of the [word card](/smart/personal-dictionary/) | Says the spelling has to change first | None |
+| Hold greyed-out **Tidy** or **Combine** | [Clipboard panel](/tools/clipboard/), with clips picked | Says how many text clips it needs | None |
+| Hold a greyed-out setting | Any settings screen | Says why, with **Open the setting** when another setting unblocks it. See [Asking why a setting is greyed out](/reference/settings/#asking-why-a-setting-is-greyed-out) | None |
+
+The bubble stays up for about four seconds. When the reason names a setting, tap the bubble to open the settings app at that setting. Holding a greyed-out button never presses it.
+
 ## Options
 
 <SettingsPath path="Typing / Gestures" />
@@ -210,6 +226,7 @@ Every default on this page, gathered in one place. "Where" is the settings scree
 | Release the keys while audio plays | Typing → Volume keys | On |
 | Multi-finger swipes | Typing → Gestures | On |
 | Chords with ?123 | Typing → Gestures | On |
+| Swipes on keys | Typing → Gestures | On, with no keys set |
 | Press and hold delay | Key press → Timing | 300 ms (100–800 ms) |
 | Time before a key repeats | Key press → Timing | 300 ms (150–800 ms) |
 | Delete repeat interval | Key press → Timing | 50 ms (20–200 ms) |

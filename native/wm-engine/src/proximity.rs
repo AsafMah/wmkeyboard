@@ -3,7 +3,8 @@
 //! word. A port of the Kotlin `KeyProximity` (core/prediction): neighbours
 //! are the keys either side in the row plus the three straddling the same
 //! column in the rows above and below; hands split by column against the
-//! widest row.
+//! widest row. It also holds the letters each key carries besides the one
+//! it types (#970): on Shift, in its corner or behind a hold.
 
 use std::collections::HashMap;
 
@@ -15,11 +16,14 @@ pub const RIGHT: i8 = 1;
 pub struct KeyProximity {
     neighbors: HashMap<u16, Vec<u16>>,
     hands: HashMap<u16, i8>,
+    /// (typed, carried) pairs, sorted: a key that types `typed` also
+    /// carries `carried`. Empty unless [`KeyProximity::with_carried`] set it.
+    carried: Vec<(u16, u16)>,
 }
 
 impl PartialEq for KeyProximity {
     fn eq(&self, other: &Self) -> bool {
-        self.neighbors == other.neighbors
+        self.neighbors == other.neighbors && self.carried == other.carried
     }
 }
 
@@ -63,7 +67,25 @@ impl KeyProximity {
                 neighbors.insert(key, adj);
             }
         }
-        KeyProximity { neighbors, hands }
+        KeyProximity { neighbors, hands, carried: Vec::new() }
+    }
+
+    /// This model with the letters each key carries besides the one it
+    /// types (#970), as (typed, carried) pairs: the Kotlin
+    /// `KeyProximity.carried`, flattened.
+    pub fn with_carried(mut self, mut pairs: Vec<(u16, u16)>) -> KeyProximity {
+        pairs.retain(|&(typed, carried)| typed != carried);
+        pairs.sort_unstable();
+        pairs.dedup();
+        self.carried = pairs;
+        self
+    }
+
+    /// Whether the key that types `typed` also carries `label`: on Shift, in
+    /// its corner or behind a hold. A tap on it may have meant that letter
+    /// with the shift or hold left off, the way a bare `u` may mean `ü`.
+    pub fn carries(&self, typed: u16, label: u16) -> bool {
+        !self.carried.is_empty() && self.carried.binary_search(&(typed, label)).is_ok()
     }
 
     /// QWERTY's letter rows, with the number row on top when asked (a
@@ -127,6 +149,19 @@ mod tests {
         assert!(!p.are_adjacent(u('3'), u('s')));
         assert!(!KeyProximity::qwerty(false).are_adjacent(u('3'), u('e')));
         assert!(KeyProximity::qwerty(false) != p);
+    }
+
+    #[test]
+    fn carried_letters_belong_to_the_key_that_types_them() {
+        let arabic = KeyProximity::of_rows(&["ضصثقفغعهخحجد"])
+            .with_carried(vec![(u('ه'), u('ة')), (u('ا'), u('أ')), (u('ا'), u('إ')), (u('ا'), u('ا'))]);
+        assert!(arabic.carries(u('ه'), u('ة')));
+        assert!(arabic.carries(u('ا'), u('إ')));
+        // One way: typing the carried letter on purpose is not a slip of the base.
+        assert!(!arabic.carries(u('ة'), u('ه')));
+        assert!(!arabic.carries(u('ا'), u('ا')));
+        assert!(!KeyProximity::qwerty(false).carries(u('u'), u('ü')));
+        assert!(KeyProximity::of_rows(&["ضصثقفغعهخحجد"]) != arabic);
     }
 
     #[test]

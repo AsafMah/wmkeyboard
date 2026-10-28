@@ -11,7 +11,7 @@ The **Clock** tool is a full clock app that lives in the keyboard. It keeps the 
 
 Open **Clock** from the toolbox, or type `clock`, `alarm`, `timer`, `stopwatch`, `countdown`, `planner` or `date` on its own and tap the chip that appears. The panel has seven tabs along the top: **Clocks**, **Alarms**, **Timers**, **Stopwatch**, **Planner**, **Dates** and **History**. A dot on a tab means something is running there, and a number counts the alarms that are on or the timers that are running. The panel opens on the tab you used last. Swipe left or right across the panel to move to the next or previous tab. The gear at the end of the row opens the tool's settings.
 
-The settings app has a **Clock** screen too, under <SettingsPath path="Tools / Clock / Open the clock" />. It works on the same alarms, timers, stopwatch, cities, countdowns and history, with a full-size time picker and a sound picker. A change made in one place shows in the other at once.
+The settings app has a **Clock** screen too, under <SettingsPath path="Tools / Clock / Open the clock" />. It works on the same alarms, timers, stopwatch, cities, countdowns and history, with a full-size time picker and a sound picker. A change made in one place shows in the other at once. **Add to home screen**, under **Open the clock**, puts an icon for that screen on your home screen, so it opens like a clock app.
 
 ## World clocks
 
@@ -19,9 +19,9 @@ The **Clocks** tab starts with your own time, large, with the date, the city you
 
 Under it is a card for every city you add. Each card shows the city's time, its weekday, whether it is today, tomorrow or yesterday there, and how many hours it is ahead of or behind you (`+5:30`, `−3`). The face on each card is light or dark by that city's daylight, so you can see at a glance who is awake.
 
-**Add a city** opens a search, and the keyboard types into it. Type a city (`tokyo`, `sao pa`), a country, a zone abbreviation (`ist`, `pst`) or an offset (`+5:30`, `utc-3`). Accents don't matter. The list comes from the time zone data already on your phone, about 420 places, in your language where Android has a name for them. Nothing is looked up online. Enter adds the first match.
+**Add a city** opens a search, and the keyboard types into it. Type a city (`tokyo`, `sao pa`), a country, a zone abbreviation (`ist`, `pst`) or an offset (`+5:30`, `utc-3`). Accents don't matter. The list comes from the time zone data already on your phone, about 420 places, in your language where Android has a name for them. That data names each zone after one city, so about 60 big cities that share a zone with another are added by name: Beijing, Mumbai, New Delhi, Bengaluru, Osaka, San Francisco, Washington, Mecca and the like, in English, with older spellings such as `bangalore` or `bombay` finding them too. Each one keeps its own name on its card, and its own sunrise and sunset. Nothing is looked up online. Enter adds the first match.
 
-Hold a city card for its own buttons: type its time in the default format, move it up or down, rename it (to `Mum` or `Office`, say), or remove it. A removed city has an **Undo** for a few seconds.
+Hold a city card for its own buttons: type its time in the default format, move it up or down (unless **Sort cities by time** is on, which keeps the list in order of the time there, earliest first), rename it (to `Mum` or `Office`, say), or remove it. A removed city has an **Undo** for a few seconds.
 
 ### Typing a time
 
@@ -67,7 +67,7 @@ The editor puts the time on drums across the top that you spin with a finger, wi
 
 The phone lights up with the ring screen, also over the lock screen. It shows the time, the alarm's label and a pulsing bell. **Snooze** is the big button; smaller chips under it snooze for 5, 10, 15 or 30 minutes instead. To dismiss, slide the thumb across the bar at the bottom. A slide rather than a tap means a sleepy hand can't turn an alarm off by accident. The volume keys snooze, unless you turn that off.
 
-The sound starts quietly and gets louder over 20 seconds, then plays until you answer it. If nobody answers, it stops by itself after 10 minutes and shows as missed in the history. The shade carries the same **Snooze** and **Dismiss** buttons. Several alarms or timers ringing at once share one ring screen: the slide dismisses them all, and each one after the first also has its own **Dismiss**.
+The sound starts quietly and gets louder over 20 seconds, then plays until you answer it. If nobody answers, it stops by itself after 10 minutes, shows as missed in the history and leaves a notification saying so. With **Snooze when nobody answers** set, it snoozes instead, a few times, before it counts as missed. The shade carries the same **Snooze** and **Dismiss** buttons. A snoozed alarm stays in the shade with the time it rings again, and its **Dismiss** ends the snooze: a one-time alarm turns off, a repeating one waits for its next day. With **Notice before an alarm** on, the next alarm appears there ahead of time too, and **Skip** skips that one ring, or turns off a one-time alarm. Several alarms or timers ringing at once share one ring screen: the slide dismisses them all, and each one after the first also has its own **Dismiss**.
 
 ### What a reliable alarm needs
 
@@ -127,7 +127,7 @@ Working hours are 9:00 to 17:00 unless you change them in the settings. They app
 
 ## Dates
 
-The **Dates** tab does date maths with steppers, so you never type a date. Each date has buttons for a month back, a day back, a day on and a month on; tap the date itself to go back to today.
+The **Dates** tab does date maths with steppers. Each date has buttons for a month back, a day back, a day on and a month on; tap the date itself to go back to today. For a date far away, such as a birthday years back, press and hold the date and type it in the box that opens, such as `17/5/2004` or `2004-05-17`. The day comes first unless your phone is set to a country that writes the month first, like the US; a date that only makes sense the other way round is read that way, and a two-digit year up to 50 is this century.
 
 - **Between** shows the days between two dates, the same as years, months and days, the weeks, and the working days (Monday to Friday). The arrow swaps the two dates.
 - **Add** moves a date by days, weeks, months, years or working days, and shows the result with its week number and day of the year. A month added to 31 January gives the last day of February.
@@ -148,8 +148,11 @@ A timer stopped within its first five seconds, or a stopwatch reset before five 
 | Setting | What it does | Default |
 |---|---|---|
 | **Open the clock** | The Clock screen in the settings app | |
+| **Add to home screen** | A home screen icon that opens the Clock screen | |
 | **Hour format** | **Like the phone**, **12-hour** or **24-hour**, for the panel, the ring screen and what the tool types | Like the phone |
 | **Show seconds** | Seconds on the big clock and its face | On |
+| **Sort cities by time** | Lists the world clocks earliest time first, and the move buttons go | Off |
+| **Cities in a grid** | The city cards two to a row, smaller, with the city's name, time and how far ahead or behind it is. A city's buttons and the ways to type its time open on a row of their own under it | Off |
 | **Default format** | What a hold on your own clock types, and the first button when you hold a city | Time and place |
 | **Sound and vibration** | Play Store build only: opens Android's settings for the alarm notification, which plays the ring there | |
 | **Alarm sound** | Any sound from Android's picker, or silent (vibrate only). Not in the Play Store build | Default alarm sound |
@@ -158,6 +161,10 @@ A timer stopped within its first five seconds, or a stopwatch reset before five 
 | **Snooze length** | 1 to 30 minutes. An alarm can keep its own | 10 minutes |
 | **Fade in** | How long an alarm takes to reach full volume, up to 60 seconds. Timers always ring at full volume. Not in the Play Store build | 20 seconds |
 | **Stop ringing after** | When an alarm nobody answers stops, 1 to 30 minutes | 10 minutes |
+| **Snooze when nobody answers** | Off, or 1 to 5 times: an alarm that stops by itself snoozes instead, until it has been snoozed that many times, and only then counts as missed | Off |
+| **Notice before an alarm** | Off, or 15, 30, 60 or 120 minutes: the next alarm shows in the notifications that long before it rings, with **Skip** | Off |
+| **Notice while snoozed** | A snoozed alarm shows in the notifications with the time it rings again and **Dismiss**, which ends the snooze | On |
+| **Notice for a missed alarm** | An alarm that rang with nobody to answer it leaves a notification | On |
 | **Volume keys snooze** | On the ring screen. When off, the volume keys do nothing there | On |
 | **Focus**, **Short break**, **Long break** | The Pomodoro lengths | 25, 5 and 15 minutes |
 | **Long break after** | How many focus sessions come before a long break | 4 |
@@ -165,6 +172,8 @@ A timer stopped within its first five seconds, or a stopwatch reset before five 
 | **Keep history for** | 7, 30, 90 or 365 days, or always | 90 days |
 
 The tool's settings live in the phone's device storage rather than with the keyboard's other settings, because the alarm has to read them before you unlock the phone after a restart. A [backup](/reference/settings/backup/) carries them in its **Clock** section, together with the alarms, the presets and the countdowns.
+
+The clock and the calendar are the **Calendar and clock** bundle on [Extensions](/reference/settings/extensions/). Off there, both tools and this screen leave the keyboard and the app until the bundle is switched back on; your clocks and countdowns stay.
 
 ## Details & edge cases
 
@@ -174,5 +183,5 @@ The tool's settings live in the phone's device storage rather than with the keyb
 - **Timers follow the phone's clock.** A timer keeps running when the keyboard is closed and survives the keyboard being stopped, because its end time is stored. If you change the phone's clock by hand while one runs, it ends early or late by that much.
 - **A timer that ran out while the keyboard was not running** rings as soon as the keyboard starts again, rather than not at all.
 - **Two phones don't ring for one alarm.** [Sync](/reference/settings/backup/) leaves the Clock section out unless you add it. The world clocks are part of the Clock section, not of the keyboard's settings.
-- **Nothing goes online.** The city search, the sunrise and sunset times and every calculation run on the phone. The sunrise and sunset for a city come from the city's coordinates in the time zone data, so they are for the city the zone is named after.
+- **Nothing goes online.** The city search, the sunrise and sunset times and every calculation run on the phone. The sunrise and sunset for a city come from the city's coordinates in the time zone data, so they are for the city the zone is named after, except for the added cities like Beijing, which carry their own.
 - **The planner's working hours are the same for every city.** A city with a different working week or hours still uses yours.

@@ -96,7 +96,8 @@ class NuktaKeySpellingTest {
     fun `the shipped Bengali layouts write nukta letters precomposed`() {
         val probhat = com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.PROBHAT
         val jatiya = com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.JATIYA
-        for (layout in listOf(probhat, jatiya)) {
+        val bsti = com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts.BSTI
+        for (layout in listOf(probhat, jatiya, bsti)) {
             val spellings = layout.layers.values
                 .flatMap { it.rows.flatten() }
                 .flatMap { key -> listOfNotNull(key.label, key.shiftLabel) + key.longPress }

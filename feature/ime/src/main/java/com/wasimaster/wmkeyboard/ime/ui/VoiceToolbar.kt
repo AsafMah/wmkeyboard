@@ -86,11 +86,13 @@ import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.VoiceStatus
 import com.wasimaster.wmkeyboard.ime.clipBased
+import com.wasimaster.wmkeyboard.ime.undoReady
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The collapsed voice bar (Gboard's voice-typing toolbar): the keyboard gives
@@ -461,7 +463,7 @@ private fun HorizontalBarContent(
                 }
             }
             VoiceBarExitButton(state, onAction, onRestoreKeyboard)
-            VoiceBarDeleteButton(onAction)
+            VoiceBarDeleteButton(state, onAction)
             VoiceBarMic(
                 state = state,
                 hasPermission = hasPermission,
@@ -500,6 +502,7 @@ private fun RowScope.HorizontalMenuPage(
             icon = Icons.AutoMirrored.Outlined.Undo,
             description = stringResource(R.string.ime_voice_strip_undo_desc),
             enabled = state.voice.undoReady(),
+            disabledReason = DisabledReason(stringResource(R.string.ime_disabled_voice_undo)),
         ) {
             feedback()
             onUndo()
@@ -572,6 +575,7 @@ private fun VerticalBarContent(
                 icon = Icons.AutoMirrored.Outlined.Undo,
                 description = stringResource(R.string.ime_voice_strip_undo_desc),
                 enabled = state.voice.undoReady(),
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_voice_undo)),
             ) {
                 feedback()
                 onUndo()
@@ -599,7 +603,7 @@ private fun VerticalBarContent(
                 onToggle = onToggle,
                 onRequestPermission = onRequestPermission,
             )
-            VoiceBarDeleteButton(onAction)
+            VoiceBarDeleteButton(state, onAction)
             VoiceBarExitButton(state, onAction, onRestoreKeyboard)
             // No status line on the upright bar, so the switch is the only
             // word on which microphone is in use (#581): its icon.
@@ -842,35 +846,27 @@ private fun VoiceBarMic(
     }
 }
 
-/** Backspace with the rail's press-and-hold repeat. */
+/** Backspace with the rail's press-and-hold repeat, and its delete swipe (#925). */
 @Composable
-private fun VoiceBarDeleteButton(onAction: (VoiceBarAction) -> Unit) {
+private fun VoiceBarDeleteButton(state: KeyboardUiState, onAction: (VoiceBarAction) -> Unit) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    val scope = rememberCoroutineScope()
     val description = stringResource(CommonR.string.common_delete)
+    val settings = state.settings
+    val swipe = LocalDeleteSwipe.current
+    val byWord = settings.textEditing.backspaceSwipeUnit == com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit.WORD
+    val currentFeedback = androidx.compose.runtime.rememberUpdatedState(feedback)
+    // Remembered, so a recomposition mid-drag does not restart the gesture.
+    val drag = androidx.compose.runtime.remember(swipe, byWord, settings.backspaceSwipeDelete) {
+        if (settings.backspaceSwipeDelete) railDeleteDrag(swipe, byWord) { currentFeedback.value() } else null
+    }
     Box(
         modifier = Modifier
             .size(VoiceBarButton)
             .clip(kb.toolShape())
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        feedback()
-                        onAction(VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)))
-                        val repeat: Job = scope.launch {
-                            delay(400)
-                            while (true) {
-                                onAction(
-                                    VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)),
-                                )
-                                delay(120)
-                            }
-                        }
-                        tryAwaitRelease()
-                        repeat.cancel()
-                    },
-                )
+            .railKeyGestures(repeatable = true, drag = drag) {
+                feedback()
+                onAction(VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)))
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -945,10 +941,12 @@ private fun VoiceBarIconButton(
     icon: ImageVector,
     description: String,
     enabled: Boolean = true,
+    /** What holding the button says while it is greyed out; see [IconHint]. */
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    IconHint(description) {
+    IconHint(description, disabledReason = disabledReason.takeUnless { enabled }) {
         Box(
             modifier = Modifier
                 .size(VoiceBarButton)

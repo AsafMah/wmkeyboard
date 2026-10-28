@@ -26,6 +26,15 @@
     <string name="gallery_start_expanded_subtitle">Off, the gallery opens at the keyboard\'s height and you drag it taller.</string>
     <string name="gallery_remember_album_title">Open the last album</string>
     <string name="gallery_remember_album_subtitle">Off, the gallery always opens on Recents.</string>
+    <string name="gallery_folders_title">Folders</string>
+    <string name="gallery_folders_subtitle">Untick a folder to leave its photos out of the gallery, Recents included</string>
+    <string name="gallery_folders_all">All shown</string>
+    <plurals name="gallery_folders_hidden">
+        <item quantity="one">%d hidden</item>
+        <item quantity="other">%d hidden</item>
+    </plurals>
+    <string name="gallery_folders_none">No folders with photos the keyboard can see. Allow photo access first.</string>
+    <string name="gallery_folders_row">%1$s (%2$d)</string>
     <string name="gallery_haptics_title">Vibrate on each pick</string>
     <string name="gallery_haptics_subtitle">A short tick under the finger when you pick or drop a photo.</string>
 

@@ -131,7 +131,7 @@ internal fun PermissionsSettings() {
                 ::hasNotificationAccess,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SpecialAccessRow(
                 R.string.privacy_permissions_usage_title,
                 R.string.privacy_permissions_usage_subtitle,
@@ -139,7 +139,7 @@ internal fun PermissionsSettings() {
                 ::hasUsageAccess,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SpecialAccessRow(
                 R.string.privacy_permissions_overlay_title,
                 R.string.privacy_permissions_overlay_subtitle,
@@ -147,7 +147,7 @@ internal fun PermissionsSettings() {
             ) { Settings.canDrawOverlays(it) }
         }
         // The clock tool's two grants, only where Android asks for them.
-        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, level = SettingLevel.ADVANCED) {
             SpecialAccessRow(
                 R.string.privacy_permissions_exact_alarms_title,
                 R.string.privacy_permissions_exact_alarms_subtitle,
@@ -155,7 +155,10 @@ internal fun PermissionsSettings() {
                 ClockEngine::canScheduleExact,
             )
         }
-        item(visible = ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        item(
+            visible = ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
+            level = SettingLevel.ADVANCED,
+        ) {
             SpecialAccessRow(
                 R.string.privacy_permissions_full_screen_title,
                 R.string.privacy_permissions_full_screen_subtitle,
@@ -163,7 +166,7 @@ internal fun PermissionsSettings() {
                 ClockNotifications::canUseFullScreen,
             )
         }
-        item(visible = ChannelFeatures.GESTURE_PASSTHROUGH) {
+        item(visible = ChannelFeatures.GESTURE_PASSTHROUGH, level = SettingLevel.STANDARD) {
             SpecialAccessRow(
                 R.string.privacy_permissions_accessibility_title,
                 R.string.privacy_permissions_accessibility_subtitle,
@@ -171,7 +174,7 @@ internal fun PermissionsSettings() {
                 KeyboardPassthrough::isServiceEnabled,
             )
         }
-        item(visible = ChannelFeatures.SCREEN_CONTEXT) {
+        item(visible = ChannelFeatures.SCREEN_CONTEXT, level = SettingLevel.STANDARD) {
             SpecialAccessRow(
                 R.string.privacy_permissions_screen_content_title,
                 R.string.privacy_permissions_screen_content_subtitle,
@@ -182,7 +185,7 @@ internal fun PermissionsSettings() {
         // Only where the app can install a new version of itself, and only
         // where Android has a per-app switch to send anyone to. Below API 26
         // it is one global setting the system installer raises by itself.
-        item(visible = UpdateChannel.GITHUB && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        item(visible = UpdateChannel.GITHUB && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O, level = SettingLevel.STANDARD) {
             SpecialAccessRow(
                 R.string.privacy_permissions_install_updates_title,
                 R.string.privacy_permissions_install_updates_subtitle,
@@ -194,6 +197,7 @@ internal fun PermissionsSettings() {
     SettingsGroup(
         stringResource(R.string.privacy_permissions_install_group_title),
         info = stringResource(R.string.privacy_permissions_footer_info),
+        level = SettingLevel.ADVANCED,
     ) {
         item {
             InstallPermissionRow(

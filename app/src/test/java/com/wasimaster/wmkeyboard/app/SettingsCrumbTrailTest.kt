@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.runtime.saveable.SaverScope
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -69,6 +70,17 @@ class SettingsCrumbTrailTest {
         assertEquals(emptyList<String>(), walk.titles(walk.trail.ancestorsOf("a")))
         assertEquals(listOf("Home"), walk.titles(walk.trail.ancestorsOf("b")))
         assertEquals(listOf("Home", "Appearance"), walk.titles(walk.trail.ancestorsOf("c")))
+    }
+
+    @Test
+    fun `the strip is drawn from the third level, not the second`() {
+        val walk = walkTo("a" to "Home", "b" to "Typing", "c" to "Autocorrect")
+
+        // A second-level page keeps its path but does not draw it: its heading
+        // already says where it is. The third level is the first with a
+        // middle step to show.
+        assertTrue(walk.trail.ancestorsOf("b").size < MinCrumbDepth)
+        assertTrue(walk.trail.ancestorsOf("c").size >= MinCrumbDepth)
     }
 
     @Test

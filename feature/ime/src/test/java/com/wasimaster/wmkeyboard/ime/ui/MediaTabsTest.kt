@@ -42,13 +42,28 @@ class MediaTabsTest {
 
     @Test
     fun `the switch offers emoji always and GIFs and stickers while their tools are on`() {
-        assertEquals(MediaTabPanels, mediaTabs(settings()))
+        // Emoji mixes are blocked until a source is added; nothing ships one.
+        assertEquals(MediaTabPanels - PanelMode.EMOJI_MIX, mediaTabs(settings()))
         assertEquals(
             listOf(PanelMode.EMOJI, PanelMode.STICKER),
             mediaTabs(settings(tools = listOf(ToolbarTool.STICKER))),
         )
         // The emoji tool off the toolbar still leaves the emoji key's panel.
         assertEquals(listOf(PanelMode.EMOJI), mediaTabs(settings(tools = emptyList())))
+    }
+
+    @Test
+    fun `the mixes tab joins the switch once a source is on`() {
+        val source = com.wasimaster.wmkeyboard.core.settings.EmojiMixSource(
+            "m1", com.wasimaster.wmkeyboard.core.settings.EmojiMixSourceKind.INDEX, "https://example.test/list.json",
+        )
+        val withSource = settings().let {
+            it.copy(emoji = it.emoji.copy(mix = com.wasimaster.wmkeyboard.core.settings.EmojiMixSettings(sources = listOf(source))))
+        }
+        assertEquals(MediaTabPanels, mediaTabs(withSource))
+        val switchedOff = withSource.emoji.mix.copy(sources = listOf(source.copy(enabled = false)))
+        val off = withSource.copy(emoji = withSource.emoji.copy(mix = switchedOff))
+        assertFalse(PanelMode.EMOJI_MIX in mediaTabs(off))
     }
 
     @Test

@@ -1,0 +1,79 @@
+---
+title: "Extensions"
+description: "The far-fetched features, switched on or off as one thing: what each bundle carries, what leaves the app when it is off, and how the defaults follow the settings depth."
+sidebar:
+  order: 16
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Extensions are the features most people never expect a keyboard to have: a bubble level, a music recogniser, a link to the desktop, a notebook, a speed test. Each is one row here with one switch, and shows up nowhere else until it is on. The necessities are not here. Voice typing, the clipboard, snippets, translate and AI are what a keyboard is for today, and each has its own switch where it lives.
+
+<SettingsPath path="Extensions" />
+
+Reach it from Home, under **Features**, or from the first row of <SettingsPath path="Advanced" />. The deep link is `wmkeyboard://settings/extensions`, and each bundle's own page answers to `wmkeyboard://settings/extension/NAME`, where the name is the one in the table below.
+
+## What "off" means
+
+A bundle that is off is gone, not greyed out:
+
+- Its rows leave Advanced.
+- Its tools leave the Tools list and every tool picker in the app: the floating button's, the hardware shortcuts', the smart chips'.
+- Its tools leave the keyboard's toolbar and toolbox, and the panels they open no longer open. The tools you had switched on stay recorded, so they come back when the bundle does.
+- Its screens and their rows leave settings search and the settings assistant.
+- A link to one of its screens, from another app, from the keyboard or from a favourite, opens this screen with the bundle's row flashed instead of the page.
+- The background work it owns stops.
+
+Nothing is deleted. Notes, packs, scores, pairings and keys are all still on the phone, and the settings inside the bundle keep their values.
+
+## The bundles
+
+| Bundle | Name | What it carries |
+|---|---|---|
+| Stickers, GIFs and emoji mixes | `STICKERS` | The three picture panels, the sticker pack screens, the generator and the emoji mixes screen |
+| Scanners | `SCANNERS` | Text scan, the QR and barcode scanner and the document scanner |
+| Handwriting | `HANDWRITING` | The handwriting panel and its models |
+| Notes | `NOTES` | The notebook in the keyboard and the quick note action |
+| Vocabulary | `VOCABULARY` | Vocabulary packs, the word of the day, the nudges and the flashcards |
+| Calculator and converters | `CALCULATORS` | The calculator, the unit converter and the currency converter |
+| Web search | `WEB_SEARCH` | Web search, image search and Wikipedia |
+| Camera and gallery | `CAMERA_AND_GALLERY` | The camera and the gallery panels |
+| Calendar and clock | `CALENDAR_AND_CLOCK` | The calendar and the clock, with its timers and countdowns |
+| Generators | `GENERATORS` | The password generator, the QR code maker and text repeat |
+| Typing test | `TYPING_TEST` | The typing speed test and its scores |
+| Read back | `READ_BACK` | The field read aloud |
+| Learn from text | `LEARN_FROM_TEXT` | Teaching the dictionary from a block of text |
+| Find and replace | `FIND_REPLACE` | Search and replace inside the field |
+| Keyboard modes | `MODES` | The Modes tool, the modes list and the mode editor |
+| Media controls | `MEDIA_CONTROLS` | Play, pause and skip from the toolbar, and the apps it follows |
+| App launcher | `APP_LAUNCHER` | Opening apps and split-screen pairs from the keyboard |
+| Weather and location | `WEATHER_AND_LOCATION` | The forecast panel and the location panel |
+| Instruments | `INSTRUMENTS` | The flashlight, the compass, the bubble level and the moon phase |
+| Music recognition | `MUSIC_ID` | Naming the song that is playing, and its history |
+| Speed test | `SPEED_TEST` | The internet speed test and its result card |
+| KDE Connect | `KDE_CONNECT` | The link to a paired desktop and its devices screen |
+| Send files | `SEND_FILES` | Sending files to other devices, and the history |
+| Smart home | `SMART_HOME` | Lights, switches and scenes from the keyboard |
+
+Tap a row's name to open the bundle's page. It repeats the switch at the top, then lists the tools and the settings screens the bundle carries. While the bundle is off those rows are greyed out and do nothing, because the pages they would open are the ones the switch took away.
+
+## Master switches
+
+Keyboard modes already had a switch that turned the feature off. The bundle's switch moves that one with it, in both directions, so the two never disagree.
+
+## Defaults
+
+Which bundles start on follows the answer to the setup wizard's "What kind of keyboard do you want?", the same answer that sets the [settings depth](/reference/settings/#choosing-how-many-settings-you-see):
+
+- **Keep it simple** starts with no extension on.
+- **A good middle** starts with the bundles that work the moment they are on, with no pairing, account, sensor or grant behind them: Stickers, GIFs and emoji mixes, Scanners, Handwriting, Notes, Vocabulary, Calculator and converters, Web search, Camera and gallery, Calendar and clock, Generators, Typing test, Read back, Learn from text, and Find and replace.
+- **Show me everything** starts with every bundle on.
+
+A default moves no tool switch: a bundle that is on shows its tools as the starter tool set left them. An install updated from a version without this screen keeps every bundle on, whatever depth it is showing.
+
+## Details and edge cases
+
+- The Extensions screen and the bundles' own pages belong to no bundle, so there is always a way back.
+- Changing the settings depth later does not change which bundles are on. The depth sets the starting point once, in the wizard.
+- A tool the bundle owns that you had turned off stays off when the bundle comes back. The bundle's switch and the tool's switch are two different things.
+- Backups carry the set. Restoring a backup from a phone where a bundle was off switches it off here too.

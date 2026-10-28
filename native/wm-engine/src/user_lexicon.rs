@@ -351,6 +351,9 @@ pub struct UserLexicon {
     skip2grams: HashMap<String, Followers>,
     word_gen: HashMap<String, i64>,
     word_langs: HashMap<String, String>,
+    /// Words the user filed under a language by hand (#930), tagged or
+    /// untagged: typing them under another language no longer moves them.
+    lang_pinned: HashSet<String>,
     word_case: HashMap<String, String>,
     case_votes: HashMap<String, i32>,
     case_pinned: HashSet<String>,
@@ -407,7 +410,7 @@ impl UserLexicon {
         self.reinforce(key, merged - before);
         self.word_gen.insert(key.to_string(), self.generation);
         self.word_born.entry(key.to_string()).or_insert(self.generation);
-        if !lang.is_empty() {
+        if !lang.is_empty() && !self.lang_pinned.contains(key) {
             self.word_langs.insert(key.to_string(), lang.to_string());
         }
         self.mutations += 1;
@@ -417,6 +420,32 @@ impl UserLexicon {
 
     pub fn language_of(&self, key: &str) -> Option<&str> {
         self.word_langs.get(key).map(String::as_str)
+    }
+
+    /// Files a known word under `lang`, or under every language when `lang`
+    /// is empty, from the personal dictionary screen (#930). The choice is
+    /// pinned, so a later sighting under another language leaves it alone.
+    /// Returns whether anything changed.
+    pub fn set_language(&mut self, key: &str, lang: &str) -> bool {
+        if !self.words.contains_key(key) {
+            return false;
+        }
+        let moved = if lang.is_empty() {
+            self.word_langs.remove(key).is_some()
+        } else {
+            self.word_langs.insert(key.to_string(), lang.to_string()).as_deref() != Some(lang)
+        };
+        let pinned = self.lang_pinned.insert(key.to_string());
+        if !moved && !pinned {
+            return false;
+        }
+        self.mutations += 1;
+        self.dirty = true;
+        true
+    }
+
+    pub fn is_language_pinned(&self, key: &str) -> bool {
+        self.lang_pinned.contains(key)
     }
 
     pub fn display_of(&self, key: &str) -> Option<&str> {
@@ -531,8 +560,19 @@ impl UserLexicon {
         let old_born = self.word_born.remove(old_key).unwrap_or(old_gen);
         let new_born = old_born.min(self.word_born.get(new_key).copied().unwrap_or(old_born));
         self.word_born.insert(new_key.to_string(), new_born);
-        if let Some(old_lang) = self.word_langs.remove(old_key) {
-            self.word_langs.entry(new_key.to_string()).or_insert(old_lang);
+        // A language the user chose travels with the word and wins over the
+        // target's; a learned one only fills a gap a choice did not leave.
+        let old_lang = self.word_langs.remove(old_key);
+        if self.lang_pinned.remove(old_key) {
+            match old_lang {
+                Some(lang) => self.word_langs.insert(new_key.to_string(), lang),
+                None => self.word_langs.remove(new_key),
+            };
+            self.lang_pinned.insert(new_key.to_string());
+        } else if let Some(lang) = old_lang {
+            if !self.lang_pinned.contains(new_key) {
+                self.word_langs.entry(new_key.to_string()).or_insert(lang);
+            }
         }
         self.word_case.remove(old_key);
         self.case_votes.remove(old_key);
@@ -737,6 +777,7 @@ impl UserLexicon {
             self.word_gen.remove(key);
             self.word_born.remove(key);
             self.word_langs.remove(key);
+            self.lang_pinned.remove(key);
             self.word_case.remove(key);
             self.case_votes.remove(key);
             self.case_pinned.remove(key);
@@ -778,6 +819,7 @@ impl UserLexicon {
         self.word_gen.clear();
         self.word_born.clear();
         self.word_langs.clear();
+        self.lang_pinned.clear();
         self.word_case.clear();
         self.case_votes.clear();
         self.case_pinned.clear();
@@ -834,6 +876,7 @@ impl UserLexicon {
                 self.word_gen.remove(&word);
                 self.word_born.remove(&word);
                 self.word_langs.remove(&word);
+                self.lang_pinned.remove(&word);
                 self.word_case.remove(&word);
                 self.case_votes.remove(&word);
                 self.case_pinned.remove(&word);
@@ -940,6 +983,9 @@ impl UserLexicon {
         if !self.word_born.is_empty() {
             out.insert("wordBorn".into(), object(&self.word_born));
         }
+        if !self.lang_pinned.is_empty() {
+            out.insert("langPinned".into(), set(&self.lang_pinned));
+        }
         Value::Object(out).to_string()
     }
 
@@ -1018,6 +1064,9 @@ impl UserLexicon {
             if let Some(lang) = snapshot.word_lang.get(&word) {
                 self.word_langs.insert(word.clone(), lang.clone());
             }
+            if snapshot.lang_pinned.contains(&word) {
+                self.lang_pinned.insert(word.clone());
+            }
             let shape = snapshot
                 .word_case
                 .get(&word)
@@ -1076,6 +1125,7 @@ struct Snapshot {
     case_pinned: HashSet<String>,
     added_by_hand: HashSet<String>,
     word_born: HashMap<String, i64>,
+    lang_pinned: HashSet<String>,
 }
 
 impl Snapshot {
@@ -1108,6 +1158,7 @@ impl Snapshot {
                 "casePinned" => s.case_pinned = string_set(v)?,
                 "addedByHand" => s.added_by_hand = string_set(v)?,
                 "wordBorn" => s.word_born = long_map(v)?,
+                "langPinned" => s.lang_pinned = string_set(v)?,
                 _ => {}
             }
         }
@@ -1213,6 +1264,61 @@ mod tests {
         assert!(back.is_case_pinned("wmk"));
         assert_eq!(Some("WMK"), back.display_of("wmk"));
         assert_eq!(lex.all_words(), back.all_words());
+    }
+
+    #[test]
+    fn a_language_set_by_hand_stays_put_and_round_trips() {
+        let mut lex = UserLexicon::new();
+        lex.learn_word("boston", None, 1, "en", false);
+        lex.learn_word("adda", None, 1, "bn", false);
+        lex.add_word("wmk", false, None, 1, false);
+        assert!(!lex.set_language("unknown", "en"));
+        // Untagged by hand: typing it under English again does not re-tag it.
+        assert!(lex.set_language("boston", ""));
+        lex.learn_word("boston", None, 1, "en", false);
+        assert_eq!(None, lex.language_of("boston"));
+        assert!(lex.set_language("wmk", "bn"));
+        assert!(!lex.set_language("wmk", "bn"), "already there");
+        lex.learn_word("wmk", None, 1, "en", false);
+        assert_eq!(Some("bn"), lex.language_of("wmk"));
+        // A word nobody filed still follows the language it is typed in.
+        lex.learn_word("adda", None, 1, "hi", false);
+        assert_eq!(Some("hi"), lex.language_of("adda"));
+        let back = load(&lex.prepare_save().expect("dirty"));
+        assert_eq!(None, back.language_of("boston"));
+        assert!(back.is_language_pinned("boston"));
+        assert_eq!(Some("bn"), back.language_of("wmk"));
+        assert!(back.is_language_pinned("wmk"));
+        assert_eq!(Some("hi"), back.language_of("adda"));
+        assert!(!back.is_language_pinned("adda"));
+    }
+
+    #[test]
+    fn a_file_from_before_language_pins_keeps_its_tags_unpinned() {
+        let lex = load(r#"{"words":{"adda":2,"wmk":1},"wordLang":{"adda":"bn"},"addedByHand":["wmk"]}"#);
+        assert_eq!(Some("bn"), lex.language_of("adda"));
+        assert_eq!(None, lex.language_of("wmk"));
+        assert!(!lex.is_language_pinned("adda"));
+        assert!(!lex.is_dirty());
+    }
+
+    #[test]
+    fn a_respelling_carries_a_chosen_language_and_forgetting_drops_it() {
+        let mut lex = UserLexicon::new();
+        lex.learn_word("colour", None, 1, "en", false);
+        lex.learn_word("color", None, 1, "en", false);
+        lex.set_language("colour", "");
+        assert!(lex.rename("colour", "color", "color", true));
+        assert_eq!(None, lex.language_of("color"));
+        assert!(lex.is_language_pinned("color"));
+        lex.forget_all(&HashSet::from(["color".to_string()]));
+        assert!(!lex.is_language_pinned("color"));
+        // A learned tag fills in where the target has none.
+        lex.learn_word("nosh", None, 1, "en", false);
+        lex.add_word("noshe", false, None, 1, false);
+        assert!(lex.rename("nosh", "noshe", "noshe", true));
+        assert_eq!(Some("en"), lex.language_of("noshe"));
+        assert!(!lex.is_language_pinned("noshe"));
     }
 
     #[test]

@@ -26,6 +26,7 @@
     <string name="common_default">Implicit</string>
     <string name="common_delete">Șterge</string>
     <string name="common_disable">Dezactivați</string>
+    <string name="common_disabled_open_setting">Deschide setarea</string>
     <string name="common_disclosure_blocked_body">Android nu mai afișează această solicitare, deoarece ai refuzat permisiunea anterior. O poți activa oricând din ecranul de setări al aplicației.</string>
     <string name="common_disclosure_not_now">Nu acum</string>
     <string name="common_done">Gata</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instalează</string>
     <string name="common_installing">Se instalează…</string>
     <string name="common_loading">Se încarcă…</string>
+    <string name="common_more">Mai mult</string>
     <string name="common_next">Următorul</string>
     <string name="common_none">Niciunul</string>
     <string name="common_notify_channel_backup_body">Doar când o copie de rezervă automată eșuează. Copiile de rezervă reușite sunt silențioase.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Afișează notificări</string>
     <string name="common_permission_storage_body">Pe Android 9 și versiuni mai vechi, tastatura are nevoie de permisiunea de stocare pentru a salva o imagine în galerie. Vechea permisiune Android acoperă și citirea stocării. Tastatura scrie doar imaginea pe care îi ceri să o salveze. Tastatura nu citește și nu încarcă nimic. Versiunile mai noi de Android nu au nevoie de această permisiune.</string>
     <string name="common_permission_storage_title">Acces la stocare pentru salvarea în galerie</string>
+    <string name="common_permission_tasks_body">Tastatura WM păstrează lista sa de sarcini și o listă de sarcini din aplicația de sarcini identice: sarcinile, pașii lor, bifările și datele scadente, în ambele sensuri. Permisiunea acoperă fiecare listă de sarcini din aplicație. Tastatura citește listele aplicației doar pentru a putea alege una și citește și scrie doar lista pe care ai ales-o. Tastatura nu trimite nimic nicăieri. DAVx5, dacă îl folosești, sincronizează acea listă cu propriul tău server CalDAV. Fără această permisiune, lista de sarcini rămâne pe acest telefon.</string>
+    <string name="common_permission_tasks_opentasks_title">Acces OpenTasks pentru lista de sarcini</string>
+    <string name="common_permission_tasks_tasks_org_title">Acces Tasks.org pentru lista de sarcini</string>
+    <string name="common_preview_scale_desc">Dimensiune previzualizare</string>
+    <string name="common_preview_scale_larger">Mărește previzualizarea</string>
+    <string name="common_preview_scale_smaller">Micșorează previzualizarea</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Elimină</string>
     <string name="common_reset">Resetează</string>
     <string name="common_reset_defaults">Resetează la valorile implicite</string>

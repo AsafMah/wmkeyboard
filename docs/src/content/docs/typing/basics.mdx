@@ -25,7 +25,7 @@ While you hold a key, its character floats in a bubble above your finger. That b
 
 <GestureDemo type="long-press" caption="Hold a key past the long-press delay to open its alternates." />
 
-Hold past the **long-press delay** (300&nbsp;ms by default) and the key's alternates pop up, if it has any. `Q`–`P` lead with the digits 1–0. `A`–`L` and `Z`–`M` lead with a symbol (`@`, `#`, `$`, `&`…). Some letters carry accented forms after that first alternate: `e`, `u`, `i`, `o` after their digit (`e` → è é ê ë, `u` → ù ú û ü, and so on), and `a`, `s`, `z`, `c`, `n` after their symbol. The first alternate also prints as a small corner hint on the key itself, so you can see what a hold will lead with before you commit to it. That's the **Press and hold hints** toggle, on by default.
+Hold past the **long-press delay** (300&nbsp;ms by default) and the key's alternates pop up, if it has any. `Q`–`P` lead with the digits 1–0. `A`–`L` and `Z`–`M` lead with a symbol (`@`, `#`, `$`, `&`…). Some letters carry accented forms after that first alternate: `e`, `u`, `i`, `o` after their digit (`e` → è é ê ë, `u` → ù ú û ü, and so on), and `a`, `s`, `z`, `c`, `n` after their symbol. The first alternate also prints as a small corner hint on the key itself, so you can see what a hold will lead with before you commit to it. That's the **Press and hold hints** toggle, on by default. Every other layout laid out as QWERTY gets the same digits and symbols at the front of its holds, ahead of its own accents, unless it already puts digits on its keys; a popup you wrote yourself in the layout editor is left as you wrote it.
 
 With <KeyCap>Shift</KeyCap> on or caps lock locked, the popup and the corner hint show capitals: holding `e` offers È É Ê Ë, and the one you pick is typed as a capital. Digits and symbols stay as they are.
 
@@ -46,6 +46,7 @@ A few more long-press behaviors live under the same **Press and hold shortcuts**
 - **All accents on press and hold** (off by default) adds each Latin letter's complete accent set to its long-press popup. Nothing is taken away to make room: the digit or symbol stays, with every accent beside it.
 - **No accents on press and hold** (off by default) does the opposite: it takes every accented letter out of the letter popups, the layout's own included, on every layout at once. The digits, symbols and shortcuts stay. It wins when both are on.
 - **Top row press and hold** (Auto by default) decides what the holds on `Q`–`P` type, whatever the number row is doing. **Auto** keeps the digits without the number row and drops them with it. **Digits** keeps them either way. **Symbols** puts `! @ # $ % ^ & * ( )` in their place. **None** drops them.
+- **Your hold symbols** lets you pick the symbol each letter holds, on every layout, without editing one: type a symbol under a letter and a hold on that letter offers it first, in place of the digit or symbol the layout put there, with the corner hint to match. A box left empty keeps the layout's own. **SwiftKey** fills in the set SwiftKey uses (`@` on A, `#` on S, `&` on D, and so on), and **Clear all** goes back to every layout's own.
 - **Your language's letters first** (on by default) puts the letters of the language you're typing ahead of the number or symbol that opens a key's popup. On German, holding <KeyCap>u</KeyCap> types ü instead of 7. English has no accented letters, so its keys stay as they were. A key whose popup you edited yourself keeps the order you typed.
 - **Shifted letter on press and hold** (off by default) puts each key's shifted character at the end of its popup: the capital in Latin scripts, the key's second letter in Arabic, Devanagari and other scripts without capitals. Handy on its own, and the way to type a capital out of the [drag off ?123 or ABC](/typing/gestures/#dragging-from-123-or-abc), which types on a layer the Shift key isn't on.
 - **Press and hold ?123 for the number pad** (on by default) makes a long press on the symbols key open a full numeric keypad panel over the current field. A quick tap still switches to the symbols layer as usual.
@@ -62,7 +63,7 @@ On the <KeyCap>?123</KeyCap> page of a language with a currency of its own, that
   ![Shift off, one-shot Shift, and Caps Lock: the three states the key cycles through.](@assets/screens/typing/shift-states.webp)
 </PhoneFrame>
 
-<KeyCap>Shift</KeyCap> cycles through three states. From off, one tap arms a one-shot **Shift** that capitalizes only the next letter and then reverts on its own. A second tap inside the **caps-lock double-tap** window (350&nbsp;ms by default, adjustable 150–600&nbsp;ms) locks **Caps Lock** instead. From either state, a single tap that *isn't* a fast double-tap turns it back off. Getting out of caps lock takes one plain tap, not another double-tap.
+<KeyCap>Shift</KeyCap> cycles through three states. From off, one tap arms a one-shot **Shift** that capitalizes only the next letter and then reverts on its own. A second tap inside the **caps-lock double-tap** window (350&nbsp;ms by default, adjustable 150–600&nbsp;ms) locks **Caps Lock** instead. From either state, a single tap that *isn't* a fast double-tap turns it back off. Getting out of caps lock takes one plain tap, not another double-tap. With text selected, <KeyCap>Shift</KeyCap> changes the selection's case instead, the way SwiftKey's does: each press steps it through lower case, Title Case and UPPER CASE, and the selection stays put so you can keep pressing (see [Text editing](/tools/text-editing/)).
 
 You can also hold <KeyCap>Shift</KeyCap> and type with another finger, the way a physical Shift works: every letter tapped while it's down comes out a capital, and lifting it puts the keyboard back where it was, without arming Shift for the letter after. Hold it past the long-press time without typing anything and it locks **Caps Lock**, the way a long press of Shift does on most keyboards. That is also the way to caps lock with the cursor on a word while **Shift changes the case of the word at the cursor** is on, where a tap of Shift re-cases the word instead. Under caps lock a held Shift does nothing extra, since the letters are capitals already. Tap <KeyCap>Enter</KeyCap> while holding Shift and it's Shift+Enter, the same as on Gboard.
 
@@ -104,6 +105,8 @@ The key's icon and behavior follow whatever the focused field asks for: Search, 
 
 A message box that asks for a line break gets one, even when the app also watches for the Enter key press itself. Discord's is the example: it declares Done and then asks the keyboard not to use it, so the key draws the newline symbol, and now it types the break straight into the box rather than pressing a key the app would have read as Send.
 
+Some apps change the action as you type, and the key follows. The Pixel Launcher's app search is one: the key shows Search while your words are a web search and an arrow once they match an app, and pressing it runs that search or opens the app instead of putting a line break in the box.
+
 **Shift and Enter type a new line** (on by default) lets you press <KeyCap>Shift</KeyCap> then <KeyCap>Enter</KeyCap>, or hold Shift on a physical keyboard, to force a line break in a field that would otherwise send or search. The key itself changes to the newline symbol while Shift is armed, so it never promises a Send it isn't about to do. Only a Shift you pressed yourself counts. The one-shot Shift that auto-capitalize arms at the start of a message is ignored, so the first line of a chat still sends normally, and Caps Lock is ignored too. Holding Shift down while you tap Enter counts as well.
 
 In a field with no Send or Search of its own, such as a document in Google Docs or Word, the keyboard sends a real Shift+Enter instead of a plain one. Those editors read Shift+Enter as a line break inside the paragraph and plain Enter as a new paragraph, so you get both. This works with the setting off too, since there's no action for it to override; an ordinary text box types the same new line either way.
@@ -126,7 +129,7 @@ If you'd rather move the cursor with keys than with a drag on the spacebar, **Ar
 
 <SettingsPath path="Layout & size / Numerals" />
 
-Separately, **numeral system** decides which *glyphs* the number row and keypad show, per language: Arabic can display ٠-٩ while English next to it stays on 0-9. Every language starts on **Auto**, which follows that language's own convention (Arabic → Arabic-Indic, Persian/Urdu → Persian, Bangla → Bengali, Devanagari-script languages → Devanagari, everything else → Latin). Override it per language on that language's own screen rather than here (see [Languages](/languages/overview/)).
+Separately, **numeral system** decides which *glyphs* the number row and keypad show, per language: Arabic can display ٠-٩ while English next to it stays on 0-9. Every language starts on **Auto**, which follows that language's own convention (Arabic and Sorani → Arabic-Indic, Persian/Urdu → Persian, Bangla → Bengali, Devanagari-script languages → Devanagari, everything else → Latin). Override it per language on that language's own screen rather than here (see [Languages](/languages/overview/)).
 
 This screen's **Type native digits in** setting answers a different question: whether those native glyphs are what actually gets *committed* when you type them. **Text fields**, the default, types the native glyphs everywhere except number, phone and date/time fields, which keep plain 0-9. **Everywhere** commits the native glyphs unconditionally. **Display only** always types plain ASCII digits, whatever the keys show.
 
@@ -193,6 +196,7 @@ A press of <KeyCap>⌫</KeyCap> takes one character as it appears on screen, whi
 | All accents on press and hold | Off |
 | No accents on press and hold | Off |
 | Top row press and hold | Auto |
+| Your hold symbols | None (each layout's own) |
 | Your language's letters first | On |
 | Shifted letter on press and hold | Off |
 | Press and hold ?123 for the number pad | On |

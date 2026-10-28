@@ -22,7 +22,7 @@ import com.wasimaster.wmkeyboard.core.clock.LocalDay
 import com.wasimaster.wmkeyboard.core.clock.MeetingPlanner
 import com.wasimaster.wmkeyboard.core.clock.PlannerDay
 import com.wasimaster.wmkeyboard.core.clock.Span
-import com.wasimaster.wmkeyboard.core.clock.WorldZone
+import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
 import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.ime.R
@@ -133,7 +133,7 @@ internal class ClockController(
             ClockTextField.ALARM_LABEL ->
                 _state.update { s -> s.copy(alarmEdit = s.alarmEdit?.copy(label = entry.text.take(LABEL_MAX))) }
             ClockTextField.TIMER_LABEL -> _state.update { it.copy(timerLabel = entry.text.take(LABEL_MAX)) }
-            ClockTextField.COUNTDOWN_TITLE, ClockTextField.ZONE_LABEL -> Unit
+            ClockTextField.COUNTDOWN_TITLE, ClockTextField.ZONE_LABEL, ClockTextField.DATE -> Unit
         }
     }
 
@@ -144,13 +144,26 @@ internal class ClockController(
      */
     fun onTextEnter(entry: ClockTextEntry) {
         when (entry.field) {
-            ClockTextField.SEARCH -> _state.value.search?.firstOrNull()?.let { addZone(it.id) }
+            ClockTextField.SEARCH -> _state.value.search?.firstOrNull()?.let { addZone(it) }
             ClockTextField.ALARM_LABEL, ClockTextField.TIMER_LABEL -> onText(entry)
             ClockTextField.COUNTDOWN_TITLE -> saveCountdown(entry.text)
             ClockTextField.ZONE_LABEL -> renameZone(entry.ref, entry.text)
+            ClockTextField.DATE -> typedDate(entry)
         }
         endTextIfAny()
         if (entry.field == ClockTextField.SEARCH) _state.update { it.copy(search = null) }
+    }
+
+    /**
+     * A date typed into the box (Telegram group): a birthday twenty years
+     * back was a long run of taps on the steppers. A text that is no date
+     * leaves the date as it was.
+     */
+    private fun typedDate(entry: ClockTextEntry) {
+        val field = runCatching { DateField.valueOf(entry.ref) }.getOrNull() ?: return
+        val monthFirst = java.util.Locale.getDefault().country in MONTH_FIRST_COUNTRIES
+        val day = LocalDay.parse(entry.text, monthFirst) ?: return
+        _state.update { s -> s.copy(dates = setDate(s.dates, field, day)) }
     }
 
     // ---- Actions -------------------------------------------------------
@@ -175,7 +188,7 @@ internal class ClockController(
                 endTextIfAny()
                 _state.update { it.copy(search = null) }
             }
-            is ClockAction.AddZone -> addZone(action.zoneId)
+            is ClockAction.AddZone -> addZone(action.zone)
             is ClockAction.RemoveZone -> {
                 val zones = ClockPrefs.get(app).zones
                 val index = zones.indexOfFirst { it.zoneId == action.zoneId }
@@ -356,6 +369,7 @@ internal class ClockController(
             }
             is ClockAction.DateStep -> _state.update { s -> s.copy(dates = stepDate(s.dates, action, today(now))) }
             is ClockAction.DateToday -> _state.update { s -> s.copy(dates = setDate(s.dates, action.field, null)) }
+            is ClockAction.DateType -> startText(ClockTextEntry(ClockTextField.DATE, "", action.field.name))
             ClockAction.DatesSwap -> _state.update { s ->
                 s.copy(dates = s.dates.copy(from = s.dates.to ?: today(now), to = s.dates.from ?: today(now)))
             }
@@ -430,10 +444,10 @@ internal class ClockController(
         _state.update { it.copy(undo = null) }
     }
 
-    private fun addZone(zoneId: String) {
+    private fun addZone(entry: ZoneEntry) {
         haptic()
         ClockPrefs.update(app) { c ->
-            if (c.zones.any { it.zoneId == zoneId } || c.zones.size >= MAX_ZONES) c else c.copy(zones = c.zones + WorldZone(zoneId))
+            if (c.zones.any { it.zoneId == entry.id } || c.zones.size >= MAX_ZONES) c else c.copy(zones = c.zones + entry.toWorldZone())
         }
         endTextIfAny()
         _state.update { it.copy(search = null) }
@@ -509,7 +523,7 @@ internal class ClockController(
     /** Home first, then every clock on the list. */
     private fun conversionLine(at: Long): String {
         val places = listOf(placeName("") to TimeZone.getDefault()) +
-            _state.value.config.zones.map { placeName(it.zoneId) to TimeZone.getTimeZone(it.zoneId) }
+            _state.value.config.shownZones(at).map { placeName(it.zoneId) to TimeZone.getTimeZone(it.zoneId) }
         return ClockFormats.conversionLine(at, places, _state.value.hour24)
     }
 
@@ -620,6 +634,9 @@ internal class ClockController(
             } ?: today
             return setDate(d, step.field, current.plusMonths(step.months).plusDays(step.days))
         }
+
+        /** Where a date is written month first: the US and the places that follow it. */
+        private val MONTH_FIRST_COUNTRIES = setOf("US", "PH", "FM", "MH", "PW", "BZ")
 
         private fun setDate(d: DatesUi, field: DateField, day: LocalDay?): DatesUi = when (field) {
             DateField.FROM -> d.copy(from = day)

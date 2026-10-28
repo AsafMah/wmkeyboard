@@ -88,6 +88,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.TranslateUi
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The translate panel's service callbacks, bundled into one [KeyboardScreen]
@@ -513,7 +514,22 @@ private fun TranslateLanguageRow(
             animationSpec = if (animate) tween(TranslateSwapMs, easing = FastOutSlowInEasing) else tween(0),
             label = "translateSwap",
         )
-        IconHint(stringResource(R.string.ime_translate_swap_desc)) {
+        IconHint(
+            stringResource(R.string.ime_translate_swap_desc),
+            disabledReason = if (canSwap) {
+                null
+            } else {
+                DisabledReason(
+                    stringResource(
+                        if (translate.translated.isEmpty()) {
+                            R.string.ime_disabled_translate_nothing
+                        } else {
+                            R.string.ime_disabled_translate_same_language
+                        },
+                    ),
+                )
+            },
+        ) {
             Icon(
                 Icons.Outlined.SwapHoriz,
                 contentDescription = stringResource(R.string.ime_translate_swap_desc),
@@ -757,17 +773,20 @@ private fun TranslateActionRow(
                 modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
             ) { callbacks.onDownload() }
         } else {
+            val nothing = DisabledReason(stringResource(R.string.ime_disabled_translate_nothing))
             TranslateAction(
                 label = stringResource(R.string.ime_translate_replace_action),
                 icon = Icons.Outlined.SwapVert,
                 enabled = translate.translated.isNotEmpty(),
                 modifier = sized.focusRing(focusedAction == 0, kb.chipShape()),
+                disabledReason = nothing,
             ) { callbacks.onReplace() }
             TranslateAction(
                 label = stringResource(R.string.ime_insert_action),
                 icon = null,
                 enabled = translate.translated.isNotEmpty(),
                 modifier = sized.focusRing(focusedAction == 1, kb.chipShape()),
+                disabledReason = nothing,
             ) { callbacks.onInsert() }
         }
     }
@@ -1203,37 +1222,41 @@ private fun TranslateAction(
     icon: ImageVector?,
     enabled: Boolean,
     modifier: Modifier = Modifier,
+    /** What holding the button says while it is greyed out; see [IconHint]. */
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.chipShape()
-    Row(
-        modifier = modifier
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(if (enabled) kb.chipActive else kb.chip)
-            .chipBorder(kb, shape)
-            .clickable(enabled = enabled) { onClick() }
-            .padding(vertical = 7.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (icon != null) {
-            Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(15.dp),
-                tint = if (enabled) kb.chipActiveText else kb.secondaryText,
+    IconHint(null, modifier, disabledReason = disabledReason.takeUnless { enabled }) {
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background(if (enabled) kb.chipActive else kb.chip)
+                .chipBorder(kb, shape)
+                .clickable(enabled = enabled) { onClick() }
+                .padding(vertical = 7.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp),
+                    tint = if (enabled) kb.chipActiveText else kb.secondaryText,
+                )
+                Spacer(Modifier.width(5.dp))
+            }
+            Text(
+                label,
+                color = if (enabled) kb.chipActiveText else kb.secondaryText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
             )
-            Spacer(Modifier.width(5.dp))
         }
-        Text(
-            label,
-            color = if (enabled) kb.chipActiveText else kb.secondaryText,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-        )
     }
 }
 

@@ -126,6 +126,24 @@ class DictionaryCapitalsTest {
         assertEquals("Wasi", english(lexicon).shouldAutocorrect("wasi"))
     }
 
+    /** A lone "i" learned in small letters is the word as typed, not a choice to keep it small. */
+    @Test fun aLoneILearnedInSmallLettersIsStillCapitalized() {
+        val lexicon = UserLexicon(null).apply { learnWord("i", count = 3) }
+        assertEquals("I", english(lexicon).shouldAutocorrect("i"))
+    }
+
+    /**
+     * An undo holds for the run of typing that earned it. Remembered past it,
+     * one undo only handicaps the capital, so it fires again and can be kept.
+     */
+    @Test fun oneUndoOfTheCapitalHoldsForItsRunOnly() {
+        val engine = english()
+        engine.rejectCorrection("i", "I")
+        assertNull(engine.shouldAutocorrect("i"))
+        engine.correctionStats.endFieldSession()
+        assertEquals("I", engine.shouldAutocorrect("i"))
+    }
+
     @Test fun aCapitalFromAndroidsDictionaryCommitsForAnUnlistedWord() {
         val engine = english().apply {
             systemWordCases = mapOf("wasi" to "Wasi", "will" to "Will")

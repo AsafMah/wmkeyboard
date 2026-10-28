@@ -76,6 +76,10 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
 import com.wasimaster.wmkeyboard.core.tools.AiToolSource
 import com.wasimaster.wmkeyboard.core.tools.AiTools
+import com.wasimaster.wmkeyboard.core.tools.AiResearch
+import com.wasimaster.wmkeyboard.core.tools.AiResearchText
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -733,6 +737,17 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_rename_chat_running,
         R.string.ime_ai_tool_rename_chat_done,
     ),
+    // Deep research's own steps, drawn among its searches and pages.
+    AiTools.RESEARCH_PLAN to ToolLabels(
+        R.string.ime_ai_tool_name_research_plan,
+        R.string.ime_ai_tool_research_plan_running,
+        R.string.ime_ai_tool_research_plan_done,
+    ),
+    AiTools.RESEARCH_REVIEW to ToolLabels(
+        R.string.ime_ai_tool_name_research_review,
+        R.string.ime_ai_tool_research_review_running,
+        R.string.ime_ai_tool_research_review_done,
+    ),
 )
 
 /** The search tools, whose record wears the search mark. */
@@ -759,6 +774,7 @@ private fun builtInLine(use: AiToolActivity, labels: ToolLabels): String {
     val generic = labels.running == R.string.ime_ai_chat_tool_builtin_running
     return when {
         use.awaitingApproval -> stringResource(R.string.ime_ai_chat_tool_builtin_waiting, name)
+        use.tool == AiTools.RESEARCH_PLAN && use.error == AiResearch.DECLINED -> stringResource(R.string.ime_ai_research_plan_declined)
         use.failed -> stringResource(R.string.ime_ai_chat_tool_use_failed, name)
         (target.isEmpty() || generic) && use.running -> stringResource(R.string.ime_ai_chat_tool_builtin_running, name)
         target.isEmpty() || generic -> stringResource(R.string.ime_ai_chat_tool_builtin_done, name)
@@ -785,6 +801,9 @@ internal fun ApprovalCard(
     // A chat's new name (#882) is a yes or a no about one name, so the card
     // asks just that, with no "always".
     val rename = use.tool == AiTools.RENAME_CHAT && !use.isMcp
+    // A research plan (the Review-the-plan setting) is a yes or a no about
+    // the whole plan, which is shown as its checklist.
+    val plan = use.tool == AiTools.RESEARCH_PLAN && !use.isMcp
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -808,6 +827,27 @@ internal fun ApprovalCard(
                         onApproval(AiToolApproval.DENY)
                     }
                     ApprovalButton(stringResource(R.string.ime_ai_chat_rename_accept), colors, small, strong = true) {
+                        onApproval(AiToolApproval.ONCE)
+                    }
+                }
+            }
+            return@Column
+        }
+        if (plan) {
+            Text(
+                stringResource(R.string.ime_ai_research_plan_ask),
+                color = colors.text,
+                fontSize = fontSize,
+                lineHeight = fontSize * LINE_HEIGHT,
+                fontWeight = FontWeight.Medium,
+            )
+            ResearchChecklist(use.details, colors, small)
+            if (onApproval != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ApprovalButton(stringResource(R.string.ime_ai_research_plan_cancel), colors, small, strong = false) {
+                        onApproval(AiToolApproval.DENY)
+                    }
+                    ApprovalButton(stringResource(R.string.ime_ai_research_plan_start), colors, small, strong = true) {
                         onApproval(AiToolApproval.ONCE)
                     }
                 }
@@ -845,6 +885,35 @@ internal fun ApprovalCard(
                 ApprovalButton(stringResource(R.string.ime_ai_chat_tool_mcp_allow_always), colors, small, strong = false) {
                     onApproval(AiToolApproval.ALWAYS)
                 }
+            }
+        }
+    }
+}
+
+/**
+ * A research plan's sub-questions, one a line, each ticked once it has been
+ * searched and read for: the run's to-do list, the way a coding agent shows
+ * its own. [checklist] is [AiResearchText.checklist]'s text.
+ */
+@Composable
+internal fun ResearchChecklist(checklist: String, colors: ChatMarkdownColors, fontSize: TextUnit, modifier: Modifier = Modifier) {
+    val items = remember(checklist) { AiResearchText.checklistItems(checklist) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        items.forEach { (question, done) ->
+            Row(verticalAlignment = Alignment.Top) {
+                Icon(
+                    if (done) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                    contentDescription = null,
+                    tint = if (done) colors.text else colors.dim,
+                    modifier = Modifier.padding(top = 1.dp).size(14.dp),
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    question,
+                    color = if (done) colors.dim else colors.text,
+                    fontSize = fontSize,
+                    lineHeight = fontSize * LINE_HEIGHT,
+                )
             }
         }
     }

@@ -91,8 +91,13 @@ object AiPrompts {
      * the same [GUARD] as the actions. It also has to stay the speaker's own
      * words: a phrase lands in the middle of whatever is being written, so a
      * summary, a reply or a translation would be worse than the raw text.
+     *
+     * [romanized] names the language ("Hindi" for Hinglish) when the phrase
+     * is that language written in Latin letters (#948): it stays in Latin
+     * letters, and an English word the romanizer spelled by its sound
+     * (miting) goes back to its English spelling.
      */
-    fun dictationPrompt(): String =
+    fun dictationPrompt(romanized: String? = null): String =
         ROLE + TASK +
             "the input is one phrase of voice dictation, transcribed word for word. " +
             "Clean it up the way a careful typist would: remove filler words and " +
@@ -104,6 +109,12 @@ object AiPrompts {
             "what was meant, answer, or add anything. Keep the case of the first " +
             "letter and the punctuation at the end as they are in the input. If " +
             "nothing needs cleaning, return the input unchanged." +
+            romanized?.let {
+                " The phrase is $it written in Latin letters, the way people type it " +
+                    "in a chat: keep it in Latin letters and never write it in $it's own " +
+                    "script. Where an English word is spelled the way it sounds " +
+                    "(miting for meeting), spell it as the English word."
+            }.orEmpty() +
             GUARD + OUTPUT_ONLY
 
     /**

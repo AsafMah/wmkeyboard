@@ -43,6 +43,9 @@ sealed interface ImageGenEvent {
 
     data class Failed(val message: String) : ImageGenEvent
 
+    /** An online service's queue holds the request: [position] ahead of it, about [seconds] to go (0 when it did not say). */
+    data class Waiting(val position: Int, val seconds: Int) : ImageGenEvent
+
     data object Done : ImageGenEvent
 }
 
@@ -153,10 +156,21 @@ class ImageGenEngine internal constructor(private val context: Context) : Closea
                 Loaded(modelId, ImageGenModels.npuSpec(), QnnBackend(File(dir, build.soc), runtime), tokenizer)
             }
             catalog != null -> mnn(modelId, ImageGenModels.dir(noBackup, catalog))
-            else -> mnn(modelId, File(ImageGenModels.importedRoot(noBackup), modelId))
+            else -> {
+                val dir = File(ImageGenModels.importedRoot(noBackup), modelId)
+                if (File(dir, ImageGenModels.NPU_UNET).isFile) npu(modelId, dir) else mnn(modelId, dir)
+            }
         }
         loaded = result
         return result
+    }
+
+    /** An imported Qualcomm build: its context binaries on this phone's NPU, with the tokenizer beside them. */
+    private fun npu(id: String, dir: File): Loaded {
+        val soc = NpuSupport.soc ?: throw IOException("this phone has no supported NPU")
+        val runtime = NpuRuntime.directory(context, soc) ?: throw IOException("the NPU runtime is not here yet")
+        val merges = MnnBackend.find(dir, "merges.txt") ?: throw IOException("no merges.txt in ${dir.name}")
+        return Loaded(id, ImageGenModels.npuSpec(id), QnnBackend(dir, runtime), ClipTokenizer.fromFile(merges))
     }
 
     private fun mnn(id: String, dir: File): Loaded {

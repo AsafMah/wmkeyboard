@@ -129,6 +129,12 @@
     <string name="offline_import_whisper_ready">Voice model %1$s is ready</string>
     <!-- Whistle is the name of a voice model and is not translated. -->
     <string name="offline_import_whistle_ready">The Whistle voice model is ready</string>
+    <!-- %1$s: model names, such as "Parakeet TDT 0.6B v3". -->
+    <string name="offline_import_et_ready">%1$s is ready</string>
+    <!-- %1$s: model names. -->
+    <string name="offline_import_et_placed">Kept for %1$s. Import the model\'s other files to finish it.</string>
+    <string name="offline_import_et_shared">Several models share this file. Import it together with one model\'s own files.</string>
+    <string name="offline_import_et_subtitle">A model\'s files fetched on another device, all of them at once</string>
     <string name="offline_import_whisper_needs_vocab">Voice model %1$s is in place, and still needs %2$s beside it</string>
     <string name="offline_import_whisper_vocab">Vocabulary file, for %1$s voice models</string>
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>
@@ -140,6 +146,11 @@
     <string name="offline_import_native_archive_label">%1$s, inside %2$s (import the whole file) · %3$s</string>
     <string name="offline_import_gesture_library_done">Google\'s gesture library. Pick it under Typing › Gestures › Glide engine to use it</string>
     <string name="offline_import_language_pack_done">Interface language %1$s</string>
+    <string name="offline_import_khipro_specs_done">Khipro\'s layout rules from %1$s</string>
+    <string name="offline_import_khipro_specs_not_newer">Khipro\'s layout rules, no newer than the ones in use, so left as they are</string>
+    <string name="offline_import_khipro_specs_refused">Khipro\'s layout rules were not installed: %1$s</string>
+    <string name="offline_import_khipro_specs_no_manifest">Khipro\'s layout rules need bn_khipro_specs.json imported with them</string>
+    <string name="offline_import_khipro_specs_unsupported">This build cannot update Khipro\'s layout rules</string>
     <string name="offline_import_khipro_glide_done">Khipro spellings, for gliding on the Khipro layout</string>
     <string name="offline_import_phonetic_index_done">Phonetic index for %1$s</string>
     <string name="offline_import_dictionary_done">Offline dictionary %1$s, for the Dictionary tool</string>
@@ -155,6 +166,7 @@
     <string name="offline_import_failed">Could not install this file. It may be damaged or cut short.</string>
     <string name="offline_import_handwriting_done">Handwriting for %1$s is ready</string>
     <string name="offline_import_handwriting_waiting">Kept. Import the other files for this language to finish its handwriting model.</string>
+    <string name="offline_import_handwriting_needs_library">Kept. Handwriting also needs its library, libdigitalink.so, from the file listed under Settings › Privacy › Feature libraries. Import it and this model installs.</string>
     <string name="offline_import_handwriting_subtitle">A language\'s handwriting files fetched on another device, as .zip files</string>
     <string name="offline_import_handwriting_link_label">%1$s, file %2$d of %3$d</string>
     <string name="offline_import_ocr_subtitle">Text recognition data fetched on another device: .traineddata files, or the three PaddleOCR files</string>

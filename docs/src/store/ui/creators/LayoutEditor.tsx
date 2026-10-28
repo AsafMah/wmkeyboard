@@ -9,6 +9,7 @@ import { slugify } from '../../lib/util';
 import { CopyButton, Notice } from '../common';
 import { IconDownload, IconPlus, IconTrash, IconWarn } from '../icons';
 import { KeyboardMock } from '../previews/KeyboardMock';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, DropZone, ExportPanel, idError, Num, saveJson, Section, Select, Tags, Text, Toggle, useDraft } from './shared';
 
 const ROWS_QWERTY = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
@@ -240,6 +241,7 @@ export function LayoutEditor() {
 					<CopyButton text={json} label="Copy JSON" class="st-btn" />
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) { reset(); setSel(null); setLayer('letters'); } }}>Start over</button>
 				</ExportPanel>
+				<CommunitySubmit kind="layout" name={l.name} json={json} disabled={problems.length > 0} />
 				{problems.length > 0 && <Notice kind="warn" icon={<IconWarn />}><ul style="padding-left:1rem">{problems.map((p, i) => <li key={i}>{p}</li>)}</ul></Notice>}
 				<div class="st-panel st-small st-muted">Import on the phone: Settings › Layout & size › Key layouts › Import, or list the file in a repository with type <code>layout</code>.</div>
 			</aside>

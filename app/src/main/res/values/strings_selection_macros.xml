@@ -6,7 +6,7 @@
   action names themselves are in :core:content, beside the engine that chooses
   them; these are the settings screen's own words.
 -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="selection_macros_title">Selection actions</string>
     <string name="selection_macros_subtitle">Show a bar of actions for the text you select</string>
@@ -41,6 +41,11 @@
     <string name="selection_macros_actions_search_empty">No action matches %1$s</string>
     <string name="selection_macros_actions_results_title">Results</string>
     <string name="selection_macros_options_desc">Options</string>
+    <!-- #970: the pencil on each action's row, which renames it on the bar. -->
+    <string name="selection_macros_rename_desc">Rename on the bar</string>
+    <!-- %1$s = the action's shipped name. -->
+    <string name="selection_macros_rename_title">Rename “<xliff:g id="action" example="Copy">%1$s</xliff:g>”</string>
+    <string name="selection_macros_rename_label">Name on the bar</string>
     <string name="selection_macros_reorder_title">Order on the bar</string>
     <string name="selection_macros_reorder_info">Undo is always first. An action is only drawn where it applies, so the row you see is usually shorter than this.</string>
     <string name="selection_macros_reorder_desc">Reorder</string>
@@ -93,6 +98,7 @@
     <string name="selection_macros_desc_chat_strike">Strikethrough, in the chat app\'s own syntax</string>
     <string name="selection_macros_desc_chat_mono">Monospace, in the chat app\'s own syntax</string>
     <string name="selection_macros_desc_read_aloud">Read the selection aloud</string>
+    <string name="selection_macros_desc_edit_word">Open the word card for one selected word: rank, spelling, never suggest, add and delete</string>
     <string name="selection_macros_desc_time_zones">The selected time in your other zones</string>
     <string name="selection_macros_desc_call">Dial the selected number</string>
     <string name="selection_macros_desc_sms">Message the selected number</string>
@@ -120,6 +126,8 @@
     <string name="selection_macros_zones_subtitle">The zones a selected time is shown in</string>
     <string name="selection_macros_zones_info">Select a time and the Zones action shows it in each of these. Tap one to write it in place of the selection.</string>
     <string name="selection_macros_zones_default_caption">Nothing picked yet, so the list is UTC and this device\'s zone.</string>
+    <string name="selection_macros_zones_sort_title">Sort by time</string>
+    <string name="selection_macros_zones_sort_subtitle">Show the zones with the earliest time first, instead of in this order</string>
     <string name="selection_macros_zones_search_hint">Add a zone</string>
     <string name="selection_macros_zones_add_desc">Add</string>
 

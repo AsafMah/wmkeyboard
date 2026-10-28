@@ -84,6 +84,7 @@ import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
+import com.wasimaster.wmkeyboard.core.voice.vad.VadModels
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
@@ -96,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
 import java.io.File
 import kotlinx.coroutines.flow.first
@@ -269,6 +271,7 @@ internal object StorageCategories {
     private const val ET_ITEM_PREFIX = "et:"
     private const val MMS_ITEM_PREFIX = "mms:"
     private const val DENOISE_ITEM_ID = "denoise"
+    private const val VAD_ITEM_ID = "vad"
     private const val PUNCTUATION_ITEM_ID = "punctuation"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
@@ -507,7 +510,7 @@ internal object StorageCategories {
                     WhistleModelStore.rootDir(it.files),
                 ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
                     MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files) +
-                    DictationPunctuation.rootDir(it.files)
+                    DictationPunctuation.rootDir(it.files) + VadModels.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -557,6 +560,15 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     },
+                    // The phrase end detectors' models (#976) and an imported one.
+                    VadModels.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = VAD_ITEM_ID,
+                            label = "Phrase end detectors (Silero, FireRedVAD, Smart Turn)",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
                 ) + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
                     // Read back's offline voices, one folder per language code.
                     StorageItem(
@@ -574,6 +586,8 @@ internal object StorageCategories {
                     StrongDenoise.delete(env.roots.files)
                 } else if (item.id == PUNCTUATION_ITEM_ID) {
                     DictationPunctuation.delete(env.roots.files)
+                } else if (item.id == VAD_ITEM_ID) {
+                    VadModels.deleteAll(env.roots.files)
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
@@ -597,6 +611,7 @@ internal object StorageCategories {
                 emptyOut(MmsVoices.rootDir(env.roots.files))
                 StrongDenoise.delete(env.roots.files)
                 DictationPunctuation.delete(env.roots.files)
+                VadModels.deleteAll(env.roots.files)
             },
         ),
         StorageCategory(
@@ -693,6 +708,37 @@ internal object StorageCategories {
             },
             deleteOne = { env, _ -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
             clearOf = { env -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
+        ),
+        // Its mirror image, which romanized dictation spells with. No switch
+        // to turn off: without it dictation goes back to the rules.
+        StorageCategory(
+            id = "romanized_dictation",
+            title = R.string.storage_romanized_dictation_title,
+            subtitle = R.string.storage_romanized_dictation_subtitle,
+            icon = Icons.Outlined.AutoAwesome,
+            accent = Color(0xFF5C6BC0),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "languages",
+            pathsOf = { listOf(File(it.noBackupFiles, "xlit-latin")) },
+            itemsOf = { env ->
+                val dir = File(env.roots.noBackupFiles, "xlit-latin")
+                if (childrenOf(dir).isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        StorageItem(
+                            id = "xlit-latin",
+                            label = env.context.getString(R.string.storage_romanized_dictation_title),
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                            directory = true,
+                        ),
+                    )
+                }
+            },
+            deleteOne = { env, _ -> IndicXlitLatinDownloads.delete(env.context) },
+            clearOf = { env -> IndicXlitLatinDownloads.delete(env.context) },
         ),
         StorageCategory(
             id = "meaning_models",

@@ -735,14 +735,42 @@ object SmartSuggest {
 
     private val UNIT_TAIL = Regex("""(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})$""")
 
+    /**
+     * "1 mile in cm", "5 kg to lb", "30c as f" (#970): the amount and unit,
+     * then the unit to answer in. The second unit may be any spelling the
+     * converter knows, the one-letter ones included, since nobody types
+     * "to c" meaning anything but the unit.
+     */
+    private val UNIT_TO_TAIL = Regex(
+        """(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})\s+(?i:to|in|into|as)\s+([\p{L}°²³/]{1,12})$""",
+    )
+
     private fun detectUnit(tail: String, ctx: Context): SmartHit? {
+        UNIT_TO_TAIL.find(tail)?.let { asked ->
+            unitHit(asked, ctx, asked.groupValues[4])?.let { return it }
+        }
         val match = UNIT_TAIL.find(tail) ?: return null
+        return unitHit(match, ctx, target = null)
+    }
+
+    /**
+     * The chip for a [match] of [UNIT_TAIL] or [UNIT_TO_TAIL]: in [target]
+     * when the text named one and it measures the same thing, else in the
+     * unit [targetUnit] picks.
+     */
+    private fun unitHit(match: MatchResult, ctx: Context, target: String?): SmartHit? {
         val amount = parseAmount(match.groupValues[1]) ?: return null
         val spaced = match.groupValues[2].isNotEmpty()
         val token = match.groupValues[3]
         val from = resolveUnit(token, spaced) ?: return null
         val category = UnitConvert.categories.first { cat -> cat.units.any { it.symbol == from.symbol } }
-        val to = targetUnit(category, from, ctx.unitLast) ?: return null
+        val to = if (target != null) {
+            resolveUnit(target, spaced = false)
+                ?.takeIf { asked -> asked.symbol != from.symbol && category.units.any { it.symbol == asked.symbol } }
+                ?: return null
+        } else {
+            targetUnit(category, from, ctx.unitLast) ?: return null
+        }
 
         val converted = UnitConvert.convert(amount.value, from, to)
         if (converted.isNaN() || converted.isInfinite()) return null
@@ -1571,6 +1599,13 @@ object SmartSuggest {
         RegexOption.IGNORE_CASE,
     )
 
+    /** "what song is this", "what's this song", "name that tune": the Music ID tool, keeping the words. */
+    private val MUSIC_TAIL = Regex(
+        "(?:^|[^\\p{L}])(?:what(?:'?s| is) (?:this|that) (?:song|track|tune|music)|what song is (?:this|that|playing)|" +
+            "which song is (?:this|that|playing)|name (?:this|that) (?:song|tune)|shazam (?:this|it))\\s?[:?!.]?$",
+        RegexOption.IGNORE_CASE,
+    )
+
     /** A celebratory phrase → the search the GIF panel opens on. */
     private val gifPhrases: List<Pair<String, String>> = listOf(
         "happy birthday" to "happy birthday",
@@ -1621,6 +1656,11 @@ object SmartSuggest {
             // Straight quotes and curly ones both: phones type ’ in "I’m".
             LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
                 return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
+            }
+        }
+        if (toolOn(ToolbarTool.MUSIC_ID, ctx)) {
+            MUSIC_TAIL.find(tail.replace('’', '\''))?.let {
+                return intentHit(ToolbarTool.MUSIC_ID, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
             }
         }
         if (ctx.haReady && toolOn(ToolbarTool.HOME_ASSISTANT, ctx)) {
@@ -1881,6 +1921,8 @@ object SmartSuggest {
         ToolbarTool.DOC_SCAN to listOf("docscan"),
         ToolbarTool.HANDWRITING to listOf("handwrite"),
         ToolbarTool.TYPING_TEST to listOf("wpm"),
+        // Not "speed": everyday prose. The joined word and the jargon are what someone means.
+        ToolbarTool.SPEED_TEST to listOf("speedtest", "bandwidth"),
         ToolbarTool.DICTIONARY to listOf("define", "dict"),
         ToolbarTool.VOCABULARY to listOf("vocab", "vocabulary"),
         ToolbarTool.GRAMMAR to listOf("grammar"),
@@ -1890,6 +1932,8 @@ object SmartSuggest {
         ToolbarTool.LOCATION to listOf("location", "gps"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        // Not "song" or "music" alone: both are everyday prose. "shazam" is what people type to mean this.
+        ToolbarTool.MUSIC_ID to listOf("shazam", "whatsong", "songid", "musicid"),
         // Not "home" or "lights" alone: both are everyday prose.
         ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab", "tuya", "smartlife", "switchbot"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
@@ -1903,6 +1947,7 @@ object SmartSuggest {
         ToolbarTool.TEXT_EDIT to listOf("edit"),
         ToolbarTool.FIND_REPLACE to listOf("replace"),
         ToolbarTool.NOTES to listOf("note", "notes"),
+        ToolbarTool.TODO to listOf("todo", "todos", "tasks"),
         ToolbarTool.TRACKPAD to listOf("trackpad"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.
         ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer"),

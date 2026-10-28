@@ -41,6 +41,16 @@ enum class StatsPeriod { DAY, WEEK, MONTH }
  * is one number: the best speed over any unbroken stretch of typing long
  * enough to mean something ([MIN_BURST_MS], [MIN_BURST_CHARS]).
  *
+ * Typos are counted as events, never as words: an autocorrect fired, kept or
+ * undone, an offer taken, a word the user repaired by hand, and the longest
+ * run of words with none of those in it. Which words they were is the
+ * business of the learned corrections store, not this file. Beside them sit
+ * a count per punctuation mark from a fixed set, words typed in capitals,
+ * the record book (the longest word by its letter count alone, the longest
+ * glide, the longest unbroken stretch, the longest run of backspaces, words
+ * deleted whole, emoji sent) and the words per language id. None of it says
+ * what was typed, only how.
+ *
  * What counts as typing is a keystroke that reaches the user's text field:
  * soft keys, hardware keys, braille and morse all funnel through the same
  * per-character path, and words picked from the suggestion strip or drawn by
@@ -87,6 +97,8 @@ class TypingStats(
         val backspaces: Long,
         val activeMs: Long,
         val voiceWords: Long = 0,
+        val autocorrects: Long = 0,
+        val handFixes: Long = 0,
     )
 
     /**
@@ -103,6 +115,17 @@ class TypingStats(
      * of the typed, picked and glided words, for the average word length.
      * [peakBurstWpm] is the fastest unbroken stretch of typing, and
      * [weekHourHistogram] the keystrokes by weekday (Monday first) and hour.
+     *
+     * The typo figures: [autocorrects] fired (an offer chip taken is one of
+     * them and an [offersTaken] besides), of which [autocorrectsKept] stood
+     * and [autocorrectsUndone] were taken back; [handFixes] the user made
+     * themselves; [bestCleanRun] the most words in a row with no backspace,
+     * autocorrect or hand fix among them. [punctuation] counts the marks in
+     * [PUNCTUATION], [shoutedWords] the typed words in capitals. The record
+     * book is [longestWordLetters], [longestGlideLetters], [longestBurstMs],
+     * [longestBackspaceRun], [wordsDeletedWhole] and [emojiSent].
+     * [wordsByLanguage] splits [words] by the language id they were typed
+     * under.
      */
     data class Totals(
         val chars: Long,
@@ -122,6 +145,21 @@ class TypingStats(
         val wordLetters: Long = 0,
         val peakBurstWpm: Double = 0.0,
         val weekHourHistogram: List<Long> = emptyList(),
+        val autocorrects: Long = 0,
+        val autocorrectsKept: Long = 0,
+        val autocorrectsUndone: Long = 0,
+        val offersTaken: Long = 0,
+        val handFixes: Long = 0,
+        val bestCleanRun: Long = 0,
+        val punctuation: Map<Char, Long> = emptyMap(),
+        val shoutedWords: Long = 0,
+        val longestWordLetters: Int = 0,
+        val longestGlideLetters: Int = 0,
+        val longestBurstMs: Long = 0,
+        val longestBackspaceRun: Long = 0,
+        val wordsDeletedWhole: Long = 0,
+        val emojiSent: Long = 0,
+        val wordsByLanguage: Map<String, Long> = emptyMap(),
     )
 
     /**
@@ -150,6 +188,8 @@ class TypingStats(
         val backspaces: Long = 0,
         val activeMs: Long = 0,
         val voiceWords: Long = 0,
+        val autocorrects: Long = 0,
+        val handFixes: Long = 0,
     )
 
     @Serializable
@@ -184,6 +224,22 @@ class TypingStats(
         val wordLetters: Long = 0,
         val peakBurstWpm: Double = 0.0,
         val weekHourHistogram: List<Long> = emptyList(),
+        val autocorrects: Long = 0,
+        val autocorrectsKept: Long = 0,
+        val autocorrectsUndone: Long = 0,
+        val offersTaken: Long = 0,
+        val handFixes: Long = 0,
+        val bestCleanRun: Long = 0,
+        /** Keyed by the mark itself, as a one-character string. */
+        val punctuation: Map<String, Long> = emptyMap(),
+        val shoutedWords: Long = 0,
+        val longestWordLetters: Int = 0,
+        val longestGlideLetters: Int = 0,
+        val longestBurstMs: Long = 0,
+        val longestBackspaceRun: Long = 0,
+        val wordsDeletedWhole: Long = 0,
+        val emojiSent: Long = 0,
+        val wordsByLanguage: Map<String, Long> = emptyMap(),
     )
 
     private class HeatAcc(
@@ -199,6 +255,8 @@ class TypingStats(
         var backspaces: Long = 0,
         var activeMs: Long = 0,
         var voiceWords: Long = 0,
+        var autocorrects: Long = 0,
+        var handFixes: Long = 0,
     )
 
     private val days = HashMap<Int, DayAcc>()
@@ -220,6 +278,21 @@ class TypingStats(
     private var wordLetters = 0L
     private var peakBurstWpm = 0.0
     private val weekHourHistogram = LongArray(WEEK_HOURS)
+    private var autocorrects = 0L
+    private var autocorrectsKept = 0L
+    private var autocorrectsUndone = 0L
+    private var offersTaken = 0L
+    private var handFixes = 0L
+    private var bestCleanRun = 0L
+    private val punctuation = HashMap<Char, Long>()
+    private var shoutedWords = 0L
+    private var longestWordLetters = 0
+    private var longestGlideLetters = 0
+    private var longestBurstMs = 0L
+    private var longestBackspaceRun = 0L
+    private var wordsDeletedWhole = 0L
+    private var emojiSent = 0L
+    private val wordsByLanguage = HashMap<String, Long>()
     private var dirty = false
     private val snapshotFile = storageFile?.let(::SnapshotFile)
 
@@ -238,9 +311,31 @@ class TypingStats(
      * finishes it adds only the rest. */
     private var pendingLetters = 0
 
+    /** Whether every letter of the armed word so far was a capital, and how
+     * many letters proper (not digits) it holds: a shout needs two. */
+    private var pendingUpper = false
+    private var pendingAlpha = 0
+
+    /** Words counted since the last backspace, autocorrect or hand fix. */
+    private var cleanRun = 0L
+
+    /** Backspaces in a row, for [Totals.longestBackspaceRun]. */
+    private var backspaceRun = 0L
+
+    /** Full stops in a row: three make an ellipsis. */
+    private var dotRun = 0
+
     /** The unbroken stretch of typing in progress, for [Totals.peakBurstWpm]. */
     private var burstChars = 0L
     private var burstMs = 0L
+
+    /**
+     * The language the keyboard is typing in, by id, for [Totals.wordsByLanguage].
+     * The service sets it beside [enabled] at every event; empty attributes
+     * the word to no language.
+     */
+    @Volatile
+    var language: String = ""
 
     /**
      * The single recording gate: the service folds the settings toggle,
@@ -273,22 +368,53 @@ class TypingStats(
         val day = dayOf(nowMillis)
         day.chars += text.length
         totalChars += text.length
+        backspaceRun = 0
         if (text.length == 1) {
             accrueActive(day, uptimeMs, chars = 1)
             val hour = TypingStatsMath.hourOf(nowMillis, zone())
             hourHistogram[hour]++
             val weekday = TypingStatsMath.weekdayOf(TypingStatsMath.localEpochDay(nowMillis, zone()))
             weekHourHistogram[weekday * HOURS + hour]++
+            countPunctuation(text[0])
+        } else {
+            dotRun = 0
         }
         if (text.last().isLetterOrDigit()) {
             pendingWord = true
             val letters = text.count { it.isLetterOrDigit() }
             wordLetters += letters
             pendingLetters += letters
+            for (c in text) {
+                if (!c.isLetter()) continue
+                // The first letter sets the case; any lowercase one after
+                // it, or before it, makes the word an ordinary one.
+                pendingUpper = (pendingAlpha == 0 || pendingUpper) && c.isUpperCase()
+                pendingAlpha++
+            }
         } else {
             countPendingWord(day)
         }
         dirty = true
+    }
+
+    /**
+     * One of [PUNCTUATION] typed as a key of its own. Three full stops in a
+     * row are one ellipsis, moved over from the full stops when the third
+     * lands, so "..." and "…" count the same.
+     */
+    private fun countPunctuation(c: Char) {
+        if (c == FULL_STOP) {
+            dotRun++
+            if (dotRun == ELLIPSIS_DOTS) {
+                dotRun = 0
+                punctuation.merge(FULL_STOP, -(ELLIPSIS_DOTS - 1).toLong(), Long::plus)
+                punctuation.merge(ELLIPSIS, 1L, Long::plus)
+                return
+            }
+        } else {
+            dotRun = 0
+        }
+        if (c in PUNCTUATION) punctuation.merge(c, 1L, Long::plus)
     }
 
     /** A space or enter landed in the field: a character for the chars/5
@@ -300,6 +426,8 @@ class TypingStats(
         val day = dayOf(nowMillis)
         day.chars += 1
         totalChars += 1
+        backspaceRun = 0
+        dotRun = 0
         accrueActive(day, uptimeMs, chars = 1)
         countPendingWord(day)
         dirty = true
@@ -307,7 +435,8 @@ class TypingStats(
 
     /** Backspace (a word-delete swipe is one event). Counts and keeps the
      * rhythm going but never decrements — the statistic is work done, not
-     * text surviving. */
+     * text surviving. Ends the clean run: the word being taken back was not
+     * typed right, whatever it was. */
     @Synchronized
     fun onBackspace(nowMillis: Long, uptimeMs: Long) {
         speed?.onBackspace()
@@ -315,8 +444,93 @@ class TypingStats(
         val day = dayOf(nowMillis)
         day.backspaces += 1
         totalBackspaces += 1
+        backspaceRun++
+        if (backspaceRun > longestBackspaceRun) longestBackspaceRun = backspaceRun
+        dotRun = 0
+        endCleanRun()
         accrueActive(day, uptimeMs)
         dirty = true
+    }
+
+    /** A delete swipe took a whole word (or more) in one go. */
+    @Synchronized
+    fun onWordDeleted() {
+        if (!enabled) return
+        wordsDeletedWhole++
+        dirty = true
+    }
+
+    /**
+     * Autocorrect replaced the word just typed. [offer] says the user tapped
+     * the near-miss chip for it rather than the keyboard deciding alone;
+     * both are a typo the keyboard caught. Ends the clean run.
+     */
+    @Synchronized
+    fun onAutocorrect(offer: Boolean, nowMillis: Long) {
+        if (!enabled) return
+        val day = dayOf(nowMillis)
+        day.autocorrects++
+        autocorrects++
+        if (offer) offersTaken++
+        endCleanRun()
+        dirty = true
+    }
+
+    /** A correction stood once the text around it settled. */
+    @Synchronized
+    fun onAutocorrectKept() {
+        if (!enabled) return
+        autocorrectsKept++
+        dirty = true
+    }
+
+    /** A correction was taken back, by backspace, chip or a later rewrite. */
+    @Synchronized
+    fun onAutocorrectUndone() {
+        if (!enabled) return
+        autocorrectsUndone++
+        dirty = true
+    }
+
+    /**
+     * The user went back and repaired a word by hand, a slip's worth of
+     * edits. Known at settle, so it ends the clean run late: the words typed
+     * between the slip and the repair stay in the run that was.
+     */
+    @Synchronized
+    fun onHandFix(nowMillis: Long) {
+        if (!enabled) return
+        val day = dayOf(nowMillis)
+        day.handFixes++
+        handFixes++
+        endCleanRun()
+        dirty = true
+    }
+
+    /** An emoji went into the field, from the panel, the strip or a shortcut. */
+    @Synchronized
+    fun onEmoji() {
+        if (!enabled) return
+        emojiSent++
+        dirty = true
+    }
+
+    private fun endCleanRun() {
+        if (cleanRun > bestCleanRun) bestCleanRun = cleanRun
+        cleanRun = 0
+    }
+
+    /** [n] words landed clean so far: the run grows and the record with it. */
+    private fun countClean(n: Int) {
+        cleanRun += n
+        if (cleanRun > bestCleanRun) bestCleanRun = cleanRun
+        val language = language
+        if (language.isNotEmpty()) {
+            if (language !in wordsByLanguage && wordsByLanguage.size >= MAX_LANGUAGES) {
+                wordsByLanguage.entries.minByOrNull { it.value }?.let { wordsByLanguage.remove(it.key) }
+            }
+            wordsByLanguage.merge(language, n.toLong(), Long::plus)
+        }
     }
 
     /** [n] whole words landed without being typed out — a suggestion pick or
@@ -332,9 +546,18 @@ class TypingStats(
         val day = dayOf(nowMillis)
         day.words += n
         totalWords += n
+        if (letters > longestWordLetters) longestWordLetters = letters
+        backspaceRun = 0
+        countClean(n)
+        clearPendingWord()
+        dirty = true
+    }
+
+    private fun clearPendingWord() {
         pendingWord = false
         pendingLetters = 0
-        dirty = true
+        pendingUpper = false
+        pendingAlpha = 0
     }
 
     /**
@@ -381,6 +604,7 @@ class TypingStats(
         if (!enabled) return
         glideWords += 1
         if (gestures > 1) twoThumbWords += 1
+        if (letters > longestGlideLetters) longestGlideLetters = letters
         wordLetters += (letters - typed).coerceAtLeast(0)
         keystrokesSaved += (letters - gestures.coerceAtLeast(1)).coerceAtLeast(0)
         if (distanceMm.isFinite() && distanceMm > 0.0) glideDistanceMm += distanceMm
@@ -432,7 +656,11 @@ class TypingStats(
     @Synchronized
     fun dayEntries(): List<DayEntry> =
         days.entries.sortedBy { it.key }.map { (key, acc) ->
-            DayEntry(key, acc.chars, acc.words, acc.backspaces, acc.activeMs, acc.voiceWords)
+            DayEntry(
+                key, acc.chars, acc.words, acc.backspaces, acc.activeMs, acc.voiceWords,
+                autocorrects = acc.autocorrects,
+                handFixes = acc.handFixes,
+            )
         }
 
     @Synchronized
@@ -451,6 +679,21 @@ class TypingStats(
             wordLetters = wordLetters,
             peakBurstWpm = maxOf(peakBurstWpm, burstWpm()),
             weekHourHistogram = weekHourHistogram.toList(),
+            autocorrects = autocorrects,
+            autocorrectsKept = autocorrectsKept,
+            autocorrectsUndone = autocorrectsUndone,
+            offersTaken = offersTaken,
+            handFixes = handFixes,
+            bestCleanRun = maxOf(bestCleanRun, cleanRun),
+            punctuation = HashMap(punctuation),
+            shoutedWords = shoutedWords,
+            longestWordLetters = longestWordLetters,
+            longestGlideLetters = longestGlideLetters,
+            longestBurstMs = maxOf(longestBurstMs, burstMs),
+            longestBackspaceRun = longestBackspaceRun,
+            wordsDeletedWhole = wordsDeletedWhole,
+            emojiSent = emojiSent,
+            wordsByLanguage = HashMap(wordsByLanguage),
         )
 
     /** Every board with a tap on it, the most tapped first. */
@@ -467,11 +710,17 @@ class TypingStats(
             // The trailing word: "hello" then keyboard dismissed is a word.
             days[lastDayKey]?.let { countPendingWord(it) }
             peakBurstWpm = maxOf(peakBurstWpm, burstWpm())
+            longestBurstMs = maxOf(longestBurstMs, burstMs)
+            bestCleanRun = maxOf(bestCleanRun, cleanRun)
             prune()
             dirty = false
             file.ticket() to Snapshot(
                 days = days.mapValues { (_, acc) ->
-                    DayStat(acc.chars, acc.words, acc.backspaces, acc.activeMs, acc.voiceWords)
+                    DayStat(
+                        acc.chars, acc.words, acc.backspaces, acc.activeMs, acc.voiceWords,
+                        autocorrects = acc.autocorrects,
+                        handFixes = acc.handFixes,
+                    )
                 },
                 totalChars = totalChars,
                 totalWords = totalWords,
@@ -498,6 +747,21 @@ class TypingStats(
                 wordLetters = wordLetters,
                 peakBurstWpm = peakBurstWpm,
                 weekHourHistogram = weekHourHistogram.toList(),
+                autocorrects = autocorrects,
+                autocorrectsKept = autocorrectsKept,
+                autocorrectsUndone = autocorrectsUndone,
+                offersTaken = offersTaken,
+                handFixes = handFixes,
+                bestCleanRun = bestCleanRun,
+                punctuation = punctuation.entries.associate { (mark, count) -> mark.toString() to count },
+                shoutedWords = shoutedWords,
+                longestWordLetters = longestWordLetters,
+                longestGlideLetters = longestGlideLetters,
+                longestBurstMs = longestBurstMs,
+                longestBackspaceRun = longestBackspaceRun,
+                wordsDeletedWhole = wordsDeletedWhole,
+                emojiSent = emojiSent,
+                wordsByLanguage = HashMap(wordsByLanguage),
             )
         }
         // Encoded and written outside the lock, so the store stays usable while
@@ -547,8 +811,25 @@ class TypingStats(
         wordLetters = 0
         peakBurstWpm = 0.0
         weekHourHistogram.fill(0)
-        pendingWord = false
-        pendingLetters = 0
+        autocorrects = 0
+        autocorrectsKept = 0
+        autocorrectsUndone = 0
+        offersTaken = 0
+        handFixes = 0
+        bestCleanRun = 0
+        punctuation.clear()
+        shoutedWords = 0
+        longestWordLetters = 0
+        longestGlideLetters = 0
+        longestBurstMs = 0
+        longestBackspaceRun = 0
+        wordsDeletedWhole = 0
+        emojiSent = 0
+        wordsByLanguage.clear()
+        clearPendingWord()
+        cleanRun = 0
+        backspaceRun = 0
+        dotRun = 0
         lastUptimeMs = 0
         burstChars = 0
         burstMs = 0
@@ -575,6 +856,7 @@ class TypingStats(
             burstMs += gap
         } else if (last == 0L || gap > BURST_GAP_MS) {
             peakBurstWpm = maxOf(peakBurstWpm, burstWpm())
+            longestBurstMs = maxOf(longestBurstMs, burstMs)
             burstChars = 0
             burstMs = 0
         }
@@ -590,8 +872,10 @@ class TypingStats(
         if (!pendingWord) return
         day.words += 1
         totalWords += 1
-        pendingWord = false
-        pendingLetters = 0
+        if (pendingLetters > longestWordLetters) longestWordLetters = pendingLetters
+        if (pendingUpper && pendingAlpha >= SHOUT_LETTERS) shoutedWords++
+        countClean(1)
+        clearPendingWord()
     }
 
     /** Day buckets past [MAX_DAYS] are dropped (relative to the newest day
@@ -633,6 +917,8 @@ class TypingStats(
             day.backspaces += stat.backspaces
             day.activeMs += stat.activeMs
             day.voiceWords += stat.voiceWords
+            day.autocorrects += stat.autocorrects
+            day.handFixes += stat.handFixes
         }
         totalChars += snapshot.totalChars
         totalWords += snapshot.totalWords
@@ -656,6 +942,24 @@ class TypingStats(
         snapshot.weekHourHistogram.take(WEEK_HOURS).forEachIndexed { slot, count ->
             weekHourHistogram[slot] += count
         }
+        autocorrects += snapshot.autocorrects
+        autocorrectsKept += snapshot.autocorrectsKept
+        autocorrectsUndone += snapshot.autocorrectsUndone
+        offersTaken += snapshot.offersTaken
+        handFixes += snapshot.handFixes
+        // Records are the best on any device, not a sum.
+        bestCleanRun = maxOf(bestCleanRun, snapshot.bestCleanRun)
+        for ((mark, count) in snapshot.punctuation) {
+            mark.singleOrNull()?.let { punctuation.merge(it, count, Long::plus) }
+        }
+        shoutedWords += snapshot.shoutedWords
+        longestWordLetters = maxOf(longestWordLetters, snapshot.longestWordLetters)
+        longestGlideLetters = maxOf(longestGlideLetters, snapshot.longestGlideLetters)
+        longestBurstMs = maxOf(longestBurstMs, snapshot.longestBurstMs)
+        longestBackspaceRun = maxOf(longestBackspaceRun, snapshot.longestBackspaceRun)
+        wordsDeletedWhole += snapshot.wordsDeletedWhole
+        emojiSent += snapshot.emojiSent
+        for ((id, count) in snapshot.wordsByLanguage) wordsByLanguage.merge(id, count, Long::plus)
         for ((id, stat) in snapshot.heatmaps) {
             val map = heatmaps.getOrPut(id) { HeatAcc() }
             if (map.name.isEmpty()) map.name = stat.name
@@ -703,6 +1007,21 @@ class TypingStats(
          * not talking, and is left out of the voice time. */
         const val MAX_PHRASE_MS = 10 * 60_000L
 
+        /** The marks counted, each as a key of its own. */
+        val PUNCTUATION: Set<Char> = setOf('!', '?', '.', ',', ';', ':', '…', '\'', '"')
+
+        /** Three full stops in a row are one of these. */
+        const val ELLIPSIS = '…'
+        const val FULL_STOP = '.'
+        const val ELLIPSIS_DOTS = 3
+
+        /** A word in capitals is a shout only from this many letters. */
+        const val SHOUT_LETTERS = 2
+
+        /** Language ids with a word count of their own; past this the one
+         * with the fewest words makes room. */
+        const val MAX_LANGUAGES = 64
+
         private const val HOURS = 24
         private const val WEEK_HOURS = 7 * HOURS
     }
@@ -726,7 +1045,12 @@ object TypingStatsMath {
         val backspaces: Long,
         val activeMs: Long,
         val voiceWords: Long = 0,
-    )
+        val autocorrects: Long = 0,
+        val handFixes: Long = 0,
+    ) {
+        /** The typos the keyboard caught and the ones the user caught. */
+        val typos: Long get() = autocorrects + handFixes
+    }
 
     /** The user's calendar day for [nowMillis], as days since 1970-01-01 local. */
     fun localEpochDay(nowMillis: Long, tz: TimeZone): Int =
@@ -837,6 +1161,8 @@ object TypingStatsMath {
             backspaces = entries.sumOf { it.backspaces },
             activeMs = entries.sumOf { it.activeMs },
             voiceWords = entries.sumOf { it.voiceWords },
+            autocorrects = entries.sumOf { it.autocorrects },
+            handFixes = entries.sumOf { it.handFixes },
         )
 
     private fun utcCalendar() = GregorianCalendar(TimeZone.getTimeZone("UTC"))

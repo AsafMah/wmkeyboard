@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.settings.AppLockMethod
 import com.wasimaster.wmkeyboard.core.settings.AppLockRelock
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * Which settings the lock stands in front of, and what answers it.
@@ -151,6 +152,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                     ),
                     cfg.biometricShortcut,
                     enabled = biometric == AppLockStatus.READY,
+                    disabledReason = DisabledReason(stringResource(R.string.privacy_lock_shortcut_unavailable)),
                     default = AppLockDefaults.biometricShortcut,
                 ) { scope.launch { repository.setAppLockBiometricShortcut(it) } }
             }
@@ -170,7 +172,8 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
     for ((group, targets) in AppLockTargets.grouped) {
         SettingsGroup(stringResource(group.title)) {
             for (target in targets) {
-                item {
+                // Which screens the lock guards: nothing to pick while it is off.
+                item(visible = cfg.enabled) {
                     ToggleSetting(
                         title = stringResource(target.label),
                         subtitle = stringResource(
@@ -187,7 +190,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                         icon = target.route?.let { SettingsRouteIcons[it] }
                             ?: SettingsRowIcons[target.label],
                         highlightKey = target.label,
-                        enabled = cfg.enabled && status.canEnable,
+                        enabled = status.canEnable,
                         default = target.onByDefault,
                     ) { checked ->
                         scope.launch { repository.setAppLockTarget(target.id, checked) }

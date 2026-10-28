@@ -76,6 +76,17 @@ class GlideReadings(private val capacity: Int = DEFAULT_CAPACITY) {
     val size: Int get() = entries.size
 
     /**
+     * How many of the newest entries keep their path; [STROKE_CAPACITY] unless
+     * the user set it (#905). Lowering it lets the extra paths go at once.
+     */
+    var strokeCapacity: Int = STROKE_CAPACITY
+        set(value) {
+            val changed = field != value
+            field = value.coerceAtLeast(0)
+            if (changed) dropOldStrokes()
+        }
+
+    /**
      * Keeps [readings], what the stroke that committed [word] also had to
      * offer. Anchored by the next caret report.
      *
@@ -108,7 +119,7 @@ class GlideReadings(private val capacity: Int = DEFAULT_CAPACITY) {
         for (i in entries.indices.reversed()) {
             val entry = entries[i]
             if (entry.key != key) continue
-            if (entry.stroke == null) {
+            if (entry.stroke == null && strokeCapacity > 0) {
                 entry.stroke = stroke
                 dropOldStrokes()
             }
@@ -117,7 +128,7 @@ class GlideReadings(private val capacity: Int = DEFAULT_CAPACITY) {
     }
 
     /**
-     * Keeps the newest [STROKE_CAPACITY] paths and lets the rest go, leaving
+     * Keeps the newest [strokeCapacity] paths and lets the rest go, leaving
      * their readings behind.
      *
      * A reading is a handful of words; a path is every sample of a finger
@@ -132,7 +143,7 @@ class GlideReadings(private val capacity: Int = DEFAULT_CAPACITY) {
             val entry = entries[i]
             if (entry.stroke == null) continue
             kept++
-            if (kept > STROKE_CAPACITY) entry.stroke = null
+            if (kept > strokeCapacity) entry.stroke = null
         }
     }
 
@@ -277,9 +288,9 @@ class GlideReadings(private val capacity: Int = DEFAULT_CAPACITY) {
         const val DEFAULT_CAPACITY = LearningBuffer.DEFAULT_CAPACITY
 
         /**
-         * How many of those words keep the path that wrote them, for a full
-         * search later (#135). Far shorter than the readings' own window; see
-         * [dropOldStrokes].
+         * How many of those words keep the path that wrote them by default,
+         * for a full search later (#135). Far shorter than the readings' own
+         * window; see [dropOldStrokes]. The user can change it (#905).
          */
         const val STROKE_CAPACITY = 24
 

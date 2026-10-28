@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cameraswitch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChatBubbleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
@@ -260,6 +261,7 @@ object BuiltinIcons {
         "ChatBubbleOutline" to { Icons.Outlined.ChatBubbleOutline },
         "Check" to { Icons.Outlined.Check },
         "CheckCircle" to { Icons.Outlined.CheckCircle },
+        "Checklist" to { Icons.Outlined.Checklist },
         "ChevronLeft" to { Icons.Outlined.ChevronLeft },
         "ChevronRight" to { Icons.Outlined.ChevronRight },
         "Close" to { Icons.Outlined.Close },

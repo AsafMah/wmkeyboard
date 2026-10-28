@@ -177,6 +177,19 @@ impl TouchModel {
         -(dx * dx + dy * dy) / (2.0 * self.sigma * self.sigma)
     }
 
+    /// How far `p` lies from the nearest key's centre, in key widths; `None`
+    /// off an empty model.
+    pub fn nearest_distance(&self, p: (f32, f32)) -> Option<f64> {
+        self.keys
+            .iter()
+            .map(|&(_, cx, cy)| {
+                let dx = (p.0 - cx) as f64;
+                let dy = (p.1 - cy) as f64;
+                (dx * dx + dy * dy).sqrt()
+            })
+            .fold(None, |m: Option<f64>, d| Some(m.map_or(d, |m| m.min(d))))
+    }
+
     /// The key a tap most likely meant: the nearest centre, the first listed
     /// on a tie.
     pub fn best_key(&self, p: (f32, f32)) -> Option<u16> {
@@ -694,6 +707,13 @@ impl Walk<'_> {
         touch.model.knows(expected) && touch.model.within_slip(p, label)
     }
 
+    /// Whether `label` is the typed `expected` with its accent left off,
+    /// or another letter the same key carries (#970): read as an accent,
+    /// never as an edit.
+    fn alternate_of(&self, label: u16, expected: u16) -> bool {
+        accents::is_accent_of(label, expected) || self.proximity.carries(expected, label)
+    }
+
     fn one(&self, src: &WalkSource, results: &mut HashMap<Vec<u16>, Candidate>, floor_in: f64, ws: &mut Workspace) -> f64 {
         let mut floor = floor_in;
         let w = src.walker;
@@ -764,9 +784,10 @@ impl Walk<'_> {
                     if let Some(matched) = find(&children, expected) {
                         push!(matched, pos + 1, cost + self.match_cost(pos, expected), edit, edits, comp, acc, slips, parent, expected);
                     }
-                    // The same key with its accent left off.
+                    // The same key with its accent left off, or with the Shift
+                    // or hold that reaches one of its other letters (#970).
                     for &(label, child) in &children {
-                        if !accents::is_accent_of(label, expected) {
+                        if !self.alternate_of(label, expected) {
                             continue;
                         }
                         push!(
@@ -826,7 +847,7 @@ impl Walk<'_> {
             // tap eval (`noisy_tap_eval`) is where both rules were measured.
             if key_set.is_none() {
                 for &(label, child) in &children {
-                    if label == expected || accents::is_accent_of(label, expected) || !self.slip_reach(pos, expected, label) {
+                    if label == expected || self.alternate_of(label, expected) || !self.slip_reach(pos, expected, label) {
                         continue;
                     }
                     let mixed = if budget > 0 && slips == 0 { SECOND_EDIT_SURCHARGE } else { 0.0 };
@@ -853,7 +874,7 @@ impl Walk<'_> {
                 }
                 for &(label, child) in &children {
                     let on_key = key_set.is_some_and(|set| set.contains(&label));
-                    let accented = key_set.is_none() && accents::is_accent_of(label, expected);
+                    let accented = key_set.is_none() && self.alternate_of(label, expected);
                     if label != expected && !on_key && !accented && !self.slip_reach(pos, expected, label) {
                         let sub = discounted(
                             self.substitution_cost(pos, expected, label),
@@ -1501,6 +1522,25 @@ mod tests {
         let d = dict(&[("już", 100)]);
         let got = &run(&[src(&d, 0.0)], "juz", 5, None)[0];
         assert_eq!(("już", 0, 1), (got.word.as_str(), got.edits, got.accents));
+    }
+
+    #[test]
+    fn a_letter_the_key_carries_reads_like_an_accent() {
+        // Arabic's ة rides on ه's Shift and أ on ا's hold: typed without
+        // either, the word is still one tap per letter and no edit (#970).
+        let d = dict(&[("مدرسة", 100), ("أخبار", 100)]);
+        let carried = KeyProximity::of_rows(&["ضصثقفغعهخحجد", "شسيبلاتنمكط"])
+            .with_carried(vec![('ه' as u16, 'ة' as u16), ('ا' as u16, 'أ' as u16)]);
+        for (typed, meant) in [("مدرسه", "مدرسة"), ("اخبار", "أخبار")] {
+            let got = &search(&[src(&d, 0.0)], typed, &carried, 5, &mut Workspace::new(), None, &NO_HABITS)[0];
+            assert_eq!((meant, 0, 1), (got.word.as_str(), got.edits, got.accents));
+            // Without the carried pairs the same reading costs an edit.
+            let plain = &search(
+                &[src(&d, 0.0)], typed, &KeyProximity::of_rows(&["ضصثقفغعهخحجد", "شسيبلاتنمكط"]), 5,
+                &mut Workspace::new(), None, &NO_HABITS,
+            )[0];
+            assert_eq!((meant, 1, 0), (plain.word.as_str(), plain.edits, plain.accents));
+        }
     }
 
     struct Habit;

@@ -389,7 +389,7 @@ class FakeCalendar : ContentProvider() {
                         CalendarContract.Instances.DISPLAY_COLOR, CalendarContract.Instances.CALENDAR_COLOR -> e.color
                         else -> null
                     }
-                }.toTypedArray(),
+                }.toTypedArray<Any?>(),
             )
         }
         return cursor

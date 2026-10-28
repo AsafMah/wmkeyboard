@@ -31,11 +31,11 @@ Setting **Press and hold, then swipe** to Cursor or Numpad costs one thing: hold
   <Shot id="typing/spacebar-cursor-swipe" alt="Dragging the spacebar moves the text cursor a character at a time." />
 </PhoneFrame>
 
-Set a slot to **Cursor** and the drag moves the text cursor instead of typing. The caret steps one character for every 16&nbsp;dp of horizontal travel, in whichever direction you drag. That distance is a slider of its own, **Cursor speed**, which sits under the two swipe pickers and runs 8–32&nbsp;dp. Shorter moves the caret faster. Any composing text in progress (a word mid-transliteration, say) commits first, without autocorrect, so the cursor lands where you can see it rather than jumping past a word that was still being corrected.
+Set a slot to **Cursor** and the drag moves the text cursor instead of typing. The caret steps one character for every 16&nbsp;dp of horizontal travel, in whichever direction you drag. That distance is a slider of its own, **Cursor speed**, which sits under the two swipe pickers and runs 4–32&nbsp;dp. Shorter moves the caret faster. Any composing text in progress (a word mid-transliteration, say) commits first, without autocorrect, so the cursor lands where you can see it rather than jumping past a word that was still being corrected.
 
 <SettingsPath path="Typing / Gestures / Speed up long cursor swipes" />
 
-**Speed up long cursor swipes** (off by default) makes a long drag cover more text. The first 48&nbsp;dp of travel move at your Cursor speed, so a short nudge of a few characters stays exact. After that, each character costs less travel, and by 240&nbsp;dp the cursor is moving at **Top cursor speed**, 4× by default (2× to 8×). It keeps that pace for as long as you keep dragging the same way, the way a mouse's middle-button scroll does. Turn back and the cursor drops to Cursor speed again and builds up from there, so fixing an overshoot is as exact as a short nudge. A small wobble the other way doesn't count as turning back. With the 2-D cursor touchpad on, up and down movement speeds up the same way, on its own, one line at a time.
+**Speed up long cursor swipes** (off by default) makes a long drag cover more text. The first 48&nbsp;dp of travel move at your Cursor speed, so a short nudge of a few characters stays exact. After that, each character costs less travel, and by 240&nbsp;dp the cursor is moving at **Top cursor speed**, 4× by default (2× to 16×). It keeps that pace for as long as you keep dragging the same way, the way a mouse's middle-button scroll does. Turn back and the cursor drops to Cursor speed again and builds up from there, so fixing an overshoot is as exact as a short nudge. A small wobble the other way doesn't count as turning back. With the 2-D cursor touchpad on, up and down movement speeds up the same way, on its own, one line at a time.
 
 **Move the cursor directly** (off by default) changes what a swipe sends. Normally each step is a left or right arrow key, which is what a hardware keyboard would send and what every editor understands. A few fields read an arrow as something else: a search box with a dropdown steps through its suggestions, and some file managers put the cursor back at the start of a name being renamed. With this on, the swipe places the cursor by moving the selection instead, and the app sees no key at all. It needs the app to have told the keyboard where the cursor is; when one hasn't, the arrow keys are used as before. With the 2-D cursor touchpad on, the same goes for up and down in a one-line field like a search box or a file name: up puts the cursor at the start of the text and down at the end, where an up or down arrow would have stepped into the box's suggestions or out of the field. In a field with several lines, up and down stay arrow keys so the cursor follows the app's own line wrapping. Selection mode and a held shift stretch the selection the same direct way, so a search box sees no Shift+arrow either.
 
@@ -51,9 +51,13 @@ Set a slot to **Cursor** and the drag moves the text cursor instead of typing. T
 
 **Swipe up for the touchpad** (off by default) opens the 2-D touchpad from a swipe up, with no hold first. Swipe up from the spacebar, keep your finger down, and the cursor follows it left, right, up and down until you lift. The finger has to travel 80&nbsp;dp up, and more up than sideways, before the touchpad opens, so a tap that rolls a little still types a space and there is room left below to move the cursor down. You feel a tick when it opens. For the length of your long-press delay after that, the cursor stays put, so the swipe that opened the touchpad doesn't move it. After that, the rest of the upward swipe still doesn't move the cursor a line up: pause for a moment or move down first, and from then on up and down move the cursor too. Sideways swipes are untouched: they still run the two slots above, so the default quick swipe keeps switching the language. This works whatever the slots are set to and whether the 2-D cursor touchpad switch is on, and every cursor setting on this page applies to the drag. With **Keep moving while held** and **Whole keyboard as touchpad** both on, the touchpad scrolls by itself at every edge of the keyboard: the sides keep the cursor moving along the line, and the top and bottom 24&nbsp;dp keep it moving up or down, about five lines a second, until you move back or lift. The band the drag started in doesn't count, so starting on a spacebar near the bottom edge never sets it off.
 
+<SettingsPath path="Typing / Gestures / Swipe up for the number pad" />
+
+**Swipe up for the number pad** (off by default) opens the number pad from a swipe up the spacebar, at any speed, the way SwiftKey does. Like the touchpad it waits for a short way up, so a tap that slides still types a space, and sideways swipes keep their own actions. With both swipe-up switches on, the touchpad wins.
+
 <SettingsPath path="Typing / Gestures / Cursor magnifier" />
 
-**Cursor magnifier** (on by default) shows the line of text around the cursor, enlarged, in a bubble over the text while the drag moves the cursor. It comes up once the drag has resolved to Cursor and goes when you lift your finger. The bubble is the keyboard's own drawing of the text the app hands it, not a zoomed picture of the screen, so it uses the keyboard's colours and font. It sits above the cursor, or below it when the cursor is too close to the top of the screen, for apps that tell the keyboard where their cursor is, which most do. For an app that doesn't, or when the cursor is scrolled out of sight or hidden behind the keyboard, it sits just above the keyboard instead. In a password field it shows dots, never the password. It never takes a touch and it goes the moment you lift your finger. It appears beside Cursor speed, and the [trackpad](/tools/trackpad/) has a separate switch for the same bubble.
+**Cursor magnifier** (on by default) shows the line of text around the cursor, enlarged, in a bubble over the text while the drag moves the cursor. It comes up once the drag has resolved to Cursor and goes when you lift your finger. With **Press and hold, then swipe** set to Cursor it comes up sooner, the moment the hold is long enough, with a short vibration, so you know the next swipe moves the cursor before you start it. With the magnifier off, the vibration alone says so. The bubble is the keyboard's own drawing of the text the app hands it, not a zoomed picture of the screen, so it uses the keyboard's colours and font. It sits above the cursor, or below it when the cursor is too close to the top of the screen, for apps that tell the keyboard where their cursor is, which most do. For an app that doesn't, or when the cursor is scrolled out of sight or hidden behind the keyboard, it sits just above the keyboard instead. In a password field it shows dots, never the password. It never takes a touch and it goes the moment you lift your finger. It appears beside Cursor speed, and the [trackpad](/tools/trackpad/) has a separate switch for the same bubble.
 
 The same drag selects text instead of moving through it while selection mode is on, on either axis. Turn the mode on from the toolbar's [Selection mode](/tools/text-editing/#selection-mode) tool, or hold that tool down and scrub the spacebar with your other thumb. A Shift you pressed yourself does it too, lock included, exactly as [Shift+Arrow](/tools/text-editing/#hold-shift-to-select) would: lock Shift, then scrub. A Shift the keyboard armed by itself at a sentence start doesn't count, so an ordinary drag never selects behind your back.
 
@@ -99,7 +103,7 @@ The rules are the ones the hint flick uses, pointed up: within about 30° of str
 
 <SettingsPath path="Typing / Gestures / Show flick arms on keys" />
 
-Some keys carry more than one character. A tap types the one in the middle; a short swipe from the key in one of eight directions types the one at that edge or corner instead. The [Japanese Flick](/languages/cjk/#japanese-input) pad has always worked this way, with four arms, and the shipped **English flick (3×3)** layout takes it further in the MessagEase manner: all twenty-six letters on nine big keys, with `o` in the middle carrying q, u, p, c, b, g, d and j around it. Enable it under Languages like any other layout. Any key of any layout can be given arms of its own in the [layout editor](/languages/custom-layouts/#editing-a-key), and an arm can run an action, such as moving the cursor, as readily as it types.
+Some keys carry more than one character. A tap types the one in the middle; a short swipe from the key in one of eight directions types the one at that edge or corner instead. The [Japanese Flick](/languages/cjk/#japanese-input) pad has always worked this way, with four arms, and the shipped **English flick (3×3)** layout takes it further in the MessagEase manner: all twenty-six letters on nine big keys, with `o` in the middle carrying q, u, p, c, b, g, d and j around it. Enable it under Languages like any other layout. Bangla has the same board twice, typing through Avro or Khipro: **Avro flick (3×3)** and **Khipro flick (3×3)**. Any key of any layout can be given arms of its own in the [layout editor](/languages/custom-layouts/#editing-a-key), and an arm can run an action, such as moving the cursor, as readily as it types.
 
 Each key draws its arms small, in the hint colour, at the edge or corner you swipe towards, so you can see what a swipe will type before you make it. **Show flick arms on keys** turns that drawing off, which leaves the face to the centre character the way the kana pad looked before. A layer can differ: in the [layout editor](/languages/custom-layouts/), **Show flick arms here** on a layer with flick keys (or on the Numpad's panel editor) shows or hides them for that layer alone, so the number pad can keep its arms while the kana pad goes without. Once your finger moves towards an arm, or rests on the key for a quarter of a second, a **Flick popup** over the key shows the centre and every arm in a 3×3 cross, with the one your finger is heading for lit. A quick tap types the centre without it popping up; turn it off if the arms on the face are enough and you'd rather nothing covered the keys around it. The arm lights up with a short buzz the moment it is chosen.
 
@@ -309,6 +313,30 @@ A few things keep chords out of your way:
 
 Chords suit [two-thumb typing](/typing/glide-typing/#typing-with-both-thumbs) in particular. There, flick characters on a letter stop a swipe starting on it, and a hold on a letter fires when a thumb rests there while the other types. A key held still is never part of a swipe, so one thumb on <KeyCap>?123</KeyCap> and a tap from the other is a shortcut that never collides with typing.
 
+## Swipes on keys
+
+<SettingsPath path="Typing / Gestures / Swipes on keys" />
+
+[Flick keys](#flick-keys) are built into a layout, one layout at a time, in the layout editor. Swipes on keys are the same short swipes set up once here and laid over whichever layout is on screen. Put `1` up and to the right of <KeyCap>Q</KeyCap> and it is there on QWERTY, AZERTY, Colemak and every other layout with a <KeyCap>Q</KeyCap>, the way Unexpected Keyboard keeps its numbers on the top row's corners.
+
+**Add a key** asks for the key, as the one character it types, then shows its eight directions around it. Tap a direction to pick what a short swipe that way does: a piece of text, or any action a [multi-finger swipe](#swiping-with-several-fingers) can run, such as copy, undo, a tool or an arrow. **No action** clears it. Each key with swipes gets a row of its own that lists them, and tapping the row brings the directions back.
+
+**Add a preset** merges a ready-made set into yours:
+
+| Preset | Puts |
+|---|---|
+| Numbers | 1 to 0 up and to the right on the top row |
+| Symbols | `! @ # $ % ^ & * ( )` up and to the left on the top row |
+| Editing shortcuts | Select all, copy, paste, cut, undo and redo down and to the left on <KeyCap>A</KeyCap> <KeyCap>C</KeyCap> <KeyCap>V</KeyCap> <KeyCap>X</KeyCap> <KeyCap>Z</KeyCap> <KeyCap>Y</KeyCap> |
+
+A preset replaces only the directions it fills, so your other swipes on those keys stay. **Remove all key swipes** takes every one off, and turning **Swipes on keys** off keeps them stored but off the keys.
+
+Once a key has swipes it behaves like any other flick key. Its swipes are drawn small on its face (unless **Show flick arms on keys** is off), the flick popup and **Flick distance** apply, and glide typing shares the stroke by the same rules: a swipe that turns, reaches the middle of another letter where no swipe points, or passes **Flick reach** glides a word. Three things to know:
+
+- The layout comes first. If a layout already has a swipe in a direction, that swipe stays and yours for the same direction is ignored there, so the English 3×3 board and the Japanese flick pad are not rewritten by a preset meant for QWERTY.
+- Only the letters page gets them. The symbols pages keep their keys as they are.
+- A key with swipes gives up [Swipe down to type the hint](#swiping-down-on-a-key-for-its-hint) and the slide to select, since the flick owns that key's stroke. A key whose layout makes its hold repeat or run an action is left without swipes, so it keeps that hold.
+
 ## Volume keys as a cursor control
 
 <SettingsPath path="Typing / Volume keys" />
@@ -339,13 +367,14 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Quick swipe on the spacebar | Language |
 | Press and hold, then swipe | Cursor |
 | 2-D cursor touchpad | Off |
-| Cursor speed | 16&nbsp;dp (8–32&nbsp;dp) |
+| Cursor speed | 16&nbsp;dp (4–32&nbsp;dp) |
 | Speed up long cursor swipes | Off |
 | Move the cursor directly | Off |
 | Keep moving while held | Off |
 | Whole keyboard as touchpad | Off |
 | Swipe up for the touchpad | Off |
-| Top cursor speed | 4× (2–8×) |
+| Swipe up for the number pad | Off |
+| Top cursor speed | 4× (2–16×) |
 | Cursor magnifier | On |
 | Swipe in from the edge to go back | Off |
 | Swipe down to hide the keyboard | Off |
@@ -377,6 +406,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Three and four fingers, any direction | Nothing |
 | Chords with ?123 | On |
 | ?123 + L | Next language |
+| Swipes on keys | On, with no keys set |
 
 Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Volume keys". The last two rows live under Typing / Key press rather than Delete keys, and Word delete interval only appears while Holding delete clears words is on. Cursor speed and Cursor magnifier only appear while a swipe slot is set to Cursor. Swipe deletes, Show what you will delete and the two step distances only appear while Swipe to delete is on, and the two distances are one setting each: Words mode shows Word delete distance, Characters mode shows Character delete distance. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text, Typing speed on the spacebar) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
 

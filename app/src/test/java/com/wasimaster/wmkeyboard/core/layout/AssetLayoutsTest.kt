@@ -153,6 +153,20 @@ class AssetLayoutsTest {
     }
 
     @Test
+    fun `the pinyin apostrophe key holds the simplified-traditional switch`() {
+        val file = layoutFiles.first { it.name == "zh_pinyin.${LayoutFile.FILE_EXTENSION}" }
+        val key = LayoutFile.decode(file.readText())!!.layout
+            .layers.values.flatMap { it.rows.flatten() }
+            .first { it.label == "'词" }
+        // #962: a hold and release flips the script, so the switch comes
+        // before the backtick, and the tap still types the boundary mark.
+        assertEquals("'", key.output)
+        assertEquals(listOf(KeyAction.HanScript), key.actionAlternates.map { it.action })
+        assertEquals(0, key.actionAlternatesAt)
+        assertFalse(KeyAction.HanScript.canRepeatOnHold())
+    }
+
+    @Test
     fun `the zhuyin layout carries the full bopomofo alphabet and its tone marks`() {
         val file = layoutFiles.first { it.name == "zh_zhuyin.${LayoutFile.FILE_EXTENSION}" }
         val layout = LayoutFile.decode(file.readText())!!.layout

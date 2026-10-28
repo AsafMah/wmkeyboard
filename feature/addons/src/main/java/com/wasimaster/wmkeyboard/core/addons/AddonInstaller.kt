@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconImportResult
 import com.wasimaster.wmkeyboard.core.icons.IconPackFile
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
+import com.wasimaster.wmkeyboard.core.share.RemixCredit
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
@@ -159,8 +160,13 @@ object AddonInstaller {
         data class Rejected(val text: AddonText) : Outcome
     }
 
-    suspend fun install(context: Context, entry: AddonEntry, payload: File): Outcome {
-        val outcome = installPayload(context, entry, payload)
+    /**
+     * [credit] names the repository addon being installed. A theme or layout
+     * keeps it as `basedOn`, so a copy edited from it later still credits it
+     * when published.
+     */
+    suspend fun install(context: Context, entry: AddonEntry, payload: File, credit: RemixCredit? = null): Outcome {
+        val outcome = installPayload(context, entry, payload, credit)
         if (outcome is Outcome.Installed) notifyContentChanged(context, entry.type)
         return outcome
     }
@@ -169,10 +175,11 @@ object AddonInstaller {
         context: Context,
         entry: AddonEntry,
         payload: File,
+        credit: RemixCredit?,
     ): Outcome =
         when (entry.type) {
-            AddonType.Theme -> installTheme(context, payload)
-            AddonType.Layout -> installLayout(context, payload)
+            AddonType.Theme -> installTheme(context, payload, credit)
+            AddonType.Layout -> installLayout(context, payload, credit)
             AddonType.Dictionary -> installDictionary(context, entry, payload)
             AddonType.EmojiKeywords -> installEmojiKeywords(context, entry, payload)
             AddonType.Snippets -> installSnippets(context, entry, payload)
@@ -290,7 +297,7 @@ object AddonInstaller {
 
     // ---- themes & layouts ----------------------------------------------
 
-    private suspend fun installTheme(context: Context, payload: File): Outcome {
+    private suspend fun installTheme(context: Context, payload: File, credit: RemixCredit?): Outcome {
         val theme = ThemeCodec.decode(payload.readText())
             ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_not_a_theme))
         val id = "custom_${System.currentTimeMillis()}"
@@ -300,17 +307,20 @@ object AddonInstaller {
         // at a file outside our own storage. withFreshIds remints the
         // variants' ids too, for the same reason the parent's changes.
         val stored = theme.withFreshIds(id).withExtractedImages(themeImagesDir(context))
+            .let { if (credit != null) it.copy(basedOn = credit) else it }
         SettingsRepository(context).upsertCustomTheme(stored)
         // Added to the gallery, not worn: browsing a repository must not repaint
         // the keyboard behind the user's back. AddonApply offers the switch.
         return Outcome.Installed(id)
     }
 
-    private suspend fun installLayout(context: Context, payload: File): Outcome {
+    private suspend fun installLayout(context: Context, payload: File, credit: RemixCredit?): Outcome {
         val imported = LayoutFile.decode(payload.readText())
             ?: return Outcome.Rejected(AddonText.of(R.string.faddons_install_error_not_a_layout))
         val id = "custom_${System.currentTimeMillis()}"
-        SettingsRepository(context).upsertCustomLayout(imported.layout.copy(id = id))
+        SettingsRepository(context).upsertCustomLayout(
+            imported.layout.copy(id = id, basedOn = credit ?: imported.layout.basedOn),
+        )
         // The layout repairer hands back resource ids; the other importers hand
         // back finished lines. They meet here, so the layout notes are put into
         // words now rather than travelling on as a second kind of repair.

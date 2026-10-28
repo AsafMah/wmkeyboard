@@ -54,6 +54,9 @@ enum class DictionarySource(
     /** Open English WordNet as a download: every single word, plainer definitions than Wiktionary's. */
     OFFLINE_WORDNET("offline_wordnet", online = false, packId = OfflineDictionaryCatalog.OEWN.id),
 
+    /** Bengali words in English, as a download; only a Bengali word finds anything in it. */
+    OFFLINE_BENGALI("offline_bn_wiktionary", online = false, packId = OfflineDictionaryCatalog.BENGALI_WIKTIONARY.id),
+
     /**
      * The Yomichan / Yomitan dictionaries the user imported (#765): any
      * language pair, with readings and pitch accent. Asks every one that is
@@ -72,6 +75,7 @@ enum class DictionarySource(
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet
+            OFFLINE_BENGALI -> R.string.core_tools_dictionary_source_offline_bengali
             IMPORTED -> R.string.core_tools_dictionary_source_imported
         }
 
@@ -85,6 +89,7 @@ enum class DictionarySource(
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api_desc
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary_desc
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet_desc
+            OFFLINE_BENGALI -> R.string.core_tools_dictionary_source_offline_bengali_desc
             IMPORTED -> R.string.core_tools_dictionary_source_imported_desc
         }
 
@@ -205,7 +210,7 @@ object DictionaryLookup {
             } catch (_: DictionaryClient.NotFoundException) {
                 emptyList()
             }
-            DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET ->
+            DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET, DictionarySource.OFFLINE_BENGALI ->
                 OfflineDictionaries.lookup(source.packId!!, word)
             DictionarySource.IMPORTED -> YomichanDictionaries.lookup(word)
         }

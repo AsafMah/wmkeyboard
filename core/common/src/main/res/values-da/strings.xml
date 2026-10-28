@@ -26,6 +26,7 @@
     <string name="common_default">Standard</string>
     <string name="common_delete">Slet</string>
     <string name="common_disable">Slå fra</string>
+    <string name="common_disabled_open_setting">Åbn indstillingen</string>
     <string name="common_disclosure_blocked_body">Android viser ikke længere denne anmodning, fordi du tidligere har afvist tilladelsen. Du kan stadig aktivere den fra appens indstillingsskærm.</string>
     <string name="common_disclosure_not_now">Ikke nu</string>
     <string name="common_done">Udført</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installer</string>
     <string name="common_installing">Installerer…</string>
     <string name="common_loading">Indlæser…</string>
+    <string name="common_more">Mere</string>
     <string name="common_next">Næste</string>
     <string name="common_none">Ingen</string>
     <string name="common_notify_channel_backup_body">Kun når en automatisk sikkerhedskopiering fejler. Vellykkede sikkerhedskopieringer er lydløse.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Vis notifikationer</string>
     <string name="common_permission_storage_body">På Android 9 og ældre kræver tastaturet lagringstilladelse for at gemme et billede i dit galleri. Den gamle Android-tilladelse dækker også læsning af din lagring. Tastaturet skriver kun det billede, du beder det om at gemme. Tastaturet læser intet og uploader intet. Nyere Android-versioner behøver ikke denne tilladelse.</string>
     <string name="common_permission_storage_title">Lagringstilladelse for at gemme i dit galleri</string>
+    <string name="common_permission_tasks_body">WM Keyboard holder sin huskeliste og en opgaveliste i opgaveappen synkroniseret begge veje: opgaverne, deres trin, markeringer og forfaldsdatoer. Tilladelsen dækker alle opgavelister i appen. Tastaturet læser kun appens lister, så du kan vælge én, og det læser og skriver kun til den liste, du har valgt. Tastaturet sender intet nogen steder hen. Hvis du bruger DAVx5, synkroniserer den listen med din egen CalDAV-server. Uden denne tilladelse bliver huskelisten på denne telefon.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-adgang til opgavelisten</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-adgang til huskelisten</string>
+    <string name="common_preview_scale_desc">Eksempelstørrelse</string>
+    <string name="common_preview_scale_larger">Gør forhåndsvisning større</string>
+    <string name="common_preview_scale_smaller">Gør forhåndsvisning mindre</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Fjern</string>
     <string name="common_reset">Nulstil</string>
     <string name="common_reset_defaults">Nulstil til standardindstillinger</string>

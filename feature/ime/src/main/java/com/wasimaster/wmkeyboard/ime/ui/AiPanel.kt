@@ -83,6 +83,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.delay
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * AI writing tool: one-tap actions (rewrite, summarize, translate …) that
@@ -935,6 +936,9 @@ private fun ActionChips(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
+        // Only the empty field has a reason worth a hold: a chip greyed out
+        // behind a running one is waiting its turn, which the lit chip says.
+        val noText = DisabledReason(stringResource(R.string.ime_ai_idle_empty_no_writer_body))
         for ((index, action) in actions.withIndex()) {
             val isRunning = running != null && action.id == running.id
             ToolPanelChip(
@@ -944,6 +948,7 @@ private fun ActionChips(
                 // label of what is in flight, not an offer to press.
                 enabled = (enabled || action.worksWithoutText) && (running == null || isRunning),
                 modifier = Modifier.focusRing(index == focused),
+                disabledReason = noText.takeIf { running == null },
             ) {
                 if (running == null) onAction(action)
             }

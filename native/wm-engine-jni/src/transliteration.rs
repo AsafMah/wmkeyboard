@@ -203,6 +203,59 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     })
 }
 
+/// `EngineNative.khiproInstall(variant, spec)`: an empty string when `spec`
+/// now types `variant`, else why it was refused (`khipro::install`).
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproInstall(
+    mut env: JNIEnv,
+    _class: JClass,
+    variant: jint,
+    spec: JString,
+) -> jstring {
+    guarded(&mut env, null_mut(), |env| {
+        let spec = read(env, &spec)?;
+        give(env, wm_engine::khipro::install(variant_of(variant), &spec).err().unwrap_or_default())
+    })
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproReset(
+    mut env: JNIEnv,
+    _class: JClass,
+    variant: jint,
+) {
+    guarded(&mut env, (), |_| {
+        wm_engine::khipro::reset(variant_of(variant));
+        Some(())
+    })
+}
+
+/// `EngineNative.khiproCheck(spec, cases, skip)`: an empty string when `spec`
+/// passes the conformance table `cases`, else why not (`khipro::check`).
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproCheck(
+    mut env: JNIEnv,
+    _class: JClass,
+    spec: JString,
+    cases: JString,
+    skip: JString,
+) -> jstring {
+    guarded(&mut env, null_mut(), |env| {
+        let spec = read(env, &spec)?;
+        let cases = read(env, &cases)?;
+        let skip = read(env, &skip)?;
+        give(env, wm_engine::khipro::check(&spec, &cases, &skip).err().unwrap_or_default())
+    })
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproBundledRevision(
+    mut env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    guarded(&mut env, null_mut(), |env| give(env, wm_engine::khipro::bundled_revision().to_string()))
+}
+
 strings_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_khiproSpellings, wm_engine::khipro_romanizer::spellings);
 
 #[no_mangle]

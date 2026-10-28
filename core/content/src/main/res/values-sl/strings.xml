@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Kopiraj</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Številke</string>
+    <string name="core_content_selection_macro_edit_word">Uredi besedo</string>
     <string name="core_content_selection_macro_email">E-pošta</string>
     <string name="core_content_selection_macro_fancy">Domiselno</string>
     <string name="core_content_selection_macro_find">Najdi</string>

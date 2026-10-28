@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -50,6 +52,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.selection.ColourCodes
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
@@ -68,6 +71,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
+import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.MenuBook
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -158,6 +165,7 @@ import com.wasimaster.wmkeyboard.core.settings.ClipboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.ime.ClipCombineDraft
+import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ClipCombineField
 import com.wasimaster.wmkeyboard.ime.ClipEdit
 import com.wasimaster.wmkeyboard.ime.ClipUndo
@@ -168,6 +176,7 @@ import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clipOcrAvailable
 import com.wasimaster.wmkeyboard.core.tools.PhotoTranslate
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The clipboard panel's components, each in the cell its panel layout gives it
@@ -240,6 +249,8 @@ data class ClipboardPanelActions(
     val onTagAdd: (String) -> Unit = {},
     /** A text clip's QR code: the QR tool, on the clip's text (#766). */
     val onQr: (ClipItem) -> Unit = {},
+    /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
+    val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
 )
 
 /**
@@ -1278,9 +1289,16 @@ private fun ClipSelectionBar(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
+        // A greyed-out button says on a hold what it is waiting for: image
+        // clips count towards the selection, not towards these two.
         if (onTidy != null) {
-            TextButton(onClick = onTidy, enabled = textual >= 1) {
-                Text(stringResource(R.string.ime_clip_tidy))
+            IconHint(
+                null,
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_tidy)).takeIf { textual < 1 },
+            ) {
+                TextButton(onClick = onTidy, enabled = textual >= 1) {
+                    Text(stringResource(R.string.ime_clip_tidy))
+                }
             }
         }
         if (onZawgyi != null && burmese) {
@@ -1288,8 +1306,13 @@ private fun ClipSelectionBar(
                 Text(stringResource(R.string.ime_clip_zawgyi))
             }
         }
-        TextButton(onClick = onCombine, enabled = textual >= 2) {
-            Text(stringResource(R.string.ime_clip_combine))
+        IconHint(
+            null,
+            disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_combine)).takeIf { textual < 2 },
+        ) {
+            TextButton(onClick = onCombine, enabled = textual >= 2) {
+                Text(stringResource(R.string.ime_clip_combine))
+            }
         }
         TextButton(onClick = onDelete, enabled = picked.isNotEmpty()) {
             Text(
@@ -1711,6 +1734,10 @@ private fun ClipboardHistory(
     val clipboard = state.settings.clipboard
     // Image clips offer Translate while a photo translation server is on (#807).
     val photoTranslate = remember(state.settings) { PhotoTranslate.rows(state.settings).isNotEmpty() }
+    val searchTools = remember(state.settings.enabledTools) {
+        (isSupportedTool(ToolbarTool.WEB_SEARCH) && ToolbarTool.WEB_SEARCH in state.settings.enabledTools) to
+            (isSupportedTool(ToolbarTool.WIKIPEDIA) && ToolbarTool.WIKIPEDIA in state.settings.enabledTools)
+    }
     val columns = if (session.list) 1 else clipboard.gridColumns.coerceIn(ClipGridColumnsRange)
     // 0 is the view's own: six lines on a card, three in a row, where a list
     // is for scanning many clips.
@@ -1843,6 +1870,8 @@ private fun ClipboardHistory(
                     holdPin = !clipboard.cardButtons,
                     ocr = session.ocr,
                     photoTranslate = photoTranslate,
+                    webSearch = searchTools.first,
+                    wikipedia = searchTools.second,
                     entities = session.perClip[item.id].orEmpty(),
                     icons = session.entityIcons && picked == null,
                     typeTag = clipboard.typeTags,
@@ -2045,6 +2074,9 @@ private class ClipHold(
     val onKeepOnly: (() -> Unit)? = null,
     /** The button at the end of the clip's bottom row (#612). */
     val shortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
+    /** The web search and Wikipedia tools are on, for the hold popup's two searches (#914). */
+    val webSearch: Boolean = false,
+    val wikipedia: Boolean = false,
 )
 
 /**
@@ -2122,6 +2154,12 @@ private fun ClipHoldPopup(
                 } else null,
                 onQr = if (clipQrable(item) && hold.picked == null) {
                     { onDismiss(); callbacks.actions.onQr(item) }
+                } else null,
+                onWebSearch = if (hold.webSearch && clipQrable(item) && hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onSearch(item, false) }
+                } else null,
+                onWikipedia = if (hold.wikipedia && clipQrable(item) && hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onSearch(item, true) }
                 } else null,
                 onEdit = if (item.clipEditable) {
                     { onDismiss(); callbacks.actions.onEdit(item) }
@@ -2203,6 +2241,9 @@ private class ClipTextActions(
     val onTags: (() -> Unit)? = null,
     /** The clip as a QR code (#766). */
     val onQr: (() -> Unit)? = null,
+    /** The clip searched for on the web, or on Wikipedia (#914). */
+    val onWebSearch: (() -> Unit)? = null,
+    val onWikipedia: (() -> Unit)? = null,
     val onEdit: (() -> Unit)? = null,
     val onOpenLink: (() -> Unit)? = null,
     val onExtractParts: (() -> Unit)? = null,
@@ -2309,6 +2350,17 @@ private fun ClipFullTextPopup(
                                 }
                                 actions.onQr?.let {
                                     ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
+                                }
+                                actions.onWebSearch?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Search, stringResource(R.string.ime_clip_search_web), tint, it)
+                                }
+                                actions.onWikipedia?.let {
+                                    ClipTextActionIcon(
+                                        Icons.AutoMirrored.Outlined.MenuBook,
+                                        stringResource(R.string.ime_clip_search_wikipedia),
+                                        tint,
+                                        it,
+                                    )
                                 }
                                 actions.onOpenLink?.let {
                                     ClipTextActionIcon(
@@ -2433,19 +2485,46 @@ private fun ClipBody(item: ClipItem, maxLines: Int, hold: ClipHold) {
         // preview is still the link's, since previews were asked for.
         item.kind == ClipKind.LINK && !(hold.plainLinks && item.linkPreview?.let { it.failed || it.isEmpty } != false) ->
             ClipLinkBody(item, maxLines, hold.lineHeight)
-        // Cut before layout: a paragraph is measured whole however few lines
-        // are drawn, and one clip can be a whole document.
-        else -> Text(
-            text = remember(item.text, maxLines) { clipPreviewText(item.text, maxLines) },
-            maxLines = maxLines,
-            overflow = TextOverflow.Ellipsis,
-            fontSize = 13.sp,
-            // Set, not inherited: Material's body line height is nearly twice
-            // this size, which is what spread a three-line clip over five (#612).
-            lineHeight = hold.lineHeight,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        else -> {
+            // A clip that is one colour code (#fff, rgb(…), hsl(…), 0xAARRGGBB)
+            // wears the colour as a square before the code. parse() turns down
+            // anything over 40 characters before reading it, so a long clip
+            // costs nothing here.
+            val colour = remember(item.text) { ColourCodes.parse(item.text) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (colour != null) ClipColourSwatch(colour.argb, Modifier.padding(end = 6.dp))
+                // Cut before layout: a paragraph is measured whole however few lines
+                // are drawn, and one clip can be a whole document.
+                Text(
+                    text = remember(item.text, maxLines) { clipPreviewText(item.text, maxLines) },
+                    maxLines = maxLines,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 13.sp,
+                    // Set, not inherited: Material's body line height is nearly twice
+                    // this size, which is what spread a three-line clip over five (#612).
+                    lineHeight = hold.lineHeight,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
+}
+
+/**
+ * The colour a colour-code clip names, as a small rounded square. The hairline
+ * keeps a colour close to the card's own (white on a light theme, black on a
+ * dark one) from vanishing into it.
+ */
+@Composable
+private fun ClipColourSwatch(argb: Int, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(4.dp)
+    Box(
+        modifier = modifier
+            .size(16.dp)
+            .clip(shape)
+            .background(Color(argb))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape),
+    )
 }
 
 /**
@@ -2611,7 +2690,9 @@ private fun ClipCard(
             // Per card: one clip may still have a number or a time to show while
             // the next, pinned and unnumbered, has nothing left for the row.
             val shortcut = clipShortcut(item, hold)
-            val footer = buttons || number != null || time != null || tag || icons || shortcut
+            // The app it was copied from, as that app's icon (#970).
+            val appIcon = rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)
+            val footer = buttons || number != null || time != null || tag || icons || shortcut || appIcon != null
             if (footer) Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2620,6 +2701,7 @@ private fun ClipCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (number != null) ClipNumberBadge(number)
+                if (appIcon != null) ClipSourceIcon(appIcon, item.sourceApp)
                 if (tag) {
                     Text(
                         stringResource(R.string.ime_clip_type_rich_text),
@@ -2641,6 +2723,18 @@ private fun ClipCard(
         hold.picked?.let { ClipPickMark(it, Modifier.align(Alignment.TopEnd).padding(5.dp)) }
     }
 }
+
+/** The source app's icon, small, at the head of a card's or a row's footer (#970). */
+@Composable
+private fun ClipSourceIcon(icon: ImageBitmap, label: String?) {
+    Image(
+        bitmap = icon,
+        contentDescription = label,
+        modifier = Modifier.size(ClipSourceIconDp.dp),
+    )
+}
+
+private const val ClipSourceIconDp = 14
 
 /**
  * What was found in one clip, as an icon per kind with a count once there is
@@ -2806,6 +2900,7 @@ private fun ClipRow(
         if (showInfo) ClipHoldPopup(item, hold, callbacks) { showInfo = false }
         hold.picked?.let { ClipPickMark(it) }
         if (number != null) ClipNumberBadge(number)
+        rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)?.let { ClipSourceIcon(it, item.sourceApp) }
         if (visual) {
             // Width-bound, so the picture keeps its own shape at thumbnail
             // size, and height-capped so a portrait shot stays a row.

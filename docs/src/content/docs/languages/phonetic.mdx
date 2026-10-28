@@ -79,6 +79,8 @@ The other languages were measured on 2,000 words of the Aksharantar test set eac
 
 The model is one download of 13&nbsp;MB, shared by every language, from the data repository's `models` release on GitHub, checked against a SHA-256 built into the app. It also needs ONNX Runtime, the same part [Offline Sherpa](/tools/sherpa/) runs on, about 33&nbsp;MB, which the Google Play build gets from Play and the other builds from Maven Central. Turning the setting on starts both downloads under one progress bar, runtime first, and the size the switch quotes counts the runtime until it is on the phone, so a first download reads about 46&nbsp;MB rather than 13. The row under it shows how far they are and starts them again after a failure; once the model is here, tapping the row or swiping it offers to delete it. Deleting turns neural suggestions off on every language that had them; the model is also a row of its own under **Downloads** on the storage screen. Everything runs on the phone, on a thread of its own, and nothing you type leaves it. A reading that takes longer than the strip can wait for appears a moment later, while you are still on the word.
 
+The last row of the group is the **Romanized dictation model**, the same model family trained the other way round, from the script back to Latin letters. It has nothing to do with typing: it is for dictating this language in Latin letters (Banglish, Hinglish), where it spells the words the spelling lists don't know, and it is a download of its own. See [Hinglish, Banglish and other romanized languages](/tools/voice/#hinglish-banglish-and-other-romanized-languages).
+
 ### Let it choose the word
 
 <SettingsPath path="Languages & layouts / Bangla or Hindi / Suggestion strip / Let it choose the word" />

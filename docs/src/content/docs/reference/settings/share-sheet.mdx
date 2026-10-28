@@ -1,0 +1,51 @@
+---
+title: "Share sheet"
+description: "The keyboard's own share sheet: pinned and recent apps first, a search over every app that takes the share, and Copy, Open and Insert beside them. Every row on the Share sheet screen."
+sidebar:
+  order: 18.86
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+When the keyboard or the settings app shares something, it opens a share sheet of its own instead of Android's. The idea comes from Firefox's: the apps you use sit at the top, the rest are one search away, and the things you'd rather do than share (copy it, open the link) are buttons right there.
+
+Everything that shares goes through it. On the keyboard that's the selection bar's **Share**, a note's **Share** in the [Notes tool](/tools/notes/), the [gallery](/tools/gallery/)'s **Share to another app**, the [Send files](/tools/send/) link and received files, the [speed test](/tools/speed-test/) card, an [AI chat](/tools/ai-chat/) answer, and the pictures a chat app turned away. In the settings app it's sharing a note, the diagnostics, the network log, the offline links, the app itself from About, and a Send link.
+
+## On the keyboard
+
+The sheet opens as a keyboard panel, in the space the keys were in, so the app you're sharing from stays where it was. From the top:
+
+- **What you're sharing.** The subject or the first line of the text, or how many files.
+- **Copy** puts the text, or the first file, on the clipboard.
+- **Open** opens a link in your browser, or a single file in the app that views it. It shows only when the share is one link and nothing else, or one file.
+- **Insert** types the text into the field you were in, instead of sharing it. It shows for a note.
+- **More options** opens Android's own share sheet, for the contacts it suggests and anything else only it offers.
+- **Pinned and recent.** The apps you pinned, in the order you pinned them, then the last 8 apps you shared to, newest first.
+- **All apps.** Every app that takes this kind of share, by name.
+
+Tap the search box in the header and type to narrow the grid down; the key rows come back under the panel while you type. A search matches an app's name and the name of its share target, so "drive" finds **Save to Drive**, and names that start with what you typed come first.
+
+Hold an app to **Pin** or **Unpin** it, or to **Remove from recent**. The back arrow in the header closes the hold menu first, then the search, then the sheet. A share that started in another panel (the gallery, Notes, Send files) goes back to that panel when you close the sheet with it.
+
+When the keyboard isn't on screen to draw the panel, the share goes to Android's sheet as before.
+
+## In the settings app
+
+The same sheet slides up from the bottom of the screen, with a search field above the apps. Copy, Open and More options work the same way. There is no Insert, since there's no field to insert into.
+
+## Options
+
+<SettingsPath path="Advanced / Share sheet" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Use the keyboard's share sheet | Toggle | On |
+| Show recent apps *(shown only while the sheet is on)* | Toggle | On |
+| Unpin all apps *(shown only while the sheet is on)* | Action | |
+| Forget recent apps *(shown only while recent apps are on)* | Action | |
+
+**Use the keyboard's share sheet** off sends every share to Android's sheet, the way the keyboard shared before 0.6.4. On, Android's sheet is still one tap away under **More options**.
+
+**Show recent apps** off stops the sheet from remembering where you shared, and forgets the apps it had. Pinned apps stay.
+
+The sheet lists the same apps Android's does. What it can't show are the contacts and conversations Android suggests at the top of its own sheet: only the system can read those. Pinned and recent apps are kept per phone, so syncing settings between two phones leaves each one's lists alone.

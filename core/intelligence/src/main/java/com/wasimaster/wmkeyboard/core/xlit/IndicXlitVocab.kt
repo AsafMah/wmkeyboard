@@ -3,13 +3,19 @@ package com.wasimaster.wmkeyboard.core.xlit
 import java.text.Normalizer
 
 /**
- * IndicXlit's two vocabularies, read from `indicxlit-vocab.txt`: `s<TAB>symbol`
- * lines for the source ids (four specials, the 26 letters and a few more, a
- * `__xx__` token per language), then `t<TAB>symbol` lines for the target ids
- * (the specials, every script's characters, the same language tokens), each
- * in id order. Pure, so it is tested off the device.
+ * IndicXlit's two vocabularies, read from a pack's vocabulary file:
+ * `s<TAB>symbol` lines for the source ids, then `t<TAB>symbol` lines for the
+ * target ids, each in id order. For [IndicXlitModels.NATIVE] the source is
+ * four specials, the 26 letters and a few more and a `__xx__` token per
+ * language, and the target the specials, every script's characters and the
+ * same language tokens; [IndicXlitModels.LATIN] has the two the other way
+ * round. Pure, so it is tested off the device.
  */
-class IndicXlitVocab private constructor(private val source: List<String>, private val target: List<String>) {
+class IndicXlitVocab private constructor(
+    private val source: List<String>,
+    private val target: List<String>,
+    private val pack: IndicXlitModels.Pack,
+) {
 
     private val sourceIds: Map<String, Int> = source.withIndex().associate { (i, s) -> s to i }
     private val masks = HashMap<String, BooleanArray>()
@@ -17,33 +23,35 @@ class IndicXlitVocab private constructor(private val source: List<String>, priva
     val targetSize: Int get() = target.size
 
     /**
-     * The source ids for [roman] typed on [languageId]'s layout: the language
-     * token, the letters lower-cased, then `</s>`. Null when the language has
-     * no token or a character is not one the model was trained on (a digit,
-     * an apostrophe), which the caller takes as "no readings".
+     * The source ids for [word] in [languageId]: the language token, the
+     * characters, then `</s>`. A word typed in Latin letters is lower-cased;
+     * a native word is NFC without its joiners, the form the model learned
+     * (a nukta letter decomposed, no ZWJ or ZWNJ). Null when the language
+     * has no token or a character is not one the model was trained on (a
+     * digit, an apostrophe), which the caller takes as "no answer".
      */
-    fun encode(languageId: String, roman: String): IntArray? {
+    fun encode(languageId: String, word: String): IntArray? {
         val lang = sourceIds["__${languageId}__"] ?: return null
-        val out = IntArray(roman.length + 2)
+        val text = if (pack.latinSource) word else Normalizer.normalize(word, Normalizer.Form.NFC).filterNot(::isJoiner)
+        val out = IntArray(text.length + 2)
         out[0] = lang
-        for ((i, c) in roman.withIndex()) {
-            val lower = c.lowercaseChar()
-            if (lower !in 'a'..'z') return null
-            out[i + 1] = sourceIds[lower.toString()] ?: return null
+        for ((i, c) in text.withIndex()) {
+            val symbol = if (pack.latinSource) c.lowercaseChar().takeIf { it in 'a'..'z' } ?: return null else c
+            out[i + 1] = sourceIds[symbol.toString()]?.takeIf { it >= FIRST_SYMBOL } ?: return null
         }
         out[out.size - 1] = EOS
         return out
     }
 
     /**
-     * Which target ids a reading for [languageId] may write: `</s>`, and every
-     * symbol whose characters are all [IndicXlitModels.writes] for it.
+     * Which target ids an answer for [languageId] may write: `</s>`, and every
+     * symbol the pack [IndicXlitModels.Pack.writes] for it.
      */
     @Synchronized
     fun allowed(languageId: String): BooleanArray = masks.getOrPut(languageId) {
         BooleanArray(target.size) { i ->
             val s = target[i]
-            i == EOS || (i >= FIRST_SYMBOL && !s.startsWith("__") && s.isNotEmpty() && s.all { IndicXlitModels.writes(languageId, it) })
+            i == EOS || (i >= FIRST_SYMBOL && !s.startsWith("__") && s.isNotEmpty() && pack.writes(languageId, s))
         }
     }
 
@@ -61,7 +69,10 @@ class IndicXlitVocab private constructor(private val source: List<String>, priva
         const val EOS = 2
         private const val FIRST_SYMBOL = 4
 
-        fun parse(lines: Sequence<String>): IndicXlitVocab {
+        private fun isJoiner(c: Char): Boolean = c == '\u200C' || c == '\u200D'
+
+        /** [lines] of [pack]'s vocabulary file. */
+        fun parse(lines: Sequence<String>, pack: IndicXlitModels.Pack = IndicXlitModels.NATIVE): IndicXlitVocab {
             val source = ArrayList<String>()
             val target = ArrayList<String>()
             for (line in lines) {
@@ -75,7 +86,7 @@ class IndicXlitVocab private constructor(private val source: List<String>, priva
                 }
             }
             require(source.size > FIRST_SYMBOL && target.size > FIRST_SYMBOL) { "empty vocabulary" }
-            return IndicXlitVocab(source, target)
+            return IndicXlitVocab(source, target, pack)
         }
 
         /**

@@ -119,7 +119,7 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
             }
         }
         if (mode == SemanticSearchMode.TEXT_AND_PICTURES) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.semantic_tag_stickers_title,
                     stringResource(R.string.semantic_tag_stickers_subtitle),
@@ -129,7 +129,7 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
             }
         }
         if (onDisk > 0L) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ActionRow(
                     R.string.semantic_delete_title,
                     subtitle = stringResource(R.string.semantic_delete_subtitle, size(onDisk)),

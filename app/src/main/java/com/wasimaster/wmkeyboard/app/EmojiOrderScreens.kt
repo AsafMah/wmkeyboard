@@ -59,6 +59,10 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiOrder
+import com.wasimaster.wmkeyboard.core.emoji.EmojiOrderPreset
+import com.wasimaster.wmkeyboard.app.storage.ConfirmDeleteDialog
+import com.wasimaster.wmkeyboard.core.settings.EmojiGridLayout
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,12 +87,13 @@ internal fun emojiOrderRoute(category: String): String = "$EMOJI_ORDER_ROUTE/$ca
  * The bundled catalog, read off the asset once per screen.
  *
  * The keyword packs the keyboard merges in are deliberately not read: `merge`
- * maps over the catalog and never adds an entry, so the bundled file is the
- * whole set of emoji and the whole set of categories, and loading the packs
- * would cost a folder walk to arrive at the same list.
+ * maps over the catalog and never adds an entry, so the bundled file plus the
+ * hand-added emoji (see [rememberEmojiCatalog]) is the whole set of emoji and
+ * categories, and loading the packs would cost a folder walk to arrive at the
+ * same list.
  */
 @Composable
-private fun rememberEmojiCatalog(): List<EmojiEntry> {
+internal fun rememberBundledEmojiCatalog(): List<EmojiEntry> {
     val context = LocalContext.current
     return produceState(initialValue = emptyList<EmojiEntry>(), context) {
         value = withContext(Dispatchers.IO) {
@@ -97,6 +102,100 @@ private fun rememberEmojiCatalog(): List<EmojiEntry> {
             }.getOrDefault(emptyList())
         }
     }.value
+}
+
+/**
+ * The catalog the keyboard draws: the bundled one with the hand-added emoji
+ * appended the same way the IME appends them, so an added face has its slot
+ * here and can be dragged like any other.
+ */
+@Composable
+private fun rememberEmojiCatalog(settings: LiveSettings): List<EmojiEntry> {
+    val bundled = rememberBundledEmojiCatalog()
+    val added = settings.watch { it.emoji.added }
+    return remember(bundled, added) {
+        EmojiCatalog.withAdded(
+            bundled,
+            added.map { EmojiCatalog.addedEntry(it.emoji, it.category, it.name, it.keywords) },
+        )
+    }
+}
+
+/**
+ * The shipped emoji order presets, read off their assets once per screen. A
+ * preset whose file is missing or unreadable is left out rather than offered
+ * as an empty arrangement.
+ */
+@Composable
+private fun rememberEmojiOrderPresets(): Map<String, EmojiOrderPreset> {
+    val context = LocalContext.current
+    return produceState(initialValue = emptyMap<String, EmojiOrderPreset>(), context) {
+        value = withContext(Dispatchers.IO) {
+            EmojiOrderPreset.ids.mapNotNull { id ->
+                runCatching {
+                    val text = context.assets.open(EmojiOrderPreset.assetPath(id))
+                        .bufferedReader()
+                        .use { it.readText() }
+                    id to EmojiOrderPreset.parse(text)
+                }.getOrNull()
+            }.toMap()
+        }
+    }.value
+}
+
+/** "Arrange like" with nothing stored: the catalog's own Unicode order. */
+private const val PRESET_UNICODE = "unicode"
+
+/** "Arrange like" after a hand edit: no preset matches what is stored. */
+private const val PRESET_CUSTOM = "custom"
+
+/** The grid WM Keyboard ships with, which "Unicode" puts back. */
+private val DefaultEmojiGrid: EmojiGridLayout get() = EmojiGridLayout.of(SettingsDefaults.emoji)
+
+/** The grid [preset] sets: its own values, our defaults where it names none. */
+private fun EmojiOrderPreset.gridLayout(): EmojiGridLayout {
+    val base = DefaultEmojiGrid
+    val own = grid ?: return base
+    return EmojiGridLayout(
+        columns = own.columns ?: base.columns,
+        rowHeight = own.rowHeight ?: base.rowHeight,
+        cellSize = own.cellSize ?: base.cellSize,
+        emojiSize = own.emojiSize ?: base.emojiSize,
+        continuous = own.continuous ?: base.continuous,
+    )
+}
+
+/**
+ * Which preset the stored orders and grid are, read back off them rather
+ * than kept as a setting of its own, so a drag or a resize after picking one
+ * honestly shows "Your own" and putting it back shows the preset again.
+ */
+private fun matchingPreset(
+    presets: Map<String, EmojiOrderPreset>,
+    categories: List<String>,
+    order: List<String>,
+    hidden: Set<String>,
+    emojiOrder: Map<String, List<String>>,
+    grid: EmojiGridLayout,
+): String {
+    if (order.isEmpty() && hidden.isEmpty() && emojiOrder.isEmpty() && grid == DefaultEmojiGrid) {
+        return PRESET_UNICODE
+    }
+    return presets.entries.firstOrNull { (_, preset) ->
+        preset.categoryOrder(categories) == order &&
+            preset.hidden(categories) == hidden &&
+            preset.emoji == emojiOrder &&
+            preset.gridLayout() == grid
+    }?.key ?: PRESET_CUSTOM
+}
+
+private fun emojiPresetLabelRes(id: String): Int = when (id) {
+    "gboard" -> R.string.langemoji_emoji_order_preset_gboard
+    "swiftkey" -> R.string.langemoji_emoji_order_preset_swiftkey
+    "samsung" -> R.string.langemoji_emoji_order_preset_samsung
+    "heliboard" -> R.string.langemoji_emoji_order_preset_heliboard
+    PRESET_CUSTOM -> R.string.langemoji_emoji_order_preset_custom
+    else -> R.string.langemoji_emoji_order_preset_unicode
 }
 
 /** A category id as a heading: the catalog names them lowercase. */
@@ -110,19 +209,75 @@ internal fun EmojiCategorySettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val catalog = rememberEmojiCatalog()
-    // Counted off the catalog, not off the stored order, so the subtitle says
-    // how many emoji the category has rather than how many were arranged.
-    val counts = remember(catalog) {
-        catalog.asSequence()
-            .filter { it.parent == null }
-            .groupingBy { it.category }
-            .eachCount()
-    }
+    val catalog = rememberEmojiCatalog(settings)
+    val presets = rememberEmojiOrderPresets()
     SettingsGroup(
         stringResource(R.string.langemoji_emoji_categories_order_title),
         info = stringResource(R.string.langemoji_emoji_categories_info),
     ) {
+        item {
+            val categoryOrder = settings.watch { it.emoji.categoryOrder }
+            val categoryEmojiOrder = settings.watch { it.emoji.categoryEmojiOrder }
+            val hiddenCategories = settings.watch { it.emoji.hiddenCategories }
+            val grid = settings.watch { EmojiGridLayout.of(it.emoji) }
+            val catalogCategories = remember(catalog) { EmojiOrder.catalogCategories(catalog) }
+            val selected = matchingPreset(
+                presets, catalogCategories, categoryOrder, hiddenCategories, categoryEmojiOrder, grid,
+            )
+            var confirm by remember { mutableStateOf<String?>(null) }
+            val apply: (String) -> Unit = { id ->
+                scope.launch {
+                    val preset = presets[id]
+                    if (preset == null) {
+                        repository.setEmojiOrder(emptyList(), emptySet(), emptyMap(), DefaultEmojiGrid)
+                    } else {
+                        repository.setEmojiOrder(
+                            preset.categoryOrder(catalogCategories),
+                            preset.hidden(catalogCategories),
+                            preset.emoji,
+                            preset.gridLayout(),
+                        )
+                    }
+                }
+            }
+            val options = buildList {
+                add(PRESET_UNICODE)
+                addAll(EmojiOrderPreset.ids.filter { it in presets })
+                // Listed only while it is what is stored: it is a state the
+                // user reaches by dragging, not one this row can put back.
+                if (selected == PRESET_CUSTOM) add(PRESET_CUSTOM)
+            }.map { it to stringResource(emojiPresetLabelRes(it)) }
+            ChoiceSetting(
+                title = R.string.langemoji_emoji_order_preset_title,
+                subtitle = stringResource(R.string.langemoji_emoji_order_preset_subtitle),
+                info = stringResource(R.string.langemoji_emoji_order_preset_info),
+                options = options,
+                selected = selected,
+                default = PRESET_UNICODE,
+            ) { id ->
+                when {
+                    id == selected || id == PRESET_CUSTOM -> Unit
+                    // A hand-made order is the one thing here a pick can lose.
+                    selected == PRESET_CUSTOM -> confirm = id
+                    else -> apply(id)
+                }
+            }
+            confirm?.let { id ->
+                ConfirmDeleteDialog(
+                    title = stringResource(R.string.langemoji_emoji_order_preset_confirm_title),
+                    body = stringResource(
+                        R.string.langemoji_emoji_order_preset_confirm_body,
+                        stringResource(emojiPresetLabelRes(id)),
+                    ),
+                    confirmLabel = stringResource(R.string.langemoji_emoji_order_preset_confirm_action),
+                    onDismiss = { confirm = null },
+                    onConfirm = {
+                        confirm = null
+                        apply(id)
+                    },
+                )
+            }
+        }
         item {
             val categoryOrder = settings.watch { it.emoji.categoryOrder }
             val categoryEmojiOrder = settings.watch { it.emoji.categoryEmojiOrder }
@@ -132,12 +287,11 @@ internal fun EmojiCategorySettings(
             val categories = remember(catalog, categoryOrder) {
                 EmojiOrder.merge(categoryOrder, EmojiOrder.catalogCategories(catalog))
             }
-            val samples = remember(catalog, categoryEmojiOrder) {
-                categories.associateWith { category ->
-                    EmojiOrder.emoji(catalog, category, categoryEmojiOrder[category].orEmpty())
-                        .take(3)
-                        .joinToString("")
-                }
+            // Counted off the layout, not off the stored order, so the subtitle
+            // says how many emoji the tab draws, including any another category
+            // lent it, rather than how many were arranged.
+            val layout = remember(catalog, categoryEmojiOrder) {
+                EmojiOrder.layout(catalog, categoryEmojiOrder)
             }
             ReorderableColumn(
                 items = categories,
@@ -147,8 +301,8 @@ internal fun EmojiCategorySettings(
             ) { category ->
                 EmojiCategoryRowBody(
                     category = category,
-                    sample = samples[category].orEmpty(),
-                    count = counts[category] ?: 0,
+                    sample = layout[category].orEmpty().take(3).joinToString(""),
+                    count = layout[category]?.size ?: 0,
                     hidden = category in hiddenCategories,
                     // The last visible tab cannot be hidden: the panel pages by
                     // category, so a panel with none is one with nothing to
@@ -267,10 +421,11 @@ internal fun EmojiOrderScreen(
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val catalog = rememberEmojiCatalog()
-    val stored = settings.watch { it.emoji.categoryEmojiOrder[category].orEmpty() }
-    val emoji = remember(catalog, category, stored) {
-        EmojiOrder.emoji(catalog, category, stored)
+    val catalog = rememberEmojiCatalog(settings)
+    val orders = settings.watch { it.emoji.categoryEmojiOrder }
+    val stored = orders[category].orEmpty()
+    val emoji = remember(catalog, category, orders) {
+        EmojiOrder.emoji(catalog, category, orders)
     }
     WmLazyScreen(
         anim = anim,

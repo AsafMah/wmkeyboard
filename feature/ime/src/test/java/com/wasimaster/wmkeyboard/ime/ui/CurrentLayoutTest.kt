@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.roleIn
 import com.wasimaster.wmkeyboard.core.layout.tabletGridWidth
 import com.wasimaster.wmkeyboard.core.layout.withoutGlobeKey
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
@@ -712,6 +713,16 @@ class CurrentLayoutTest {
         // it, so the plain hold still asks a question.
         assertEquals(listOf("؟", "…", "\u064E", "!"), popup.take(4))
         assertEquals(ScriptRegistry[ScriptId.ARABIC].periodAlternates - "\u064E", popup.drop(4))
+    }
+
+    /** Issue #972: Sorani is Arabic script but never written with the harakat. */
+    @Test
+    fun `sorani keeps the harakat off the period popup`() {
+        val s = state(buried("…", "!"), settings = plain()).copy(
+            script = ScriptRegistry[ScriptId.ARABIC],
+            language = LanguageRegistry.byId("ckb"),
+        )
+        assertEquals(listOf("؟", "…", "!"), periodOf(s).longPress)
     }
 
     /** Only the letters page: the symbols pages' "." is for numbers. */

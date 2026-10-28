@@ -24,6 +24,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.EMOJI -> Color(0xFFFFB300)
     ToolbarTool.GIF -> Color(0xFFFF7043)
     ToolbarTool.STICKER -> Color(0xFFFFA726)
+    ToolbarTool.EMOJI_MIX -> Color(0xFFFFCA28)
     ToolbarTool.CAMERA -> Color(0xFFF06292)
     ToolbarTool.THEMES -> Color(0xFFEC407A)
 
@@ -74,11 +75,15 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.TEXT_REPEAT -> Color(0xFF7E57C2)
     ToolbarTool.READ_BACK -> Color(0xFF26A69A)
     ToolbarTool.TYPING_TEST -> Color(0xFFFF7043)
+    // A clear sky blue, for a line to the internet; the typing test beside it is orange.
+    ToolbarTool.SPEED_TEST -> Color(0xFF42A5F5)
     // Trophy gold: the screen it opens is levels and achievements.
     ToolbarTool.STATISTICS -> Color(0xFFFFA000)
     ToolbarTool.FIND_REPLACE -> Color(0xFF5C6BC0)
     // Sticky-note yellow.
     ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> Color(0xFFFBC02D)
+    // A ticked-box green, apart from the notes' yellow beside it.
+    ToolbarTool.TODO -> Color(0xFF43A047)
     ToolbarTool.MEDIA_CONTROL -> Color(0xFFAB47BC)
     // KDE's own blue.
     ToolbarTool.KDE_CONNECT -> Color(0xFF1D99F3)
@@ -112,6 +117,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
     // Home Assistant's own sky blue, so the tile reads as the house it controls.
     ToolbarTool.HOME_ASSISTANT -> Color(0xFF18BCF2)
+    // Shazam's blue, the colour everyone knows "what song is this" by, a shade apart from the media purple.
+    ToolbarTool.MUSIC_ID -> Color(0xFF1E88E5)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
     // A clear sky blue: a link that travels, apart from the clipboard's and KDE Connect's blues.
     ToolbarTool.SEND_FILES -> Color(0xFF26A69A)

@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Copia</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Dígits</string>
+    <string name="core_content_selection_macro_edit_word">Edita la paraula</string>
     <string name="core_content_selection_macro_email">Correu electrònic</string>
     <string name="core_content_selection_macro_fancy">Elegant</string>
     <string name="core_content_selection_macro_find">Cerca</string>

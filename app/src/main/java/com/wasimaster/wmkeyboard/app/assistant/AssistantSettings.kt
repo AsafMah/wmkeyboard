@@ -2,8 +2,10 @@ package com.wasimaster.wmkeyboard.app.assistant
 
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.GlideVocabulary
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import kotlin.math.roundToInt
 
 /**
  * The settings the Settings assistant (#788) may change, and nothing else.
@@ -80,7 +82,37 @@ internal sealed class AssistantSetting(
         fun withUnit(value: String) = "$value $unit"
     }
 
+    /**
+     * One of a fixed set of options, named by the enum constant: the model
+     * reads and writes the name, and a card shows the option's label.
+     */
+    class Choice(
+        name: String,
+        @StringRes titleRes: Int,
+        /** Each option's canonical name with the label it is shown by. */
+        val options: List<Pair<String, Int>>,
+        private val get: (KeyboardSettings) -> String,
+        private val set: suspend SettingsRepository.(String) -> Unit,
+    ) : AssistantSetting(name, titleRes) {
+        override fun read(settings: KeyboardSettings) = get(settings)
+
+        override fun parse(raw: String): String? =
+            options.firstOrNull { it.first.equals(raw.trim(), ignoreCase = true) }?.first
+
+        override suspend fun write(repository: SettingsRepository, value: String) =
+            repository.set(value)
+
+        override val accepts = "one of " + options.joinToString { it.first }
+
+        /** The label resource of [value], or 0 for a value that is not an option. */
+        @StringRes
+        fun labelOf(value: String): Int = options.firstOrNull { it.first == value }?.second ?: 0
+    }
+
     companion object {
+        /** [GestureSettings.frequencyWeight] as the assistant reads it: a percentage, 0 for the language's own. */
+        internal fun frequencyPercent(weight: Float): Int = (weight * 100f).roundToInt()
+
         val all: List<AssistantSetting> = listOf(
             Switch("autocorrect", R.string.typing_autocorrect_title, { it.correction.enabled }, { setAutocorrect(it) }),
             Switch("suggestions", R.string.typing_suggestions_title, { it.suggestions }, { setSuggestions(it) }),
@@ -111,6 +143,20 @@ internal sealed class AssistantSetting(
             Number(
                 "long_press_delay", R.string.keypress_long_press_delay_title, 100..800, "ms",
                 { it.longPressDelayMs }, { setLongPressDelayMs(it) },
+            ),
+            // The two the glide check-up fits (issue #966 §5.5). Here so its
+            // proposals are AssistantProposals with the same apply and undo
+            // rules as the assistant's.
+            Choice(
+                "glide_vocabulary", R.string.typing_glide_vocabulary_title,
+                GlideVocabulary.entries.map { it.name to it.labelRes },
+                { it.gesture.vocabulary.name },
+                { setGestureVocabulary(GlideVocabulary.valueOf(it)) },
+            ),
+            Number(
+                "glide_frequency_weight", R.string.typing_glide_checkup_frequency_title, 0..100, "%",
+                { frequencyPercent(it.gesture.frequencyWeight) },
+                { setGestureFrequencyWeight(it / 100f) },
             ),
         )
 

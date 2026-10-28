@@ -741,8 +741,17 @@ internal fun CustomLayoutPanel(
 internal fun MoonPhasePanel(state: KeyboardUiState) {
     val height = keyRowsHeight(state)
     val kb = LocalKbTheme.current
-    val info = remember { MoonPhase.at(System.currentTimeMillis()) }
-    val dateFormat = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()) }
+    val now = remember { System.currentTimeMillis() }
+    val info = remember { MoonPhase.at(now) }
+    val quarters = remember { MoonPhase.quarters(now) }
+    val context = LocalContext.current
+    // The time with the day: a phase falls at an hour, and "full moon on
+    // Tuesday" was not enough to know whether tonight is the night (#970).
+    val dateFormat = remember {
+        val time = if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
+        SimpleDateFormat("EEE d MMM, $time", Locale.getDefault())
+    }
+    val arabic = state.settings.sensorTools.moonArabicNames
 
     Row(
         modifier = Modifier
@@ -792,6 +801,9 @@ internal fun MoonPhasePanel(state: KeyboardUiState) {
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
             )
+            if (arabic) {
+                Text(MoonPhase.arabicName(info.phaseIndex), color = kb.modifierKeyText, fontSize = 15.sp)
+            }
             Text(
                 stringResource(
                     R.string.ime_moon_detail_info,
@@ -802,22 +814,20 @@ internal fun MoonPhasePanel(state: KeyboardUiState) {
                 fontSize = 12.sp,
             )
             Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(
-                    R.string.ime_moon_full_info,
-                    dateFormat.format(Date(info.nextFullMoonMillis)),
-                ),
-                color = kb.modifierKeyText,
-                fontSize = 13.sp,
-            )
-            Text(
-                stringResource(
-                    R.string.ime_moon_new_info,
-                    dateFormat.format(Date(info.nextNewMoonMillis)),
-                ),
-                color = kb.modifierKeyText,
-                fontSize = 13.sp,
-            )
+            // The main phases around today (#970): the one just gone, dimmed,
+            // then the next three.
+            for (q in quarters) {
+                val past = q.atMillis <= now
+                val name = stringResource(MoonPhase.phaseNameRes(q.phaseIndex)) +
+                    if (arabic) " · " + MoonPhase.arabicName(q.phaseIndex) else ""
+                Text(
+                    stringResource(R.string.ime_moon_phase_at, name, dateFormat.format(Date(q.atMillis))),
+                    color = if (past) kb.toolbarIcon else kb.modifierKeyText,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }

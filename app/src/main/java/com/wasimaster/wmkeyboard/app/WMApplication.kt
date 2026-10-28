@@ -81,6 +81,9 @@ open class WMApplication : Application() {
         NetLog.attach(this)
         // Data saving's say over a download the connection changes under.
         com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
+        // Where a Khipro spec set newer than the bundled one is kept (#909);
+        // loaded the first time Khipro types, not here.
+        com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs.attach(this)
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)
@@ -134,9 +137,10 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
         // The same for the dictionaries the user imported (#765).
         com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.attach(filesDir)
-        // Where zinnia's handwriting models are downloaded to, for the
-        // keyboard's panel and the Handwriting settings alike.
+        // Where zinnia's and PaddleOCR's handwriting models are downloaded
+        // to, for the keyboard's panel and the Handwriting settings alike.
         com.wasimaster.wmkeyboard.core.handwriting.ZinniaModels.attach(filesDir)
+        com.wasimaster.wmkeyboard.core.handwriting.InkOcrModels.attach(filesDir)
         // Where offline Whisper keeps its GPU verdicts and the kernels the
         // driver compiled, before the keyboard can dictate. One small read.
         com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu.attach(this)
@@ -149,6 +153,8 @@ open class WMApplication : Application() {
         // "Ask AI" in other apps' selection menus follows its switch and the
         // AI tool's, wherever either is changed from (#897).
         AskAiSelectionMenu.start(this, repository)
+        // The same for "WM Keyboard" and "WM Translate" there (#916).
+        TextActionsSelectionMenu.start(this, repository)
         // The clock tool's alarms and timers. Android drops every registered
         // wake-up at a reboot, and the app has no boot receiver on purpose:
         // the keyboard starts at boot anyway, and this puts them back then.

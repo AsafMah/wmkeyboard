@@ -51,21 +51,13 @@ val googleHomeVersion: String? = file("libs/googlehome/m2/com/google/android/gms
     ?.filter { it.isDirectory }?.map { it.name }?.maxOrNull()
 val googleHomeAars: Boolean = file("libs/googlehome").listFiles()?.any { it.name.endsWith(".aar") } == true
 val googleHomeSdk: Boolean = googleHomeVersion != null || googleHomeAars
-// Having the SDK on disk is not enough: it costs about 22 MB of dex before R8,
-// so it is linked only when wmkb.enableGoogleHome says so too. Pass
-// -Pwmkb.enableGoogleHome=true for one build (a fast one, say) and leave
-// local.properties at false; :core:config reads the same flag for
-// ENABLE_GOOGLE_HOME, so the code and the dependency never disagree.
-val googleHome: Boolean = googleHomeSdk && googleSdks && run {
-    val localProperties = Properties().apply {
-        val file = rootProject.file("local.properties")
-        if (file.exists()) file.inputStream().use { load(it) }
-    }
-    (providers.gradleProperty("wmkb.enableGoogleHome").orNull
-        ?: localProperties.getProperty("wmkb.enableGoogleHome")
-        ?: System.getenv("WMKB_ENABLE_GOOGLE_HOME")
-        ?: "false").toBoolean()
-}
+// Having the SDK on disk is the decision: a build that has it links it and
+// compiles the real GoogleHomeSupport, at about 22 MB of dex before R8 on the
+// builds that carry it whole (Play gets it as an on-demand split). There
+// used to be a wmkb.enableGoogleHome flag on top; :core:config reads the
+// same two facts for ENABLE_GOOGLE_HOME, so the code and the dependency
+// never disagree.
+val googleHome: Boolean = googleHomeSdk && googleSdks
 
 val playStoreChannel = run {
     val localProperties = Properties().apply {

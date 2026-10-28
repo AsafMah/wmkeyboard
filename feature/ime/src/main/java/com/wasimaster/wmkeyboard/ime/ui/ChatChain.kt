@@ -46,7 +46,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TravelExplore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
@@ -293,6 +295,8 @@ private fun ToolStep(
         use.running -> null
         use.failed -> Icons.Outlined.ErrorOutline
         use.tool == AiTools.WEB_FETCH && !use.isMcp -> Icons.Outlined.Language
+        use.tool == AiTools.RESEARCH_PLAN && !use.isMcp -> Icons.Outlined.Checklist
+        use.tool == AiTools.RESEARCH_REVIEW && !use.isMcp -> Icons.Outlined.TravelExplore
         !use.isMcp && use.tool in SEARCH_TOOLS -> Icons.Outlined.Search
         else -> Icons.Outlined.Handyman
     }
@@ -306,6 +310,14 @@ private fun ToolStep(
         expanded = expanded,
         animate = animate,
     ) { expanded = !expanded }
+    // A research plan is the run's to-do list: shown open, ticked as it goes,
+    // rather than folded away like the steps it leads to. While it asks to be
+    // approved the card under it shows it instead.
+    val plan = use.tool == AiTools.RESEARCH_PLAN && !use.isMcp
+    if (plan && !use.awaitingApproval && use.output.isNotEmpty()) {
+        ResearchChecklist(use.output, colors, fontSize * SMALLER, Modifier.padding(start = 2.dp, top = 2.dp, bottom = 2.dp))
+        return
+    }
     StepBody(expanded, animate) {
         Column(
             modifier = Modifier.padding(start = 2.dp, top = 2.dp),

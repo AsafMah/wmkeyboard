@@ -144,6 +144,12 @@ fun ThemeKeyboardPreview(
      * (#265): a key, a tool or the strip goes to it instead of to the sandbox.
      */
     picker: PreviewPicker? = null,
+    /**
+     * The miniature's size on top of the fit, from the grips the editor draws
+     * around it (#967): 1 is as wide as the screen allows, less draws the
+     * whole keyboard that much smaller. The docked view ignores it.
+     */
+    previewScale: Float = 1f,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -339,6 +345,7 @@ fun ThemeKeyboardPreview(
         // consumed here so the miniature has no phantom band along its floor.
         MiniatureFrame(
             maxHeight = (configuration.screenHeightDp * MINIATURE_HEIGHT_SHARE).dp,
+            userScale = previewScale,
             modifier = modifier.consumeWindowInsets(WindowInsets.navigationBars),
         ) {
             // Rounded on the keyboard itself, inside the scale, so the corners
@@ -541,7 +548,8 @@ private fun KeyboardLayout.unthemed(): KeyboardLayout =
 /**
  * Lays [content] out at the width of the screen — the width the keyboard has
  * when it is up — and draws it scaled down to fit the width on offer and
- * [maxHeight], centred. Scaling the drawn result rather than measuring the
+ * [maxHeight], then by [userScale] on top. It takes only the width it draws
+ * in; the caller centres it. Scaling the drawn result rather than measuring the
  * keyboard narrower is what keeps the proportions honest: a key is as tall
  * for its width here as it is under the user's thumb, only smaller.
  *
@@ -551,6 +559,7 @@ private fun KeyboardLayout.unthemed(): KeyboardLayout =
 @Composable
 private fun MiniatureFrame(
     maxHeight: Dp,
+    userScale: Float,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -573,12 +582,13 @@ private fun MiniatureFrame(
             1f,
             constraints.maxWidth.toFloat() / placeable.width.coerceAtLeast(1),
             maxHeightPx.toFloat() / placeable.height.coerceAtLeast(1),
-        )
+        ) * userScale.coerceIn(0f, 1f)
         val width = (placeable.width * scale).roundToInt()
         val height = (placeable.height * scale).roundToInt()
-        val boxWidth = if (constraints.hasBoundedWidth) constraints.maxWidth else width
-        layout(boxWidth, height) {
-            placeable.placeWithLayer((boxWidth - width) / 2, 0) {
+        // Its own width rather than all that is on offer, so the editor's
+        // resize grips land on the keyboard's corners and not the screen's.
+        layout(width, height) {
+            placeable.placeWithLayer(0, 0) {
                 scaleX = scale
                 scaleY = scale
                 transformOrigin = TransformOrigin(0f, 0f)

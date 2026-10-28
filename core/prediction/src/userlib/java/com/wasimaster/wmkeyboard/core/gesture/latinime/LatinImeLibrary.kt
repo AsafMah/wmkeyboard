@@ -24,7 +24,9 @@ import java.io.InputStream
  * machine-code bytes, and only the exact builds the JNI interface was
  * written against may run. A library cannot be unloaded, so a new import
  * takes over at the next keyboard start, and a removed one stays in memory
- * until then.
+ * until then. A removed library is retired on the spot all the same: nothing
+ * decodes with it again ([isLoaded] is false), and [status] says it is
+ * [Status.Removed] rather than loaded.
  *
  * A library that crashes the process would crash it again at every start, so
  * the risky steps (the load, the first dictionary build, the first stroke of
@@ -56,6 +58,13 @@ object LatinImeLibrary {
 
         /** Loaded into this process. */
         data object Loaded : Status
+
+        /**
+         * Removed while loaded: the file is gone and nothing uses the library,
+         * but Android cannot unload it, so it stays in memory until the
+         * keyboard restarts.
+         */
+        data object Removed : Status
 
         /** Imported but not loadable: [reason], with [detail] for the log line. */
         data class Failed(val reason: Failure, val detail: String = "") : Status
@@ -93,8 +102,16 @@ object LatinImeLibrary {
     @Volatile
     private var loadFailure: Status.Failed? = null
 
-    /** True once the library is in this process. */
-    val isLoaded: Boolean get() = loaded
+    /**
+     * The library was removed after it loaded. It cannot leave the process,
+     * so this is what stops its use; importing again lifts it, since the one
+     * pinned build for this ABI is the library already in memory.
+     */
+    @Volatile
+    private var retired = false
+
+    /** True once the library is in this process and has not been removed since. */
+    val isLoaded: Boolean get() = loaded && !retired
 
     /** The ABI this process runs, which is the build of the library it can load. */
     fun processAbi(): String {
@@ -116,7 +133,7 @@ object LatinImeLibrary {
     private fun marker(noBackupDir: File) = File(dir(noBackupDir), PROBATION)
 
     fun status(noBackupDir: File): Status {
-        if (loaded) return Status.Loaded
+        if (loaded) return if (retired) Status.Removed else Status.Loaded
         loadFailure?.let { return it }
         if (!file(noBackupDir).isFile) return Status.Missing
         if (marker(noBackupDir).exists()) return Status.Failed(Failure.CRASHED)
@@ -159,6 +176,7 @@ object LatinImeLibrary {
                     } else {
                         marker(noBackupDir).delete()
                         loadFailure = null
+                        retired = false
                         ImportResult.Installed
                     }
                 }
@@ -176,12 +194,17 @@ object LatinImeLibrary {
     /** [import] from a file on disk. */
     fun import(noBackupDir: File, source: File): ImportResult = source.inputStream().use { import(noBackupDir, it) }
 
-    /** Deletes the library and its dictionaries. A loaded one stays in memory until the process ends. */
+    /**
+     * Deletes the library and its dictionaries. A loaded one stays in memory
+     * until the process ends, but is retired now: [isLoaded] turns false, so
+     * glides go back to the built-in decoder at once.
+     */
     fun remove(noBackupDir: File) {
         val dir = dir(noBackupDir)
         dir.walkBottomUp().forEach { it.setWritable(true) }
         dir.deleteRecursively()
         loadFailure = null
+        if (loaded) retired = true
     }
 
     /** Clears a crash marker so the next start tries the library again. */
@@ -198,7 +221,7 @@ object LatinImeLibrary {
      */
     @Synchronized
     fun load(noBackupDir: File): Boolean {
-        if (loaded) return true
+        if (loaded) return !retired
         if (loadFailure != null) return false
         val file = file(noBackupDir)
         if (!file.isFile) return false

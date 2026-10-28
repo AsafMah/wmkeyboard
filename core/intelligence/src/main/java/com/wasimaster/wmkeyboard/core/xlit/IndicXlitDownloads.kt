@@ -25,16 +25,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** The download of [IndicXlitModels.NATIVE], neural suggestions on the phonetic layouts. */
+object IndicXlitDownloads : XlitDownloads(IndicXlitModels.NATIVE)
+
+/** The download of [IndicXlitModels.LATIN], romanized dictation's model. */
+object IndicXlitLatinDownloads : XlitDownloads(IndicXlitModels.LATIN)
+
 /**
- * The download of [IndicXlitModels]' pack, ONNX Runtime first wherever it is
- * delivered on demand (Play's `:feature:onnx`, or the pinned library on a
- * GitHub or F-Droid build), so the settings row shows one bar for both.
+ * The download of one of [IndicXlitModels]' packs, ONNX Runtime first
+ * wherever it is delivered on demand (Play's `:feature:onnx`, or the pinned
+ * library on a GitHub or F-Droid build), so the settings row shows one bar
+ * for both.
  *
  * Each file goes through [FileDownloader]: parallel ranges into a `.part`
  * that resumes piece by piece, and its name only after its SHA-256 matched.
  * Process-wide: the language screens and the keyboard read the same [status].
  */
-object IndicXlitDownloads {
+sealed class XlitDownloads(private val pack: IndicXlitModels.Pack) {
 
     sealed interface Status {
         data object NotDownloaded : Status
@@ -46,8 +53,6 @@ object IndicXlitDownloads {
         /** [messageRes] is the text to show; [messageArg] its one argument, or "". */
         data class Failed(@StringRes val messageRes: Int, val messageArg: String = "") : Status
     }
-
-    private const val SPACE_MARGIN_BYTES = 32L * 1024 * 1024
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
@@ -61,7 +66,7 @@ object IndicXlitDownloads {
         val running = synchronized(this) { job?.isActive == true }
         if (running) return
         _status.value = when {
-            IndicXlitModels.isDownloaded(context.noBackupFilesDir) -> Status.Downloaded
+            pack.isDownloaded(context.noBackupFilesDir) -> Status.Downloaded
             else -> _status.value as? Status.Failed ?: Status.NotDownloaded
         }
     }
@@ -77,8 +82,8 @@ object IndicXlitDownloads {
     fun bytesToFetch(context: Context): Long =
         missingModelBytes(context.applicationContext.noBackupFilesDir) + runtimeBytesToFetch()
 
-    private fun missingModelBytes(dir: File): Long = IndicXlitModels.Part.entries
-        .filter { IndicXlitModels.file(dir, it).let { f -> !f.isFile || f.length() != it.bytes } }
+    private fun missingModelBytes(dir: File): Long = pack.parts
+        .filter { pack.file(dir, it).let { f -> !f.isFile || f.length() != it.bytes } }
         .sumOf { it.bytes }
 
     private fun runtimeBytesToFetch(): Long =
@@ -86,15 +91,15 @@ object IndicXlitDownloads {
 
     /** Whether the model and what runs it are both here. Never downloads anything. */
     fun ready(context: Context): Boolean =
-        FeatureModules.onnx.installed && IndicXlitModels.isDownloaded(context.noBackupFilesDir)
+        FeatureModules.onnx.installed && pack.isDownloaded(context.noBackupFilesDir)
 
     /** Downloads the pack and the runtime. Idempotent. */
     fun start(context: Context) {
         val dir = context.applicationContext.noBackupFilesDir
         synchronized(this) {
             if (job?.isActive == true) return
-            val missing = IndicXlitModels.Part.entries.filter {
-                IndicXlitModels.file(dir, it).let { f -> !f.isFile || f.length() != it.bytes }
+            val missing = pack.parts.filter {
+                pack.file(dir, it).let { f -> !f.isFile || f.length() != it.bytes }
             }
             val modelBytes = missing.sumOf { it.bytes }
             // The runtime comes first and the model after it, under one bar:
@@ -126,24 +131,28 @@ object IndicXlitDownloads {
         }
     }
 
-    /** Deletes the pack, for the storage screen; the keyboard drops its readings with it. */
+    /** Deletes the pack, for the storage screen; the keyboard drops what it read with it. */
     fun delete(context: Context) {
         synchronized(this) { job?.cancel() }
         val dir = context.noBackupFilesDir
-        for (part in IndicXlitModels.Part.entries) {
-            IndicXlitModels.file(dir, part).delete()
-            FileDownloader.discard(IndicXlitModels.partFile(dir, part))
+        for (part in pack.parts) {
+            pack.file(dir, part).delete()
+            FileDownloader.discard(pack.partFile(dir, part))
         }
         _status.value = Status.NotDownloaded
     }
 
     private class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
 
+    private companion object {
+        const val SPACE_MARGIN_BYTES = 32L * 1024 * 1024
+    }
+
     /** Fetches [parts], reporting them after the [alreadyFetched] bytes of the runtime. */
     private suspend fun download(dir: File, parts: List<IndicXlitModels.Part>, alreadyFetched: Long) {
-        val folder = IndicXlitModels.dir(dir).apply { mkdirs() }
+        val folder = pack.dir(dir).apply { mkdirs() }
         val total = parts.sumOf { it.bytes }
-        val staged = parts.sumOf { FileDownloader.bytesDone(IndicXlitModels.partFile(dir, it)).coerceAtMost(it.bytes) }
+        val staged = parts.sumOf { FileDownloader.bytesDone(pack.partFile(dir, it)).coerceAtMost(it.bytes) }
         if (StatFs(folder.path).availableBytes < total - staged + SPACE_MARGIN_BYTES) {
             val neededMb = ((total - staged + SPACE_MARGIN_BYTES) / 1e6).roundToInt()
             throw FailedException(R.string.core_intel_ocr_download_error_no_space, neededMb.toString())
@@ -155,11 +164,11 @@ object IndicXlitDownloads {
             try {
                 FileDownloader.fetchVerified(
                     url = url,
-                    target = IndicXlitModels.file(dir, part),
+                    target = pack.file(dir, part),
                     size = part.bytes,
                     sha256 = part.sha256,
                     source = NetSource.DOWNLOAD_XLIT,
-                    part = IndicXlitModels.partFile(dir, part),
+                    part = pack.partFile(dir, part),
                     what = part.fileName,
                 ) { written -> _status.value = Status.Downloading(done + written, grandTotal) }
             } catch (e: DownloadException) {

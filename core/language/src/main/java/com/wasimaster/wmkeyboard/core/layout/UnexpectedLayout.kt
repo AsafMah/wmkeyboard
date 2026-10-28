@@ -531,9 +531,8 @@ object UnexpectedLayouts {
             "fn" -> act(KeyAction.Fn)
             "backspace" -> act(KeyAction.Delete)
             "delete" -> act(KeyAction.ForwardDelete)
-            // Word deletion is a swipe on the delete keys here.
-            "delete_word" -> near(KeyAction.Delete)
-            "forward_delete_word" -> near(KeyAction.ForwardDelete)
+            "delete_word" -> edit(TextEditAction.DELETE_WORD)
+            "forward_delete_word" -> edit(TextEditAction.DELETE_WORD_FORWARD)
             "space" -> act(KeyAction.Space)
             "enter" -> act(KeyAction.Enter)
             "action" -> act(KeyAction.EditorAction)

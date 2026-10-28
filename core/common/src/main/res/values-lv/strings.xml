@@ -26,6 +26,7 @@
     <string name="common_default">Noklusējums</string>
     <string name="common_delete">Dzēst</string>
     <string name="common_disable">Izslēgt</string>
+    <string name="common_disabled_open_setting">Atvērt iestatījumu</string>
     <string name="common_disclosure_blocked_body">Android vairs nerāda šo pieprasījumu, jo iepriekš noraidījāt atļauju. To joprojām varat ieslēgt lietotnes iestatījumu ekrānā.</string>
     <string name="common_disclosure_not_now">Ne tagad</string>
     <string name="common_done">Gatavs</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instalēt</string>
     <string name="common_installing">Instalē…</string>
     <string name="common_loading">Notiek ielāde…</string>
+    <string name="common_more">Vairāk</string>
     <string name="common_next">Tālāk</string>
     <string name="common_none">Nav</string>
     <string name="common_notify_channel_backup_body">Tikai tad, ja automātiskā dublēšana neizdodas. Veiksmīgas dublēšanas notiek klusi.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Rādīt paziņojumus</string>
     <string name="common_permission_storage_body">Operētājsistēmā Android 9 un vecākās versijās tastatūrai ir nepieciešama krātuves atļauja, lai saglabātu attēlu jūsu galerijā. Vecā Android atļauja ietver arī krātuves lasīšanu. Tastatūra ieraksta tikai to attēlu, kuru jūs lūdzat saglabāt. Tastatūra neko nelasa un augšupielādē. Jaunākām Android versijām šī atļauja nav nepieciešama.</string>
     <string name="common_permission_storage_title">Krātuves piekļuve, lai saglabātu galerijā</string>
+    <string name="common_permission_tasks_body">WM tastatūra uztur savu uzdevumu sarakstu un vienu uzdevumu sarakstu uzdevumu lietotnē vienādus: uzdevumus, to soļus, atzīmes un izpildes termiņus abos virzienos. Atļauja attiecas uz katru lietotnes uzdevumu sarakstu. Tastatūra nolasa lietotnes sarakstus tikai tāpēc, lai jūs varētu izvēlēties vienu, un tā nolasa un ieraksta tikai jūsu izvēlēto sarakstu. Tastatūra neko nesūta uz citurieni. DAVx5, ja to izmantojat, sinhronizē šo sarakstu ar jūsu pašu CalDAV serveri. Bez šīs atļaujas uzdevumu saraksts paliek šajā tālrunī.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks piekļuve uzdevumu sarakstam</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org piekļuve darāmo lietu sarakstam</string>
+    <string name="common_preview_scale_desc">Priekšskatījuma izmērs</string>
+    <string name="common_preview_scale_larger">Palielināt priekšskatījumu</string>
+    <string name="common_preview_scale_smaller">Padarīt priekšskatījumu mazāku</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Noņemt</string>
     <string name="common_reset">Atiestatīt</string>
     <string name="common_reset_defaults">Atiestatīt uz noklusējuma vērtībām</string>

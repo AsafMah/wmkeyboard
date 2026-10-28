@@ -138,6 +138,14 @@ object ConfigBackup {
          * Appended after [KAOMOJI] for the reason given on [VOCAB].
          */
         AI_MEMORY("ai_memory"),
+
+        /**
+         * The To-do tool (#920): every task and step, and the task-app
+         * deletes still to make. Typed by hand, so nothing rebuilds it. The
+         * task-app sync's own record stays on the phone. Appended after
+         * [AI_MEMORY] for the reason given on [VOCAB].
+         */
+        TODO("todo"),
         ;
 
         /**

@@ -273,4 +273,42 @@
     <string name="ime_ai_chat_rename_accept">Accept</string>
     <string name="ime_ai_chat_rename_decline">Decline</string>
     <string name="ime_ai_chat_error_only_reasoning">The model spent its whole answer reasoning and wrote no reply. Try again, or turn Reasoning off.</string>
+    <!-- Modes and answer formats on both chats' message box. -->
+    <string name="ime_ai_chat_mode_desc">Mode</string>
+    <string name="ime_ai_chat_mode_chat">Chat</string>
+    <string name="ime_ai_chat_mode_research">Deep research</string>
+    <string name="ime_ai_chat_mode_summarize">Summarize</string>
+    <string name="ime_ai_chat_mode_compare">Compare</string>
+    <string name="ime_ai_chat_format_desc">Answer format</string>
+    <string name="ime_ai_chat_format_auto">Auto format</string>
+    <string name="ime_ai_chat_format_plain">Plain text</string>
+    <string name="ime_ai_chat_format_markdown">Markdown</string>
+    <string name="ime_ai_chat_format_bullets">Bullet points</string>
+    <string name="ime_ai_chat_format_table">Table</string>
+    <string name="ime_ai_chat_format_json">JSON</string>
+    <string name="ime_ai_chat_format_code">Code</string>
+    <string name="ime_ai_chat_composer_hint_research">What should I research?</string>
+    <string name="ime_ai_chat_composer_hint_summarize">A link or text to summarize</string>
+    <string name="ime_ai_chat_composer_hint_compare">What should I compare?</string>
+    <string name="ime_ai_research_needs_model">Deep research needs a cloud or server model that can call tools. This one can\'t: pick another model.</string>
+    <string name="ime_ai_research_needs_search">Deep research needs a web search provider. Set one up in the search tool\'s settings.</string>
+    <string name="ime_ai_research_declined">You turned down the research plan. Retry to plan it again, or ask it another way.</string>
+    <string name="ime_ai_research_nothing_found">Deep research found no search results.</string>
+    <string name="ime_ai_tool_name_research_plan">Research plan</string>
+    <string name="ime_ai_tool_research_plan_running">Planning research on “%1$s”…</string>
+    <string name="ime_ai_tool_research_plan_done">Planned research on “%1$s”</string>
+    <string name="ime_ai_tool_name_research_review">Gap check</string>
+    <string name="ime_ai_tool_research_review_running">Looking for what is still missing on “%1$s”…</string>
+    <string name="ime_ai_tool_research_review_done">Checked what is missing on “%1$s”</string>
+    <string name="ime_ai_research_plan_ask">Research these questions?</string>
+    <string name="ime_ai_research_plan_start">Start</string>
+    <string name="ime_ai_research_plan_cancel">Cancel</string>
+    <string name="ime_ai_research_plan_declined">Plan turned down</string>
+    <string name="ime_ai_chat_follow_ups_desc">Suggested next questions</string>
+    <!-- Sharing an answer as a file. -->
+    <string name="ime_ai_chat_share">Share</string>
+    <string name="ime_ai_chat_share_markdown">Markdown file</string>
+    <string name="ime_ai_chat_share_pdf">PDF</string>
+    <string name="ime_ai_chat_share_text">Text</string>
+    <string name="ime_ai_chat_share_failed">Couldn\'t make the file.</string>
 </resources>

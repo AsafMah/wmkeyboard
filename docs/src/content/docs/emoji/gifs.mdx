@@ -18,7 +18,7 @@ The GIF tool searches KLIPY and GIPHY from a panel inside the keyboard, then sen
 
 ## Searching for a GIF
 
-Open the GIF tool and it fetches trending GIFs immediately, before you type anything. Start typing in the search box and results update live, 450ms after you stop. There's no Enter to press. That's different from the [web and image search tools](/tools/search/), which wait for you to submit the query; GIF and sticker lookups are cheap enough on KLIPY and GIPHY to search as you type.
+Open the GIF tool and it fetches trending GIFs immediately, before you type anything. Close the panel or move to another text box and it keeps your search: it opens on that search next time, unless you turn off **Remember the last search**, which makes every opening start on trending. Start typing in the search box and results update live, 450ms after you stop. There's no Enter to press. While there's a query, an ✕ at the end of the search box empties it in one tap and brings trending back, with the keys still on the box for a new search. That's different from the [web and image search tools](/tools/search/), which wait for you to submit the query; GIF and sticker lookups are cheap enough on KLIPY and GIPHY to search as you type.
 
 Results are laid out as justified rows of animated previews rather than a fixed grid: every preview keeps its own aspect ratio and nothing is cropped, so squarish results sit three across and a pair of wide ones fills a row on its own. **GIFs per row** sets how many share a row, from one to six, and **Gap between cells** the space around each one. The search box names where results come from. On KLIPY it reads "Search KLIPY" and on GIPHY "Search GIPHY", each with that service's small "Powered by" mark at its end, as both services ask of apps that use them. GIPHY's mark keeps its colours, so on a light theme it sits on its own small black plate. The same goes for the sticker panel.
 
@@ -98,6 +98,8 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 
 <SettingsPath path="Tools / GIFs" />
 
+GIFs are part of the **Stickers, GIFs and emoji mixes** bundle on [Extensions](/reference/settings/extensions/). One switch there takes the GIF panel off the toolbar and the toolbox along with the stickers and the mixes, and brings it back with the providers you had chosen.
+
 | Setting | Default | What it does |
 |---|---|---|
 | Providers | Depends on the build | Who the panel asks, in order: KLIPY, GIPHY, Wikimedia Commons or another MediaWiki, GifCities and offline GIF packs. Add, reorder, switch off or set up each one, and choose **Tabs**, **Mixed** or **One at a time**. See [Choosing providers](#choosing-providers). |
@@ -105,6 +107,7 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 | GIFs per row | 3 | A slider from 1 to 6: the most GIFs side by side in a row. Fewer makes each one bigger. A row of wide GIFs can hold fewer than this. The sticker tool has its own. |
 | Gap between cells | 4 dp | A slider from 0 to 12 dp: the space around each result. Shared with the sticker tool. |
 | Panel height | Same as keyboard | How much taller than the keyboard the emoji, GIF and sticker panels open, up to 400 dp more. The same setting as <SettingsPath path="Emoji / Emoji panel / Panel height" /> and the [bar on top of the panel](#making-the-panel-taller). |
+| Remember the last search | On | Reopening the panel lands on the search and category chip it was left on. Off, it always opens on trending. Shared with the sticker tool. |
 | Hide the search when you scroll | Off | Scrolling down folds the search box and the chips away, scrolling up brings them back. See [Hiding the search while you scroll](#hiding-the-search-while-you-scroll). Shared with the sticker tool. |
 | Recent GIFs | Off | A **Recent** chip with the last 48 GIFs you sent. Turning it off deletes the list. See [Favourites and recent GIFs](#favourites-and-recent-gifs). |
 | Keep favourites on the phone | Off | Saves a copy of each favourite, so it shows and sends with no connection. Turning it off deletes the copies and keeps the favourites. |

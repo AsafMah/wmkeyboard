@@ -469,6 +469,8 @@ internal fun RowsSettings(
     SettingsGroup(
         stringResource(R.string.rows_row_order_title),
         info = stringResource(R.string.rows_row_order_caption),
+        // Reorders one row until an optional one is switched on (the audit).
+        level = SettingLevel.STANDARD,
         action = {
             if (settings.watch { it.barOrder != DefaultBarOrder }) {
                 TextButton(onClick = { scope.launch { repository.setBarOrder(DefaultBarOrder) } }) {
@@ -537,7 +539,7 @@ internal fun RowsSettings(
                 default = SettingsDefaults.suggestionStrip.recentWordBar,
             ) { scope.launch { repository.setRecentWordBar(it) } }
         }
-        item(visible = recentOn) {
+        item(visible = recentOn, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.rows_recent_words_placement_title,
                 info = stringResource(R.string.rows_recent_words_placement_info),
@@ -549,7 +551,7 @@ internal fun RowsSettings(
                 default = SettingsDefaults.rows.recentWordPlacement,
             ) { scope.launch { repository.setRecentWordPlacement(it) } }
         }
-        item(visible = recentOn && recentOwnRow) {
+        item(visible = recentOn && recentOwnRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.rows_recent_words_steady_title,
                 stringResource(R.string.rows_recent_words_steady_subtitle),
@@ -675,7 +677,7 @@ internal fun SymbolRowSettings(
             ModeRowOverrides(BarRow.SYMBOL, settings, onNavigate)
         }
         if (symbolRowOn) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 val dpFormat = stringResource(R.string.typing_value_dp)
                 SliderSetting(
                     R.string.rows_symbol_row_height_title,
@@ -687,7 +689,7 @@ internal fun SymbolRowSettings(
                     default = SettingsDefaults.rows.symbolRowHeightDp.toFloat(),
                 ) { scope.launch { repository.setSymbolRowHeightDp(it.roundToInt()) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 StepperSetting(
                     R.string.rows_symbol_row_lines_title,
                     subtitle = stringResource(R.string.rows_symbol_row_lines_subtitle),
@@ -699,7 +701,7 @@ internal fun SymbolRowSettings(
                 ) { scope.launch { repository.setSymbolRowLines(it) } }
             }
             // Only a stack has a way to scroll; one line scrolls the one way.
-            item(visible = stacked) {
+            item(visible = stacked, level = SettingLevel.ADVANCED) {
                 ChoiceSetting(
                     R.string.rows_symbol_row_scroll_title,
                     subtitle = stringResource(R.string.rows_symbol_row_scroll_subtitle),
@@ -1522,7 +1524,7 @@ internal fun ModesSettings(
     }
     SettingsGroup {
         if (!modesOn) return@SettingsGroup
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.modes_manual_duration_title,
                 subtitle = stringResource(R.string.modes_manual_duration_subtitle),
@@ -1624,7 +1626,7 @@ internal fun ModesSettings(
     RegisterAddFab(stringResource(R.string.modes_new_title)) {
         onNavigate(modeEditRoute("mode_custom_${System.currentTimeMillis()}"))
     }
-    SettingsGroup(stringResource(R.string.modes_rearrange_group_title)) {
+    SettingsGroup(stringResource(R.string.modes_rearrange_group_title), level = SettingLevel.ADVANCED) {
         if (!modesOn) return@SettingsGroup
         item {
             ToggleSetting(
@@ -1790,7 +1792,7 @@ internal fun ModeEditor(
                 detail = inheritDetail(),
             ) { save(current().copy(autocorrect = it)) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val inherit = stringResource(R.string.modes_inherit_label)
             val on = stringResource(CommonR.string.common_on)
             val off = stringResource(CommonR.string.common_off)
@@ -1815,7 +1817,7 @@ internal fun ModeEditor(
         // The spaces nobody pressed for, as one question: a field either wants
         // them or it does not, and which of the three put the space there is
         // not something the person renaming a file extension is thinking about.
-        item {
+        item(level = SettingLevel.STANDARD) {
             val inherit = stringResource(R.string.modes_inherit_label)
             val on = stringResource(CommonR.string.common_on)
             val off = stringResource(CommonR.string.common_off)
@@ -1831,7 +1833,7 @@ internal fun ModeEditor(
         // The swipes, which every switch above left alone: with them on, a
         // drifting tap could still start one, so no mode typed exactly the
         // keys pecked (#753).
-        item {
+        item(level = SettingLevel.STANDARD) {
             val inherit = stringResource(R.string.modes_inherit_label)
             val on = stringResource(CommonR.string.common_on)
             val off = stringResource(CommonR.string.common_off)
@@ -1843,7 +1845,7 @@ internal fun ModeEditor(
                 detail = inheritDetail(),
             ) { save(current().copy(glide = it)) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val inherit = stringResource(R.string.modes_inherit_label)
             val on = stringResource(CommonR.string.common_on)
             val off = stringResource(CommonR.string.common_off)
@@ -1904,7 +1906,7 @@ internal fun ModeEditor(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.modes_pinned_tools_title,
                 stringResource(R.string.modes_pinned_tools_subtitle),
@@ -1926,7 +1928,7 @@ internal fun ModeEditor(
             }
         }
         if (pinned != null) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val appends = settings.watch { modeIn(it).toolbarToolsAppend }
                 ChoiceSetting(
                     title = R.string.modes_pinned_behaviour_title,
@@ -1964,7 +1966,7 @@ internal fun ModeEditor(
                     )
                 }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToolChips(
                     tools = settings.watch { s ->
                         ToolbarTool.entries.filter {
@@ -1981,7 +1983,7 @@ internal fun ModeEditor(
                     )
                 }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 // toolTitle() hands back a resource id, and the reorder dialog
                 // takes a plain (T) -> String, so the names are resolved here.
                 val toolNames = mutableMapOf<ToolbarTool, String>()
@@ -1996,7 +1998,7 @@ internal fun ModeEditor(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.modes_toolbox_order_title,
                 stringResource(R.string.modes_toolbox_order_subtitle),
@@ -2006,7 +2008,7 @@ internal fun ModeEditor(
             }
         }
         if (order != null) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToolChips(
                     tools = settings.watch { s ->
                         s.toolboxOrder.filter {
@@ -2023,7 +2025,7 @@ internal fun ModeEditor(
                     )
                 }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val toolNames = mutableMapOf<ToolbarTool, String>()
                 for (tool in order) {
                     toolNames[tool] = stringResource(toolTitle(tool))
@@ -2038,7 +2040,7 @@ internal fun ModeEditor(
         }
         // A mode that switches the symbol row off has no row for its own sets
         // to appear on. Inherit and "on" both leave one that may be drawn.
-        if (symbolRowPossible) item {
+        if (symbolRowPossible) item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.modes_symbol_sets_title,
                 stringResource(R.string.modes_symbol_sets_subtitle),
@@ -2056,7 +2058,7 @@ internal fun ModeEditor(
             }
         }
         if (modeSets != null) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 FlowRow(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -2079,7 +2081,7 @@ internal fun ModeEditor(
                     }
                 }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val setNames = mutableMapOf<String, String>()
                 for (set in resolveSymbolSets(settings.watch { it.customSymbolSets })) {
                     setNames[set.id] = BuiltInSymbolSets.nameRes(set)
@@ -2368,9 +2370,9 @@ internal fun ModeIconPickerDialog(
         },
     )
 }
-/** Picks one installed app (launcher activities) for a mode binding. */
+/** Picks one installed app (launcher activities): a mode binding, an incognito app. */
 @Composable
-private fun AppPickerDialog(
+internal fun AppPickerDialog(
     exclude: List<String>,
     onPick: (String) -> Unit,
     onDismiss: () -> Unit,

@@ -4390,6 +4390,26 @@
   "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_gb_aosp.txt.gz"
  },
  {
+  "id": "en_ca_aosp",
+  "lang": "en",
+  "name": "English",
+  "english": "English",
+  "words": 160541,
+  "gzBytes": 748592,
+  "source": "AOSP",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_ca_aosp.txt.gz"
+ },
+ {
+  "id": "en_au_aosp",
+  "lang": "en",
+  "name": "English",
+  "english": "English",
+  "words": 157418,
+  "gzBytes": 732940,
+  "source": "AOSP",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_au_aosp.txt.gz"
+ },
+ {
   "id": "es_aosp",
   "lang": "es",
   "name": "Español · Spanish",

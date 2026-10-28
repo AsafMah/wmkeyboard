@@ -20,6 +20,8 @@ object KhiproRomanizer {
 
     /** Builds the pieces now (about 55,000 Khipro conversions), off the thread that will first need them. */
     fun warm() {
+        // The pieces are read off the spec in use, a downloaded one included.
+        KhiproSpecs.ensureLoaded()
         EngineNative.khiproRomanizerWarm()
     }
 
@@ -32,5 +34,8 @@ object KhiproRomanizer {
      * consonants where Khipro still reads the word (`ekhn` and `ekhon` for
      * এখন). Empty when there is none.
      */
-    fun spellings(text: String): List<String> = EngineNative.khiproSpellings(text).toList()
+    fun spellings(text: String): List<String> {
+        KhiproSpecs.ensureLoaded()
+        return EngineNative.khiproSpellings(text).toList()
+    }
 }

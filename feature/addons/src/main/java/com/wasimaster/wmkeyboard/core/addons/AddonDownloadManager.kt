@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.addons.feature.R
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.core.share.RemixCredit
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -416,7 +417,12 @@ object AddonDownloadManager {
                     AddonInstaller.uninstall(appContext, previous)
                 }
 
-                val outcome = AddonInstaller.install(appContext, entry, part)
+                val outcome = AddonInstaller.install(
+                    appContext,
+                    entry,
+                    part,
+                    RemixCredit(key, entry.name, entry.author),
+                )
 
                 when (outcome) {
                     is AddonInstaller.Outcome.Installed -> {

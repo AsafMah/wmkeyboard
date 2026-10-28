@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeLibrary
 import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImePins
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
+import com.wasimaster.wmkeyboard.core.handwriting.InkOcrModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
@@ -42,6 +43,9 @@ import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloa
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
+import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtImport
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -69,7 +73,7 @@ import java.util.zip.ZipFile
  * the same checksum where the download has one, the same place on disk. So
  * nothing here knows a format, only which installer a name belongs to.
  */
-internal object OfflineImport {
+object OfflineImport {
 
     /**
      * One line of the report the user reads afterwards. [messageRes] takes
@@ -81,6 +85,41 @@ internal object OfflineImport {
         @StringRes val messageRes: Int,
         val args: List<String> = emptyList(),
     )
+
+    /**
+     * What a file opened from outside the app is, in the words of the question
+     * asked before it installs: [titleRes] and [bodyRes], the body taking the
+     * file name. Told the same way [run] tells it, so the question names what
+     * the import then does: a `.so` is a library, never language files.
+     */
+    enum class Kind(@StringRes val titleRes: Int, @StringRes val bodyRes: Int) {
+        /** Word lists, word pairs, emoji names, conversion tables, phonetic tables, a language pack zip. */
+        LANGUAGE_FILES(R.string.import_offline_title, R.string.import_offline_body),
+
+        /** Google's gesture typing library (`libjni_latinime.so`, `libjni_latinimegoogle.so`). */
+        GESTURE_LIBRARY(R.string.import_offline_gesture_title, R.string.import_offline_gesture_body),
+
+        /** A native library this build delivers on demand, loose or in a vendor's `.aar`. */
+        NATIVE_LIBRARY(R.string.import_offline_native_title, R.string.import_offline_native_body),
+
+        /** A voice, text recognition, background remover, AI or handwriting model. */
+        MODEL(R.string.import_offline_model_title, R.string.import_offline_model_body),
+
+        /** An offline dictionary or a Yomichan dictionary, for the Dictionary tool. */
+        DICTIONARY(R.string.import_offline_dictionary_title, R.string.import_offline_dictionary_body),
+
+        /** A CleverKeys GIF pack. */
+        GIF_PACK(R.string.import_offline_gif_title, R.string.import_offline_gif_body),
+
+        /** A zip of RIME schemas. */
+        RIME_SCHEMAS(R.string.import_offline_rime_title, R.string.import_offline_rime_body),
+
+        /** An interface language pack. */
+        APP_LANGUAGE(R.string.import_offline_app_language_title, R.string.import_offline_app_language_body),
+
+        /** A zip holding files of more than one of the kinds above. */
+        MIXED(R.string.import_offline_mixed_title, R.string.import_offline_mixed_body),
+    }
 
     /** What marks a zip as RIME schemas: librime's schema file name. */
     private const val RIME_SCHEMA_SUFFIX = ".schema.yaml"
@@ -99,20 +138,38 @@ internal object OfflineImport {
      * opening a file from outside the app goes by, to send a language pack
      * here rather than call it nobody's file.
      */
-    fun recognises(name: String): Boolean {
+    fun recognises(name: String): Boolean = kindOf(name) != null
+
+    /** [recognises], saying what the file is; null when it is none of them. */
+    fun kindOf(name: String): Kind? {
         val leaf = name.substringAfterLast('/').substringAfterLast('\\')
-        return DictionaryCatalog.byFileName(leaf) != null ||
-            NgramPackCatalog.byFileName(leaf) != null ||
-            EmojiDictCatalog.byFileName(leaf) != null ||
-            CjkDictCatalog.byFileName(leaf) != null ||
-            leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
-            leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
-            PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
-            OfflineDictionaries.recognises(leaf) ||
-            isNativeLibrary(leaf) ||
-            isLibraryArchive(leaf) ||
-            (LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf)) ||
-            LanguagePackDownloads.isPackName(leaf)
+        return when {
+            DictionaryCatalog.byFileName(leaf) != null ||
+                NgramPackCatalog.byFileName(leaf) != null ||
+                EmojiDictCatalog.byFileName(leaf) != null ||
+                CjkDictCatalog.byFileName(leaf) != null ||
+                leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
+                leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
+                KhiproSpecs.isSetFile(leaf) ||
+                PhoneticIndexDownloads.languageOfPublishedName(leaf) != null -> Kind.LANGUAGE_FILES
+            OfflineDictionaries.recognises(leaf) -> Kind.DICTIONARY
+            LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf) -> Kind.GESTURE_LIBRARY
+            isNativeLibrary(leaf) || isLibraryArchive(leaf) -> Kind.NATIVE_LIBRARY
+            LanguagePackDownloads.isPackName(leaf) -> Kind.APP_LANGUAGE
+            else -> null
+        }
+    }
+
+    /**
+     * What a `.so` whose name says nothing (renamed by a browser or a chat
+     * app) is, by its [sha256]: Google's gesture library or one of this
+     * build's feature libraries, each pinned by hash. Null for any other.
+     */
+    fun kindOfLibrary(sha256: String): Kind? = when {
+        LatinImeLibrary.supported && LatinImePins.abiOf(sha256) != null -> Kind.GESTURE_LIBRARY
+        NativeDelivery.active && NativeDelivery.pins().any { it.sha256.equals(sha256, ignoreCase = true) } ->
+            Kind.NATIVE_LIBRARY
+        else -> null
     }
 
     /**
@@ -137,18 +194,24 @@ internal object OfflineImport {
      * [recognises], plus the files told by their name *and* their size, or
      * by an extension nothing else uses: a Whisper model or its vocabulary,
      * the Whistle model, OCR data, the background remover, an on-device AI
-     * model and a handwriting pack. [size] is -1 when the provider does not
+     * model, a handwriting pack, and by size alone a file of one of the
+     * other dictation engines' models ([EtImport]). [size] is -1 when the provider does not
      * say, and then only the names that need no size can match.
      */
-    fun recognises(context: Context, name: String, size: Long): Boolean {
-        if (recognises(name)) return true
+    fun recognises(context: Context, name: String, size: Long): Boolean = kindOf(context, name, size) != null
+
+    /** [recognises], saying what the file is; every file only it tells is a model. */
+    fun kindOf(context: Context, name: String, size: Long): Kind? {
+        kindOf(name)?.let { return it }
         val leaf = name.substringAfterLast('/').substringAfterLast('\\')
-        if (size > 0 && WhisperDownloadManager.recognises(leaf, size)) return true
-        if (leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME) return true
-        if (PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null) return true
         val extension = leaf.substringAfterLast('.', "").lowercase()
-        if (ModelFormat.entries.any { it.extension == extension }) return true
-        return size > 0 && InkPackImports.isPackFile(context, leaf, size)
+        val model = (size > 0 && WhisperDownloadManager.recognises(leaf, size)) ||
+            leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME ||
+            PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null || InkOcrModels.partOf(leaf) != null ||
+            ModelFormat.entries.any { it.extension == extension } ||
+            (size > 0 && InkPackImports.isPackFile(context, leaf, size)) ||
+            EtImport.sizeMatches(size)
+        return if (model) Kind.MODEL else null
     }
 
     /**
@@ -156,12 +219,25 @@ internal object OfflineImport {
      * language pack (any entry [recognises]), a CleverKeys GIF pack, a
      * Yomichan dictionary or RIME schemas, the three zips installed whole.
      */
-    fun recognisesArchive(entryNames: List<String>): Boolean {
+    fun recognisesArchive(entryNames: List<String>): Boolean = kindOfArchive(entryNames) != null
+
+    /**
+     * [recognisesArchive], saying what the zip is. The three zips installed
+     * whole come first, in the order [run] tries them; any other zip is what
+     * its recognised files are, or [Kind.MIXED] when they are of more than
+     * one kind.
+     */
+    fun kindOfArchive(entryNames: List<String>): Kind? {
         val leaves = entryNames.map { it.substringAfterLast('/') }
-        if (leaves.any(::recognises)) return true
-        if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return true
-        if (leaves.any { it.endsWith(RIME_SCHEMA_SUFFIX) }) return true
-        return YomichanDictionaries.looksLikeDictionary(entryNames)
+        if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return Kind.GIF_PACK
+        if (YomichanDictionaries.looksLikeDictionary(entryNames)) return Kind.DICTIONARY
+        if (leaves.any { it.endsWith(RIME_SCHEMA_SUFFIX) }) return Kind.RIME_SCHEMAS
+        val kinds = leaves.mapNotNullTo(HashSet(), ::kindOf)
+        return when (kinds.size) {
+            0 -> null
+            1 -> kinds.single()
+            else -> Kind.MIXED
+        }
     }
 
     /**
@@ -231,6 +307,16 @@ internal object OfflineImport {
                 onFile(ink.joinToString(", ") { it.name })
                 outcomes += installInk(context, ink)
             }
+            // The handwriting library arriving lets the models whose packs
+            // came in before it install now (#946).
+            runCatching { InkPackImports.installWaiting(context) }.getOrNull()?.forEach { (tag, ok) ->
+                val label = HandwritingModels.displayName(tag)
+                outcomes += if (ok) {
+                    Outcome(label, true, R.string.offline_import_handwriting_done, listOf(label))
+                } else {
+                    Outcome(label, false, R.string.offline_import_failed)
+                }
+            }
             // A RIME pack or schema zip changes what RIME compiles; the
             // runtime notices and the RIME screen deploys again.
             RimeRuntime.recheck(context)
@@ -266,9 +352,15 @@ internal object OfflineImport {
         val outcomes = ArrayList<Outcome>()
         val wordlists = LinkedHashMap<String, MutableList<Pair<DictionaryEntry, File>>>()
         val pairs = LinkedHashMap<NgramPackEntry, Array<File?>>()
+        val single = ArrayList<File>()
+        val khipro = ArrayList<File>()
         for (file in files) {
             val name = file.name
             if (IGNORED.any { it.matches(name) }) continue
+            if (KhiproSpecs.isSetFile(name)) {
+                khipro += file
+                continue
+            }
             // A language pack carries a CJK table's earlier version too, for
             // app versions that pin it; this one would fail its checksum.
             if (CjkDictCatalog.isLegacyFileName(name)) continue
@@ -277,11 +369,13 @@ internal object OfflineImport {
             when {
                 wordlist != null -> wordlists.getOrPut(wordlist.languageId) { ArrayList() } += wordlist to file
                 pair != null -> pairs.getOrPut(pair.first) { arrayOfNulls(2) }[if (pair.second) 1 else 0] = file
-                else -> {
-                    onFile(name)
-                    outcomes += installOne(context, file)
-                }
+                else -> single += file
             }
+        }
+        if (khipro.isNotEmpty()) outcomes += installKhiproSpecs(khipro, onFile)
+        for (file in installEtModels(context, single, outcomes, onFile)) {
+            onFile(file.name)
+            outcomes += installOne(context, file)
         }
         for ((langId, candidates) in wordlists) {
             // A pack carries every list a language has (English: AOSP United
@@ -323,6 +417,64 @@ internal object OfflineImport {
             }
         }
         return outcomes
+    }
+
+    /**
+     * A Khipro spec set (#909): the manifest and the files it names, together,
+     * as the data repository's `data/bn/khipro/` folder holds them. Checked as
+     * a download of the set is, and installed whole or not at all.
+     */
+    private suspend fun installKhiproSpecs(files: List<File>, onFile: (String) -> Unit): Outcome {
+        val manifest = files.firstOrNull { it.name == KhiproSpecs.MANIFEST_NAME }
+            ?: return Outcome(files.first().name, false, R.string.offline_import_khipro_specs_no_manifest)
+        onFile(manifest.name)
+        return when (val outcome = KhiproSpecs.install(manifest) { name -> files.firstOrNull { it.name == name } }) {
+            is KhiproSpecs.Outcome.Installed -> Outcome(
+                manifest.name, true, R.string.offline_import_khipro_specs_done,
+                listOf(khiproRevisionDate(outcome.revision)),
+            )
+            KhiproSpecs.Outcome.UpToDate -> Outcome(manifest.name, true, R.string.offline_import_khipro_specs_not_newer)
+            is KhiproSpecs.Outcome.Refused ->
+                Outcome(manifest.name, false, R.string.offline_import_khipro_specs_refused, listOf(outcome.reason))
+            KhiproSpecs.Outcome.Unsupported -> Outcome(manifest.name, false, R.string.offline_import_khipro_specs_unsupported)
+        }
+    }
+
+    /**
+     * The dictation models' files (#954), told by size and checksum rather
+     * than name: see [EtImport]. Adds a line per file it placed to
+     * [outcomes] and returns the files that are none of them, for
+     * [installOne].
+     */
+    private fun installEtModels(
+        context: Context,
+        files: List<File>,
+        outcomes: MutableList<Outcome>,
+        onFile: (String) -> Unit,
+    ): List<File> {
+        val (candidates, rest) = files.partition { EtImport.sizeMatches(it.length()) }
+        if (candidates.isEmpty()) return rest
+        if (EtDownloadManager.isBusy) {
+            candidates.forEach { outcomes += Outcome(it.name, false, R.string.offline_import_busy) }
+            return rest
+        }
+        onFile(candidates.joinToString(", ") { it.name })
+        val result = runCatching { EtImport.install(context.filesDir, candidates) }.getOrElse { error ->
+            candidates.forEach { outcomes += failure(it.name, error) }
+            return rest
+        }
+        for (r in result.results) {
+            outcomes += when (r) {
+                is EtImport.Result.Placed -> if (r.ready.isNotEmpty()) {
+                    Outcome(r.fileName, true, R.string.offline_import_et_ready, listOf(r.ready.joinToString(", ") { it.label }))
+                } else {
+                    Outcome(r.fileName, true, R.string.offline_import_et_placed, listOf(r.models.joinToString(", ") { it.label }))
+                }
+                is EtImport.Result.Shared -> Outcome(r.fileName, false, R.string.offline_import_et_shared)
+            }
+        }
+        EtDownloadManager.refresh(context.filesDir)
+        return rest + result.unclaimed
     }
 
     /** Everything that is one file, one installer. */
@@ -372,6 +524,17 @@ internal object OfflineImport {
                     Outcome(name, true, R.string.offline_import_ocr_done, listOf(OcrLanguages.nameOf(PaddleOcrModel.PACK)))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        InkOcrModels.partOf(name)?.let { part ->
+            return attempt(name) {
+                val pack = InkOcrModels.packOf(part)
+                when {
+                    pack == null || !InkOcrModels.install(filesDir, part, file) -> Outcome(name, false, R.string.offline_import_mismatch)
+                    pack.parts.all { InkOcrModels.file(filesDir, it).isFile } ->
+                        Outcome(name, true, R.string.offline_import_handwriting_done, listOf(pack.displayName))
+                    else -> Outcome(name, true, R.string.offline_import_handwriting_waiting)
                 }
             }
         }
@@ -441,13 +604,17 @@ internal object OfflineImport {
                 }
             }
         }
-        if (isNativeLibrary(name)) {
+        // A feature library: told by its name, or by its hash for a .so
+        // renamed on the way, the same as the gesture library above.
+        if (isNativeLibrary(name) || (NativeDelivery.active && name.endsWith(".so"))) {
             return attempt(name) {
                 val pin = NativeDelivery.import(file)
-                if (pin != null) {
-                    Outcome(name, true, R.string.offline_import_native_done, listOf(pin.name))
-                } else {
-                    Outcome(name, false, R.string.offline_import_mismatch)
+                when {
+                    pin != null -> Outcome(name, true, R.string.offline_import_native_done, listOf(pin.name))
+                    // A published name with the wrong bytes is a damaged
+                    // download; a .so nothing names is someone else's file.
+                    isNativeLibrary(name) -> Outcome(name, false, R.string.offline_import_mismatch)
+                    else -> Outcome(name, false, R.string.offline_import_unknown)
                 }
             }
         }
@@ -503,6 +670,8 @@ internal object OfflineImport {
                 )
                 is InkPackImports.Result.Waiting ->
                     Outcome(result.fileName, true, R.string.offline_import_handwriting_waiting)
+                is InkPackImports.Result.NeedsLibrary ->
+                    Outcome(result.fileName, true, R.string.offline_import_handwriting_needs_library)
                 is InkPackImports.Result.Mismatch -> Outcome(result.fileName, false, R.string.offline_import_mismatch)
                 is InkPackImports.Result.Failed -> Outcome(result.fileName, false, R.string.offline_import_failed)
             }

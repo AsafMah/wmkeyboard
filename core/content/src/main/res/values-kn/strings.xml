@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">ನಕಲಿಸಿ</string>
     <string name="core_content_selection_macro_deepl_write">DeepL ರೈಟ್</string>
     <string name="core_content_selection_macro_digits_latin">ಅಂಕೆಗಳು</string>
+    <string name="core_content_selection_macro_edit_word">ಪದವನ್ನು ಸಂಪಾದಿಸಿ</string>
     <string name="core_content_selection_macro_email">ಇಮೇಲ್</string>
     <string name="core_content_selection_macro_fancy">ಫ್ಯಾನ್ಸಿ</string>
     <string name="core_content_selection_macro_find">ಹುಡುಕಿ</string>

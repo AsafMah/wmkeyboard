@@ -80,6 +80,34 @@ class StickerPackStoreTest {
     }
 
     @Test
+    fun `sweeps a staging directory a dead import left a day ago`() {
+        val store = store()
+        val staging = store.stagingDir()!!
+        File(staging, "e1.bin").writeBytes(byteArrayOf(1))
+        assertTrue(staging.setLastModified(System.currentTimeMillis() - 2L * 24 * 60 * 60 * 1000))
+
+        store.reload()
+        assertFalse(staging.exists())
+    }
+
+    @Test
+    fun `removes several stickers in one go`() {
+        val store = store()
+        val pack = store.createPack("Cats")!!
+        val stickers = (1..4).map { (store.addSticker(pack.id, webp(it.toByte())) as StickerAddResult.Added).sticker }
+        val gone = setOf(stickers[0].id, stickers[2].id, "s_not_here")
+
+        assertEquals(2, store.removeStickers(pack.id, gone))
+        val left = store.pack(pack.id)!!.stickers
+        assertEquals(listOf(stickers[1].id, stickers[3].id), left.map { it.id })
+        assertFalse(File(store.packDir(pack.id), stickers[0].fileName).exists())
+        assertFalse(File(store.packDir(pack.id), stickers[2].fileName).exists())
+        assertTrue(store.fileFor(pack.id, stickers[1])!!.isFile)
+        // And the manifest on disk says the same.
+        assertEquals(2, store().pack(pack.id)!!.stickers.size)
+    }
+
+    @Test
     fun `refuses a sticker past the per-pack cap`() {
         val store = store()
         val pack = store.createPack("Cats")!!

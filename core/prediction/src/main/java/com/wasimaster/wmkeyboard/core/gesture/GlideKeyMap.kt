@@ -68,6 +68,28 @@ class GlideKeyMap private constructor(
         }
     }
 
+    /**
+     * Where the grid's top row ends upward, in key widths: half a row pitch
+     * above the highest key a character resolves to, the row pitch being the
+     * gap down to the next row. What [GlideOverhang] folds a stroke back
+     * under. NaN on a grid of one row, which has no pitch to measure.
+     *
+     * Keys no character resolves to are left out: a carrier whose letters
+     * every other key already claimed collapses to a centre of its own in
+     * [of], and a key that can spell nothing is not part of the grid's top.
+     */
+    val topEdge: Float by lazy {
+        val owned = keyOf.toHashSet()
+        var top = Float.POSITIVE_INFINITY
+        for (key in owned) top = minOf(top, keyY[key])
+        var next = Float.POSITIVE_INFINITY
+        for (key in owned) {
+            val y = keyY[key]
+            if (y > top + ROW_TOLERANCE && y < next) next = y
+        }
+        if (next.isInfinite()) Float.NaN else top - (next - top) / 2f
+    }
+
     /** True when [codePoint] is somewhere on the grid. */
     fun knows(codePoint: Int): Boolean = keyIndex(codePoint) >= 0
 
@@ -157,6 +179,13 @@ class GlideKeyMap private constructor(
             kotlin.math.abs(a - b) < POSITION_EPSILON
 
         private const val POSITION_EPSILON = 1e-3f
+
+        /**
+         * How far below the top row's centre, in key widths, a key may sit and
+         * still be on that row for [topEdge]: a staggered or hand-moved key is
+         * never a whole row out, and a quarter key is well under any row pitch.
+         */
+        private const val ROW_TOLERANCE = 0.25f
 
         /**
          * A stable identity for the grid [keys] describe: which character sits

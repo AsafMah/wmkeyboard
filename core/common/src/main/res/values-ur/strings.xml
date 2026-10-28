@@ -26,6 +26,7 @@
     <string name="common_default">پہلے سے طے شدہ</string>
     <string name="common_delete">حذف کریں</string>
     <string name="common_disable">بند کریں</string>
+    <string name="common_disabled_open_setting">ترتیب کھولیں</string>
     <string name="common_disclosure_blocked_body">اینڈرائیڈ اب یہ درخواست نہیں دکھاتا، کیونکہ آپ نے پہلے اجازت دینے سے انکار کر دیا تھا۔ آپ اب بھی اسے ایپ کی ترتیبات کی اسکرین سے آن کر سکتے ہیں۔</string>
     <string name="common_disclosure_not_now">ابھی نہیں</string>
     <string name="common_done">مکمل</string>
@@ -44,6 +45,7 @@
     <string name="common_install">انسٹال کریں</string>
     <string name="common_installing">انسٹال ہو رہا ہے...</string>
     <string name="common_loading">لوڈ ہو رہا ہے...</string>
+    <string name="common_more">مزید</string>
     <string name="common_next">اگلا</string>
     <string name="common_none">کوئی نہیں</string>
     <string name="common_notify_channel_backup_body">صرف تب جب خودکار بیک اپ ناکام ہو جائے۔ کامیاب بیک اپ خاموش ہوتے ہیں۔</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">اطلاعات دکھائیں</string>
     <string name="common_permission_storage_body">Android 9 اور پرانے ورژنز پر، کی بورڈ کو آپ کی گیلری میں تصویر محفوظ کرنے کے لیے اسٹوریج کی اجازت درکار ہوتی ہے۔ پرانی اینڈرائیڈ اجازت آپ کی اسٹوریج کو پڑھنے کا احاطہ بھی کرتی ہے۔ کی بورڈ صرف وہی تصویر لکھتا ہے جسے آپ محفوظ کرنے کے لیے کہتے ہیں۔ کی بورڈ کچھ نہیں پڑھتا اور کچھ اپ لوڈ نہیں کرتا۔ اینڈرائیڈ کے نئے ورژنز کو اس اجازت کی ضرورت نہیں ہے۔</string>
     <string name="common_permission_storage_title">آپ کی گیلری میں محفوظ کرنے کے لیے اسٹوریج تک رسائی</string>
+    <string name="common_permission_tasks_body">WM کی بورڈ اپنی ٹو ڈو لسٹ اور ٹاسک ایپ میں ایک ٹاسک لسٹ کو یکساں رکھتا ہے: ٹاسکس، ان کے مراحل، ان کے نشانات اور ان کی مقررہ تاریخیں، دونوں طریقوں سے۔ یہ اجازت ایپ میں ہر ٹاسک لسٹ کا احاطہ کرتی ہے۔ کی بورڈ ایپ کی لسٹ صرف اس لیے پڑھتا ہے تاکہ آپ ایک کا انتخاب کر سکیں، اور یہ صرف آپ کی منتخب کردہ لسٹ کو پڑھتا اور لکھتا ہے۔ کی بورڈ کہیں بھی کچھ نہیں بھیجتا۔ اگر آپ DAVx5 استعمال کرتے ہیں تو یہ اس لسٹ کو آپ کے اپنے CalDAV سرور کے ساتھ مطابقت پذیر (sync) کر دیتا ہے۔ اس اجازت کے بغیر، ٹو ڈو لسٹ اسی فون پر رہتی ہے۔</string>
+    <string name="common_permission_tasks_opentasks_title">ٹو-ڈو لسٹ کے لیے OpenTasks تک رسائی</string>
+    <string name="common_permission_tasks_tasks_org_title">ٹو ڈو لسٹ کے لیے Tasks.org تک رسائی</string>
+    <string name="common_preview_scale_desc">پیش نظارہ کا سائز</string>
+    <string name="common_preview_scale_larger">پیش نظارہ بڑا کریں</string>
+    <string name="common_preview_scale_smaller">پیش نظارہ چھوٹا کریں</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">ہٹائیں</string>
     <string name="common_reset">ری سیٹ کریں</string>
     <string name="common_reset_defaults">ڈیفالٹس پر ری سیٹ کریں</string>

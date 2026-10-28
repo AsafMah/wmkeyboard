@@ -187,6 +187,56 @@ class KeyGridFocusRingTest {
         assertNull(focus.cell.value)
     }
 
+    @Test
+    fun `reset clears the old selection but keeps mounted keys navigable`() {
+        val focus = focus()
+        assertTrue(focus.show())
+        focus.reset()
+        assertFalse(focus.showing)
+        assertFalse(focus.press())
+        assertTrue(focus.move(0, -1))
+        assertTrue(focus.press())
+        assertEquals(1, typed.size)
+    }
+
+    @Test
+    fun `a replacement layout after reset uses only the newly published keys`() {
+        val focus = focus()
+        focus.reset()
+        val newKey = Key("x")
+        val newRects = KeyRects().apply { record(Any(), newKey, Rect(0f, 0f, 100f, 60f)) }
+        focus.publish(newRects) { typed += it.label }
+        assertTrue(focus.show())
+        assertTrue(focus.press())
+        assertEquals(listOf("x"), typed)
+    }
+
+    @Test
+    fun `reset keeps a mounted toolbar reachable without a new layout pass`() {
+        val focus = focus()
+        var activated = false
+        focus.putTarget("toolbar", Rect(100f, -60f, 200f, 0f)) { activated = true }
+        focus.reset()
+        // The first arrow seeds the keys; the second reaches the mounted tool.
+        assertTrue(focus.move(0, -1))
+        assertTrue(focus.move(0, -1))
+        assertTrue(focus.press())
+        assertTrue(activated)
+        assertEquals(emptyList<String>(), typed)
+    }
+
+    @Test
+    fun `a toolbar disposed after reset no longer receives navigation`() {
+        val focus = focus()
+        var activated = false
+        focus.putTarget("toolbar", Rect(100f, -60f, 200f, 0f)) { activated = true }
+        focus.reset()
+        focus.removeTarget("toolbar")
+        assertTrue(focus.move(0, -1))
+        assertFalse(focus.move(0, -1))
+        assertFalse(activated)
+    }
+
     /** The ring on the accented key, popup open and placed as three entries in a row. */
     private fun openedPopup(): KeyGridFocus {
         val focus = focus()

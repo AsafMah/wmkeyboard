@@ -24,6 +24,10 @@ class ClockReceiver : BroadcastReceiver() {
             ACTION_TIMER -> ClockEngine.onTimerWake(app, now)
             ACTION_DISMISS_ALL -> ClockEngine.dismissAll(app)
             ACTION_SNOOZE_ALL -> ClockEngine.snoozeAll(app)
+            ACTION_SILENCE -> ClockEngine.onSilenceWake(app, now)
+            ACTION_UPCOMING -> ClockNotifications.refresh(app, ClockStore.get(app).data)
+            ACTION_END_SNOOZE -> ClockEngine.endSnooze(app, id)
+            ACTION_SKIP_COMING -> ClockEngine.skipComing(app, id)
             ACTION_TIMER_PAUSE -> ClockEngine.update(app) { ClockActions.pauseTimer(it, id, now) }
             ACTION_TIMER_RESUME -> ClockEngine.update(app) { ClockActions.resumeTimer(it, id, now) }
             ACTION_TIMER_ADD -> ClockEngine.update(app) { ClockActions.extendTimer(it, id, ONE_MINUTE) }
@@ -50,6 +54,10 @@ class ClockReceiver : BroadcastReceiver() {
         const val ACTION_TIMER = P + "TIMER"
         const val ACTION_DISMISS_ALL = P + "DISMISS_ALL"
         const val ACTION_SNOOZE_ALL = P + "SNOOZE_ALL"
+        const val ACTION_SILENCE = P + "SILENCE"
+        const val ACTION_UPCOMING = P + "UPCOMING"
+        const val ACTION_END_SNOOZE = P + "END_SNOOZE"
+        const val ACTION_SKIP_COMING = P + "SKIP_COMING"
         const val ACTION_TIMER_PAUSE = P + "TIMER_PAUSE"
         const val ACTION_TIMER_RESUME = P + "TIMER_RESUME"
         const val ACTION_TIMER_ADD = P + "TIMER_ADD"

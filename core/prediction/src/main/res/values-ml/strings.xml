@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">സബ്‌ടൈറ്റിലുകളിൽ നിന്നും വെബ് ടെക്സ്റ്റിൽ നിന്നും കണക്കാക്കിയത്. കൂടുതൽ പേരുകൾ, സ്ലാങ്, അക്ഷരത്തെറ്റുകൾ എന്നിവയുള്ള കൂടുതൽ വാക്കുകൾ.</string>
     <string name="core_pred_wordlist_source_frequency_label">ആവൃത്തി</string>
+    <string name="core_pred_wordlist_variant_australia_label">ഓസ്‌ട്രേലിയ</string>
     <string name="core_pred_wordlist_variant_brazil_label">ബ്രസീൽ</string>
+    <string name="core_pred_wordlist_variant_canada_label">കാനഡ</string>
     <string name="core_pred_wordlist_variant_europe_label">യൂറോപ്പ്</string>
     <string name="core_pred_wordlist_variant_uk_label">യുണൈറ്റഡ് കിംഗ്ഡം</string>
     <string name="core_pred_wordlist_variant_us_label">യുണൈറ്റഡ് സ്റ്റേറ്റ്സ്</string>

@@ -1,6 +1,9 @@
 package com.wasimaster.wmkeyboard.core.layout
 
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -26,6 +29,21 @@ private data class LayoutEnvelope(
     val appVersion: Int = 0,
     val appVersionName: String = "",
     val layout: LayoutSpec,
+)
+
+/**
+ * Several layouts in one file (#970): every layout in use, to move to another
+ * phone or keep in one place. The layouts inside are the same [LayoutSpec]s
+ * a one-layout file holds, ids and all, so the keys of one that open another
+ * still find it on the other side.
+ */
+@Serializable
+private data class LayoutBundle(
+    val format: String,
+    val version: Int,
+    val appVersion: Int = 0,
+    val appVersionName: String = "",
+    val layouts: List<LayoutSpec>,
 )
 
 /** A layout read off disk, with whatever had to be fixed to make it usable. */
@@ -59,18 +77,35 @@ object LayoutFile {
      */
     val IMPORT_MIME_TYPES = arrayOf("application/json", "text/plain", "application/octet-stream")
 
-    fun fileName(layout: LayoutSpec): String {
+    /**
+     * The name an export suggests. With [stampMs], the time goes after the
+     * layout's name (#970), so exporting the same layout twice gives two files
+     * that sort by date instead of a "Mine (1)" the picker made up. [Locale.US]
+     * for the same reason the backups use it: a Thai-Buddhist locale would
+     * stamp 2569.
+     */
+    fun fileName(layout: LayoutSpec, stampMs: Long? = null): String {
         val stem = layout.name.ifBlank { "layout" }
             .replace(Regex("[^\\p{L}\\p{N} _-]"), "")
             .trim()
             .ifBlank { "layout" }
-        return "$stem.$FILE_EXTENSION"
+        val stamp = stampMs?.let { "-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(it)) }.orEmpty()
+        return "$stem$stamp.$FILE_EXTENSION"
     }
 
+    /**
+     * An export: every field of every key, indented two spaces (#970), so the
+     * file reads and diffs as text. The import does not care either way.
+     */
     fun encode(layout: LayoutSpec, appVersion: Int, appVersionName: String): String =
-        LayoutCodec.json.encodeToString(
+        exportJson.encodeToString(
             LayoutEnvelope(FORMAT, VERSION, appVersion, appVersionName, layout),
         )
+
+    private val exportJson = Json(LayoutCodec.json) {
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
 
     /**
      * Encodes a layout the way the shipped assets under `assets/layouts` are
@@ -111,6 +146,36 @@ object LayoutFile {
             repairNotes = repaired.repairNotes,
             fromAppVersion = envelope.appVersion,
         )
+    }
+
+    /** Tags [encodeBundle]'s files, apart from a one-layout file's [FORMAT]. */
+    const val BUNDLE_FORMAT = "wmkeyboard-layouts"
+
+    /** Same extension family as a one-layout file, so the picker and the share sheet treat it alike. */
+    const val BUNDLE_EXTENSION = "wmlayouts.json"
+
+    /** "Layouts-20261027-1405.wmlayouts.json": dated like a one-layout export. */
+    fun bundleFileName(stampMs: Long): String =
+        "Layouts-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(stampMs)) + ".$BUNDLE_EXTENSION"
+
+    /** [layouts] in one file, indented like [encode]. */
+    fun encodeBundle(layouts: List<LayoutSpec>, appVersion: Int, appVersionName: String): String =
+        exportJson.encodeToString(LayoutBundle(BUNDLE_FORMAT, VERSION, appVersion, appVersionName, layouts))
+
+    /**
+     * Every layout in a file [encodeBundle] wrote, each repaired the way
+     * [decode] repairs one, or null when [text] is not such a file. An empty
+     * bundle is still null: there is nothing to ask the user about.
+     */
+    fun decodeBundle(text: String): List<ImportedLayout>? {
+        val bundle = runCatching {
+            LayoutCodec.json.decodeFromString<LayoutBundle>(text.firstJsonDocument())
+        }.getOrNull() ?: return null
+        if (bundle.format != BUNDLE_FORMAT || bundle.layouts.isEmpty()) return null
+        return bundle.layouts.map { layout ->
+            val repaired = layout.repair()
+            ImportedLayout(repaired.spec, repaired.repairNotes, bundle.appVersion)
+        }
     }
 
     /**

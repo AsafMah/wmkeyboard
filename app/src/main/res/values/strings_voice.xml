@@ -63,9 +63,11 @@
     <string name="voice_typing_plain_desc">The same, but with no punctuation and no spaces</string>
     <string name="voice_continuous_title">Keep listening</string>
     <string name="voice_continuous_subtitle">Start the next sentence automatically after each one goes into the field</string>
+    <!-- Long press on the greyed-out switch. "One block at a time" is the name of a Voice typing mode. -->
+    <string name="voice_continuous_forced_reason">Type while you speak always starts the next sentence. Set Voice typing mode to One block at a time to choose.</string>
     <string name="voice_silence_stop_title">Stop after a pause</string>
     <string name="voice_silence_stop_subtitle">End a Whisper or server clip by itself when you stop talking</string>
-    <string name="voice_silence_stop_info">Offline Whisper and the transcription server record a whole clip, so the microphone stays open until you press it or the clip fills: 30 seconds, or two minutes for a whisper.cpp model. Set a pause here and the clip ends by itself once you have said something and then gone quiet for that long. With Keep listening off, that also ends dictation, so you never have to reach for the microphone. The system recognizer stops after a pause of its own and ignores this. Off by default.</string>
+    <string name="voice_silence_stop_info">Offline Whisper and the transcription server record a whole clip, so the microphone stays open until you press it or the clip fills: 30 seconds, or two minutes for a whisper.cpp model. Set a pause here and the clip ends by itself once you have said something and then gone quiet for that long. Asr4All, Sherpa and Omnilingual hear the pause with the Phrase end detector. With Keep listening off, that also ends dictation, so you never have to reach for the microphone. The system recognizer stops after a pause of its own and ignores this. Off by default.</string>
     <!-- Slider readout when the pause is set to zero. -->
     <string name="voice_silence_stop_off">Off</string>
     <!-- Slider readout: a pause length in seconds, e.g. "1.5 s". -->
@@ -90,6 +92,52 @@
     <!-- %1$s is a file size, e.g. "8.8 MB". -->
     <string name="voice_denoise_model_missing"><xliff:g id="size" example="8.8 MB">%1$s</xliff:g> to download. Until then Strong runs as Light</string>
     <string name="voice_denoise_strong_not_in_build">This build has no ONNX Runtime, so Strong runs as Light</string>
+    <!-- Phrase end detector (#976): how Asr4All, Sherpa and Omnilingual hear that you stopped talking. "VAD" is voice activity detection; Silero, FireRedVAD, TEN and Smart Turn are model names, never translated. -->
+    <string name="voice_vad_title">Phrase end detector</string>
+    <string name="voice_vad_subtitle">How Asr4All, Sherpa and Omnilingual hear that you stopped talking</string>
+    <string name="voice_vad_info">Asr4All, Sherpa and Omnilingual write while you speak, so they listen for the end of what you say themselves: that is when Stop after a pause counts, and where Omnilingual cuts its phrases. Silero VAD is a small network that tells speech from other sound; every Sherpa and Omnilingual model carries a copy, and Asr4All can download one. FireRedVAD is a newer network that its makers measured ahead of Silero in 102 languages, with far fewer false alarms; a 2.3 MB download. Loudness only uses no model at all: anything loud enough counts as speech, the way the pause stop works for Whisper and the server, so a noisy room can keep it listening. Your own model takes a Silero or TEN VAD file. A detector that cannot run yet falls back to Auto, which is Silero where it can run and loudness everywhere else.</string>
+    <string name="voice_vad_auto">Auto</string>
+    <string name="voice_vad_silero">Silero VAD</string>
+    <string name="voice_vad_firered">FireRedVAD</string>
+    <string name="voice_vad_loudness">Loudness only</string>
+    <string name="voice_vad_custom">Your own model</string>
+    <string name="voice_vad_auto_desc">Silero where it can run, loudness everywhere else</string>
+    <string name="voice_vad_silero_desc">A small network that hears speech under noise. Sherpa and Omnilingual bring their own; Asr4All downloads 1.8 MB</string>
+    <string name="voice_vad_firered_desc">Fewer false alarms than Silero in its makers\' tests, in 102 languages. Downloads 2.3 MB</string>
+    <string name="voice_vad_loudness_desc">No model: anything loud enough counts as speech</string>
+    <string name="voice_vad_custom_desc">A Silero or TEN VAD .onnx file you pick</string>
+    <string name="voice_vad_silero_model_title">Silero VAD for Asr4All</string>
+    <!-- %1$s is a file size, e.g. "1.8 MB". -->
+    <string name="voice_vad_silero_model_missing"><xliff:g id="size" example="1.8 MB">%1$s</xliff:g> to download. Only Asr4All needs it: Sherpa and Omnilingual models carry their own</string>
+    <string name="voice_vad_firered_model_title">FireRedVAD model</string>
+    <!-- %1$s is a file size, e.g. "2.3 MB". -->
+    <string name="voice_vad_model_ready">Downloaded, <xliff:g id="size" example="2.3 MB">%1$s</xliff:g></string>
+    <!-- %1$s is a file size, e.g. "2.3 MB". -->
+    <string name="voice_vad_model_missing"><xliff:g id="size" example="2.3 MB">%1$s</xliff:g> to download. Until then Auto decides</string>
+    <string name="voice_vad_not_in_build">This build has no ONNX Runtime, so Auto decides, which here means loudness</string>
+    <string name="voice_vad_custom_model_title">Your VAD model</string>
+    <string name="voice_vad_custom_none">None yet. Until you pick one, Auto decides</string>
+    <string name="voice_vad_custom_have_silero">A Silero model</string>
+    <string name="voice_vad_custom_have_ten">A TEN model</string>
+    <string name="voice_vad_custom_pick">Pick file</string>
+    <string name="voice_vad_custom_imported_silero">Silero model added</string>
+    <string name="voice_vad_custom_imported_ten">TEN model added</string>
+    <string name="voice_vad_custom_not_vad">That file is not a Silero or TEN VAD model the keyboard can run. For TEN, use the copy from sherpa-onnx\'s releases, which carries the details it needs</string>
+    <string name="voice_vad_custom_too_large">That file is too large to be a VAD model</string>
+    <string name="voice_vad_custom_no_runtime">ONNX Runtime is not on the phone yet, so the file cannot be checked. Try again once it has downloaded</string>
+    <string name="voice_vad_custom_failed">The file could not be read</string>
+    <string name="voice_vad_runtime_pending">ONNX Runtime is still downloading. Until it is here, Auto decides</string>
+    <string name="voice_vad_threshold_title">Speech threshold</string>
+    <string name="voice_vad_threshold_subtitle">Lower hears softer speech, higher stops sooner in noise</string>
+    <string name="voice_vad_threshold_info">How sure the detector must be that a moment is speech. Lower keeps listening through soft or distant speech, but noise can hold the phrase open. Higher ends the phrase sooner in a noisy room, but a quiet voice can be taken for silence. For Loudness only it sets how loud counts as speech: 50% is the level the pause stop has always used. 50% by default.</string>
+    <!-- Slider readout: the threshold as a percentage, e.g. "50%". -->
+    <string name="voice_vad_threshold_value">%1$d%%</string>
+    <string name="voice_smart_turn_title">Smart Turn</string>
+    <string name="voice_smart_turn_subtitle">End sooner when you sound finished, wait longer when you do not</string>
+    <string name="voice_smart_turn_info">At each pause, Smart Turn v3.2 listens to the last 8 seconds and judges whether you finished what you were saying or stopped mid-thought, from how you said it: the falling voice at the end of a sentence, a word left hanging, an \"um\". When you sound finished, the phrase ends after a short pause; when you do not, it waits out the whole pause set in Stop after a pause. So you can set a long pause and still not wait at the end of every sentence. It was trained on 23 languages and is an 8.7 MB download that runs on ONNX Runtime. Off by default.</string>
+    <string name="voice_smart_turn_model_title">Smart Turn model</string>
+    <!-- %1$s is a file size, e.g. "8.7 MB". -->
+    <string name="voice_smart_turn_model_missing"><xliff:g id="size" example="8.7 MB">%1$s</xliff:g> to download. Until then every pause is waited out</string>
     <!-- Add punctuation and capitals: marks for the offline engines that write bare words (Sherpa, Omnilingual). -->
     <string name="voice_auto_punctuation_title">Add punctuation and capitals</string>
     <string name="voice_auto_punctuation_subtitle">Full stops, commas, question marks and capitals for Sherpa and Omnilingual</string>

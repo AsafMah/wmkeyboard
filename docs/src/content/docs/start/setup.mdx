@@ -41,33 +41,31 @@ Core typing runs entirely on-device: the spelling dictionaries, transliteration,
 
 The first time you open the app, it drops you into a short setup wizard instead of the Home screen. Every choice writes straight to settings as you make it. Going back, skipping ahead, or tapping **Skip** in the top corner therefore loses nothing, and you can change any of it again later.
 
-The wizard tailors itself to a short quiz on its **Make it yours** page, so not everyone sees every step. The full list:
+There is no page for the app's own language. The app starts in your phone's language; to show it in a different one, use [About, App language](/reference/settings/about/#changing-the-apps-language).
+
+The wizard tailors itself to a short quiz on its **Make it yours** page, so not everyone sees every step. "Keep it simple", or no answer at all, stops after the quiz (and Your languages, if you type in more than one). The full list:
 
 <Steps>
 
-1. **App language** *(only where English isn't the first language)*. Which language the app's own menus and settings are shown in: **System default**, then the languages your phone and your region suggest, then English, with **Show all languages** under them for the rest. A pick applies at once and the page comes back in that language, so the rest of the wizard reads in it too. The page appears when your phone's region (from the SIM, the network, the time zone or the language setting, in that order) is outside the US, the UK, Ireland, Canada, Australia, New Zealand and the English-speaking Caribbean, and never on an English-only build. Change it later under [About, App language](/reference/settings/about/#changing-the-apps-language).
+1. **Welcome.** The setup card from above, embedded in the wizard. Enable and select WM Keyboard here and the wizard advances on its own. You do not have to tap Next after you come back from system settings. Under the card, **Restore a backup** takes a backup instead of the questions: see [Restoring a backup instead](#restoring-a-backup-instead).
 
-2. **Welcome.** The setup card from above, embedded in the wizard. Enable and select WM Keyboard here and the wizard advances on its own. You do not have to tap Next after you come back from system settings. Under the card, **Restore a backup** takes a backup instead of the questions: see [Restoring a backup instead](#restoring-a-backup-instead).
+2. **Make it yours.** Two quick questions, both optional: how many languages you type in, and whether you want a simple or a fully loaded keyboard. Each answer's subtitle spells out what picking it changes. Answers apply their defaults on the spot, and the rest of the wizard trims itself to match. Leave both alone and you get the short version. [What the quiz changes](#what-the-quiz-changes) below lists every setting each answer writes.
 
-3. **Make it yours.** Three quick questions, all optional. How many languages you type in, whether you want a simple or a fully loaded keyboard, and how private it should be. Each answer's subtitle spells out what picking it changes. Answers apply their defaults on the spot, and the rest of the wizard trims itself to match. Leave all three alone and you get the short version. [What the quiz changes](#what-the-quiz-changes) below lists every setting each answer writes.
+3. **Your languages** *(hidden if you answered "just one" language and only one is enabled)*. Your currently enabled languages come first, each with its layouts individually switchable, then a short **Suggested for you** list, then a search box for the other 840-odd. The suggestions come from your phone's own language settings and region. See [Suggested languages](/languages/overview/#suggested-languages) for exactly what's read. A language that ships one layout is added on the spot. A language that ships several (Bangla ships Avro, Probhat and National) opens a picker first, with its first layout already checked and a miniature of each key grid. Check as many as you want, but at least one.
 
-4. **Your languages** *(hidden if you answered "just one" language and only one is enabled)*. Your currently enabled languages come first, each with its layouts individually switchable, then a short **Suggested for you** list, then a search box for the other 840-odd. The suggestions come from your phone's own language settings and region. See [Suggested languages](/languages/overview/#suggested-languages) for exactly what's read. A language that ships one layout is added on the spot. A language that ships several (Bangla ships Avro, Probhat and National) opens a picker first, with its first layout already checked and a miniature of each key grid. Check as many as you want, but at least one.
+4. **Look & feel** *(only for "show me everything" answers)*. Two controls only: theme mode (Auto/Light/Dark/AMOLED), then a grid of keyboard themes that match the mode you picked. Choose Auto and the grid splits into a Light tab and a Dark tab, so you pick one theme for each half.
 
-5. **Look & feel.** Two controls only: theme mode (Auto/Light/Dark/AMOLED), then a grid of keyboard themes that match the mode you picked. Choose Auto and the grid splits into a Light tab and a Dark tab, so you pick one theme for each half.
+5. **Typing feedback** *(skipped for "keep it simple" answers)*. Haptics, key sounds, and the key popup bubble.
 
-6. **Emoji** *(skipped for "keep it simple" answers)*. Your default skin tone, picked from six raised hands. Every emoji of a person or a hand uses it from then on, and holding one emoji in the panel still gives that emoji its own tone. An **Emoji images** section follows it *only if your phone's emoji font can't draw everything, or if the phone ships an emoji set of its own*: pick which emoji you want to see, with a live preview of each option, plus a toggle that hides emoji your device would otherwise draw as blank boxes, and a pointer to importing a full emoji font. Samsung phones get that second half even though nothing is missing on them: everything draws, but it draws in Samsung's set rather than the images most other phones show. Answer "keep it simple", or leave the quiz alone, and this page is skipped entirely; both halves of it live on under [Emoji customization](/emoji/customization/).
+6. **Spacebar & keys** *(skipped for "keep it simple" answers)*. One choice sets both spacebar-swipe directions, short and long, and a "Recommended" badge follows your quiz answer. There's also a toggle to replace the <KeyCap>🌐</KeyCap> key with an emoji key, and a number row toggle.
 
-7. **Typing feedback** *(skipped for "keep it simple" answers)*. Haptics, key sounds, and the key popup bubble.
+7. **Worth knowing about** *(only for "show me everything" answers)*. A tour of the features most keyboards don't have: smart chips, [per-app keyboards](/typing/modes/#keyboard-modes), tool hotwords, the toolbox, photo backgrounds, clipboard history and more. Most cards carry a switch right on them. The rest say where the feature lives. The per-app keyboards card sits second, and its switch is the master switch for [modes](/reference/settings/modes/). Modes are off until you turn them on: they're the one feature here that changes the keyboard without being asked, so setup offers the switch rather than springing it on you in the next app.
 
-8. **Spacebar & keys** *(skipped for "keep it simple" answers)*. One choice sets both spacebar-swipe directions, short and long, and a "Recommended" badge follows your quiz answer. There's also a toggle to replace the <KeyCap>🌐</KeyCap> key with an emoji key, and a number row toggle.
+8. **Your tools** *(only for "show me everything" answers)*. Every toolbar tool, each with its own switch, plus quick "Recommended" and "Everything" buttons. Neither button, and no answer above, turns on Learn from text: that one stays off until you switch it on yourself.
 
-9. **Worth knowing about.** A short tour of the features most keyboards don't have: smart chips, [per-app keyboards](/typing/modes/#keyboard-modes), tool hotwords, the toolbox, photo backgrounds, clipboard history and more. Most cards carry a switch right on them. The rest say where the feature lives. The per-app keyboards card sits second on every path, whichever of the three depth answers you gave, and its switch is the master switch for [modes](/reference/settings/modes/). Modes are off until you turn them on: they're the one feature here that changes the keyboard without being asked, so setup offers the switch rather than springing it on you in the next app.
+9. **Tool setup** *(only for "show me everything" answers with Calendar, Weather, or Compass enabled)*. First-run choices for whichever of those you kept: alternate calendars and which days count as the weekend, a saved place (searched, typed, or read once from the phone) and a temperature unit, or a qibla toggle.
 
-10. **Your tools** *(only for "show me everything" answers)*. Every toolbar tool, each with its own switch, plus quick "Recommended" and "Everything" buttons. Neither button, and no answer above, turns on Learn from text: that one stays off until you switch it on yourself.
-
-11. **Tool setup** *(only for "show me everything" answers with Calendar, Weather, or Compass enabled)*. First-run choices for whichever of those you kept: alternate calendars and which days count as the weekend, a saved place (searched, typed, or read once from the phone) and a temperature unit, or a qibla toggle.
-
-12. **Try your keyboard.** A live text field, so the keyboard appears in the theme you just picked. Up to three "try this" prompts come with it, drawn from what you enabled. Type `12*8=` for a smart chip, type `translate` for its hotword chip, or open the toolbox.
+10. **Try your keyboard** *(skipped for "keep it simple" answers)*. A live text field, so the keyboard appears in the theme you picked. Up to three "try this" prompts come with it, drawn from what you enabled. Type `12*8=` for a smart chip, type `translate` for its hotword chip, or open the toolbox.
 
 </Steps>
 
@@ -82,7 +80,7 @@ Moving from another phone, or from another keyboard? **Restore a backup** on the
 - a backup from WM Keyboard, `.wmconfig.json`, an encrypted `.wmconfig.enc` (it asks for the passphrase), or an older `.wmsettings.json`;
 - a whole backup from HeliBoard, LeanType, FUTO Keyboard, FlorisBoard, CleverKeys or AnySoftKeyboard, where you pick what comes across first. See [Whole backups](/reference/importing-other-keyboards/#whole-backups).
 
-Once the backup is restored, the rest of the wizard is skipped: the quiz, the languages, the theme and every page after them. Your backup already answered all of it, and nothing the quiz would preset is written over it, the tool set included. Only the Welcome page is left, because no backup can turn a keyboard on for you. If WM Keyboard is already enabled and selected, the wizard closes by itself; if not, the page says so, and **Finish** stays open so you can do it later.
+Once the backup is restored, the rest of the wizard is skipped: the quiz, the languages and every page after them. Your backup already answered all of it, and nothing the quiz would preset is written over it, the tool set included. Only the Welcome page is left, because no backup can turn a keyboard on for you. If WM Keyboard is already enabled and selected, the wizard closes by itself; if not, the page says so, and **Finish** stays open so you can do it later.
 
 The languages in the backup get their word lists and prediction data downloaded in the background, the same way a language added on the wizard's own page does.
 
@@ -105,18 +103,13 @@ Neither is a one-way door: the Spacebar & keys page later offers the same choice
 
 | Answer | Toolbar tools it turns on | What it does to the wizard |
 |---|---|---|
-| Keep it simple | Eight: emoji, GIFs, stickers, clipboard, voice typing, AI writing tools, grammar check, and the settings shortcut | The short path. No Emoji, no Typing feedback, no Spacebar & keys, no Your tools |
-| A good middle | 22: those eight plus themes, dictionary, fancy text, translate, autocorrect, snippets, one-handed, split, text editing, trackpad, handwriting, text scan, undo and redo | Adds Emoji, Typing feedback and Spacebar & keys |
-| Show me everything | 37: those 22 plus Wikipedia, vocabulary, power saving, keyboard modes, numpad, special symbols, calculator, unit converter, currency, password generator, calendar, weather, media controls, apps and hide keyboard | Adds Your tools, and Tool setup when calendar, weather or compass is among them |
+| Keep it simple | Eight: emoji, GIFs, stickers, clipboard, voice typing, AI writing tools, grammar check, and the settings shortcut | The short path. The wizard ends after the quiz |
+| A good middle | 22: those eight plus themes, dictionary, fancy text, translate, autocorrect, snippets, one-handed, split, text editing, trackpad, handwriting, text scan, undo and redo | Adds Typing feedback, Spacebar & keys and Try your keyboard |
+| Show me everything | 37: those 22 plus Wikipedia, vocabulary, power saving, keyboard modes, numpad, special symbols, calculator, unit converter, currency, password generator, calendar, weather, media controls, apps and hide keyboard | Also adds Look & feel, Worth knowing about and Your tools, and Tool setup when calendar, weather or compass is among them |
+
+The same answer sets how much of the settings app shows until you pick for yourself: Simple, Standard or Everything. See [Choosing how many settings you see](/reference/settings/#choosing-how-many-settings-you-see).
 
 A set that can't run in full on your phone gets topped up rather than left short. Part of it may be unavailable on your phone. Wikipedia and power saving then come in behind whatever's missing, so a "recommended" set never quietly arrives two tools smaller.
-
-**How private should it be?**
-
-| Answer | What it writes |
-|---|---|
-| Standard | Nothing. The shipped defaults already are the standard behaviour |
-| Extra strict | Turns off **Learn from typing**, **Clipboard history** and **Count typing statistics**, and adds the Incognito tool to whichever set the question above landed |
 
 Leave the quiz alone entirely and you get the short page list, the same one "keep it simple" gets, plus the middle tool set when the wizard closes.
 
@@ -133,7 +126,7 @@ The option below lists WM Keyboard's languages individually in Android's own swi
 
 <SettingsPath path="Languages & layouts / System language switcher" />
 
-- **List languages in the Android switcher** (off by default). Registers each of your enabled layouts as an Android input-method subtype, so the system's "Choose input method" sheet lists them individually and can jump straight to one. Left off, the keyboard exposes no subtypes and the sheet lists it under its own name, the way keyboards without subtypes appear.
+- **List languages in the Android switcher** (off by default). Registers each of your enabled layouts as an Android input-method subtype, so the system's "Choose input method" sheet lists them individually and can jump straight to one. Left off, the keyboard registers only one subtype, named after the keyboard and carrying the language you're typing in, so the sheet lists it under its own name while Android's spell checker still knows which language to check.
 - **Show app name first** (off by default, and only shown while the option above is on). Prefixes each subtype's label with "WM Keyboard ·" instead of just the language name.
 - **Select languages in the system settings** (also only shown while the first option is on). Opens Android's own subtype list. On Android 14 and newer the keyboard turns them on for you, so this is a repair tool. On Android 13 and older you have to turn them on here yourself, or the sheet shows only one.
 

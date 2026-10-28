@@ -26,6 +26,7 @@
     <string name="common_default">پیش‌فرض</string>
     <string name="common_delete">حذف</string>
     <string name="common_disable">خاموش کردن</string>
+    <string name="common_disabled_open_setting">باز کردن تنظیمات</string>
     <string name="common_disclosure_blocked_body">اندروید دیگر این درخواست را نشان نمی‌دهد، زیرا قبلاً مجوز را رد کرده‌اید. همچنان می‌توانید آن را از صفحه تنظیمات برنامه روشن کنید.</string>
     <string name="common_disclosure_not_now">بعداً</string>
     <string name="common_done">انجام شد</string>
@@ -44,6 +45,7 @@
     <string name="common_install">نصب</string>
     <string name="common_installing">در حال نصب...</string>
     <string name="common_loading">در حال بارگذاری...</string>
+    <string name="common_more">بیشتر</string>
     <string name="common_next">بعدی</string>
     <string name="common_none">هیچ‌کدام</string>
     <string name="common_notify_channel_backup_body">فقط زمانی که پشتیبان‌گیری خودکار با شکست مواجه شود. پشتیبان‌گیری‌های موفق بی‌صدا هستند.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">نمایش اعلان‌ها</string>
     <string name="common_permission_storage_body">در اندروید ۹ و قدیمی‌تر، صفحه‌کلید برای ذخیره تصویر در گالری شما به مجوز حافظه نیاز دارد. مجوز قدیمی اندروید همچنین شامل خواندن حافظه شما نیز می‌شود. صفحه‌کلید فقط تصویری را که از آن می‌خواهید ذخیره می‌کند. صفحه‌کلید هیچ چیزی را نمی‌خواند و هیچ چیزی را آپلود نمی‌کند. نسخه‌های جدیدتر اندروید به این مجوز نیاز ندارند.</string>
     <string name="common_permission_storage_title">دسترسی به حافظه برای ذخیره در گالری شما</string>
+    <string name="common_permission_tasks_body">صفحه‌کلید WM فهرست کارهای خود و یک فهرست وظایف در برنامه مدیریت وظایف را هماهنگ نگه می‌دارد: وظایف، مراحل آن‌ها، تیک‌ها و تاریخ‌های سررسید آن‌ها به هر دو جهت هماهنگ می‌شوند. این مجوز شامل تمام فهرست‌های وظایف در برنامه می‌شود. صفحه‌کلید فقط فهرست‌های برنامه را می‌خواند تا بتوانید یکی را انتخاب کنید، و فقط فهرست انتخاب‌شده را می‌خواند و می‌نویسد. صفحه‌کلید هیچ اطلاعاتی را به جایی نمی‌فرستد. اگر از DAVx5 استفاده می‌کنید، این برنامه آن فهرست را با سرور CalDAV شخصی شما همگام‌سازی می‌کند. بدون این مجوز، فهرست کارها در همین گوشی باقی می‌ماند.</string>
+    <string name="common_permission_tasks_opentasks_title">دسترسی OpenTasks برای فهرست کارها</string>
+    <string name="common_permission_tasks_tasks_org_title">دسترسی Tasks.org برای لیست کارها</string>
+    <string name="common_preview_scale_desc">اندازه پیش‌نمایش</string>
+    <string name="common_preview_scale_larger">بزرگ‌تر کردن پیش‌نمایش</string>
+    <string name="common_preview_scale_smaller">کوچک‌تر کردن پیش‌نمایش</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">حذف</string>
     <string name="common_reset">بازنشانی</string>
     <string name="common_reset_defaults">بازنشانی به پیش‌فرض‌ها</string>

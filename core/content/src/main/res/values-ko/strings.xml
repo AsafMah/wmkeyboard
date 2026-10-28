@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">복사</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">숫자</string>
+    <string name="core_content_selection_macro_edit_word">단어 편집</string>
     <string name="core_content_selection_macro_email">이메일</string>
     <string name="core_content_selection_macro_fancy">멋진</string>
     <string name="core_content_selection_macro_find">찾기</string>

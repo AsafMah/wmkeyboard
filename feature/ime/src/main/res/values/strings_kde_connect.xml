@@ -131,6 +131,17 @@
     <string name="ime_kde_battery">%1$d%%</string>
     <string name="ime_kde_battery_charging">%1$d%%, charging</string>
     <string name="ime_kde_fingerprint">Fingerprint %1$s</string>
+    <string name="ime_kde_clipboard_pause">Pause clipboard</string>
+    <string name="ime_kde_clipboard_pause_for">Pause clipboard sharing for</string>
+    <string name="ime_kde_clipboard_pause_15m">15 min</string>
+    <string name="ime_kde_clipboard_pause_1h">1 hour</string>
+    <string name="ime_kde_clipboard_pause_forever">Until I resume</string>
+    <string name="ime_kde_clipboard_pause_all">All computers</string>
+    <string name="ime_kde_clipboard_resume_chip">Resume clipboard</string>
+    <string name="ime_kde_clipboard_paused_until">Clipboard paused until %1$s</string>
+    <string name="ime_kde_clipboard_paused_forever">Clipboard paused until you resume it</string>
+    <string name="ime_kde_clipboard_paused_all_until">Clipboard paused for all computers until %1$s</string>
+    <string name="ime_kde_clipboard_paused_all_forever">Clipboard paused for all computers until you resume it</string>
 
     <!-- Notices -->
     <string name="ime_kde_notice_clipboard_sent">Clipboard sent</string>
@@ -152,4 +163,10 @@
     <string name="ime_kde_notify_pair_body">Code %1$s. Accept only if the computer shows the same one</string>
     <string name="ime_kde_notify_file_title">File from %1$s</string>
     <string name="ime_kde_notify_ping_title">Ping from %1$s</string>
+    <string name="ime_kde_notify_paused_title">Clipboard sharing paused</string>
+    <string name="ime_kde_notify_paused_device_until">With %1$s until %2$s</string>
+    <string name="ime_kde_notify_paused_device_forever">With %1$s, until you resume it</string>
+    <string name="ime_kde_notify_paused_all_until">With all computers until %1$s</string>
+    <string name="ime_kde_notify_paused_all_forever">With all computers, until you resume it</string>
+    <string name="ime_kde_clipboard_resume">Resume</string>
 </resources>

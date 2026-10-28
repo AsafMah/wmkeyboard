@@ -63,6 +63,27 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * keyboard's language, and on to the next when that one cannot answer.
      */
     GRAMMAR("grammar", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_grammar),
+
+    /**
+     * The sticker generator's engines: the model on the phone, and image
+     * services online. The generator draws with the one picked on its screen,
+     * or, in [ChainMode.FALLBACK], with the first that is on and answers.
+     */
+    IMAGE_GEN("image_gen", listOf(ChainMode.PICK, ChainMode.FALLBACK), R.string.core_tools_provider_tool_image_gen),
+
+    /**
+     * The Music ID tool's recognisers: the online services, each asked in
+     * turn until one names the song. Nothing runs on the phone, so the list
+     * starts with every kind off until a key is typed.
+     */
+    MUSIC("music", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_music),
+
+    /**
+     * The speed test's servers: Cloudflare's, and LibreSpeed backends, the
+     * user's own or picked from the public list. One run goes to one server,
+     * the one chosen on the panel, so the list is always in [ChainMode.PICK].
+     */
+    SPEED_TEST("speed_test", listOf(ChainMode.PICK), R.string.core_tools_provider_tool_speed_test),
     ;
 
     /**
@@ -88,7 +109,7 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
 
-        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI) }
+        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI, IMAGE_GEN, MUSIC) }
     }
 }
 
@@ -159,8 +180,22 @@ data class CredentialSpec(
      * request with both. Stored in [ProviderCredential.extra] under [USERNAME].
      */
     val username: Boolean = false,
+    /**
+     * An account id that goes in the address rather than the key: Cloudflare
+     * runs a model under `/accounts/{id}/`. Stored in
+     * [ProviderCredential.extra] under [ACCOUNT].
+     */
+    val account: Boolean = false,
+    /**
+     * A second secret that goes with the key: ACRCloud signs each request
+     * with an access key and an access secret. Stored in
+     * [ProviderCredential.extra] under [SECRET], and shown masked like the
+     * key, which is why it is not [username].
+     */
+    val secret: Boolean = false,
 ) {
-    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username
+    val none: Boolean
+        get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username && !account && !secret
 
     /** The engine [stored] names, else the default; null for a kind with no engines. */
     fun engine(stored: String): FrontEndEngine? =
@@ -172,6 +207,12 @@ data class CredentialSpec(
 
         /** The [ProviderCredential.extra] key a [username] is kept under. */
         const val USERNAME = "username"
+
+        /** The [ProviderCredential.extra] key an [account] is kept under. */
+        const val ACCOUNT = "account"
+
+        /** The [ProviderCredential.extra] key a [secret] is kept under. */
+        const val SECRET = "secret"
     }
 }
 
@@ -211,6 +252,13 @@ class ProviderType(
     val ownGrid: Boolean = false,
     /** A tool whose description differs from [descRes]: Wiktionary means one thing to the dictionary, another to synonyms. */
     private val toolDescRes: Map<ProviderTool, Int> = emptyMap(),
+    /**
+     * The kind whose key a blank key borrows: one OpenAI account pays for
+     * both its chat and its pictures, so the key typed for the AI tool works
+     * for the sticker generator too. Only a key the user typed, never a
+     * build's. A row with neither needs a key.
+     */
+    val keyFrom: String? = null,
 ) {
     @StringRes
     fun descriptionRes(tool: ProviderTool): Int = toolDescRes[tool] ?: descRes
@@ -426,6 +474,11 @@ object ProviderTypes {
     val OFFLINE_WORDNET = ProviderType(
         "offline_wordnet", setOf(ProviderTool.DICTIONARY),
         R.string.core_tools_dictionary_source_offline_wordnet, R.string.core_tools_dictionary_source_offline_wordnet_desc,
+        onDevice = true, freeSoftware = true,
+    )
+    val OFFLINE_BENGALI = ProviderType(
+        "offline_bn_wiktionary", setOf(ProviderTool.DICTIONARY),
+        R.string.core_tools_dictionary_source_offline_bengali, R.string.core_tools_dictionary_source_offline_bengali_desc,
         onDevice = true, freeSoftware = true,
     )
     /** The Yomichan / Yomitan dictionaries the user imported (#765); the id is its `DictionarySource` id. */
@@ -668,6 +721,170 @@ object ProviderTypes {
         multiInstance = true, freeSoftware = true,
     )
 
+    // ---- The sticker generator. Online kinds send the prompt (in English) to the service.
+
+    private val IMAGES = setOf(ProviderTool.IMAGE_GEN)
+
+    /** The models the generator downloads or imports, run on this phone's CPU or NPU. */
+    val ON_DEVICE_IMAGE = ProviderType(
+        "on_device_image", IMAGES, R.string.core_tools_provider_on_device_image, R.string.core_tools_provider_on_device_image_desc,
+        onDevice = true,
+    )
+
+    /**
+     * Pollinations: no key at all on its old host, which picks the model
+     * itself; a key from enter.pollinations.ai opens its newer API and every
+     * model it lists. The service is open source (MIT).
+     */
+    val POLLINATIONS = ProviderType(
+        "pollinations", IMAGES, R.string.core_tools_provider_pollinations, R.string.core_tools_provider_pollinations_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), freeSoftware = true,
+    )
+
+    /** AI Horde: volunteers' graphics cards, queued. Anonymous without a key, ahead in the queue with a free one. */
+    val AI_HORDE = ProviderType(
+        "ai_horde", IMAGES, R.string.core_tools_provider_ai_horde, R.string.core_tools_provider_ai_horde_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), freeSoftware = true,
+    )
+
+    /** OpenAI's GPT Image models, which can draw on a transparent background. Borrows the AI tool's OpenAI key. */
+    val OPENAI_IMAGE = ProviderType(
+        "openai_image", IMAGES, R.string.core_tools_provider_openai_image, R.string.core_tools_provider_openai_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "openai",
+    )
+
+    /** Gemini's image models (Nano Banana). Borrows the AI tool's Gemini key. */
+    val GEMINI_IMAGE = ProviderType(
+        "gemini_image", IMAGES, R.string.core_tools_provider_gemini_image, R.string.core_tools_provider_gemini_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "gemini",
+    )
+
+    /** xAI's Grok Imagine. Borrows the AI tool's xAI key. */
+    val XAI_IMAGE = ProviderType(
+        "xai_image", IMAGES, R.string.core_tools_provider_xai_image, R.string.core_tools_provider_xai_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "xai",
+    )
+    val STABILITY = ProviderType(
+        "stability", IMAGES, R.string.core_tools_provider_stability, R.string.core_tools_provider_stability_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val BFL = ProviderType(
+        "bfl", IMAGES, R.string.core_tools_provider_bfl, R.string.core_tools_provider_bfl_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val RECRAFT = ProviderType(
+        "recraft", IMAGES, R.string.core_tools_provider_recraft, R.string.core_tools_provider_recraft_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+
+    /* Hosts of many models: the model field names any text-to-image model they run. */
+    val REPLICATE = ProviderType(
+        "replicate", IMAGES, R.string.core_tools_provider_replicate, R.string.core_tools_provider_replicate_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val FAL = ProviderType(
+        "fal", IMAGES, R.string.core_tools_provider_fal, R.string.core_tools_provider_fal_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val TOGETHER = ProviderType(
+        "together", IMAGES, R.string.core_tools_provider_together, R.string.core_tools_provider_together_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val HUGGING_FACE = ProviderType(
+        "hugging_face", IMAGES, R.string.core_tools_provider_hugging_face, R.string.core_tools_provider_hugging_face_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+
+    /** Workers AI: an API token as the key, the account id beside it. */
+    val CLOUDFLARE_AI = ProviderType(
+        "cloudflare_ai", IMAGES, R.string.core_tools_provider_cloudflare_ai, R.string.core_tools_provider_cloudflare_ai_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true, account = true),
+    )
+
+    /**
+     * Automatic1111's web UI started with `--api`, and the forks that keep its
+     * API: Forge, reForge, SD.Next. A key of `user:password` is its
+     * `--api-auth`; any other key goes as a bearer token, for a proxy.
+     */
+    val AUTOMATIC1111 = ProviderType(
+        "automatic1111", IMAGES, R.string.core_tools_provider_automatic1111, R.string.core_tools_provider_automatic1111_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true),
+        multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+    val COMFYUI = ProviderType(
+        "comfyui", IMAGES, R.string.core_tools_provider_comfyui, R.string.core_tools_provider_comfyui_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true),
+        multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
+    /** Anything with OpenAI's `/images/generations`: LocalAI, DeepInfra, Nebius, a gateway at home. */
+    val OPENAI_COMPATIBLE_IMAGE = ProviderType(
+        "openai_compatible_image", IMAGES,
+        R.string.core_tools_provider_openai_compatible_image, R.string.core_tools_provider_openai_compatible_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
+    )
+
+    // ---- Music ID: the recognisers a clip from the microphone is asked of.
+
+    private val MUSIC = setOf(ProviderTool.MUSIC)
+
+    /** AudD's recognition API: a token from its dashboard, a few hundred requests free, then paid. */
+    val AUDD = ProviderType(
+        "audd", MUSIC, R.string.core_tools_provider_audd, R.string.core_tools_provider_audd_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /** ACRCloud: the project's host as the address, its access key as the key, its access secret beside it. */
+    val ACRCLOUD = ProviderType(
+        "acrcloud", MUSIC, R.string.core_tools_provider_acrcloud, R.string.core_tools_provider_acrcloud_desc,
+        CredentialSpec(key = Need.REQUIRED, url = Need.REQUIRED, secret = true),
+    )
+
+    /** AudioTag.info: a personal key, a handful of recognitions a day free. */
+    val AUDIOTAG = ProviderType(
+        "audiotag", MUSIC, R.string.core_tools_provider_audiotag, R.string.core_tools_provider_audiotag_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /**
+     * Shazam through an unofficial RapidAPI listing: a RapidAPI key. Listed
+     * off, and said plainly to be unofficial: Apple offers no API an open
+     * source keyboard could ship, and the listing can change under it.
+     */
+    val RAPID_SHAZAM = ProviderType(
+        "rapid_shazam", MUSIC, R.string.core_tools_provider_rapid_shazam, R.string.core_tools_provider_rapid_shazam_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /**
+     * A server of the user's own that speaks AudD's request and answer: a
+     * multipart `file` and the same JSON back. What a self-hosted
+     * fingerprinter (Panako, Olaf, audfprint) sits behind.
+     */
+    val MUSIC_SERVER = ProviderType(
+        "music_server", MUSIC, R.string.core_tools_provider_music_server, R.string.core_tools_provider_music_server_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
+    // ---- The speed test.
+
+    private val SPEED = setOf(ProviderTool.SPEED_TEST)
+
+    /** speed.cloudflare.com: no key, no account, and it names the network and the data centre that answered. */
+    val CLOUDFLARE_SPEED = ProviderType(
+        "cloudflare_speed", SPEED, R.string.core_tools_provider_cloudflare_speed, R.string.core_tools_provider_cloudflare_speed_desc,
+    )
+
+    /**
+     * A LibreSpeed backend (free software, GPL): one the user runs, or one of
+     * the volunteers' from the public list, which the row's own screen picks
+     * from and writes onto the credential (`LibreSpeedServers` keys in `extra`).
+     */
+    val LIBRESPEED = ProviderType(
+        "librespeed", SPEED, R.string.core_tools_provider_librespeed, R.string.core_tools_provider_librespeed_desc,
+        CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
     /** Voice type id → the engine id dictation stores and runs. */
     val VOICE_ENGINES: Map<String, String> by lazy {
         mapOf(
@@ -693,7 +910,8 @@ object ProviderTypes {
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, BERGAMOT, NLLB, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
-        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, IMPORTED_DICTIONARIES,
+        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, OFFLINE_BENGALI,
+        IMPORTED_DICTIONARIES,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,
@@ -703,6 +921,10 @@ object ProviderTypes {
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
         SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, TRANSCRIPTION_SERVER,
         HARPER, LANGUAGETOOL,
+        ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
+        REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
+        AUDD, ACRCLOUD, AUDIOTAG, RAPID_SHAZAM, MUSIC_SERVER,
+        CLOUDFLARE_SPEED, LIBRESPEED,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

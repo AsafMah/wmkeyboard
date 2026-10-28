@@ -84,7 +84,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
     // Sherpa and Omnilingual, ExecuTorch (shared with the FUTO Swipe glide
     // engine) for the others.
-    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch)
+    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
 
     SettingsGroup(
         stringResource(
@@ -106,6 +106,20 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
             },
         ),
     ) {
+        // For a phone that cannot download them, above all the offline build
+        // (#954): every file of each model not on the device, imported here.
+        item(level = SettingLevel.ADVANCED) {
+            val missing = models.filter { states[it.id] !is Status.Downloaded }
+            OfflineImportRow(
+                subtitle = stringResource(R.string.offline_import_et_subtitle),
+                links = remember(missing) {
+                    missing.flatMap { model ->
+                        model.files.map { f -> OfflineLink("${model.label} · ${f.name}", model.url(f)) }
+                    }.distinctBy { it.url }
+                },
+                onImported = { EtDownloadManager.refresh(filesDir) },
+            )
+        }
         for (model in models) {
             item {
                 val status = states[model.id] ?: Status.NotDownloaded

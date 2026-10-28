@@ -132,12 +132,15 @@ jobs:
         # itself; the daemons stay warm between calls, and the modules below
         # :app are built once.
         #
-        # Two builds from 0.6.3. GitHub publishes one standard build, in
-        # English, which fetches its feature libraries (native delivery) and its
-        # other interface languages (language packs) on demand, and the offline
-        # build below. The all-languages build is made here only to cut the
-        # language packs from: compiled with the English build's resource IDs,
-        # so each pack's strings have the IDs the English APK asks for.
+        # GitHub publishes the standard build, in English, which fetches its
+        # feature libraries (native delivery) and its other interface languages
+        # (language packs) on demand; the all-languages build, which carries
+        # every translation (for Android 7 to 10, which cannot load a pack, and
+        # for anyone who would rather not fetch one); and the offline builds
+        # below. The all-languages build is compiled with the English build's
+        # resource IDs, so the language packs cut from it have the IDs the
+        # English APK asks for. 0.6.3 published it only as copies of the
+        # standard APK under its name.
         run: |
           # The English build's resource IDs: the stableIds.txt AGP writes for
           # every resource link (app/build.gradle.kts, androidResources).
@@ -168,11 +171,15 @@ jobs:
           version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           mkdir -p dist
-          find app/build/outputs/apk/en -name '*-release.apk' | while read -r apk; do
+          find app/build/outputs/apk/en app/build/outputs/apk/intl -name '*-release.apk' | while read -r apk; do
             name=$(basename "$apk" .apk)   # app-en-arm64-v8a-release
             name=${name#app-}
             name=${name%-release}
             cp "$apk" "dist/wmkeyboard-${version}-vc${code}-full-${name}.apk"
+          done
+          for language in en intl; do
+            ls "dist/wmkeyboard-${version}-vc${code}-full-${language}-arm64-v8a.apk" >/dev/null \
+              || { echo "::error::No ${language} arm64-v8a APK"; exit 1; }
           done
           # The baseline profile, as dex metadata the installer compiles with.
           # The in-app updater stages it beside the APK, so a GitHub update is
@@ -180,11 +187,8 @@ jobs:
           # interpreted until Android's overnight maintenance gets to it (11.5%
           # janky frames against 2.5% on a CPH2481). One per variant and API
           # range, named by output-metadata.json: the ABI splits of a variant
-          # carry the same dex, so they share one. The standard (en) build's
-          # only: nothing installs the all-languages build, which is built here
-          # to cut the language packs from, and its profile next to a renamed
-          # copy of the standard APK would not match it.
-          for meta in app/build/outputs/apk/en/release/output-metadata.json; do
+          # carry the same dex, so they share one.
+          for meta in app/build/outputs/apk/{en,intl}/release/output-metadata.json; do
             dir=$(dirname "$meta")
             language=$(basename "$(dirname "$dir")")   # intl
             jq -r '.baselineProfiles[]? | "\(.minApi) \(.baselineProfiles[0])"' "$meta" \
@@ -218,7 +222,7 @@ jobs:
           # Native symbols. Both language builds carry the same .so files, but
           # each variant writes its own zip and the release grid links them
           # separately.
-          for lower in en; do
+          for lower in en intl; do
             syms="app/build/outputs/native-debug-symbols/${lower}Release/native-debug-symbols.zip"
             if [ -f "$syms" ]; then
               cp "$syms" "dist/wmkeyboard-${version}-vc${code}-full-${lower}-native-symbols.zip"
@@ -319,6 +323,15 @@ jobs:
             registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
             bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code" '${{ matrix.abi }}'
 
+      # A build that dies without a word was usually killed from outside:
+      # the kernel's log says so, and the numbers say what was left.
+      - name: Diagnose a failed build
+        if: failure()
+        run: |
+          sudo dmesg -T 2>/dev/null | grep -iE 'killed process|out of memory|oom' | tail -20 || true
+          free -h
+          df -h /
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -410,6 +423,16 @@ jobs:
           PATH="$(dirname "$apksigner"):$PATH" \
             pipx run apksigcopier==1.1.1 compare "$out" --unsigned "dist/fdroid-unsigned-$abi.apk"
           mkdir -p dist-ref && mv "$out" dist-ref/
+
+      # R8's mapping of this build. F-Droid serves this same build, byte for
+      # byte, so the retrace workflow reads a crash from an F-Droid install
+      # with it (#963). Named like the APK, by the full versionCode: the
+      # crash record names the release and not the ABI, so the workflow
+      # tries all three and keeps the one that fits.
+      - name: Keep the R8 mapping
+        run: |
+          apk=$(basename dist-ref/*-fdroid.apk .apk)
+          gzip -9c 'dist/fdroid-mapping-${{ matrix.abi }}.txt' > "dist-ref/${apk}-mapping.txt.gz"
 
       - uses: actions/upload-artifact@v4
         with:

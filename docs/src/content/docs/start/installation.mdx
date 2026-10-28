@@ -29,7 +29,7 @@ Its privacy policy is [Privacy policy (Google Play edition)](/privacy/policy/).
 
 ## Downloading a release APK
 
-Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyboard/releases) has two builds, **standard** and **offline**. Most people want standard. The release page puts it first.
+Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyboard/releases) has three builds, **standard**, **all languages** and **offline**. Most people want standard. The release page puts it first.
 
 <Steps>
 
@@ -37,7 +37,9 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
 2. Take the **standard** build, unless you want a keyboard that can never reach the network.
 
-   **Standard** carries the keyboard and English, and fetches the rest when you use it. Features that need their own code (offline voice typing, grammar checking, the scanner, handwriting, on-device translation and on-device AI) download it the first time you use them. On Android 11 and later, the app's own screens download another language when you pick it, about 2 MB each. On Android 7 to 10, the standard build's screens stay in English. Every download is checked against a checksum built into the app.
+   **Standard** carries the keyboard and English, and fetches the rest when you use it. Features that need their own code (offline voice typing, grammar checking, the scanner, handwriting, on-device translation and on-device AI) download it the first time you use them. [Every feature library](/privacy/offline/#every-feature-library) is listed with what it adds. On Android 11 and later, the app's own screens download another language when you pick it, about 2 MB each. On Android 7 to 10, the standard build's screens stay in English. Every download is checked against a checksum built into the app.
+
+   **All languages** is the standard build with all 48 interface languages built in, so nothing has to be downloaded to see the app in yours. Take it on Android 7 to 10. It installs over the standard build and back, and its updater keeps you on it.
 
    **Offline** has the internet permission removed, and is otherwise the standard build: English, with no feature libraries inside. It can't download anything, including its own update check, so you fetch the interface languages and feature libraries you want on another device and [import them](/privacy/offline/#the-offline-build), along with any language packs, models and GIF packs. Interface languages need Android 11 or later; on Android 7 to 10, take **offline, all languages** instead, which has all 48 built in. See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
 
@@ -53,7 +55,7 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
 The release page carries the real size of every file next to its link, so check there rather than here.
 
-Up to 0.6.2, each release also had a Lite edition and an all-languages build of each edition. If you installed one of those from GitHub, the app's updater moves you to the standard build: your settings stay, and on Android 11 and later the app downloads your interface language again the first time it starts in it. From 0.6.3 there is no Lite edition anywhere; F-Droid builds the standard app without Google's SDKs.
+Up to 0.6.2, each release also had a Lite edition. If you installed it from GitHub, the app's updater moves you to the full build with the same languages: your settings stay. 0.6.3 had no real all-languages build (its `full-intl` files were copies of the standard one), so an all-languages install that updated to 0.6.3 is on the standard build; from 0.6.4 it can go back with About, then App language, or by installing the all-languages APK. From 0.6.3 there is no Lite edition anywhere; F-Droid builds the standard app without Google's SDKs.
 
 ## Building the APK yourself
 

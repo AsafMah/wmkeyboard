@@ -144,6 +144,15 @@
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>
     <string name="providers_field_model_hint">Optional. Leave it empty if the server runs one model.</string>
+    <string name="providers_field_model_image_hint">Optional. Empty uses %1$s.</string>
+    <string name="providers_field_model_image_service_hint">Optional. Empty lets the service pick the model.</string>
+    <string name="providers_field_model_checkpoint_hint">Optional. The checkpoint\'s file name as the server lists it; empty uses the server\'s own.</string>
+    <string name="providers_field_key_borrowed_hint">Optional. Empty uses the key you set up for the same service on the AI list.</string>
+    <string name="providers_field_key_automatic1111_hint">Optional. user:password when the web UI was started with --api-auth.</string>
+    <string name="providers_field_account">Account ID</string>
+    <string name="providers_field_account_hint">On the Cloudflare dashboard: Workers AI, then Use REST API.</string>
+    <string name="providers_field_secret">Access secret</string>
+    <string name="providers_field_secret_hint">The project\'s access secret from the ACRCloud console. Signs each request together with the key.</string>
     <string name="providers_field_path">Endpoint path</string>
     <string name="providers_field_path_hint">Optional. For a server with its own route, such as /v1/transcribe. It is added to the address as typed. Leave it empty to use /audio/transcriptions</string>
     <string name="providers_field_model_required_hint">Required. A model that can read images, for example qwen2.5vl:7b.</string>

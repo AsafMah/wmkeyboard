@@ -52,6 +52,9 @@ enum class AutomationPermission(val key: String, val defaultAllowed: Boolean) {
     /** Start a backup to the automatic backup's destination. */
     BACKUP("backup", false),
 
+    /** Pause and resume the scheduled backup and sync. Off: a pause is a gap in the user's backups. */
+    BACKUP_PAUSE("backup_pause", false),
+
     /** Announce every layout switch to any app that listens. */
     LAYOUT_EVENTS("layout_events", false),
 

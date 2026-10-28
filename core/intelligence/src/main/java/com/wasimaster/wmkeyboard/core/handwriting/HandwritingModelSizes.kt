@@ -61,8 +61,10 @@ object HandwritingModelSizes {
      * remaining work is the safe direction for a progress bar.
      */
     suspend fun installedBytes(context: Context, tag: String): Long {
-        // zinnia's models are single files whose sizes the pack list pins.
+        // zinnia's models are single files whose sizes the pack list pins,
+        // and PaddleOCR's two files are pinned the same way.
         if (ZinniaModels.isTag(tag)) return ZinniaModels.installedBytes(tag)
+        if (InkOcrModels.isTag(tag)) return InkOcrModels.installedBytes(tag)
         synchronized(cache) { cache[tag] }?.let { return it }
         val bytes = withContext(Dispatchers.IO) {
             runCancellable { packs(context, tag).sumOf { it.installedSize } }.getOrDefault(0L)

@@ -92,31 +92,77 @@ class EspansoFileTest {
     }
 
     @Test
-    fun `a phrase trigger is reported as needing mid-word matching`() {
-        // Its first character is a letter, so this app insists on a boundary in
-        // front of it where Espanso would not.
-        val import = read(
-            """
-            matches:
-              - trigger: "gr db"
-                replace: "x"
-            """,
-        )!!
-        assertEquals(1, noteCount(import, EspansoNote.MID_WORD))
-    }
-
-    @Test
-    fun `a package that omits word is reported as needing mid-word matching`() {
+    fun `a package that omits word expands immediately, inside words too`() {
+        // Espanso's default fires the moment the trigger is typed, anywhere,
+        // which is exactly this app's immediate-and-inside-words snippet.
         val import = read(
             """
             matches:
               - trigger: "alh"
                 replace: "although"
+              - trigger: "gr db"
+                replace: "x"
+            """,
+        )!!
+        assertEquals(0, noteCount(import, EspansoNote.MID_WORD))
+        assertTrue(import.snippets.all { it.immediate && it.insideWords })
+        assertEquals("alh", import.snippets.first().trigger)
+    }
+
+    @Test
+    fun `word true waits for the space`() {
+        val import = read(
+            """
+            matches:
+              - trigger: "alh"
+                replace: "although"
+                word: true
+            """,
+        )!!
+        assertFalse(import.snippets.single().immediate)
+    }
+
+    @Test
+    fun `left_word fires at once but only at a word start`() {
+        val import = read(
+            """
+            matches:
+              - trigger: "alh"
+                replace: "although"
+                left_word: true
+            """,
+        )!!
+        val snippet = import.snippets.single()
+        assertTrue(snippet.immediate)
+        assertFalse(snippet.insideWords)
+    }
+
+    @Test
+    fun `right_word alone is reported as losing its mid-word reach`() {
+        // It waits for the space, as this app's ordinary trigger does, but
+        // Espanso would let it start inside a word and this app will not.
+        val import = read(
+            """
+            matches:
+              - trigger: "gr db"
+                replace: "x"
+                right_word: true
             """,
         )!!
         assertEquals(1, noteCount(import, EspansoNote.MID_WORD))
-        // The snippet still arrives; only its reach is different.
-        assertEquals("alh", import.snippets.single().trigger)
+        assertFalse(import.snippets.single().immediate)
+    }
+
+    @Test
+    fun `a regex never expands immediately`() {
+        val import = read(
+            """
+            matches:
+              - regex: "hello (?P<name>\\w+)"
+                replace: "Hi {{name}}"
+            """,
+        )!!
+        assertFalse(import.snippets.single().immediate)
     }
 
     @Test
@@ -566,9 +612,10 @@ class EspansoFileTest {
         )!!
         val index = SnippetIndex.of(import.snippets)
         assertNull(index.matchTrigger("shrug"))
-        val hit = index.matchPrefix("shrug", "hello :")
+        // No `word`, so it fires on the "g", the way Espanso fires it.
+        val hit = index.matchImmediate("hello :shrug")
         assertNotNull(hit)
-        assertEquals(":", hit!!.prefix)
+        assertEquals(":shrug", hit!!.typed)
         assertEquals("¯\\_(ツ)_/¯", hit.snippet.text)
     }
 

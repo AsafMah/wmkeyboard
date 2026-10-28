@@ -93,6 +93,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeClick
+import com.wasimaster.wmkeyboard.core.kdeconnect.KdeClipboardPause
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeConnectEngine
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDevice
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDeviceType
@@ -534,7 +535,7 @@ private fun Connected(kb: KbTheme, state: KeyboardUiState, device: KdeDevice, ca
                 KdeTab.SEND -> SendTab(kb, device, engine, onKde)
                 KdeTab.RUN -> RunTab(kb, device, engine)
                 KdeTab.SLIDES -> SlidesTab(kb, device, engine)
-                KdeTab.DEVICE -> DeviceTab(kb, device, engine, onKde)
+                KdeTab.DEVICE -> DeviceTab(kb, state, device, engine, onKde)
             }
         }
     }
@@ -1006,7 +1007,7 @@ private fun SlidesTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine) 
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DeviceTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, onKde: (KdeAction) -> Unit) {
+private fun DeviceTab(kb: KbTheme, state: KeyboardUiState, device: KdeDevice, engine: KdeConnectEngine, onKde: (KdeAction) -> Unit) {
     val failed = stringResource(R.string.ime_kde_notice_failed)
     val pinged = stringResource(R.string.ime_kde_notice_ping_sent)
     val ringing = stringResource(R.string.ime_kde_notice_ringing)
@@ -1039,6 +1040,10 @@ private fun DeviceTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, 
             ToolPanelChip(stringResource(R.string.ime_kde_settings)) { onKde(KdeAction.OpenSettings) }
             ToolPanelChip(stringResource(R.string.ime_kde_unpair)) { engine.unpair(device.id) }
         }
+        if (device.canClipboard) {
+            Spacer(Modifier.height(8.dp))
+            ClipboardPause(kb, state.settings.kdeConnect.clipboardPauses, device.id, onKde)
+        }
         if (device.fingerprint.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(
@@ -1047,6 +1052,73 @@ private fun DeviceTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, 
             )
         }
     }
+}
+
+/**
+ * Pause and resume clipboard sharing (#918): with this computer or all of
+ * them, for a while or until resumed. While paused the row says until when,
+ * and redraws as that time comes, since nothing else changes when it does.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ClipboardPause(kb: KbTheme, pauses: Map<String, Long>, deviceId: String, onKde: (KdeAction) -> Unit) {
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(pauses) {
+        while (true) {
+            now = System.currentTimeMillis()
+            val end = KdeClipboardPause.nextEnd(pauses, now) ?: break
+            delay((end - now).coerceAtLeast(0) + 50)
+        }
+    }
+    val until = KdeClipboardPause.pausedUntil(pauses, deviceId, now)
+    var choosing by remember(deviceId) { mutableStateOf(false) }
+    var all by remember(deviceId) { mutableStateOf(false) }
+    if (until > 0) {
+        val everyone = KdeClipboardPause.allPausedUntil(pauses, now) >= until
+        val time = if (until == KdeClipboardPause.FOREVER) null else formatTime(until)
+        val line = when {
+            everyone && time == null -> stringResource(R.string.ime_kde_clipboard_paused_all_forever)
+            everyone -> stringResource(R.string.ime_kde_clipboard_paused_all_until, time!!)
+            time == null -> stringResource(R.string.ime_kde_clipboard_paused_forever)
+            else -> stringResource(R.string.ime_kde_clipboard_paused_until, time)
+        }
+        Text(line, color = kb.secondaryText, fontSize = 11.sp, modifier = Modifier.padding(bottom = 4.dp))
+        ToolPanelChip(stringResource(R.string.ime_kde_clipboard_resume_chip), selected = true) {
+            choosing = false
+            onKde(KdeAction.ResumeClipboard(if (everyone) null else deviceId))
+        }
+        return
+    }
+    if (!choosing) {
+        ToolPanelChip(stringResource(R.string.ime_kde_clipboard_pause)) { choosing = true }
+        return
+    }
+    SectionLabel(kb, stringResource(R.string.ime_kde_clipboard_pause_for))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.padding(top = 4.dp),
+    ) {
+        for (minutes in KdeClipboardPause.PRESET_MINUTES) {
+            ToolPanelChip(stringResource(pauseLabel(minutes))) {
+                choosing = false
+                onKde(KdeAction.PauseClipboard(if (all) null else deviceId, minutes))
+            }
+        }
+        ToolPanelChip(stringResource(R.string.ime_kde_clipboard_pause_all), selected = all) { all = !all }
+    }
+}
+
+@Composable
+private fun formatTime(ms: Long): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    return android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(ms))
+}
+
+private fun pauseLabel(minutes: Int): Int = when (minutes) {
+    15 -> R.string.ime_kde_clipboard_pause_15m
+    60 -> R.string.ime_kde_clipboard_pause_1h
+    else -> R.string.ime_kde_clipboard_pause_forever
 }
 
 // ---- small parts ----

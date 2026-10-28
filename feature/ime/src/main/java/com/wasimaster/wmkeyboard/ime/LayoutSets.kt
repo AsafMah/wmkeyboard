@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.tabletGridWidth
 import com.wasimaster.wmkeyboard.core.layout.televisionGridColumns
+import com.wasimaster.wmkeyboard.core.layout.withQwertyHolds
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 
 /**
@@ -46,7 +47,9 @@ fun compileLayoutSet(
     television: Boolean,
 ): LayoutSet {
     val safe = spec.repair().spec
-    val letters = safe.compile(LayoutLayer.LETTERS)
+    val compiled = safe.compile(LayoutLayer.LETTERS)
+    val authored = authoredHolds(spec, compiled)
+    val letters = compiled.withQwertyHolds(keep = authored)
     // Only the letters layer widens. The symbols and Fn layers have no shift
     // key and so decline on their own, and the numeric keypads must never be
     // stretched to twelve columns — a four-column PIN pad at that width is
@@ -116,7 +119,7 @@ fun compileLayoutSet(
             safe.keyman != null || keys.any { it.startsWith(KeymanLayers.PREFIX) }
         },
         handwriting = safe.handwriting,
-        authoredHolds = authoredHolds(spec, letters),
+        authoredHolds = authored,
     )
 }
 

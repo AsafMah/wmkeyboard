@@ -128,7 +128,9 @@ builds minus the rows that need code this build does not have.
 | Currency and crypto rates | nothing identifying | currency-api (`cdn.jsdelivr.net`) and Frankfurter, or ExchangeRate-API, Coinbase or CoinGecko if you pick one |
 | Photo backgrounds | your search terms | Unsplash, Pexels |
 | AI writing tools | the text you ran an action on | the provider you chose, using your own API key, or a server you run yourself |
+| AI chat's Deep research and Summarize | the search queries the model planned, and an ordinary request for each page read; the pages' text then goes to your AI provider with your question | your web search provider, and the websites of the pages read |
 | Grammar check, with LanguageTool switched on | the text in the field, its language, and your LanguageTool username and key if you set them. Never a password field or text typed in incognito. Nothing at all with Harper, the default | `api.languagetool.org` (LanguageTool's public server), `api.languagetoolplus.com` with a Premium account, or a LanguageTool server you run yourself |
+| Sticker generator, with an online engine switched on | your prompt in English with the style's words, the seed, the picture size and count, and your key for that service. Nothing at all with On this phone, the default | the engine you picked: `image.pollinations.ai` or `gen.pollinations.ai`, `aihorde.net`, `api.openai.com`, `generativelanguage.googleapis.com`, `api.x.ai`, `api.stability.ai`, `api.bfl.ai`, `external.api.recraft.ai`, `api.replicate.com`, `fal.run`, `api.together.ai`, `router.huggingface.co`, `api.cloudflare.com`, or a Stable Diffusion, ComfyUI or OpenAI-compatible server you entered; the pictures are fetched back from that service's storage |
 | Voice typing | your speech audio | Android's own speech service |
 | Language and model downloads | nothing about you | GitHub, Hugging Face, and Mozilla for the Firefox Translations models |
 
@@ -188,7 +190,7 @@ local storage, a cloud drive you connect, a WebDAV server, an S3-compatible
 bucket, an SFTP, SMB or FTP server you run, a Git repository you own, or a
 folder in your own mail account. Google Drive is not offered in this edition.
 By default the file is plain JSON. Turn on a backup passphrase and it is
-encrypted with AES-GCM under a PBKDF2-derived key. Nothing is uploaded
+encrypted with AES-GCM under a PBKDF2-HMAC-SHA512 key. Nothing is uploaded
 anywhere by default and no copy is sent to the developer. See
 [Backup and restore](/privacy/backup/).
 

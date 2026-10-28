@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.DevanagariRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.DravidianRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.IndicPhonetic
@@ -124,8 +125,9 @@ object PhoneticSchemes {
     /**
      * An [IndicPhonetic] language: its rules, the Hindi fold reached through
      * Devanagari ([IndicPhoneticIndex]) with the language's own romanization
-     * habits rewritten first ([IndicProfiles.romanPrep]), and the Hindi
-     * romanizer over the same Devanagari spelling for the way back.
+     * habits rewritten first ([IndicProfiles.romanPrep]), and for the way back
+     * the Hindi romanizer over the same Devanagari spelling, or for the four
+     * Dravidian languages, which say the vowel Hindi drops, their own.
      */
     private fun indic(profile: IndicProfile): PhoneticScheme {
         val engine = IndicPhonetic(profile)
@@ -140,7 +142,11 @@ object PhoneticSchemes {
             buildIndex = { PhoneticTables.index(id, PhoneticTables.build(id, it)) },
             isNative = script::isNative,
             normalize = { Normalizer.normalize(it, Normalizer.Form.NFC) },
-            romanizeWord = { DevanagariRomanizer.romanizeWord(script.toDevanagari(it)) },
+            romanizeWord = if (DravidianRomanizer.reads(script)) {
+                { DravidianRomanizer.romanizeWord(script, it) }
+            } else {
+                { DevanagariRomanizer.romanizeWord(script.toDevanagari(it)) }
+            },
         )
     }
 

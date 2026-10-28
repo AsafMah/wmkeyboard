@@ -101,6 +101,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
+import com.wasimaster.wmkeyboard.app.withExtensions
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
 import com.wasimaster.wmkeyboard.ime.ui.ChatLink
@@ -133,7 +135,9 @@ internal fun SettingsAssistantScreen(
     val busy by SettingsAssistantSession.busy.collectAsState()
     val partial by SettingsAssistantSession.partial.collectAsState()
     val chosenKey by SettingsAssistantSession.chosen.collectAsState()
-    val index = remember { settingsSearchIndex(context.resources) }
+    // Less the screens of any switched-off bundle, as search itself is.
+    val extensions = settings.watch { it.extensionsResolved() }
+    val index = remember(extensions) { settingsSearchIndex(context.resources).withExtensions(extensions) }
     val byKey = remember(index) { index.associateBy { it.key } }
     val scope = rememberCoroutineScope()
     val reduceMotion = settings.watch { it.reduceMotion }

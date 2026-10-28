@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.app.LiveSettings
 import com.wasimaster.wmkeyboard.app.NavRow
 import com.wasimaster.wmkeyboard.app.ProvidersGroup
 import com.wasimaster.wmkeyboard.app.ReorderableColumn
+import com.wasimaster.wmkeyboard.app.SettingLevel
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
 import com.wasimaster.wmkeyboard.app.SwipeAction
@@ -138,7 +139,7 @@ internal fun SmartHomeToolSettings(
                 subtitle = if (count == 0) stringResource(R.string.ha_favourites_subtitle_none) else stringResource(R.string.ha_favourites_subtitle, count),
             ) { onNavigate(ENTITIES_ROUTE) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.ha_open_on_title,
                 options = listOf(
@@ -149,13 +150,13 @@ internal fun SmartHomeToolSettings(
                 default = defaults.openOn,
             ) { scope.launch { repository.setHaOpenOn(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.ha_areas_tabs_title, stringResource(R.string.ha_areas_tabs_subtitle),
                 settings.watch { it.homeAssistant.areasAsTabs }, default = defaults.areasAsTabs,
             ) { scope.launch { repository.setHaAreasAsTabs(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.ha_tile_size_title,
                 options = listOf(
@@ -166,13 +167,13 @@ internal fun SmartHomeToolSettings(
                 default = defaults.tileSize,
             ) { scope.launch { repository.setHaTileSize(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.ha_confirm_risky_title, stringResource(R.string.ha_confirm_risky_subtitle),
                 settings.watch { it.homeAssistant.confirmRisky }, default = defaults.confirmRisky,
             ) { scope.launch { repository.setHaConfirmRisky(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.ha_insert_format_title,
                 options = listOf(
@@ -188,14 +189,18 @@ internal fun SmartHomeToolSettings(
 
     val hasAssist = settings.watch { it.assistHome() != null }
     if (hasAssist) {
-        SettingsGroup(stringResource(R.string.ha_group_assist), info = stringResource(R.string.ha_group_assist_info)) {
+        SettingsGroup(
+            stringResource(R.string.ha_group_assist),
+            info = stringResource(R.string.ha_group_assist_info),
+            level = SettingLevel.STANDARD,
+        ) {
             item {
                 ToggleSetting(
                     R.string.ha_assist_enabled_title, stringResource(R.string.ha_assist_enabled_subtitle),
                     settings.watch { it.homeAssistant.assistEnabled }, default = defaults.assistEnabled,
                 ) { scope.launch { repository.setHaAssistEnabled(it) } }
             }
-            item(visible = ha.assistEnabled) {
+            item(visible = ha.assistEnabled, level = SettingLevel.ADVANCED) {
                 val agents = hub.agents
                 val selected = settings.watch { it.homeAssistant.assistAgentId }
                 ChoiceSetting(
@@ -206,7 +211,7 @@ internal fun SmartHomeToolSettings(
                     default = "",
                 ) { scope.launch { repository.setHaAssistAgent(it) } }
             }
-            item(visible = ha.assistEnabled) {
+            item(visible = ha.assistEnabled, level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.ha_assist_language_title, stringResource(R.string.ha_assist_language_subtitle),
                     settings.watch { it.homeAssistant.assistFollowsKeyboardLanguage }, default = defaults.assistFollowsKeyboardLanguage,
@@ -215,7 +220,7 @@ internal fun SmartHomeToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.ha_group_link)) {
+    SettingsGroup(stringResource(R.string.ha_group_link), level = SettingLevel.ADVANCED) {
         item {
             val details = mapOf(
                 HaLinkLifetime.PANEL to stringResource(R.string.ha_lifetime_panel_detail),
@@ -241,7 +246,7 @@ internal fun SmartHomeToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.ha_group_also)) {
+    SettingsGroup(stringResource(R.string.ha_group_also), level = SettingLevel.STANDARD) {
         item {
             NavRow(title = R.string.ha_ai_tools_title, subtitle = stringResource(R.string.ha_ai_tools_subtitle)) {
                 onNavigate("tool/${ToolbarTool.AI.name}")

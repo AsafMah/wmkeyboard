@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.core.aichat
 
+import com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat
+import com.wasimaster.wmkeyboard.core.tools.AiChatMode
+import com.wasimaster.wmkeyboard.core.tools.AiChatModes
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -61,8 +64,24 @@ data class AiChatMessage(
      * so a file from before reasoning was kept still decodes.
      */
     val reasoning: String = "",
+    /**
+     * What the user asked this message to be ([AiChatMode.id]): a research
+     * question, a summary, a comparison. Empty for a plain chat message, and
+     * on an answer. Kept so Retry and Regenerate run it the same way.
+     */
+    val mode: String = "",
+    /** The answer format the user picked for this message ([AiAnswerFormat.id]); empty for Auto. */
+    val format: String = "",
+    /**
+     * Questions the model suggested asking next, drawn as chips under the
+     * newest answer. Taken out of the answer's own text; never sent back.
+     */
+    val followUps: List<String> = emptyList(),
 ) {
     val failed: Boolean get() = error.isNotEmpty()
+
+    val chatMode: AiChatMode get() = AiChatMode.of(mode)
+    val answerFormat: AiAnswerFormat get() = AiAnswerFormat.of(format)
 
     /**
      * What the model reads for this message: [content], then the attachment
@@ -76,6 +95,10 @@ data class AiChatMessage(
         if (attachment.isNotBlank()) append("\n\n<text>\n").append(attachment).append("\n</text>")
         images.indices.forEach { append(if (isEmpty()) "" else "\n").append("<image n=\"").append(firstImage + it).append("\"/>") }
         files.forEach { file -> append(if (isEmpty()) "" else "\n\n").append(file.promptText()) }
+        // The mode's and the format's words go with the message, not the
+        // system prompt, so a later turn replays exactly what was asked.
+        val instruction = AiChatModes.instruction(chatMode, answerFormat)
+        if (instruction.isNotEmpty()) append(if (isEmpty()) "" else "\n\n").append(instruction)
     }
 
     companion object {

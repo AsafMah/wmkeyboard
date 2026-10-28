@@ -26,6 +26,7 @@
     <string name="common_default">Privzeto</string>
     <string name="common_delete">Izbriši</string>
     <string name="common_disable">Izklopi</string>
+    <string name="common_disabled_open_setting">Odprite nastavitev</string>
     <string name="common_disclosure_blocked_body">Android te zahteve ne prikazuje več, ker ste dovoljenje prej zavrnili. Še vedno ga lahko vklopite na zaslonu z nastavitvami aplikacije.</string>
     <string name="common_disclosure_not_now">Ne zdaj</string>
     <string name="common_done">Končano</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Namesti</string>
     <string name="common_installing">Nameščanje...</string>
     <string name="common_loading">Nalaganje...</string>
+    <string name="common_more">Več</string>
     <string name="common_next">Naprej</string>
     <string name="common_none">Brez</string>
     <string name="common_notify_channel_backup_body">Samo ko samodejno varnostno kopiranje ne uspe. Uspešne varnostne kopije so tihe.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Prikaži obvestila</string>
     <string name="common_permission_storage_body">V sistemu Android 9 in starejših tipkovnica potrebuje dovoljenje za shranjevanje, da lahko shrani sliko v vašo galerijo. Staro dovoljenje za Android zajema tudi branje vašega pomnilnika. Tipkovnica zapiše samo sliko, ki jo želite shraniti. Tipkovnica ničesar ne bere in ničesar ne nalaga. Novejše različice Androida tega dovoljenja ne potrebujejo.</string>
     <string name="common_permission_storage_title">Dostop do shrambe za shranjevanje v vašo galerijo</string>
+    <string name="common_permission_tasks_body">Tipkovnica WM ohranja svoj seznam opravil in en seznam nalog v aplikaciji za opravila usklajena: naloge, njihove korake, kljukice in roke, v obe smeri. Dovoljenje zajema vsak seznam nalog v aplikaciji. Tipkovnica bere sezname aplikacije samo zato, da lahko izberete enega, in bere ter piše samo v seznam, ki ste ga izbrali. Tipkovnica ne pošilja ničesar nikamor. DAVx5, če ga uporabljate, sinhronizira ta seznam z vašim lastnim strežnikom CalDAV. Brez tega dovoljenja seznam opravil ostane v tem telefonu.</string>
+    <string name="common_permission_tasks_opentasks_title">Dostop OpenTasks za seznam opravil</string>
+    <string name="common_permission_tasks_tasks_org_title">Dostop Tasks.org za seznam opravil</string>
+    <string name="common_preview_scale_desc">Velikost predogleda</string>
+    <string name="common_preview_scale_larger">Povečaj predogled</string>
+    <string name="common_preview_scale_smaller">Pomanjšaj predogled</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Odstrani</string>
     <string name="common_reset">Ponastavi</string>
     <string name="common_reset_defaults">Ponastavi na privzeto</string>

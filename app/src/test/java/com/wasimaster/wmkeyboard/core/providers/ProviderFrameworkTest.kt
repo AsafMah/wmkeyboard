@@ -742,4 +742,34 @@ class ProviderFrameworkTest {
         val offered = ProviderCatalog.addable(ProviderTool.VOICE, ProviderChain(), lite).map { it.id }
         assertEquals(listOf("system_recognizer", "transcription_server"), offered)
     }
+
+    // ---- Music ID ----
+
+    @Test
+    fun `the music list names every service, all off until a key is typed`() {
+        val chain = KeyboardSettings().providerChain(ProviderTool.MUSIC, github)
+        assertTrue(on(chain).isEmpty())
+        assertEquals(listOf("audd", "acrcloud", "audiotag", "rapid_shazam"), ids(chain))
+        assertEquals(ChainMode.FALLBACK, chain.mode)
+        // Nothing runs on the phone, so the no-internet build can add nothing.
+        assertTrue(ProviderCatalog.addable(ProviderTool.MUSIC, ProviderChain(), offline).isEmpty())
+    }
+
+    @Test
+    fun `ACRCloud needs its secret as well as its key, and the secret rides the credential store`() {
+        val withKey = ProviderCredential("acrcloud", "acrcloud", apiKey = "k", url = "identify-eu-west-1.acrcloud.com")
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                credentials = listOf(withKey),
+                chains = mapOf(ProviderTool.MUSIC to ProviderChain(listOf(ProviderEntry("acrcloud")))),
+            ),
+        )
+        assertEquals(ProviderProblem.NEEDS_KEY, s.resolveProviders(ProviderTool.MUSIC, github, all = true).single().problem)
+        val full = withKey.copy(extra = mapOf(CredentialSpec.SECRET to "s"))
+        val ok = s.copy(providers = s.providers.copy(credentials = listOf(full)))
+        assertNull(ok.resolveProviders(ProviderTool.MUSIC, github, all = true).single().problem)
+        val stored = ProviderCodec.decodeCredentials(ProviderCodec.encodeCredentials(listOf(full)))!!.single()
+        assertEquals("s", stored.extra[CredentialSpec.SECRET])
+        assertFalse(ProviderTypes.ACRCLOUD.credential.none)
+    }
 }

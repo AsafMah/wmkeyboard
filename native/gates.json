@@ -204,7 +204,7 @@
     {
       "id": "imagegen",
       "property": "imagegen",
-      "doc": "`:feature:imagegen`: the sticker generator's runtimes (`:core:intelligence`): MNN on the CPU (`libwmimagegen`, also the scanner's PaddleOCR runtime in builds without LiteRT, F-Droid's, and the upscaler's in every build) and, arm64 only, the runner that drives Qualcomm AI Hub's Stable Diffusion on the NPU through the Qualcomm runtime (`libwmimagegen_qnn`, never built for F-Droid: it is compiled against Qualcomm's QNN headers). Only the libraries move; the models are separate downloads.",
+      "doc": "`:feature:imagegen`: the sticker generator's runtimes (`:core:intelligence`): MNN on the CPU (`libwmimagegen`, also the scanner's PaddleOCR runtime in builds without LiteRT, F-Droid's, the handwriting panel's PaddleOCR reader wherever ML Kit has no model, and the upscaler's in every build) and, arm64 only, the runner that drives Qualcomm AI Hub's Stable Diffusion on the NPU through the Qualcomm runtime (`libwmimagegen_qnn`, never built for F-Droid: it is compiled against Qualcomm's QNN headers). Only the libraries move; the models are separate downloads.",
       "play": "split",
       "libraries": [
         { "name": "libwmimagegen.so", "dir": "core/intelligence/src/imagegen/jniLibs", "fdroidBuild": "native/imagegen-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative"] },
@@ -234,11 +234,11 @@
     {
       "id": "googlehome",
       "property": "googleHome",
-      "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all.",
+      "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all. No flag: the SDK unpacked under feature/ime/libs/googlehome is the decision.",
       "play": "module",
       "google": true,
       "enabledBy": {
-        "flag": "wmkb.enableGoogleHome", "env": "WMKB_ENABLE_GOOGLE_HOME", "default": false, "buildConfig": "ENABLE_GOOGLE_HOME",
+        "buildConfig": "ENABLE_GOOGLE_HOME",
         "requiresDir": "feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home"
       }
     },

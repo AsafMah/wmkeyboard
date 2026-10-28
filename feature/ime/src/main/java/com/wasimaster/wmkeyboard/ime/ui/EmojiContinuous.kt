@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -114,14 +113,15 @@ internal class EmojiSections(val items: List<EmojiListItem>, val starts: IntArra
         ): EmojiSections {
             val items = ArrayList<EmojiListItem>(catalog.size + tabs.size * 2)
             val starts = IntArray(tabs.size)
+            // Once for every tab: a tab can hold emoji another category lent it.
+            val layout = EmojiOrder.layout(catalog, emojiOrder, hidden)
             tabs.forEachIndexed { index, tab ->
                 starts[index] = items.size
                 items += EmojiListItem.Header(tab, index)
                 when (tab) {
                     RECENT_TAB -> history.distinct().forEach { items += EmojiListItem.Emoji(tab, it, history = true) }
                     KAOMOJI_TAB, EMOTICON_TAB -> items += textArt(tab)
-                    else -> EmojiOrder.emoji(catalog, tab, emojiOrder[tab].orEmpty(), hidden)
-                        .distinct()
+                    else -> layout[tab].orEmpty()
                         .forEach { items += EmojiListItem.Emoji(tab, it, history = false) }
                 }
             }
@@ -167,7 +167,7 @@ internal fun ContinuousEmojiGrid(
     val clearRecents = state.settings.emojiClearRecentsButton && session.historyMode == EmojiTabMode.RECENTS
     LazyVerticalGrid(
         state = grid,
-        columns = GridCells.Adaptive(minSize = gridCell),
+        columns = session.columns,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
     ) {

@@ -9,7 +9,7 @@ sidebar:
 import PhoneFrame from '@components/PhoneFrame.astro';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard's settings app opens on a Home screen: seventeen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
+WM Keyboard's settings app opens on a Home screen: eighteen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
 
 <PhoneFrame caption="The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card.">
   <Shot id="reference/settings/home-screen" alt="The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card." />
@@ -36,12 +36,13 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
 
 **Features**
 - [Emoji](/reference/settings/emoji/): suggestions, emoji row, emoji style, favourites
-- [Clipboard](/tools/clipboard/#options): history, the paste chip, screenshots, sensitive clips. A Home row whose settings are documented on the Clipboard guide page, since they describe the panel they drive
+- [Clipboard](/tools/clipboard/#options): history, the paste chip, screenshots, sensitive clips. A hub of three pages (Clipboard history, Paste chip and codes, Rules and privacy) whose settings are documented on the Clipboard guide page, since they describe the panel they drive
 - [Voice typing](/tools/voice/#options): the recognition engine, the microphone view, spoken punctuation, and the offline models. Documented on the Voice typing guide page for the same reason
 - [Text expansion](/tools/snippets/#options): your snippets, their triggers and patterns, and the template variables. Documented on the Snippets guide page for the same reason
 - AI: the two AI tools with their switches, [Search by meaning](/smart/search-by-meaning/), the chat, the settings assistant, [Memory](/tools/ai-memory/) and the history, all in one place. Each row opens the same screen it opens from Tools, so the [AI tools](/tools/ai/) and [AI chat](/tools/ai-chat/) guide pages document them. The provider, key and model stay on the AI writing tools screen, because AI reply, the chat and the settings assistant use the same ones
 - [Tools](/reference/settings/tools/): the master tool list. Each tool's own screen is documented on its guide page, not here
-  - [Phone number formats](/reference/settings/phone-formats/): the clipboard's phone-number masks, reached from the Clipboard screen. It's the one per-tool sub-screen with a page here, because the mask syntax needs the room
+- [Extensions](/reference/settings/extensions/): the far-fetched features, from a bubble level to a link to the desktop, switched on or off as one thing. A bundle that is off leaves Home, Tools, search, the toolbar and the toolbox together
+  - [Phone number formats](/reference/settings/phone-formats/): the clipboard's phone-number masks, reached from the Clipboard screen's Rules and privacy page. It's the one per-tool sub-screen with a page here, because the mask syntax needs the room
 
 **Accessibility**
 - [Accessibility](/reference/settings/accessibility/): contrast, colour vision, TalkBack, reduced motion
@@ -58,12 +59,13 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
   - Notifications: what the keyboard may post, toggled by kind: downloads, app updates, backup problems, and a persistent Keyboard controls entry for bringing it back
   - [Selection actions](/reference/settings/selection-actions/): the bar of actions the keyboard offers for the text you select, with its Actions list, AI buttons and Time zones screens
   - [Floating button](/reference/settings/floating-button/): the button over other apps whose tap, double tap and press and hold open the keyboard, voice typing, the AI or any tool, with its quick menu
+  - [Share sheet](/reference/settings/share-sheet/): whether shares open the keyboard's own sheet or Android's, and its recent and pinned apps
 
 **About**
 - [About & diagnostics](/reference/settings/about/): version, licence, open-source notices, updates, storage, diagnostics
   - [Statistics](/reference/settings/statistics/): how much you type, and the switch that stops the counting
 
-That's 31 screens in total: the 17 Home rows, plus fourteen sub-screens (Dictionaries, Themes, Fonts, Icons, Key layouts, Phone number formats, Permissions, Keyboard modes, Addons, Data saver, Servers, Notifications, Selection actions, Statistics). Every one of them has its own page in this section except Notifications, which is covered above instead.
+That's 33 screens in total: the 18 Home rows, plus fifteen sub-screens (Dictionaries, Themes, Fonts, Icons, Key layouts, Phone number formats, Permissions, Keyboard modes, Addons, Data saver, Servers, Notifications, Selection actions, Share sheet, Statistics). Every one of them has its own page in this section except Notifications, which is covered above instead. Several Home rows are hubs with pages of their own underneath, documented on the hub's page rather than on pages of their own: Typing has nine (Automatic corrections, Capitals, punctuation and spacing, Suggestions, Autopilot, Words on the keys, Smart chips, One-time codes, Gestures, Physical keyboard), Gestures three more (Glide typing, Spacebar, Flicks and swipes), Key press three, Appearance two, Layout & size two, and Clipboard three (Clipboard history, Paste chip and codes, Rules and privacy). Several Home rows are hubs with pages of their own underneath, documented on the hub's page rather than on pages of their own: Typing has nine (Automatic corrections, Capitals, punctuation and spacing, Suggestions, Autopilot, Words on the keys, Smart chips, One-time codes, Gestures, Physical keyboard), Gestures three more (Glide typing, Spacebar, Flicks and swipes), Key press three, Appearance two, Layout & size two, and Clipboard three (Clipboard history, Paste chip and codes, Rules and privacy).
 
 ## Searching instead of browsing
 
@@ -78,13 +80,25 @@ Rows that carry every word of your query win outright. When nothing carries all 
 
 Weaker matches sit under a **Mentioned in the description** heading below the ranked ones. On a long list of results, the rail down the right edge is cut into two pieces, one for each of the two sets. Drag the rail to move through the results, and the name of the set you are over shows beside your finger.
 
-Tap a result and the owning screen opens, scrolled to that row, with a brief highlight on it. You never have to hunt for the setting you searched for. Toolbar tools are searchable too: every tool this build ships gets an entry automatically, whether or not you've turned it on, so a newly shipped tool is findable straight away, with no docs or search-index update behind it.
+Tap a result and the owning screen opens, scrolled to that row, with a brief highlight on it. You never have to hunt for the setting you searched for. For the first three seconds the row is kept in view while the rest of the screen finishes loading around it, so rows appearing above it can't push it off screen; drag the page yourself and it stops. Toolbar tools are searchable too: every tool this build ships gets an entry automatically, whether or not you've turned it on, so a newly shipped tool is findable straight away, with no docs or search-index update behind it.
 
 A search can also succeed on a name another keyboard uses for the same feature. "Octopus" or "z10" finds Words on the keys, and "swype" or "flow" finds Glide typing. Neither word appears in the row's own title, and a row's own name still wins when it also matches.
 
 The list moves while you type, and the movement is the answer telling you what it did. The first letter puts a list on screen: the rows rise into place one after another from the top, so you can see how far down the list goes before you have read a word of it. Every letter after that edits the list you are already looking at. Rows that no longer match fade out, the rows that survive slide to their new places rather than blinking there, and the rows the new letter brought in fade in once the sliding has finished. A row that was fourth and is now first is visibly the same row that travelled, which is what lets you keep your eye on one result while you narrow the query around it. Deleting a letter runs the same thing backwards. Clearing the field, or typing a query nothing matches, cross-fades the whole page instead, because that is a different answer rather than the same answer rearranged.
 
 None of that runs when [Reduce motion](/reference/settings/accessibility/) is on. The rows appear in their new order.
+
+## Seeing what an update added
+
+After an update, the settings that version added are marked where they live. Each new row has a gold border, and a bar at the bottom of every settings screen says how many there are: "7 new settings in this version". The arrows open the previous or next one, scrolled into view and flashed the way a search result is, and the bar then names the one you're on. Tapping the words opens it again. The close button takes the borders and the bar away until the next update.
+
+The keyboard tells a new setting from an old one by comparing the rows it has with the rows the version before it had, so nothing is marked on a first install, or on the first update to a version that does this. A setting above your [depth](#choosing-how-many-settings-you-see) is still counted, and the arrows still open it.
+
+## Choosing how many settings you see
+
+The settings app shows one of three depths: **Simple**, **Standard** or **Everything**. Simple is about what other keyboards offer. Standard adds the common extras. Everything is every row on every page. The depth starts from your answer to the setup wizard's "What kind of keyboard do you want?", and you change it under [About › App › How many settings to show](/reference/settings/about/).
+
+A setting above the depth is not drawn. It keeps its value, search still finds it and opens its group with the row showing, and so does a favourite. The pages in this section describe every setting, whichever depth you are on. If you would rather see where the rest went, **Show where settings are hidden**, under the same About group, puts a **more settings** row at the end of each group that left something out; tap it and the rows grow in under it, and the group remembers that you opened it. At Simple, Home's Rows & bars, Text expansion, AI, Backup & restore and Advanced rows are left out the same way, and come back as a closed **More** group with that switch on.
 
 ## Putting one setting back
 
@@ -116,11 +130,22 @@ Every action behind a row is also on the row itself, on its menu, or on the scre
 
 ## Typing an exact value
 
-A slider is quick but it can't be landed on one exact number by thumb. Every slider's number sits in a small pill beside its name. Tap the pill and a box opens with the current number already selected, so you can type over it. The unit the slider uses (ms, %, dp) sits beside the box, and the line under it gives the slider's two ends.
+A slider is quick but it can't be landed on one exact number by thumb. Every slider's number sits in a small pill at the end of its row. A slider with a short name shares the name's line, pill and all, so the row is one line tall; a longer name keeps the slider on a line of its own under it, and which one a row gets is measured against the screen's width, not guessed from the name's length. Tap the pill and a box opens with the current number already selected, so you can type over it. The unit the slider uses (ms, %, dp) sits beside the box, and the line under it gives the slider's two ends.
 
 You type the number the slider shows. A percentage slider takes `35` for 35%, and a slider that reads in seconds takes `1.5`. On a slider that moves in fixed steps, a number between two steps goes to the nearest one. A number past either end turns the box red and **OK** stays off until you fix it. Either a point or a comma works as the decimal mark.
 
 A slider whose ends are a word rather than a number (**Off**, **Automatic**, **Never**) still gets there by dragging. The box takes only the numbers in between. Three sliders don't take typing at all, because their unit changes partway along: the automatic backup and sync intervals (hours, then days) and the clipboard chip's lifetime (seconds, then minutes).
+
+## Asking why a setting is greyed out
+
+A setting that only works while another one is on is hidden while that one is off, and comes back when you turn it on. A greyed-out switch, slider or button is waiting on something else: your theme, the phone, or a setting that forces its value. Touch and hold it and a small menu says why, such as "Set by your theme". When another setting can unblock it, **Open the setting** under the reason takes you to that setting, scrolled into view and flashed. If that setting is on the same screen, the screen scrolls to it instead of opening again.
+
+- A row that the active theme controls opens that theme's editor, at **Layout for this theme**.
+- A tool on the Tools list that can't run yet, such as web search with no search service set up, opens the tool's own page, where the fix is.
+- When nothing in the settings can help, as with a switch that needs a newer Android version, the menu has the reason only.
+- On a row that can also go into your favourites, the same menu offers **Add to favourites** under the reason.
+- At the Simple [depth](#choosing-how-many-settings-you-see), the same menu starts with **What is this?** on any row that has an explanation, because the **?** is not drawn on the rows there. It opens the explanation the **?** opens at the other depths.
+- The keyboard does the same for its own greyed-out buttons. See [Gesture cheat sheet › Holding a greyed-out button](/reference/gestures/#holding-a-greyed-out-button).
 
 ## Trying a change
 
@@ -130,10 +155,23 @@ Every settings screen has a small keyboard button in its bottom corner. Tap it a
 - Tap the button again, or hide the keyboard, to close the field. The text stays until you clear it with the **×** in the field or close the app.
 - If another keyboard is the active one, a keyboard icon beside the field opens the system's keyboard picker, so you can switch to WM Keyboard before you try anything.
 - On a screen that has its own button, such as **Add**, the keyboard button sits above it.
-- The field also opens by itself when the keyboard comes up over the settings with nothing to type into: kept on screen by [Keep the keyboard on screen](/typing/size-position/#keeping-the-keyboard-on-screen), or opened by the [floating keyboard button](/typing/size-position/#opening-the-keyboard-without-a-text-field) or the shade's **Show**. That way the keys type somewhere and the screen moves up clear of them, rather than hiding its last rows behind the keyboard.
+- The field also opens by itself when the keyboard comes up over the settings with nothing to type into: kept on screen by [Keep the keyboard on screen](/typing/size-position/#keeping-the-keyboard-on-screen), or opened by the [floating keyboard button](/typing/size-position/#opening-the-keyboard-without-a-text-field), the shade's **Show** or the **Show keyboard** Quick Settings tile. That way the keys type somewhere and the screen moves up clear of them, rather than hiding its last rows behind the keyboard.
 - The theme editor has no keyboard button while its keyboard preview is docked, and neither do the code editors, search, or AI chat, which have their own text fields. Going to one of those closes the field.
 - On Android 14 and older, hiding the keyboard leaves the field open. Tap the button to close it.
 - Turn the button off at [Accessibility › Settings app › Keyboard test button](/reference/settings/accessibility/#settings-app).
+
+## Favourite settings
+
+Pin the screens and settings you keep going back to, and they are two taps away from any screen. Tap the star at the top of a screen, and your favourites open in a sheet. Tap one to go there. A setting opens on its screen, scrolled into view and flashed, the way a search result does.
+
+- To add the screen you are on, tap the star and then **Add this screen**. The star is filled on a screen that is already a favourite, and the same place says **Remove this screen**.
+- To add one setting, touch and hold it, or a group's heading, and choose **Add to favourites**. The same menu says **Remove from favourites** once it is in the list.
+- Tap **Edit** in the sheet to put the list in order by dragging the handles, or to remove an entry with its bin. Tap **Done** to go back to opening them.
+- Settings with no fixed name can't be added: one language, one layout, one theme, one installed pack, and anything else you made yourself. Their screens can, with **Add this screen**.
+- A favourite shows the setting's current name, so it follows the app's language. A screen that only you have, such as one language's page, keeps the name it had when you added it.
+- Turn the star off at [Accessibility › Settings app › Favourites button](/reference/settings/accessibility/#settings-app). The menu entry goes with it, and your favourites are kept for when you turn it back on.
+- Your favourites go into backups, and [sync](/reference/settings/backup/) carries them to your other devices.
+- If an update moves a favourite setting to another screen, it still opens, on its new screen.
 
 ## Getting there directly
 
@@ -148,5 +186,5 @@ Two related topics live on their own pages rather than here:
 - Per-tool settings live on each tool's own guide page under [Tools](/tools/overview/), cross-linked from [the Tools screen page](/reference/settings/tools/). Three screens are exceptions. The sticker-pack manager and plugin manager both open from a tool's detail screen *and* from Addons, since installing a sticker pack or a plugin addon lands you in the same manager, so they're covered under [Addons](/reference/settings/addons/) instead. The clipboard's [Phone number formats](/reference/settings/phone-formats/) gets a page of its own because its mask syntax is reference material rather than a guide.
 - **A row that another row reveals grows into place.** Switching on a setting that has more settings under it (**Go back to the letters** on [Layout & size](/reference/settings/layout/) and its **Characters that go back** field, say) expands the new row open and pushes the rows below it down, and the group's rounded ends follow it rather than snapping to the new last row. Switching back runs it in reverse. A few rows still appear and disappear in one frame: the ones a screen only draws once it has something to draw there, like a list of installed packs or a border colour that has been set. [Reduce motion](/reference/settings/accessibility/) turns the whole thing off and the rows are there or not.
 - Screen transitions are a 340&nbsp;ms horizontal push: the arriving screen slides the whole way in from the right while the one behind it drifts a third of the way left. Both surfaces are opaque, so nothing cross-fades. Turn on reduced motion under [Accessibility](/reference/settings/accessibility/) and that collapses to an instant cut with no animation at all.
-- Every screen but Home draws a tappable path strip below its heading, one pill for each step back. Tap an earlier step to jump straight to it, instead of pressing back repeatedly.
-- Every screen in this section is reachable from Home in three taps at most, and most of them in one or two. [Phone number formats](/reference/settings/phone-formats/) is the deepest, at Home → Clipboard → Phone number formats. Nothing here needs a hidden gesture or a developer option.
+- From the third level down, a screen draws a tappable path strip below its heading, one pill for each step back (**Home › Typing ›** over the Autocorrect page, say). Tap an earlier step to jump straight to it, instead of pressing back repeatedly. A page one step below Home has no strip: its heading already says where it is, and the back arrow is the whole way back. A few screens have two ways in, such as the Emoji panel, reached from **Emoji** and from **Layout & size › Key layouts**, and each way draws its own path. Once you have opened such a screen one way, reaching it another way adds a line under the strip naming the earlier path ("Also under Home › Emoji"), so a screen you have already looked through does not pass for a new one. The app remembers these paths for as long as it stays open.
+- Every screen in this section is reachable from Home in four taps at most, and most of them in one or two. [Phone number formats](/reference/settings/phone-formats/) is the deepest, at Home → Clipboard → Rules and privacy → Phone number formats; the three pages under Typing → Gestures are one tap shallower. Nothing here needs a hidden gesture or a developer option.

@@ -4,14 +4,17 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.vad.PhraseEnd
+import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import java.io.File
 import java.util.Locale
 
 /**
  * Offline Sherpa dictation: a streaming Zipformer transducer per language,
  * decoded while the user speaks, so the words reach the field as they are
- * said. Silero VAD, carried beside every model, hears the end of a phrase
- * sooner and more surely than a loudness threshold. Marks and capitals come
+ * said. The phrase end detector ([VoiceVad]; Silero, carried beside every
+ * model, unless the user picked another) hears the end of a phrase sooner and
+ * more surely than a loudness threshold. Marks and capitals come
  * after, for the models that write none, from
  * [com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation].
  *
@@ -28,12 +31,6 @@ object SherpaEngine {
 
     /** Decoder threads: two keeps up with speech on any phone that has two cores to spare. */
     private const val THREADS = 2
-
-    /** Silero's speech threshold; its own default. */
-    private const val VAD_THRESHOLD = 0.5f
-
-    /** Shorter than this is a click or a cough, not speech. */
-    private const val VAD_MIN_SPEECH_SECONDS = 0.25f
 
     /** The pause that ends a phrase when the user has not set one. */
     private const val DEFAULT_ENDPOINT_MS = 1_200
@@ -84,11 +81,17 @@ object SherpaEngine {
 
     /**
      * A fresh phrase on [model]. [endpointMs] is the pause that ends it, or 0
-     * for none (the user stops it). [words] are the words to listen for, most
-     * important first; the ones the model cannot spell are dropped. Throws
-     * when the model will not load.
+     * for none (the user stops it), heard by the detector [vad] names.
+     * [words] are the words to listen for, most important first; the ones
+     * the model cannot spell are dropped. Throws when the model will not load.
      */
-    fun newStream(filesDir: File, model: EtModel, endpointMs: Int, words: List<String> = emptyList()): SherpaStream {
+    fun newStream(
+        filesDir: File,
+        model: EtModel,
+        endpointMs: Int,
+        words: List<String> = emptyList(),
+        vad: VoiceVad.Setup = VoiceVad.Setup.DEFAULT,
+    ): SherpaStream {
         val hotwords = if (words.isEmpty() || bridgeMissing) emptyList() else spellingFor(filesDir, model).lines(words)
         val rec = recognizerFor(filesDir, model, beam = hotwords.isNotEmpty())
         val stream = if (recognizerBeam) {
@@ -97,14 +100,14 @@ object SherpaEngine {
             SherpaNative.nativeStream(rec)
         }
         check(stream != 0L) { "sherpa-onnx could not start a stream" }
-        val vadFile = EtStore.file(filesDir, model, "silero_vad.onnx")
-        val vad = if (endpointMs > 0 && vadFile.isFile) {
-            SherpaNative.nativeVad(vadFile.path, VAD_THRESHOLD, endpointMs / 1000f, VAD_MIN_SPEECH_SECONDS)
-        } else {
-            0L
+        val end = try {
+            VoiceVad.phraseEnd(filesDir, vad, EtStore.file(filesDir, model, "silero_vad.onnx"), endpointMs)
+        } catch (e: Throwable) {
+            SherpaNative.nativeStreamFree(stream)
+            throw e
         }
         liveStreams++
-        return SherpaStream(rec, stream, vad, endpointMs > 0) { liveStreams-- }
+        return SherpaStream(rec, stream, end) { liveStreams-- }
     }
 
     /** Closes whatever is open, unless a stream still uses it. On [SherpaNative.dispatcher] only. */
@@ -210,19 +213,16 @@ object SherpaEngine {
 
 /**
  * One phrase through a Sherpa recognizer. Its recognizer belongs to
- * [SherpaEngine] and outlives it; its stream and VAD are its own, freed by
- * [close], which [finish] calls.
+ * [SherpaEngine] and outlives it; its stream and phrase end are its own,
+ * freed by [close], which [finish] calls.
  */
 class SherpaStream internal constructor(
     private val recognizer: Long,
     private var stream: Long,
-    private var vad: Long,
-    private val endpoints: Boolean,
+    /** Hears the phrase end; null when the user ends it. */
+    private var end: PhraseEnd?,
     private val onClose: () -> Unit,
 ) : VoiceStream, AutoCloseable {
-
-    private var heardSpeech = false
-    private var speaking = false
 
     override fun feed(chunk: FloatArray, count: Int) {
         if (stream == 0L || count <= 0) return
@@ -230,10 +230,7 @@ class SherpaStream internal constructor(
         // dragging the rest of a large one across.
         val samples = if (count == chunk.size) chunk else chunk.copyOf(count)
         SherpaNative.nativeFeed(recognizer, stream, samples, count)
-        if (vad != 0L) {
-            speaking = SherpaNative.nativeVadFeed(vad, samples, count)
-            if (speaking) heardSpeech = true
-        }
+        end?.feed(samples, count)
     }
 
     override fun text(): String = if (stream == 0L) "" else readable(SherpaNative.nativeText(recognizer, stream))
@@ -246,22 +243,16 @@ class SherpaStream internal constructor(
         return raw
     }
 
-    /**
-     * Silero heard speech and then the pause; without Silero, the
-     * recognizer's own rule (words, then silence) decides.
-     */
+    /** The detector heard speech and then the pause. */
     override val endpoint: Boolean
-        get() = endpoints && stream != 0L && when {
-            vad != 0L -> heardSpeech && !speaking
-            else -> SherpaNative.nativeEndpoint(recognizer, stream)
-        }
+        get() = stream != 0L && end?.ended == true
 
     override fun close() {
         if (stream == 0L) return
         SherpaNative.nativeStreamFree(stream)
-        if (vad != 0L) SherpaNative.nativeVadFree(vad)
+        end?.close()
         stream = 0L
-        vad = 0L
+        end = null
         onClose()
     }
 

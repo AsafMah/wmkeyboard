@@ -1019,12 +1019,13 @@ internal fun NotesToolSettings(
                 route = NOTES_ROUTE,
             ) { onNavigate(NOTES_ROUTE) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_notes_label, NOTES_ROUTE) }
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.notes_tags_title, stringResource(R.string.tooldetail_notes_tags_subtitle), route = NOTES_TAGS_ROUTE) {
                 onNavigate(NOTES_TAGS_ROUTE)
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val trashed = summary?.second
             NavRow(
                 R.string.notes_trash_title,
@@ -1034,7 +1035,7 @@ internal fun NotesToolSettings(
             ) { onNavigate(NOTES_TRASH_ROUTE) }
         }
     }
-    SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
         item {
             ChoiceSetting(
                 R.string.tooldetail_notes_sort_title,
@@ -1063,7 +1064,7 @@ internal fun NotesToolSettings(
                 default = d.panelOpensOn,
             ) { scope.launch { repository.setNotesPanelOpensOn(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.tooldetail_notes_trash_days_title,
                 options = NotesSettings.TRASH_DAY_CHOICES.map { days ->
@@ -1092,7 +1093,7 @@ internal fun NotesToolSettings(
         }
     }
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ActionRow(
                 R.string.tooldetail_notes_clear_title,
                 subtitle = stringResource(R.string.tooldetail_notes_clear_subtitle),

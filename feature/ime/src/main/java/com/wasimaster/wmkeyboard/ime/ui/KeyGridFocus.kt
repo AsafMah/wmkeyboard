@@ -232,12 +232,14 @@ internal class KeyGridFocus {
         pressSpent = false
     }
 
-    /** Forgets the screen as well — a new input session gets a fresh ring. */
+    /**
+     * A new input session gets a fresh ring, while the mounted view keeps its
+     * geometry. An IME window can be reused without any relayout, so clearing
+     * those tables here would leave visible keys and tools unreachable. Key
+     * rows publish replacements; composables unregister tools on disposal.
+     */
     fun reset() {
         clear()
-        rects = null
-        typeKey = null
-        targets.clear()
     }
 
     private fun take(target: FocusCell) {
@@ -428,7 +430,7 @@ internal fun SuggestionRingId(slot: Int): Any = "wm.suggestion.$slot"
  * overlaps, and doubling the cross-axis term is what makes "roughly straight
  * ahead" beat "slightly nearer, well off to one side".
  *
- * Horizontal travel wraps within the row instead of returning null. An IME
+ * Horizontal travel stays within the row, wrapping instead of returning null. An IME
  * window takes no focus, so an unconsumed arrow key goes to the app behind it —
  * which for left and right, in the middle of typing, means the app quietly
  * moving its own selection while the user is spelling a word. Up and down do
@@ -448,7 +450,16 @@ internal fun nextKeyCell(cells: List<Rect>, from: Rect, dx: Int, dy: Int): Rect?
     // a tall Enter beside the punctuation keys — do not read as being above one
     // another.
     val slack = if (horizontal) from.width / 2f else from.height / 2f
-    val ahead = cells.filter { it != from && forward(it) > slack }
+    // A small toolbar icon can be closer sideways than the next wide T9 key.
+    // It is still in another row: only Up/Down may cross between those rows.
+    // Either centre line may overlap, so a taller Enter remains reachable.
+    val row = if (horizontal) cells.filter {
+        it != from && (
+            (it.center.y > from.top && it.center.y < from.bottom) ||
+                (from.center.y > it.top && from.center.y < it.bottom)
+            )
+    } else cells
+    val ahead = row.filter { it != from && forward(it) > slack }
     if (ahead.isNotEmpty()) {
         return ahead.minByOrNull { candidate ->
             val along = forward(candidate)
@@ -470,12 +481,7 @@ internal fun nextKeyCell(cells: List<Rect>, from: Rect, dx: Int, dy: Int): Rect?
         }
     }
     if (!horizontal) return null
-    // Wrap: the far end of the row the ring is already on — the cells whose
-    // centre line falls inside this one's, which is the question "same row?"
-    // asked in a way that a row merely *touching* this one cannot answer yes to.
-    val row = cells.filter {
-        it != from && it.center.y > from.top && it.center.y < from.bottom
-    }
+    // Wrap only through that same row; touching the row's edge is not overlap.
     return row.maxByOrNull { (from.center.x - it.center.x) * dx }
 }
 

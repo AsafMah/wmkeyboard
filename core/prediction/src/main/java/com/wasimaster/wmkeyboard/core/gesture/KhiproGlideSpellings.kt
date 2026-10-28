@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrieCodec
 import com.wasimaster.wmkeyboard.core.prediction.WordSource
+import com.wasimaster.wmkeyboard.core.transliteration.Khipro
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
 import com.wasimaster.wmkeyboard.core.transliteration.SortedWords
 import java.io.File
@@ -50,11 +51,18 @@ object KhiproGlideSpellings {
      * for this exact list, built and saved there otherwise. Null when they
      * could not be built (a full disk); the caller then has nothing to glide
      * with, the same as before.
+     *
+     * [downloadedSpec] is the revision of a Khipro spec set downloaded since
+     * the bundled one (`KhiproSpecs`), or null while the bundled specs type.
+     * The spellings are redone under a new one, and [premade]'s, worked out
+     * under the bundled specs, count only where Khipro still turns them into
+     * their word.
      */
     fun load(
         words: SortedWords,
         dir: File,
         premade: File? = null,
+        downloadedSpec: String? = null,
         onProgress: ((done: Int, total: Int) -> Unit)? = null,
     ): WordSource? {
         val file = File(dir, FILE_NAME)
@@ -63,11 +71,12 @@ object KhiproGlideSpellings {
         // The table's size is part of the signature, so a cache worked out on
         // the device is replaced once the table arrives, and again if a newer
         // one does; its spellings are the same, only some were missing.
-        val signature = signatureOf(words) + (table?.let { ":p${it.length()}" } ?: "")
+        val signature = signatureOf(words) + (table?.let { ":p${it.length()}" } ?: "") +
+            (downloadedSpec?.let { ":k$it" } ?: "")
         if (file.isFile && runCatching { signatureFile.readText() }.getOrNull() == signature) {
             MappedTrie.open(file)?.let { return it }
         }
-        val trie = build(words, table, onProgress)
+        val trie = build(words, table, verify = downloadedSpec != null, onProgress)
         return runCatching {
             dir.mkdirs()
             val part = File(dir, "$FILE_NAME.part")
@@ -92,9 +101,9 @@ object KhiproGlideSpellings {
     }
 
     /** [onProgress] hears from the worker threads, a chunk at a time; only a build reports. */
-    private fun build(words: SortedWords, table: File?, onProgress: ((Int, Int) -> Unit)?): PackedTrie {
+    private fun build(words: SortedWords, table: File?, verify: Boolean, onProgress: ((Int, Int) -> Unit)?): PackedTrie {
         val listed = BooleanArray(words.size)
-        val premade = table?.let { runCatching { readTable(words, it, listed) }.getOrNull() }
+        val premade = table?.let { runCatching { readTable(words, it, listed, verify) }.getOrNull() }
         if (premade == null) listed.fill(false)
         // Only the words the table did not cover are worked out here, and only
         // that work is reported: a list the table covers builds in seconds and
@@ -150,9 +159,16 @@ object KhiproGlideSpellings {
      * The spellings [table] lists for words of [words], with their frequencies,
      * marking each word it covered in [listed]. A table line is
      * `word<TAB>spelling[<TAB>spelling…]`; its words outside the list (a list
-     * downloaded at a smaller size) are passed over.
+     * downloaded at a smaller size) are passed over. With [verify], a spelling
+     * counts only if Khipro still converts it to the word, and a word with
+     * none left is not marked, so it is spelled on the device.
      */
-    private fun readTable(words: SortedWords, table: File, listed: BooleanArray): Pair<List<String>, List<Int>> {
+    private fun readTable(
+        words: SortedWords,
+        table: File,
+        listed: BooleanArray,
+        verify: Boolean,
+    ): Pair<List<String>, List<Int>> {
         val spelled = ArrayList<String>()
         val frequencies = ArrayList<Int>()
         GZIPInputStream(table.inputStream()).bufferedReader().useLines { lines ->
@@ -162,12 +178,13 @@ object KhiproGlideSpellings {
                 if (fields.size < 2) continue
                 val i = indexOf(words, fields[0])
                 if (i < 0 || listed[i]) continue
-                listed[i] = true
                 val frequency = frequencyOf(words, i)
                 for (f in 1 until fields.size) {
                     if (fields[f].isEmpty()) continue
+                    if (verify && Khipro.convert(fields[f]) != fields[0]) continue
                     spelled += fields[f]
                     frequencies += frequency
+                    listed[i] = true
                 }
             }
         }

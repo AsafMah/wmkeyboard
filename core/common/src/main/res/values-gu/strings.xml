@@ -26,6 +26,7 @@
     <string name="common_default">ડિફોલ્ટ</string>
     <string name="common_delete">ડિલીટ કરો</string>
     <string name="common_disable">બંધ કરો</string>
+    <string name="common_disabled_open_setting">સેટિંગ ખોલો</string>
     <string name="common_disclosure_blocked_body">એન્ડ્રોઇડ હવે આ વિનંતી બતાવતું નથી, કારણ કે તમે અગાઉ પરવાનગી આપવાનો ઇનકાર કર્યો હતો. તમે હજુ પણ એપ સેટિંગ્સ સ્ક્રીનમાંથી તેને ચાલુ કરી શકો છો.</string>
     <string name="common_disclosure_not_now">અત્યારે નહીં</string>
     <string name="common_done">પૂર્ણ</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ઇન્સ્ટોલ કરો</string>
     <string name="common_installing">ઇન્સ્ટોલ કરી રહ્યા છીએ...</string>
     <string name="common_loading">લોડ થઈ રહ્યું છે…</string>
+    <string name="common_more">વધુ</string>
     <string name="common_next">આગળ</string>
     <string name="common_none">કોઈ નહીં</string>
     <string name="common_notify_channel_backup_body">માત્ર ત્યારે જ જ્યારે સ્વયંસંચાલિત બેકઅપ નિષ્ફળ જાય. સફળ બેકઅપ સાયલન્ટ હોય છે.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">નોટિફિકેશન બતાવો</string>
     <string name="common_permission_storage_body">Android 9 અને તેનાથી જૂના વર્ઝન પર, તમારી ગેલેરીમાં ઇમેજ સેવ કરવા માટે કીબોર્ડને સ્ટોરેજ પરમિશનની જરૂર હોય છે. જૂની Android પરમિશન તમારા સ્ટોરેજને વાંચવાની પણ પરવાનગી આપે છે. કીબોર્ડ ફક્ત તે જ ઇમેજ લખે છે જેને તમે સેવ કરવાનું કહો છો. કીબોર્ડ કંઈપણ વાંચતું નથી કે અપલોડ કરતું નથી. નવા Android વર્ઝનને આ પરમિશનની જરૂર નથી.</string>
     <string name="common_permission_storage_title">તમારી ગેલેરીમાં સેવ કરવા માટે સ્ટોરેજ એક્સેસ</string>
+    <string name="common_permission_tasks_body">WM કીબોર્ડ તેની ટુ-ડૂ લિસ્ટ અને ટાસ્ક એપમાંની એક ટાસ્ક લિસ્ટને એકસરખી રાખે છે: કાર્યો, તેના સ્ટેપ્સ, તેના ટિક અને તેમની નિયત તારીખો, બંને રીતે. આ પરવાનગી એપમાંની દરેક ટાસ્ક લિસ્ટને આવરી લે છે. કીબોર્ડ માત્ર એપની લિસ્ટ વાંચે છે જેથી તમે એક પસંદ કરી શકો, અને તે ફક્ત તમે પસંદ કરેલી લિસ્ટ જ વાંચે છે અને તેમાં લખે છે. કીબોર્ડ કંઈપણ ક્યાંય મોકલતું નથી. જો તમે DAVx5 નો ઉપયોગ કરો છો, તો તે લિસ્ટને તમારા પોતાના CalDAV સર્વર સાથે સિંક કરે છે. આ પરવાનગી વિના, ટુ-ડૂ લિસ્ટ આ ફોન પર જ રહે છે.</string>
+    <string name="common_permission_tasks_opentasks_title">ટુ-ડૂ લિસ્ટ માટે OpenTasks ઍક્સેસ</string>
+    <string name="common_permission_tasks_tasks_org_title">ટુ-ડૂ લિસ્ટ માટે Tasks.org ઍક્સેસ</string>
+    <string name="common_preview_scale_desc">પૂર્વાવલોકન કદ</string>
+    <string name="common_preview_scale_larger">પ્રીવ્યૂ મોટું કરો</string>
+    <string name="common_preview_scale_smaller">પ્રીવ્યૂ નાનું કરો</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">દૂર કરો</string>
     <string name="common_reset">રીસેટ કરો</string>
     <string name="common_reset_defaults">ડિફોલ્ટ પર રીસેટ કરો</string>

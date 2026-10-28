@@ -97,6 +97,13 @@ class StickerPackStore(private var baseDir: File?) {
         /** Staging directories an import is still filling; skipped by reconcile. */
         private const val STAGING_PREFIX = ".staging_"
 
+        /**
+         * How old a staging directory is before reconcile takes it for one a
+         * dead process left. An import stages a pack and waits on the user to
+         * pick from it (#965), which can take minutes, never a day.
+         */
+        private const val STALE_STAGING_MS = 24L * 60 * 60 * 1000
+
         /** Where the picture behind each sticker is kept, for a later edit. */
         const val ORIGINALS_DIR = ".originals"
 
@@ -497,6 +504,26 @@ class StickerPackStore(private var baseDir: File?) {
         save()
     }
 
+    /**
+     * Removes every sticker of [stickerIds] from [packId] in one go (#965),
+     * with one manifest write rather than one per sticker. Returns how many
+     * were removed.
+     */
+    @Synchronized
+    fun removeStickers(packId: String, stickerIds: Set<String>): Int {
+        val index = packs.indexOfFirst { it.id == packId }
+        if (index < 0 || stickerIds.isEmpty()) return 0
+        val (gone, kept) = packs[index].stickers.partition { it.id in stickerIds }
+        if (gone.isEmpty()) return 0
+        packs[index] = packs[index].copy(stickers = kept)
+        for (sticker in gone) {
+            fileFor(packId, sticker)?.delete()
+            deleteKept(sticker.id)
+        }
+        save()
+        return gone.size
+    }
+
     @Synchronized
     fun updateSticker(packId: String, stickerId: String, name: String, keywords: List<String>) {
         val index = packs.indexOfFirst { it.id == packId }
@@ -619,8 +646,8 @@ class StickerPackStore(private var baseDir: File?) {
     /**
      * Makes the manifest and the files on disk agree: entries without a file
      * are dropped, files and directories nothing references are deleted.
-     * Staging directories belong to an import in flight and are left alone,
-     * and so is the originals directory — its files answer to sticker ids
+     * Staging directories belong to an import in flight and are left alone
+     * until they are a day old, and so is the originals directory — its files answer to sticker ids
      * rather than to file names, and are swept by id below.
      */
     private fun reconcile(dir: File, sweepUnknown: Boolean) {
@@ -640,7 +667,9 @@ class StickerPackStore(private var baseDir: File?) {
         val known = packs.mapTo(HashSet()) { it.id }
         if (sweepUnknown) dir.listFiles()?.forEach { child ->
             if (!child.isDirectory) return@forEach
-            if (child.name in known || child.name.startsWith(STAGING_PREFIX)) return@forEach
+            if (child.name in known) return@forEach
+            val staleBefore = System.currentTimeMillis() - STALE_STAGING_MS
+            if (child.name.startsWith(STAGING_PREFIX) && child.lastModified() >= staleBefore) return@forEach
             if (child.name == ORIGINALS_DIR) return@forEach
             child.deleteRecursively()
         }

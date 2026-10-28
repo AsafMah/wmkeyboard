@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Emoji › Emoji mixes. The keyboard ships no source and names none; keep these free of hosts and brands. -->
+    <string name="emojimix_row_title">Emoji mixes</string>
+    <string name="emojimix_row_subtitle">Two emoji as one sticker, from a source you add</string>
+    <string name="emojimix_sources_title">Sources</string>
+    <string name="emojimix_sources_empty">Add a source to use this.</string>
+    <string name="emojimix_add_title">Add a source</string>
+    <string name="emojimix_add_subtitle">An address</string>
+    <string name="emojimix_address_label">Address</string>
+    <string name="emojimix_add_action">Add</string>
+    <string name="emojimix_import_file_action">Import a file</string>
+    <string name="emojimix_import_folder_action">Import a folder</string>
+    <string name="emojimix_import_failed">Could not import it: %1$s</string>
+    <string name="emojimix_nothing_found">No mixes found there</string>
+    <string name="emojimix_failed">Did not work: %1$s</string>
+    <string name="emojimix_not_fetched">Not fetched yet</string>
+    <string name="emojimix_summary">%1$s · %2$s</string>
+    <plurals name="emojimix_pairs">
+        <item quantity="one">%d mix</item>
+        <item quantity="other">%d mixes</item>
+    </plurals>
+    <string name="emojimix_kind_index">List of mixes</string>
+    <string name="emojimix_kind_image_address">Image address</string>
+    <string name="emojimix_kind_mixer">Mixer</string>
+    <string name="emojimix_kind_pack">Imported images</string>
+    <string name="emojimix_refresh_action">Fetch again</string>
+    <string name="emojimix_move_up_action">Move up</string>
+    <string name="emojimix_remove_action">Remove</string>
+
+    <string name="emojimix_where_title">Where mixes show</string>
+    <string name="emojimix_panel_strip_title">Over the emoji panel</string>
+    <string name="emojimix_panel_strip_subtitle">Pick an emoji to see a row of mixes with it</string>
+    <string name="emojimix_typing_title">On the suggestion strip</string>
+    <string name="emojimix_typing_subtitle">When the text ends in one or two emoji</string>
+    <string name="emojimix_style_title">How the strip shows them</string>
+    <string name="emojimix_style_strip_label">Thumbnails</string>
+    <string name="emojimix_style_chip_label">One chip</string>
+    <string name="emojimix_style_tray_label">A row above</string>
+    <string name="emojimix_replace_title">Replace the emoji</string>
+    <string name="emojimix_replace_subtitle">Sending a mix removes the emoji it was made from</string>
+    <string name="emojimix_panel_title">Mixes panel</string>
+    <string name="emojimix_panel_subtitle">A tab beside emoji, GIFs and stickers to put any two emoji together</string>
+
+    <string name="emojimix_behaviour_title">Mixes</string>
+    <string name="emojimix_order_title">Order</string>
+    <string name="emojimix_order_yours_label">Your emoji first</string>
+    <string name="emojimix_order_source_label">As the source has them</string>
+    <string name="emojimix_send_title">Send as</string>
+    <string name="emojimix_send_subtitle">Apps that take no stickers get a picture</string>
+    <string name="emojimix_send_sticker_label">Sticker</string>
+    <string name="emojimix_send_image_label">Picture</string>
+    <string name="emojimix_cell_size_title">Size in the Mixes panel</string>
+    <string name="emojimix_auto_refresh_title">Fetch lists again each month</string>
+    <string name="emojimix_auto_refresh_subtitle">Only on a connection that is not metered</string>
+    <string name="emojimix_clear_cache_title">Clear fetched mixes</string>
+</resources>

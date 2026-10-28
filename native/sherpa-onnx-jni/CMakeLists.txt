@@ -16,8 +16,10 @@ endif()
 # sherpa-onnx's TTS would link espeak-ng (GPL-3.0) for phonemes they never use.
 # The Omnilingual model (omnilingual_jni.cpp) runs on it directly as well, so
 # its logits can be held to one script before the CTC pick, and so do the
-# token classifiers (tagger_jni.cpp) that punctuate dictation. Speech
-# enhancement is always built: dpdfnet_jni.cpp drives its streaming denoiser.
+# token classifiers (tagger_jni.cpp) that punctuate dictation, and FireRedVAD
+# and Smart Turn (vad_jni.cpp, smart_turn_jni.cpp), which hear a phrase end.
+# Speech enhancement is always built: dpdfnet_jni.cpp drives its streaming
+# denoiser.
 set(BUILD_SHARED_LIBS                      OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_C_API               ON  CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_JNI                 OFF CACHE BOOL "" FORCE)
@@ -35,9 +37,21 @@ set(SHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE ON CACHE BOOL "" FORC
 
 add_subdirectory("${SHERPA_SRC}" sherpa-onnx EXCLUDE_FROM_ALL)
 
-add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp tagger_jni.cpp)
-target_include_directories(wmsherpa PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}")
-target_link_libraries(wmsherpa PRIVATE sherpa-onnx-c-api log)
+# FireRedVAD (vad_jni.cpp) reads the same Kaldi filterbanks sherpa-onnx
+# computes for its recognizers, so it uses the kaldi-native-fbank that
+# sherpa-onnx fetched and already links; FetchContent's properties are global,
+# so its source directory can be read from here.
+include(FetchContent)
+FetchContent_GetProperties(kaldi_native_fbank)
+if (NOT EXISTS "${kaldi_native_fbank_SOURCE_DIR}/kaldi-native-fbank/csrc/online-feature.h")
+    message(FATAL_ERROR "sherpa-onnx did not fetch kaldi-native-fbank")
+endif()
+
+add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp tagger_jni.cpp
+    vad_jni.cpp smart_turn_jni.cpp)
+target_include_directories(wmsherpa PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}"
+    "${kaldi_native_fbank_SOURCE_DIR}")
+target_link_libraries(wmsherpa PRIVATE sherpa-onnx-c-api kaldi-native-fbank-core log)
 target_compile_options(wmsherpa PRIVATE -fvisibility=hidden -ffunction-sections -fdata-sections)
 target_link_options(wmsherpa PRIVATE
     -Wl,--no-undefined

@@ -3,9 +3,17 @@
 [IndicXlit](https://github.com/AI4Bharat/IndicXlit) (AI4Bharat, MIT) reads a
 word typed in Latin letters as Bengali, Hindi, Urdu and 18 more Indic
 languages. The phonetic layouts offer its readings in the strip, after the
-word the space bar writes (Neural suggestions, on each language's page).
-Kotlin entry points: `XlitNative` and `IndicXlit` in
-`core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/xlit/`.
+word the space bar writes (Neural suggestions, on each language's page). Its
+mirror image, the same network trained Indic to English, spells the words of
+a romanized dictation (Hinglish, Banglish...) that the spelling maps do not
+know. Kotlin entry points: `XlitNative` and `IndicXlit` in
+`core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/xlit/`, with
+`IndicXlitModels.NATIVE` or `IndicXlitModels.LATIN`.
+
+The two directions share this library. Their graphs have the same shapes
+(6 layers, 4 heads of 64) and only the vocabularies differ: which ids go in
+is the Kotlin side's business (`IndicXlitVocab`), and the search reads the
+output vocabulary's size off `logp`.
 
 `libwmxlit.so` is the model's beam search over its two ONNX graphs
 (`xlit.cpp`) and a JNI layer (`xlit_jni.cpp`). It links ONNX Runtime the way
@@ -29,9 +37,11 @@ is the same bytes on every run with the same NDK.
 
 ## The model
 
-Not bundled. `IndicXlitModels` pins the three files the data repository's
-`scripts/export_indicxlit.py` writes (encoder, decoder step, vocabulary,
-13.1 MB in all) by size and SHA-256; they are assets of its `models` release.
+Not bundled. `IndicXlitModels` pins the three files of each direction the
+data repository's `scripts/export_indicxlit.py` writes (encoder, decoder
+step, vocabulary: 13.1 MB for English to Indic, 13.0 MB for
+`--direction indic-en`) by size and SHA-256; they are assets of its
+`models` release.
 The export reads the fairseq checkpoint into plain PyTorch modules, writes the
 encoder with every decoder layer's cross-attention keys and values as its
 outputs, and the decoder as one step with its own self-attention cache, then
@@ -66,7 +76,9 @@ c++ -std=c++17 -O2 -I<onnxruntime>/include/onnxruntime/core/session \
 ```
 
 Its readings for 300 Bengali and 300 Hindi test words were identical, in the
-same order, to the reference search in Python over the same graphs.
+same order, to the reference search in Python over the same graphs; for the
+Indic-to-English graphs, so were those for 300 words each of Bengali, Hindi,
+Tamil and Urdu (25 ms a word, beam 4, one thread, on a busy M-series Mac).
 
 ## ABIs
 

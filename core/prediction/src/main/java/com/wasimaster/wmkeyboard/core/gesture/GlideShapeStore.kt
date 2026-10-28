@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -103,6 +104,26 @@ class GlideShapeStore(private val storageFile: File?) {
         private val byWord: HashMap<String, IntArray>,
     ) : GlideShapeSource {
 
+        /**
+         * Shape indices by the key-sized cell each shape starts in, in
+         * index order within a cell: what [wordsNear] scans instead of
+         * every shape (issue #966 §5.4).
+         *
+         * The seeding scan ran over every stored shape on every decode,
+         * previews included: 66 µs on a real store of 3,131 shapes and
+         * 2.6 ms at the store's ceiling, up to 45 % of a decode. A shape
+         * within the seeding radius of the drawn stroke almost always
+         * starts where the stroke starts, since the store keeps shapes in
+         * key widths and the radius is a third of one, so the scan takes
+         * the 3×3 cells around the stroke's first point and nothing else:
+         * 9.4 % of the shapes, 5.5× faster, and the same first word on all
+         * 3,131 real queries. It is approximate in theory, since the mean
+         * distance lets a far first point hide behind forty-seven near
+         * ones; a stroke whose cells hold nothing falls back to the full
+         * scan, so an empty answer is never the index's doing.
+         */
+        private val byStart: HashMap<Int, IntArray> = bucketByStart(shapes)
+
         override fun minDistance(word: String, drawn: ByteArray): Float {
             val indices = byWord[WordKey.of(word)] ?: return -1f
             var best = Float.MAX_VALUE
@@ -119,17 +140,81 @@ class GlideShapeStore(private val storageFile: File?) {
         }
 
         override fun wordsNear(drawn: ByteArray, radius: Float, limit: Int): List<String> {
-            if (limit <= 0) return emptyList()
+            if (limit <= 0 || shapes.isEmpty()) return emptyList()
             val found = ArrayList<Pair<String, Float>>()
-            for (i in shapes.indices) {
-                val d = distance(shapes[i], drawn, radius)
-                if (d > radius) continue
-                val word = words[i]
-                val at = found.indexOfFirst { it.first == word }
-                if (at < 0) found.add(word to d) else if (d < found[at].second) found[at] = word to d
+            val near = startingNear(drawn)
+            if (near != null) {
+                for (i in near) consider(i, drawn, radius, found)
+            } else {
+                for (i in shapes.indices) consider(i, drawn, radius, found)
             }
             found.sortBy { it.second }
             return found.take(limit).map { it.first }
+        }
+
+        /** Files shape [i] under its word when it sits within [radius] of [drawn], keeping the word's nearest. */
+        private fun consider(i: Int, drawn: ByteArray, radius: Float, found: ArrayList<Pair<String, Float>>) {
+            val d = distance(shapes[i], drawn, radius)
+            if (d > radius) return
+            val word = words[i]
+            val at = found.indexOfFirst { it.first == word }
+            if (at < 0) found.add(word to d) else if (d < found[at].second) found[at] = word to d
+        }
+
+        /**
+         * The shapes starting in the 3×3 cells around [drawn]'s first
+         * point, in index order so a tie sorts as the full scan sorts it;
+         * null when those cells hold nothing, which is the full scan's cue.
+         */
+        private fun startingNear(drawn: ByteArray): IntArray? {
+            val cx = Math.floorDiv(drawn[0].toInt(), CELL)
+            val cy = Math.floorDiv(drawn[1].toInt(), CELL)
+            var total = 0
+            for (dx in -1..1) for (dy in -1..1) total += byStart[cellKey(cx + dx, cy + dy)]?.size ?: 0
+            if (total == 0) return null
+            val out = IntArray(total)
+            var at = 0
+            for (dx in -1..1) {
+                for (dy in -1..1) {
+                    val cell = byStart[cellKey(cx + dx, cy + dy)] ?: continue
+                    System.arraycopy(cell, 0, out, at, cell.size)
+                    at += cell.size
+                }
+            }
+            java.util.Arrays.sort(out)
+            return out
+        }
+
+        private companion object {
+            /** A cell is one key wide: [QUANT] quantised units. */
+            const val CELL = 10
+
+            /** A cell's key packs its column and row, each a byte's worth of cells at most, into one int. */
+            const val CELL_BITS = 16
+            const val CELL_MASK = 0xFFFF
+
+            fun cellKey(cx: Int, cy: Int): Int = (cx shl CELL_BITS) or (cy and CELL_MASK)
+
+            fun cellOf(shape: ByteArray): Int =
+                cellKey(Math.floorDiv(shape[0].toInt(), CELL), Math.floorDiv(shape[1].toInt(), CELL))
+
+            fun bucketByStart(shapes: Array<ByteArray>): HashMap<Int, IntArray> {
+                val counts = HashMap<Int, Int>()
+                for (shape in shapes) {
+                    val cell = cellOf(shape)
+                    counts[cell] = (counts[cell] ?: 0) + 1
+                }
+                val out = HashMap<Int, IntArray>(counts.size * 2)
+                val filled = HashMap<Int, Int>(counts.size * 2)
+                for ((i, shape) in shapes.withIndex()) {
+                    val cell = cellOf(shape)
+                    val bucket = out.getOrPut(cell) { IntArray(counts.getValue(cell)) }
+                    val at = filled[cell] ?: 0
+                    bucket[at] = i
+                    filled[cell] = at + 1
+                }
+                return out
+            }
         }
     }
 
@@ -489,10 +574,28 @@ class GlideShapeStore(private val storageFile: File?) {
          * coordinate is `QUANT` bytes to the key width of spread. Stops
          * counting once the running mean can no longer come in under
          * [abortAbove], and answers something above it then.
+         *
+         * The root per point is the cost of this, and the seeding scan
+         * ([GlideShapeSource.wordsNear]) takes it against every stored shape
+         * on every decode, previews included (issue #966). So a cut-off is
+         * first tried without any: each point's larger axis difference is
+         * never more than its distance, and a shape whose sum of those
+         * alone passes the limit is over it whatever the roots would have
+         * said. The answer is the same as before for every shape, nearer
+         * ones included, which then take the exact pass as they always did.
          */
         fun distance(a: ByteArray, b: ByteArray, abortAbove: Float = Float.MAX_VALUE): Float {
             val n = GlideWorkspace.SHAPE_POINTS
             val limit = abortAbove * n * QUANT
+            if (abortAbove < Float.MAX_VALUE) {
+                var bound = 0
+                for (j in 0 until n) {
+                    val dx = abs(a[2 * j] - b[2 * j])
+                    val dy = abs(a[2 * j + 1] - b[2 * j + 1])
+                    bound += if (dx > dy) dx else dy
+                    if (bound > limit) return abortAbove + 1f
+                }
+            }
             var sum = 0f
             for (j in 0 until n) {
                 val dx = (a[2 * j] - b[2 * j]).toFloat()

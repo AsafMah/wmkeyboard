@@ -6,6 +6,24 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- The Clipboard hub and its three pages (SETTINGS_REDESIGN.md §4). The
+         history page is named by clipboard_history_title, the switch that
+         opens it; the hub keeps the Panel fold. -->
+    <string name="clipboard_page_history_subtitle">How much is kept, pinned clips, screenshots and the source app</string>
+    <string name="clipboard_page_chips_title">Paste chip and codes</string>
+    <string name="clipboard_page_chips_subtitle">The last copy on the strip, and the codes, numbers and links in a clip</string>
+    <string name="clipboard_page_rules_title">Rules and privacy</string>
+    <string name="clipboard_page_rules_subtitle">Copy rules, phone formats, passwords and private copies</string>
+    <string name="clipboard_limits_group">Limits</string>
+    <string name="clipboard_pinned_group">Pinned clips</string>
+    <string name="clipboard_sources_group">Screenshots and the source app</string>
+    <string name="clipboard_chip_group">Paste chip</string>
+    <string name="clipboard_entities_group">Codes, numbers and links</string>
+    <string name="clipboard_rules_group">Rules</string>
+    <!-- Banner on the Paste chip and codes page while the history is off: nothing is stored, so nothing is suggested. -->
+    <string name="clipboard_history_off_banner">Clipboard history is off, so no clip is kept to suggest from</string>
+    <string name="clipboard_history_off_action">Turn on</string>
+
     <!-- The history group. -->
     <string name="clipboard_history_group">History</string>
     <string name="clipboard_suggest_group">Suggestions from clips</string>
@@ -39,6 +57,7 @@
     <string name="clipboard_view_title">History layout</string>
     <string name="clipboard_view_subtitle">Cards in columns, or one clip per row</string>
     <string name="clipboard_view_info">The grid packs cards in columns, which suits pictures. Set how many under Grid columns. The list gives each clip a whole row, which suits long text. The switch beside the panel\'s search bar changes the same setting. The grid is the default.</string>
+    <!-- Long press on the greyed-out Grid columns slider. -->
     <string name="clipboard_columns_title">Grid columns</string>
     <string name="clipboard_columns_subtitle">How many columns of cards the grid has</string>
     <string name="clipboard_columns_info">More columns show more clips at once, which suits short text. Fewer give each card more room, which suits long text and pictures. The list layout always shows one clip per row. The default is 2.</string>
@@ -88,6 +107,8 @@
     <string name="clipboard_card_buttons_title">Pin and delete buttons</string>
     <string name="clipboard_card_buttons_subtitle">Show a pin and a bin on every clip</string>
     <string name="clipboard_card_buttons_info">With this setting off, press and hold a clip to pin or delete it from its popup. A card also loses the row the buttons sat on, unless the row still shows the clip\'s number, its time or a rich text tag, so more clips fit in the panel. This setting is on by default.</string>
+    <string name="clipboard_bump_on_paste_title">Move a pasted clip to the top</string>
+    <string name="clipboard_bump_on_paste_subtitle">A clip you paste from the history goes first in it, and back on the system clipboard</string>
     <string name="clipboard_type_out_title">Type out pasted clips</string>
     <string name="clipboard_type_out_subtitle">Paste a clip one character at a time, as if typed</string>
     <string name="clipboard_type_out_info">The text appears letter by letter, the way a one-time code goes into a row of code boxes. A clip longer than 200 characters is pasted all at once. Codes are typed out either way, from the One-time codes setting. This setting is off by default.</string>
@@ -118,6 +139,7 @@
     <!-- What a screen reader says for the picture in the full-screen viewer of a clipboard image. -->
     <string name="clipboard_image_viewer_desc">Copied image</string>
     <string name="clipboard_pinned_last_subtitle">List pinned clips at the end of the panel instead of the top</string>
+    <!-- Long press on the greyed-out switch; the names are the two settings that hold it. -->
     <string name="clipboard_search_title">Search bar</string>
     <string name="clipboard_search_subtitle">Show a search bar at the top of the clipboard panel. It filters the history as you type</string>
     <string name="clipboard_search_regex_title">Regular expressions</string>
@@ -135,7 +157,7 @@
     <string name="clipboard_fragments_on_strip_info">When you copy something that has a code, a phone number or a link in it, the suggestion strip shows the whole copy as a chip and then a dashed chip for each part. A press pastes that part, so you do not have to open the clipboard. The chips stay until you type something or press the ✕, and then the strip shows words again with the usual chip for the copy. This setting is off by default.</string>
     <string name="clipboard_entities_info">The chips sit above the history in dashed outlines, so they read as parts of a clip and not as clips of their own. Press and hold a chip to see it marked inside the clip that it comes from. A press pastes only that part, and the clip stays in the history. The keyboard finds these parts on your device.</string>
     <string name="clipboard_phone_formats_title">Phone number formats</string>
-    <string name="clipboard_phone_formats_subtitle">Keep only the numbers that look like the ones you copy. Every number becomes a chip now</string>
+    <string name="clipboard_phone_formats_subtitle">Numbers that become chips</string>
     <!-- %1$d is how many formats the user made. -->
     <plurals name="clipboard_phone_formats_count_subtitle">
         <item quantity="one">%1$d format kept</item>
@@ -151,7 +173,7 @@
     <string name="clipboard_storage_permission_title">The app needs the storage permission</string>
     <string name="clipboard_storage_permission_subtitle">Open the system settings to give the permission</string>
     <string name="clipboard_track_source_title">Show the source app</string>
-    <string name="clipboard_track_source_subtitle">Record which app a clip comes from. Press and hold a clip to see it. This needs the Usage Access permission</string>
+    <string name="clipboard_track_source_subtitle">Record which app a clip comes from. Each clip shows that app\'s icon, and its name when you press and hold it. This needs the Usage Access permission</string>
     <string name="clipboard_track_source_info">The keyboard reads the app in the foreground at the moment you copy, through Usage Access. Some copies have no source app, for example a copy from a background sync. Nothing about your app usage leaves your device.</string>
     <string name="clipboard_usage_permission_title">The app needs the Usage Access permission</string>
     <string name="clipboard_usage_permission_subtitle">Without it, the keyboard saves clips with no source app</string>
@@ -175,6 +197,9 @@
     <string name="clipboard_recent_chips_title">Recent copies on the strip</string>
     <string name="clipboard_recent_chips_subtitle">How many of your latest copies the row of recent copies shows</string>
     <string name="clipboard_recent_chips_info">The strip shows one chip for the last copy, for as long as the setting above says. Set more than 1, and the chip gets a clock button that opens a row of that many of your latest text clips, newest first, which you can scroll, each one a press from pasted. The row stays until you type, press its cross, or move to another field. It never opens by itself. The Recent copies tool opens the same row, from the toolbar or from a press and hold you give it, such as the Copy tool\'s. Hidden clips never appear. The default is 1.</string>
+    <string name="clipboard_compact_paste_chip_title">Compact paste chip</string>
+    <string name="clipboard_compact_paste_chip_subtitle">Keep the paste chip narrow, however long the copy</string>
+    <string name="clipboard_compact_paste_chip_info">A long copy stretches the paste chip across the strip whenever no words are showing, which hides the tools beside it. With this on the chip always keeps its narrow form, about a third of the strip, so the rest of the row stays in reach. Off by default.</string>
 
     <!-- How tightly a clip's lines are set in the panel (#612). -->
     <string name="clipboard_line_spacing_title">Line spacing</string>
@@ -190,7 +215,7 @@
 
     <!-- Rules that tidy every copy before the history keeps it (#612). -->
     <string name="clipboard_copy_rules_title">Copy rules</string>
-    <string name="clipboard_copy_rules_subtitle">Tidy every copy with patterns before it is kept</string>
+    <string name="clipboard_copy_rules_subtitle">Patterns applied to copies</string>
     <plurals name="clipboard_copy_rules_count_subtitle">
         <item quantity="one">%1$d rule</item>
         <item quantity="other">%1$d rules</item>

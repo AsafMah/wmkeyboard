@@ -1,0 +1,99 @@
+---
+title: "Music ID"
+description: "Name the song that is playing from the keyboard through a recognition service of your choice, then type it into the chat or send it as a picture."
+sidebar:
+  order: 15.8
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+Somebody asks what is playing, or you want to tell them. **Music ID** listens for ten seconds, names the song, and puts it into the box you're typing in as text, or as a picture with the cover on it. It works the way Shazam does, without leaving the chat. The keyboard carries no recognition service of its own: you add one with a key of yours, or point it at a server you run, and the clip goes there.
+
+Open **Music ID** from the toolbox, or type `shazam` and tap the chip that appears. Typing `what song is this` or `what's this song` offers it too, and keeps your words, so the answer goes in right after them. The panel has two tabs, **Listen** and **History**, and a shortcut to the tool's settings.
+
+## Listening
+
+Tap the big button and hold the phone towards the music. The ring around the button follows what the microphone hears, and the count under it says how long is left; ten seconds by default, which is what the services work best with. Tap again to ask early once four seconds are in. The keyboard records only while the panel listens, and never keeps the recording.
+
+Before it listens, the tool looks at what the phone itself is playing. With [notification access](/tools/media/#granting-notification-access) granted and a player running, the song comes straight from the player, with its cover, and no recording is made at all; **Listen anyway** records regardless, for the song playing in the room rather than in your headphones. Turn **Check what the phone plays first** off to skip this.
+
+Then the clip is asked about: the recognisers on the tool's list, one after the other, until one names the song. The clip goes up compressed as Opus (about 25 KB) where the keyboard has that library, as a 16 kHz WAV (about 320 KB) otherwise. With no recogniser on, the panel says so and opens the settings.
+
+## What you get
+
+The song's cover, title, artist, album and year, and who named it. Under it:
+
+- **Insert** types the song in the format picked in settings, **Title – Artist** out of the box. The chips beside it type the other shapes, each shown as it would read: artist first, with the album and year, the link alone, the title with the link under it, or `🎵 Now playing: …`.
+- **Picture** opens a row of styles and sends the song as a picture: the **Cover** alone, a square **Card** with the words under the cover, a wide **Banner** with the words beside it, or a tall **Story**. The ground is coloured after the cover. The picture goes into the field the way every picture from the keyboard does: as a PNG, WebP or JPEG, whichever the app takes, and to the clipboard or the share sheet where it takes none. Without a cover the picture carries a note glyph instead.
+- **Open in** opens the song in a store the recogniser linked: Spotify, Apple Music, Deezer, YouTube, a song.link page that lists every store, MusicBrainz, or Shazam. Which one comes first is **Open in** in settings.
+- **Copy** puts the default text on the clipboard.
+- The round button listens again.
+
+A song that came without a cover or links (ACRCloud and AudioTag answer with the names alone) is looked up by its title and artist on the iTunes Search API and, failing that, Deezer, both without a key, to fetch the cover and a store link. The lookup sends the title and artist and nothing else, and only when data saving allows online recognition outright; see below.
+
+## History
+
+Every song recognised is kept in the **History** tab, newest first, on this phone only, up to 200. Tap one to have it back on the Listen tab with its inserts; the bin on a row forgets it. The same list is under <SettingsPath path="Tools / Music ID / Recognised songs" />, where each row shows what it would type. **Keep a history** off keeps nothing new.
+
+## Recognisers
+
+<SettingsPath path="Tools / Music ID / Song recognisers" />
+
+A [provider list](/tools/providers/). Every kind is listed but off until you give it a key and switch it on, since each is sent the clip; the tool stays off the toolbar until one is.
+
+| Recogniser | Needs | Cost | What it is sent |
+|---|---|---|---|
+| **AudD** | a token from [dashboard.audd.io](https://dashboard.audd.io) | a few hundred recognitions free, then paid | the clip and the token |
+| **ACRCloud** | a project's host, access key and access secret from [console.acrcloud.com](https://console.acrcloud.com) | a two-week trial, then paid plans | the clip, signed with the key and secret |
+| **AudioTag** | a personal key from [audiotag.info](https://audiotag.info) | free for personal use, a handful a day | the clip; the answer takes a few seconds |
+| **Shazam (unofficial, via RapidAPI)** | a RapidAPI key, subscribed to the Shazam listing | a free quota, then paid | the last five seconds of the clip, raw |
+| **Your own recognition server** | its address, and a key if it wants one | yours | the clip, as AudD takes it |
+
+Shazam's row is unofficial: Apple offers no API an open source keyboard could ship, so this one goes through a third party's listing, which can change or stop without notice. Its description says so.
+
+Every row is skipped in a password field and while typing in incognito, and held back under [data saving](/reference/settings/data-saver/): the **Song recognition online** row there asks before each clip on mobile data by default.
+
+## Your own recognition server
+
+A server you run that takes the clip and answers with the song. It speaks AudD's shape, so anything that does, or a thin wrapper around a fingerprinter such as [Panako](https://github.com/JorenSix/Panako), [Olaf](https://github.com/JorenSix/Olaf) or [audfprint](https://github.com/dpwe/audfprint), fits:
+
+- The keyboard posts `multipart/form-data` to the address you give, with the clip in the `file` field (`clip.ogg`, Ogg Opus, or `clip.wav`, 16 kHz 16-bit mono WAV; a server that answers 400, 415 or 422 to the Opus upload is sent WAV from then on) and, when you set a key, `api_token`.
+- A match answers `{"status":"success","result":{"artist":"…","title":"…","album":"…","release_date":"2019-05-17","label":"…","timecode":"00:36","song_link":"…"}}`; any of the fields may be left out. No match is `{"status":"success","result":null}`. A refusal is `{"status":"error","error":{"error_code":900,"error_message":"…"}}`, and the message is what the panel shows.
+- AudD's optional `apple_music`, `spotify` and `deezer` objects are read for the cover and the links when present.
+
+This is what the F-Droid edition's no-proprietary-services rule asks for: every online step has a self-hosted alternative. The iTunes and Deezer lookups can be pointed elsewhere under [Servers](/reference/settings/servers/), under **Song recognition**.
+
+## What leaves the phone
+
+- **The clip** goes to each recogniser that is asked, with your key for it, until one answers. Each is its own row in the [network activity log](/privacy/network/), so the log says which service heard it. The recording is never kept and never sent anywhere else.
+- **The title and artist** of a song already named go to the iTunes Search API or Deezer for its cover, when the recogniser gave none.
+- **The microphone** is used only while the panel listens, and released when the panel closes, the keyboard hides or the field goes.
+- **Nothing at all** when the song came from the player on the phone, unless you ask for a cover it did not have.
+
+See [Network policy](/privacy/network/) and [Permissions](/privacy/permissions/).
+
+## Options
+
+<SettingsPath path="Tools / Music ID" />
+
+- **Song recognisers**: the list above.
+- **Insert as**: Title – Artist. What **Insert** types.
+- **Picture style**: Card. What the **Picture** chip makes first.
+- **Open in**: the first the song has. The store a link points to, when the song is on it.
+- **Listen for**: 10 s, between 6 and 12. Longer clips match more reliably and cost the same.
+- **Check what the phone plays first**: on.
+- **Keep a history**: on. **Recognised songs** opens the list.
+
+Music recognition is the **Music recognition** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool and its history leave the keyboard and the app until the bundle is switched back on.
+
+## Details & edge cases
+
+- **Four seconds is the least it asks about.** Stopping earlier shows a notice and listens on.
+- **A quiet room is reported as nothing heard**, not sent to a service: a clip below the keyboard's own silence floor would cost a request to be told "no match".
+- **Voice typing and Music ID share the microphone.** While a dictation runs, Listen waits and says so.
+- **The Quick Settings microphone tile** blocks the microphone for every app. The panel notices and says so rather than listening to silence.
+- **No hardware-keyboard letter by default.** Bind one under [shortcuts](/reference/shortcuts/), or reach it through the toolbox shortcut, double-tap <KeyCap>Ctrl</KeyCap> then <KeyCap>T</KeyCap>.
+- **It isn't available before your first unlock.** The history lives in the keyboard's files, which are locked until then.
+- **Humming is not recognised.** Every service here matches the recording itself; a cover version or a live take usually goes unmatched.
+- **Nothing runs on the phone.** There is no built-in catalogue and no fingerprinting of your own files: a song you have downloaded is one you already know.

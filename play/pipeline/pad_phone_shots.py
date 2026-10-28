@@ -29,11 +29,20 @@ from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "play" / "store-listing"
+REGIONAL_DIR = SOURCE_DIR / "regional"
+CSL_DIR = ROOT / "play" / "store-listing-csl"
 UPLOAD_DIR = (
     ROOT / "fastlane" / "metadata" / "android" / "en-US" / "images" / "phoneScreenshots"
 )
 
 TARGET_W, TARGET_H = 1200, 2400
+
+CSL_MAP = {
+    "bangladesh": "02-bengali.png",
+    "india": "02-hindi.png",
+    "pakistan": "02-urdu.png",
+    "arab": "02-arabic.png",
+}
 
 
 def pad(img: Image.Image) -> Image.Image:
@@ -53,31 +62,54 @@ def pad(img: Image.Image) -> Image.Image:
     return out
 
 
+def pad_file(path: pathlib.Path) -> Image.Image:
+    with Image.open(path) as opened:
+        img = opened.convert("RGB")
+        if (img.width, img.height) == (TARGET_W, TARGET_H):
+            return img
+        if img.height != TARGET_H or img.width > TARGET_W:
+            return img
+        padded = pad(img)
+        padded.save(path)
+        return padded
+
+
 def main() -> int:
     slides = sorted(p for p in SOURCE_DIR.glob("*.png") if p.name[:2].isdigit())
     if not slides:
         print(f"No numbered slides in {SOURCE_DIR}", file=sys.stderr)
         return 1
 
+    print("=== Padding Global Slides (for Fastlane & Main Store Listing) ===")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    global_padded_shots: dict[int, Image.Image] = {}
     for index, path in enumerate(slides, start=1):
-        with Image.open(path) as opened:
-            img = opened.convert("RGB")
-            if (img.width, img.height) == (TARGET_W, TARGET_H):
-                print(f"  = {path.name} already {TARGET_W}x{TARGET_H}")
-                padded = img.copy()
-            elif img.height != TARGET_H or img.width > TARGET_W:
-                print(f"  ! {path.name} is {img.width}x{img.height}, skipped")
-                continue
-            else:
-                padded = pad(img)
-                padded.save(path)
-                print(f"  ✔ {path.name} -> {TARGET_W}x{TARGET_H}")
-        # Play takes the upload copies from fastlane/, so they have to be the
-        # padded ones too, and at full size: the 810px-wide downscales were
-        # under the 1080px floor as well as the wrong shape.
+        padded = pad_file(path)
+        global_padded_shots[index] = padded
         padded.save(UPLOAD_DIR / f"{index}.png")
+        print(f"  ✔ {path.name} -> {UPLOAD_DIR.name}/{index}.png ({TARGET_W}x{TARGET_H})")
     print(f"  → {len(slides)} screenshots in {UPLOAD_DIR}")
+
+    # Build Custom Store Listing (CSL) sets for regional countries
+    if REGIONAL_DIR.is_dir():
+        print("\n=== Building Regional Custom Store Listing (CSL) Sets ===")
+        for region, reg_filename in CSL_MAP.items():
+            reg_path = REGIONAL_DIR / reg_filename
+            if not reg_path.is_file():
+                continue
+            reg_padded = pad_file(reg_path)
+            target_csl_dir = CSL_DIR / region
+            target_csl_dir.mkdir(parents=True, exist_ok=True)
+
+            # Copy 1.png - 8.png with slide 2 replaced by regional slide
+            for idx, shot in global_padded_shots.items():
+                dest_file = target_csl_dir / f"{idx}.png"
+                if idx == 2:
+                    reg_padded.save(dest_file)
+                else:
+                    shot.save(dest_file)
+            print(f"  ✔ CSL [{region.upper()}]: 8 screenshots ready in {target_csl_dir} (Slide 2: {reg_filename})")
+
     return 0
 
 

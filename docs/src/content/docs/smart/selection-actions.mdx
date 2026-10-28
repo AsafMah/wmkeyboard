@@ -1,6 +1,6 @@
 ---
 title: "Selection actions"
-description: "Select text and the keyboard offers what to do with it: edit it, reformat it, convert it, look it up, or hand it to another app. Off by default, under Advanced."
+description: "Select text and the keyboard offers what to do with it: edit it, reformat it, convert it, translate it, look it up, or hand it to another app. On the keyboard's bar, or from any app's selection menu."
 sidebar:
   order: 12
 ---
@@ -15,6 +15,8 @@ Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Co
 
 This is off by default. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
 
+The same actions, with translation and the AI actions beside them, are also in the menu most apps show over selected text, with no keyboard open and nothing to switch on. See [In any app's selection menu](#in-any-apps-selection-menu).
+
 <PhoneFrame caption="A selected phone number, and the bar the keyboard offers for it.">
   <Shot id="smart/selection-actions-phone" alt="A selected phone number, and the bar the keyboard offers for it." />
 </PhoneFrame>
@@ -26,6 +28,57 @@ This is off by default. It adds a bar that appears out of a gesture you already 
 Turn on **Selection actions**. Select some text in any app. The bar appears while the selection is live and goes away when you clear it.
 
 To switch it on and off without opening settings, add the **Selection actions** tool to your toolbar. One tap flips the same switch, and a message says which way it went. Text that is already selected gets its bar straight away.
+
+## In any app's selection menu
+
+The bar lives in the keyboard, so it only sees text in a box you are typing into. For text anywhere else (a web page, a message someone sent you, an email), select it and pick **WM Keyboard** from the menu that appears over the selection, the one with Copy and Select all. On some phones it is behind the menu's three dots, and some apps leave it out of their menu altogether (see [When the entry is missing](#when-the-entry-is-missing)). You do not have to be typing with this keyboard, and the bar does not have to be on.
+
+A sheet opens over the app with the text at the top and the actions under it, in three groups:
+
+- **Language.** **Translate** puts the text into the language the [Translate](/tools/translate/) tool translates into, through the engine and services you set up there. Each of your [AI actions](/tools/ai/) follows it (Explain, Summarize, Formal and the rest, your own included) and writes its answer in place of the text. **Ask AI** opens the [AI chat](/tools/ai-chat/) with the text attached, and **Look up** opens the [Look up](/tools/look-up/) card on it.
+- **Rewrite.** The actions from this page that change text without needing a text box: Format and its case options, Fancy, Sort, Unique, Number, Bullets, Check boxes, Digits, Zawgyi ⇄ Unicode, JSON, Base64, Decode and Remove trackers.
+- **Open in.** Call, Message, WhatsApp, Email, Open, Contact, Map and Calendar, for a phone number, an address, a link, a place or a date.
+
+The rewrites and the Open in actions come from the same **Actions** list as the bar, in the same order (see [Options](#options)), and each shows only where it applies. Translate needs the Translate tool switched on. The AI actions need the AI tool switched on and set up, with a provider or a downloaded model.
+
+Each action works on the text as the last one left it, so you can translate a paragraph and then make it shorter, or sort lines and then number them. The arrow at the bottom left undoes one step at a time. Then:
+
+- **Replace** puts the result in place of your selection. The app does the replacing, so it works in any app whose text box offers the menu.
+- **Copy** copies the result and closes the sheet. On text you cannot edit, such as a web page, there is no Replace, and Copy is the way to take the result with you.
+- The share button beside Undo hands the result to another app.
+
+Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Zones, Colour, Save as note, Edit word), and chat formatting, which depends on the app you are typing in.
+
+Nothing in the sheet is stored. Translate sends the text wherever the Translate tool sends it, which is nowhere when it translates on the phone. The AI actions do the same with the AI tool's provider, and [Data Saver](/privacy/data-saver/) holds them back on mobile data as it does in the keyboard: when it is set to ask, the sheet says so, and tapping the action again sends it.
+
+### WM Translate
+
+For translating alone, turn on **WM Translate in the selection menu**. It adds a second entry that opens the same sheet with the translation already running. It ships off, because every entry is one more row in every app's menu and Translate is a single tap inside the WM Keyboard sheet anyway. The entry is only there while the Translate tool is switched on.
+
+### Choosing the entries
+
+<SettingsPath path="Advanced / Selection actions" />
+
+The group **In other apps' selection menus** has a switch for each entry the keyboard adds to other apps' menus:
+
+| Entry | Switch | Default |
+|---|---|---|
+| WM Keyboard | WM Keyboard in the selection menu | On |
+| WM Translate | WM Translate in the selection menu | Off |
+| Ask AI | Ask AI in the selection menu | On |
+| Look up | Look up in the selection menu | On |
+
+Ask AI and Look up are the same switches as on the [AI tool](/tools/ai/#options) and [Look up](/tools/look-up/#options) pages, repeated here so all four sit in one place. Turning a switch off takes its entry out of every app's menu. Turning off the Translate or AI tool takes their entries out too. These switches do not depend on **Selection actions** at the top of the screen, which is the keyboard's own bar.
+
+### When the entry is missing
+
+Not every app lists WM Keyboard, Ask AI or Look up in its selection menu, even with every switch above on. The menu is put together by the app you are in, and since Android 11 an app can only see the other apps on the phone it has asked to see in its own manifest. Chrome is allowed to see every app on the phone, so the entries are always in its menu. Other apps see WM Keyboard only when something they asked to see happens to cover it, and that varies from app to app: on one test phone Gmail and WhatsApp could see it, while Telegram and Google Keep could not. An app that can't see it builds its menu without the entries, and other apps' entries go missing along with WM Keyboard's: Google Translate, ChatGPT, a dictionary. Some apps also draw a menu of their own that has no place for other apps' entries at all.
+
+Where the entries are there, they can be the last ones in the list behind the three dots, after Ask Gemini, Read aloud and whatever else your apps add. Scroll that list before deciding they are missing.
+
+Nothing on WM Keyboard's side puts the entries back in such an app. Turning the switches off and on, reinstalling, or typing with WM Keyboard in that app leaves its menu as it was. Only that app's developer can add the request.
+
+The keyboard's own bar works in every app, because the keyboard reads the selection itself rather than waiting for the app's menu. Turn on **Selection actions** (see [Turning it on](#turning-it-on)), select text in a box you are typing into, and the bar offers Translate, AI and the rest. For text you cannot type into, the [floating button](/reference/settings/floating-button/#asking-the-ai-about-the-screen) can ask the AI about the screen or look up a tapped word, outside the Play Store build. Copying the text and pasting it into a box, where the bar can reach it, works everywhere.
 
 ## What the keyboard reads
 
@@ -84,6 +137,7 @@ Two things sit outside the order. **Undo** is always first while there is someth
 | JSON | A JSON object or array | Off |
 | Base64, Decode | Base64 text; a percent-encoded link | Off |
 | Speak | Anything | Off |
+| Edit word | One word | On |
 | Zones | A time | Off |
 | Calendar | A date or time | Off |
 | Map | Coordinates or an address | Off |
@@ -97,7 +151,7 @@ The memory ends with the selection. Move it onto other text, clear it, or leave 
 
 ## Editing
 
-**Select all** selects the whole field. A long press usually selects only one word, so this is the fast way to act on everything you wrote. In a web page it goes in as Ctrl+A, so an editor in the page, like a code editor that only draws the lines on screen, selects its whole text itself rather than losing a selection the keyboard made for it. **Copy**, **Cut** and **Paste** are the editor's own; Paste replaces the selection and only appears while the clipboard holds text. **Delete** removes the selection. **Share** opens the system chooser with the selected text. **Save as note** keeps the selection in the [Notes tool](/tools/notes/) as a new note, or adds it to the note you edited last when <SettingsPath path="Tools / Notes / Save as note from a selection" /> says so; a toast says which. It appears only while the Notes tool is enabled.
+**Select all** selects the whole field. A long press usually selects only one word, so this is the fast way to act on everything you wrote. In a web page it goes in as Ctrl+A, so an editor in the page, like a code editor that only draws the lines on screen, selects its whole text itself rather than losing a selection the keyboard made for it. **Copy**, **Cut** and **Paste** are the editor's own; Paste replaces the selection and only appears while the clipboard holds text. **Delete** removes the selection. **Share** opens the [share sheet](/reference/settings/share-sheet/) with the selected text, or Android's when the keyboard's sheet is off. **Save as note** keeps the selection in the [Notes tool](/tools/notes/) as a new note, or adds it to the note you edited last when <SettingsPath path="Tools / Notes / Save as note from a selection" /> says so; a toast says which. It appears only while the Notes tool is enabled.
 
 ## Find and replace
 
@@ -182,7 +236,9 @@ Mono on several lines uses the app's fenced block where it has one. These four a
 
 ## Look up
 
-**Search** opens the [web search](/tools/search/) tool with the selection as the query. **Speak** reads the selection aloud with the phone's speech engine, or with a downloaded [offline voice](/tools/read-back/#offline-voices) for that language (in Bengali for Bengali text), and turns into Stop while it does. **Zones** appears on a time and shows it in each of the zones you picked under Time zones, UTC and your own to start with; tap one to write it in place of the selection.
+**Edit word** appears when the selection is one word and opens that word's [word card](/smart/personal-dictionary/#from-the-suggestion-strip), the same card that holding a word on the suggestion strip reaches through **Edit**. It shows where the keyboard found the word and how often you typed it, and carries Never suggest or Suggest again, Delete, the rank controls, the spelling and **Keep these capitals**. **Add** is about the selected word: it appears while that word is not in your personal dictionary, and adds it spelled as selected. Punctuation around the word does not count, so `"Hello,"` and `(don't)` are single words; `two words`, `2026` and `e.g.` are not. The card works on your dictionary, not on the text, so the selection stays as it was. It closes when the selection moves to other text or goes away. If you have already picked your own set of actions, switch it on under Actions.
+
+**Search** opens the [web search](/tools/search/) tool with the selection as the query. **Speak** reads the selection aloud with the phone's speech engine, or with a downloaded [offline voice](/tools/read-back/#offline-voices) for that language (in Bengali for Bengali text), and turns into Stop while it does. **Zones** appears on a time and shows it in each of the zones you picked under Time zones, UTC and your own to start with; tap one to write it in place of the selection. A selected `now` or `time now` counts as a time too, the current one, so selecting it gives the time in each zone right now.
 
 ## Open in
 
@@ -209,10 +265,12 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Show on every selection | Toggle | Off |
 | Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 33 of 51 on |
+| Actions | Screen | 37 of 56 on |
 | Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and your own |
+| WM Keyboard in the selection menu | Toggle | On |
+| WM Translate in the selection menu | Toggle | Off |
 
 **Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away, Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
 
@@ -229,7 +287,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 - **The bar never appears over a password field.** Putting a password in front of a Share chooser is the mistake this feature should not make.
 - **An action is only offered when it can work.** WhatsApp is hidden when WhatsApp is not installed. Search, Translate, QR, Grammar and AI are hidden when their tools are switched off, which includes the tools that [power saving](/typing/power-saving/) and the lock screen have already taken away, and AI is hidden until a provider is set up. Hiding a tool from the toolbox is not switching it off: turn off **Show in toolbox** on the tool's own page to keep, say, the AI chip here while the AI tool stays out of the toolbox grid.
 - **Nothing is stored and nothing is sent by the keyboard.** Every action either edits the field you are already in, or hands the text to an app you picked. Grammar and the Bengali conversions run on the device. The one exception is DeepL Write, which you set up yourself: it sends the selection to DeepL.
-- **Before your first unlock**, only the actions that touch the current field survive: the edits, the rewrites and Find. Paste needs a clipboard that is still locked, Speak needs a speech engine, and everything under Open in would have to start another app.
+- **Before your first unlock**, only the actions that touch the current field survive: the edits, the rewrites and Find. Paste needs a clipboard that is still locked, Speak needs a speech engine, Edit word needs the personal dictionary, which is locked too, and everything under Open in would have to start another app.
 - **A very long selection gets only the actions that need no reading.** Past about 4,000 characters the keyboard stops reading the selection, so the case options, the rewrites and the entity actions all stand down. With **Show on every selection** off, which is how it ships, the bar goes away entirely and the toolbar's own [Copy tool](/tools/text-editing/) is the answer; with it on, Select all, Copy, Cut, Paste and Delete stay on the bar, because the app does their work and the length costs them nothing.
 - **The bar follows the selection, not the caret.** Extending a selection with [selection mode](/tools/text-editing/#selection-mode) or a [trackpad](/tools/trackpad/) drag re-reads it as you go, so the actions change under your finger as the selection grows into a whole phone number.
 - **This version resets the list of actions once.** The list grew from thirteen actions to forty-five, and the shipped choices replace whatever you had picked before, so the new actions are there. Anything you switch off after that stays off.

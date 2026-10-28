@@ -26,6 +26,7 @@
     <string name="common_default">Par défaut</string>
     <string name="common_delete">Supprimer</string>
     <string name="common_disable">Désactiver</string>
+    <string name="common_disabled_open_setting">Ouvrir le paramètre</string>
     <string name="common_disclosure_blocked_body">Android n\'affiche plus cette demande, car vous avez refusé l\'autorisation auparavant. Vous pouvez toujours l\'activer depuis l\'écran des paramètres de l\'application.</string>
     <string name="common_disclosure_not_now">Pas maintenant</string>
     <string name="common_done">Terminé</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installer</string>
     <string name="common_installing">Installation en cours…</string>
     <string name="common_loading">Chargement…</string>
+    <string name="common_more">Plus</string>
     <string name="common_next">Suivant</string>
     <string name="common_none">Aucun</string>
     <string name="common_notify_channel_backup_body">Uniquement lorsqu\'une sauvegarde automatique échoue. Les sauvegardes réussies restent silencieuses.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Afficher les notifications</string>
     <string name="common_permission_storage_body">Sur Android 9 et versions antérieures, le clavier a besoin de l\'autorisation de stockage pour enregistrer une image dans votre galerie. L\'ancienne autorisation Android couvre également la lecture de votre stockage. Le clavier n\'écrit que l\'image que vous lui demandez d\'enregistrer. Le clavier ne lit rien et ne télécharge rien. Les versions Android plus récentes n\'ont pas besoin de cette autorisation.</string>
     <string name="common_permission_storage_title">Accès au stockage pour enregistrer dans votre galerie</string>
+    <string name="common_permission_tasks_body">WM Keyboard maintient sa liste de tâches et une liste de tâches dans l\'application de tâches identiques : les tâches, leurs étapes, leurs coches et leurs dates d\'échéance, dans les deux sens. L\'autorisation couvre chaque liste de tâches dans l\'application. Le clavier ne lit les listes de l\'application que pour vous permettre d\'en choisir une, et il ne lit et n\'écrit que la liste que vous avez choisie. Le clavier n\'envoie rien nulle part. DAVx5, si vous l\'utilisez, synchronise cette liste avec votre propre serveur CalDAV. Sans cette autorisation, la liste de tâches reste sur ce téléphone.</string>
+    <string name="common_permission_tasks_opentasks_title">Accès OpenTasks pour la liste de tâches</string>
+    <string name="common_permission_tasks_tasks_org_title">Accès de Tasks.org pour la liste des tâches</string>
+    <string name="common_preview_scale_desc">Taille de l\'aperçu</string>
+    <string name="common_preview_scale_larger">Agrandir l\'aperçu</string>
+    <string name="common_preview_scale_smaller">Réduire la taille de l\'aperçu</string>
+    <string name="common_preview_scale_value">%1$d %%</string>
     <string name="common_remove">Supprimer</string>
     <string name="common_reset">Réinitialiser</string>
     <string name="common_reset_defaults">Réinitialiser aux valeurs par défaut</string>

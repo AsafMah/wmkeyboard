@@ -22,6 +22,29 @@ object SearchProviders {
     fun rows(settings: KeyboardSettings, pick: String? = null): List<ResolvedProvider> =
         settings.resolveProviders(ProviderTool.SEARCH, pick = pick).filter { backend(it) != null }
 
+    /**
+     * [query] as a search page to open in the browser (#915): on the user's
+     * SearXNG instance when that is the first provider, on Brave Search when
+     * Brave is, and otherwise on DuckDuckGo, which needs no account.
+     */
+    fun browserUrl(settings: KeyboardSettings, query: String): String {
+        val first = rows(settings).firstOrNull()
+        val q = ToolHttp.encode(query.trim())
+        return when (first?.let(::backend)) {
+            SearchBackend.SEARXNG -> runCatching { SearxClient.searchBase(first.url) + "?q=" + q }
+                .getOrDefault("https://duckduckgo.com/?q=$q")
+            SearchBackend.BRAVE -> "https://search.brave.com/search?q=$q"
+            else -> "https://duckduckgo.com/?q=$q"
+        }
+    }
+
+    /**
+     * Whether a search from the panel goes to a SearXNG instance first, which
+     * is when its category chips are offered (#934). [pick] as for [rows].
+     */
+    fun searxFirst(settings: KeyboardSettings, pick: String? = null): Boolean =
+        rows(settings, pick).firstOrNull()?.let(::backend) == SearchBackend.SEARXNG
+
     fun backend(row: ResolvedProvider): SearchBackend? = when (row.typeId) {
         ProviderTypes.SEARXNG.id -> SearchBackend.SEARXNG
         ProviderTypes.TAVILY.id -> SearchBackend.TAVILY
@@ -39,10 +62,24 @@ object SearchProviders {
         pick: String? = null,
         /** A further page of the same search (#879); null, the first. */
         more: SearchMore? = null,
-    ): WebSearchPage = ask(settings, pick) { row, backend ->
+        /**
+         * A SearXNG category other than general (#934). Only SearXNG has
+         * them, so with one the other providers are not asked: their general
+         * results would pass for the category's.
+         */
+        category: String? = null,
+    ): WebSearchPage = ask(settings, pick, searxOnly = category != null) { row, backend ->
         val page = more?.page ?: 0
         when (backend) {
-            SearchBackend.SEARXNG -> SearxClient.webSearch(query, row.url, count, safe, source = source, page = page)
+            SearchBackend.SEARXNG -> SearxClient.webSearch(
+                query,
+                row.url,
+                count,
+                safe,
+                source = source,
+                page = page,
+                category = category ?: SearxClient.GENERAL,
+            )
             SearchBackend.TAVILY -> TavilySearchClient.webSearch(
                 query,
                 row.apiKey,
@@ -83,8 +120,13 @@ object SearchProviders {
             }
         }
 
-    private inline fun <T> ask(settings: KeyboardSettings, pick: String?, call: (ResolvedProvider, SearchBackend) -> T): T {
-        val rows = rows(settings, pick)
+    private inline fun <T> ask(
+        settings: KeyboardSettings,
+        pick: String?,
+        searxOnly: Boolean = false,
+        call: (ResolvedProvider, SearchBackend) -> T,
+    ): T {
+        val rows = rows(settings, pick).filter { !searxOnly || backend(it) == SearchBackend.SEARXNG }
         if (rows.isEmpty()) throw NoSearchProviderException()
         val outcome = ProviderRunner.fallback(rows, key = { it.key }) { row -> call(row, requireNotNull(backend(row))) }
         return when (outcome) {

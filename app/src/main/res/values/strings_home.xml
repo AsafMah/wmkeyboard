@@ -40,61 +40,61 @@
     <string name="home_typing_subtitle">Autocorrect, suggestions, gestures</string>
 
     <string name="home_keypress_title">Key press</string>
-    <string name="home_keypress_subtitle">Haptics, key popup, press and hold shortcuts</string>
+    <string name="home_keypress_subtitle">Haptics, sounds, key popup</string>
 
     <string name="home_languages_title">Languages &amp; layouts</string>
 
     <string name="home_appearance_title">Appearance</string>
-    <string name="home_appearance_subtitle">Themes, fonts, toolbar style</string>
+    <string name="home_appearance_subtitle">Themes and how the keys look</string>
 
     <string name="home_layout_title">Layout &amp; size</string>
-    <string name="home_layout_subtitle">Key size, number row, one-handed, split &amp; floating</string>
+    <string name="home_layout_subtitle">Key size, rows, one-handed</string>
 
     <string name="home_keymaps_title">Key layouts</string>
 
     <string name="home_rows_title">Rows &amp; bars</string>
-    <string name="home_rows_subtitle">Symbol row, emoji row, fancy text, row order &amp; symbol sets</string>
+    <string name="home_rows_subtitle">Symbol row, bars, row order</string>
 
     <string name="home_modes_title">Keyboard modes</string>
-    <string name="home_modes_subtitle">Per-app setups: email, browser, coding, passwords</string>
+    <string name="home_modes_subtitle">Per-app keyboard setups</string>
 
     <string name="home_emoji_title">Emoji</string>
-    <string name="home_emoji_subtitle">Suggestions, emoji row, emoji style, favourites</string>
+    <string name="home_emoji_subtitle">Suggestions, emoji row, skin tone</string>
 
     <string name="home_expander_title">Text expansion</string>
-    <string name="home_expander_subtitle">Snippets, triggers, patterns and template variables</string>
+    <string name="home_expander_subtitle">Snippets, triggers, patterns</string>
 
     <string name="home_clipboard_title">Clipboard</string>
-    <string name="home_clipboard_subtitle">History, the paste chip, screenshots, sensitive clips</string>
+    <string name="home_clipboard_subtitle">History, paste chip, privacy</string>
 
     <string name="home_voice_title">Voice typing</string>
-    <string name="home_voice_subtitle">Recognition engine, microphone view, spoken punctuation</string>
+    <string name="home_voice_subtitle">Engines, mic, punctuation</string>
 
     <string name="home_ai_title">AI</string>
-    <string name="home_ai_subtitle">Writing tools, replies, chat and history</string>
+    <string name="home_ai_subtitle">Writing tools, replies, chat</string>
 
     <string name="home_tools_title">Tools</string>
-    <string name="home_tools_subtitle">Flashlight, compass, snippets, calendar &amp; more</string>
+    <string name="home_tools_subtitle">Every tool and its options</string>
 
     <string name="home_addons_title">Add-ons</string>
-    <string name="home_addons_subtitle">Install themes, layouts, fonts and more from the web</string>
+    <string name="home_addons_subtitle">Themes, layouts and fonts</string>
 
     <string name="home_accessibility_title">Accessibility</string>
-    <string name="home_accessibility_subtitle">Contrast, colour vision, TalkBack, reduced motion</string>
+    <string name="home_accessibility_subtitle">Contrast, TalkBack, motion</string>
 
     <string name="home_privacy_title">Privacy</string>
-    <string name="home_privacy_subtitle">On-device learning, incognito</string>
+    <string name="home_privacy_subtitle">Learning, incognito, app lock</string>
 
     <string name="home_datasaver_title">Data saver</string>
-    <string name="home_datasaver_subtitle">What the keyboard may fetch on mobile data</string>
+    <string name="home_datasaver_subtitle">Downloads on mobile data</string>
 
     <string name="home_backup_title">Backup &amp; restore</string>
-    <string name="home_backup_subtitle">Export your settings to a file, or restore them</string>
+    <string name="home_backup_subtitle">Export, restore, sync</string>
 
     <string name="home_advanced_title">Advanced</string>
-    <string name="home_advanced_subtitle">Keyboard modes, add-ons, data saver</string>
+    <string name="home_advanced_subtitle">Add-ons, data saver, notifications</string>
     <string name="home_about_title">About</string>
-    <string name="home_about_subtitle">Version, licence, open-source notices</string>
+    <string name="home_about_subtitle">Version, licence, notices</string>
 
     <!-- ===================================================================
          Headings of the screens that have no row on the home list. The user
@@ -151,6 +151,8 @@
          =================================================================== -->
     <!-- Screen reader name of the "?" button beside a setting. %1$s = the name of that setting. -->
     <string name="home_info_desc">More about %1$s</string>
+    <!-- First entry of a setting's touch-and-hold menu at the Simple depth, where the "?" button is not drawn on the row. Opens the same explanation the button does. -->
+    <string name="home_hold_what_is_this">What is this?</string>
 
     <!-- Row that puts the pinned tools of the toolbar back to their defaults. -->
     <string name="home_reset_pinned_tools_title">Reset pinned tools</string>
@@ -177,4 +179,12 @@
     <string name="home_vocab_open_action">Open</string>
     <string name="home_vocab_dismiss_desc">Put away for today</string>
 
+    <!-- "Add to home screen" on the tools with a screen of their own (#970). -->
+    <string name="home_shortcut_add_title">Add to home screen</string>
+    <string name="home_shortcut_add_subtitle">Put %1$s on your home screen, to open without going through the settings</string>
+    <string name="home_shortcut_add_action">Add</string>
+    <string name="home_shortcut_unsupported">Your launcher does not take shortcuts</string>
+    <string name="home_shortcut_clock_label">Clock</string>
+    <string name="home_shortcut_notes_label">Notes</string>
+    <string name="home_shortcut_todo_label">To-do list</string>
 </resources>

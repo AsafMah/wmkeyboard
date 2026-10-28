@@ -136,6 +136,16 @@
               "longPress": [
                 "`"
               ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "han_script"
+                  },
+                  "label": "简/繁"
+                }
+              ],
+              "actionAlternatesAt": 0,
+              "hint": "繁",
               "width": 1.5
             },
             {

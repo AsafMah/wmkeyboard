@@ -113,12 +113,18 @@ object PluginFile {
      */
     private const val LUA_SIGNATURE = 0x1B.toByte()
 
+    /**
+     * "Demo-1.2.wmplugin": the plugin's own version goes in the name (#970), so
+     * two releases of one plugin sitting in Downloads can be told apart.
+     */
     fun fileName(manifest: PluginManifest): String {
+        val safe = Regex("[^\\p{L}\\p{N} ._-]")
         val stem = manifest.name.ifBlank { manifest.id }
             .replace(Regex("[^\\p{L}\\p{N} _-]"), "")
             .trim()
             .ifBlank { "plugin" }
-        return "$stem.$FILE_EXTENSION"
+        val version = manifest.pluginVersion.replace(safe, "").trim('.', ' ')
+        return if (version.isEmpty()) "$stem.$FILE_EXTENSION" else "$stem-$version.$FILE_EXTENSION"
     }
 
     /** Writes a plugin archive: the plugin editor's export, the tests, and the repository tooling. */

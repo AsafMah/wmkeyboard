@@ -116,6 +116,7 @@ internal fun panelTitleRes(kind: PanelKind): Int = when (kind) {
     PanelKind.TRACKPAD -> R.string.panel_name_trackpad
     PanelKind.NUMPAD -> R.string.panel_name_numpad
     PanelKind.HANDWRITING -> R.string.panel_name_handwriting
+    PanelKind.EMOJI_MIX -> R.string.panel_name_emoji_mix
 }
 
 /** A component's name, in the picker, the preview cell and the reorder dialog. */
@@ -133,6 +134,7 @@ internal fun fieldTitleRes(kind: PanelFieldKind): Int = when (kind) {
     PanelFieldKind.GIF_BROWSER -> R.string.field_name_gif_browser
     PanelFieldKind.STICKER_BROWSER -> R.string.field_name_sticker_browser
     PanelFieldKind.HANDWRITING_CANVAS -> R.string.field_name_handwriting_canvas
+    PanelFieldKind.EMOJI_MIX_BROWSER -> R.string.field_name_emoji_mix_browser
     PanelFieldKind.UNKNOWN -> R.string.field_name_unknown
 }
 
@@ -166,6 +168,8 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.RETYPE_WORD -> R.string.textedit_action_retype_word
     TextEditAction.NO_SPACE -> R.string.textedit_action_no_space
     TextEditAction.NO_SPACE_NEXT -> R.string.textedit_action_no_space_next
+    TextEditAction.DELETE_WORD -> R.string.textedit_action_delete_word
+    TextEditAction.DELETE_WORD_FORWARD -> R.string.textedit_action_delete_word_forward
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */
@@ -433,7 +437,7 @@ internal fun PanelLayoutEditorScreen(
  * the IME module; this is the same rule for the editor.
  */
 internal fun mediaSwitchReachable(settings: KeyboardSettings): Boolean =
-    listOf(ToolbarTool.GIF, ToolbarTool.STICKER).any { tool ->
+    listOf(ToolbarTool.GIF, ToolbarTool.STICKER, ToolbarTool.EMOJI_MIX).any { tool ->
         tool in settings.enabledTools && isSupportedTool(tool) && isUsableTool(tool, settings)
     }
 

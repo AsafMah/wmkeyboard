@@ -39,6 +39,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -98,6 +99,8 @@ data class StickerOfferCallbacks(
     val onExpand: () -> Unit = {},
     /** The tray's ✕, or a hold on the strip's thumbnails: not these, not for this text. */
     val onDismiss: () -> Unit = {},
+    /** An offer of emoji mixes: the button at the tray's end that opens the Mixes panel on its emoji. */
+    val onOpenMixes: (StickerOffer) -> Unit = {},
 )
 
 /** Height of the tray row: a sticker at a size you can tell apart, and a little air. */
@@ -137,16 +140,20 @@ internal fun stickerTrayShows(state: KeyboardUiState): Boolean {
     return when {
         offer.inEmojiPanel -> state.panel == PanelMode.EMOJI
         state.panel != PanelMode.NONE -> false
-        state.settings.gif.stickerSuggestStyle == StickerSuggestStyle.TRAY -> true
+        offerStyle(state, offer) == StickerSuggestStyle.TRAY -> true
         else -> offer.expanded
     }
 }
+
+/** How [offer] is drawn on the strip: the sticker setting's style, or the mixes' own for a mix offer. */
+internal fun offerStyle(state: KeyboardUiState, offer: StickerOffer): StickerSuggestStyle =
+    if (offer.mix) state.settings.emoji.mix.suggestStyle else state.settings.gif.stickerSuggestStyle
 
 /** Whether the suggestion strip draws the offer: the two narrow styles, on the keys. */
 internal fun stickerStripShows(state: KeyboardUiState): Boolean {
     val offer = state.stickerOffer ?: return false
     return !offer.inEmojiPanel && state.panel == PanelMode.NONE &&
-        state.settings.gif.stickerSuggestStyle != StickerSuggestStyle.TRAY
+        offerStyle(state, offer) != StickerSuggestStyle.TRAY
 }
 
 /**
@@ -230,6 +237,23 @@ private fun StickerOfferTray(offer: StickerOffer, callbacks: StickerOfferCallbac
                     size = StickerTrayCell,
                     peek = { peek.of(index) },
                     onClick = { callbacks.onPick(pick) },
+                )
+            }
+        }
+        if (offer.mix) {
+            // Every mix of this emoji, and a free choice of the other one.
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clickable { callbacks.onOpenMixes(offer) }
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.Interests,
+                    contentDescription = stringResource(R.string.ime_emoji_mix_open_desc),
+                    tint = kb.toolbarIcon,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

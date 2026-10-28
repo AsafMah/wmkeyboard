@@ -2,6 +2,39 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InvertColors
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TrendingUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoFixHigh
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bluetooth
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteForever
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditCalendar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FirstPage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderZip
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Healing
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HourglassBottom
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HourglassEmpty
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lan
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LinkOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationCity
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mood
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MyLocation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsActive
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartToy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Update
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Warning
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WbTwilight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AllInclusive
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Badge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
@@ -151,6 +184,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InstallMobile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCommandKey
@@ -281,6 +315,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WbSunny
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Weekend
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wifi
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WorkOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ZoomIn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ZoomOutMap
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AccountTree
@@ -325,6 +360,9 @@ import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.settings.R as SettingsR
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
@@ -421,9 +459,12 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_selection_motion_title) { Icons.Outlined.SelectAll }
         put(R.string.accessibility_language_switch_motion_title) { Icons.Outlined.Flip }
         put(R.string.accessibility_tool_result_motion_title) { Icons.Outlined.Spellcheck }
+        put(R.string.settings_depth_title) { Icons.Outlined.Tune }
+        put(R.string.settings_hidden_rows_title) { Icons.Outlined.Visibility }
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
+        put(R.string.favourites_button_title) { Icons.Outlined.Star }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_hub_settings_assistant_title) { Icons.Outlined.Assistant }
         put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }
@@ -478,6 +519,9 @@ internal object SettingsRowIcons {
         put(R.string.appearance_key_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_offset_title) { Icons.Outlined.SwapVert }
+        put(R.string.appearance_key_hint_offset_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_offset_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_offset_y_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_toolbar_show_title) { Icons.Outlined.Visibility }
         put(R.string.appearance_toolbar_swipe_down_title) { Icons.Outlined.SwipeDown }
         put(R.string.appearance_toolbar_drag_title) { Icons.Outlined.DragIndicator }
@@ -490,6 +534,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_padding_bottom_title) { Icons.Outlined.VerticalAlignBottom }
         put(R.string.appearance_toolbar_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.appearance_toolbar_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_toolbar_labels_fixed_title) { Icons.Outlined.Straighten }
+        put(R.string.appearance_toolbar_pinned_colors_title) { Icons.Outlined.Palette }
         put(R.string.appearance_tool_circle_title) { Icons.Outlined.Circle }
         put(R.string.appearance_tool_shape_title) { Icons.Outlined.Category }
         put(R.string.appearance_toolbox_layout_title) { Icons.Outlined.GridView }
@@ -499,8 +545,11 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbox_paginate_title) { Icons.Outlined.Swipe }
         put(R.string.appearance_toolbox_page_size_title) { Icons.Outlined.Numbers }
         put(R.string.appearance_toolbox_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_toolbox_cell_spacing_title) { Icons.Outlined.Straighten }
         put(R.string.appearance_toolbox_search_button_title) { Icons.Outlined.Search }
         put(R.string.appearance_toolbox_search_at_end_title) { Icons.Outlined.AlignHorizontalRight }
+        put(R.string.appearance_toolbox_sort_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.appearance_toolbox_search_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.appearance_suggestion_text_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_suggestion_spacing_title) { Icons.Outlined.SpaceBar }
         put(R.string.appearance_suggestion_primary_color_title) { Icons.Outlined.Colorize }
@@ -551,6 +600,11 @@ internal object SettingsRowIcons {
         put(R.string.backup_auto_enabled_title) { Icons.Outlined.CloudUpload }
         put(R.string.backup_auto_interval_title) { Icons.Outlined.Schedule }
         put(R.string.backup_auto_keep_title) { Icons.Outlined.Numbers }
+        put(R.string.backup_auto_staggered_title) { Icons.Outlined.History }
+        put(R.string.backup_frequent_enabled_title) { Icons.Outlined.Schedule }
+        put(R.string.backup_frequent_interval_title) { Icons.Outlined.Schedule }
+        put(R.string.backup_frequent_keep_title) { Icons.Outlined.Numbers }
+        put(R.string.home_shortcut_add_title) { Icons.Outlined.Shortcut }
         put(R.string.backup_auto_encrypt_title) { Icons.Outlined.Lock }
         put(R.string.backup_auto_charging_title) { Icons.Outlined.BatteryChargingFull }
         put(R.string.backup_auto_unmetered_title) { Icons.Outlined.Wifi }
@@ -577,7 +631,6 @@ internal object SettingsRowIcons {
         put(R.string.keypress_popup_window_band_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.keypress_popup_on_key_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_popup_min_duration_title) { Icons.Outlined.Timer }
-        put(R.string.keypress_popup_max_duration_title) { Icons.Outlined.Timer }
         put(R.string.keypress_popup_font_size_title) { Icons.Outlined.FormatSize }
         put(R.string.keypress_popup_height_title) { Icons.Outlined.Height }
         put(R.string.keypress_popup_offset_y_title) { Icons.Outlined.VerticalAlignTop }
@@ -600,11 +653,13 @@ internal object SettingsRowIcons {
         put(R.string.keypress_word_delete_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_space_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_custom_repeat_title) { Icons.Outlined.Repeat }
+        put(R.string.keypress_flicks_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_caps_lock_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_long_press_hints_title) { Icons.Outlined.Lightbulb }
         put(R.string.keypress_all_accents_title) { Icons.Outlined.Translate }
         put(R.string.keypress_native_letters_title) { Icons.Outlined.Abc }
         put(R.string.keypress_top_row_holds_title) { Icons.Outlined.Numbers }
+        put(R.string.keypress_hold_symbols_title) { Icons.Outlined.Tag }
         put(R.string.keypress_shifted_popup_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_symbols_numpad_title) { Icons.Outlined.Dialpad }
         put(R.string.keypress_enter_emoji_title) { Icons.Outlined.EmojiEmotions }
@@ -616,6 +671,7 @@ internal object SettingsRowIcons {
         // ---- Emoji ----
         put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.langemoji_strip_shortcut_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.langemoji_strip_toolbox_title) { Icons.Outlined.Apps }
         put(R.string.langemoji_strip_at_end_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_own_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.langemoji_strip_tool_width_title) { Icons.Outlined.Straighten }
@@ -624,7 +680,10 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_prediction_title) { Icons.Outlined.AutoAwesome }
         put(R.string.langemoji_emoji_insert_mode_title) { Icons.Outlined.TouchApp }
         put(R.string.langemoji_emoji_grid_size_title) { Icons.Outlined.GridOn }
+        put(R.string.langemoji_emoji_tab_width_title) { Icons.Outlined.Straighten }
         put(R.string.langemoji_emoji_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.langemoji_emoji_grid_columns_title) { Icons.Outlined.ViewColumn }
+        put(R.string.langemoji_emoji_grid_row_height_title) { Icons.Outlined.Height }
         put(R.string.langemoji_emoji_tab_mode_title) { Icons.Outlined.History }
         put(R.string.langemoji_emoji_recents_title) { Icons.Outlined.Numbers }
         put(R.string.langemoji_emoji_clear_recents_title) { Icons.Outlined.DeleteSweep }
@@ -660,6 +719,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_hide_unrenderable_title) { Icons.Outlined.VisibilityOff }
         put(R.string.langemoji_emoji_unicode_search_title) { Icons.Outlined.Translate }
         put(R.string.langemoji_emoji_categories_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.langemoji_emoji_added_title) { Icons.Outlined.Add }
         put(R.string.langemoji_emoji_keywords_title) { Icons.Outlined.EmojiEmotions }
 
         // ---- Languages ----
@@ -715,6 +775,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_symbols_return_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.layout_symbols_return_space_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_numeral_scope_title) { Icons.Outlined.Numbers }
+        put(R.string.layout_resize_drag_title) { Icons.Outlined.AspectRatio }
         put(R.string.layout_key_height_title) { Icons.Outlined.Height }
         put(R.string.layout_bottom_row_height_title) { Icons.Outlined.Height }
         put(R.string.layout_side_padding_left_title) { Icons.Outlined.Padding }
@@ -751,7 +812,17 @@ internal object SettingsRowIcons {
         put(R.string.layout_summon_button_permission_title) { Icons.Outlined.Layers }
         // Advanced › Floating button (#755).
         put(R.string.floating_button_title) { Icons.Outlined.Adjust }
+
+        // ---- Extensions ----
+        put(R.string.extensions_title) { Icons.Outlined.ExtensionIcon }
+        put(R.string.extension_enabled_title) { Icons.Outlined.ToggleOn }
+        for (extension in Extension.entries) put(extensionTitle(extension)) { extensionIcon(extension) }
         put(R.string.floating_button_enable_title) { Icons.Outlined.Adjust }
+        put(R.string.share_sheet_title) { Icons.Outlined.Share }
+        put(R.string.share_sheet_enabled_title) { Icons.Outlined.Share }
+        put(R.string.share_sheet_recents_title) { Icons.Outlined.History }
+        put(R.string.share_sheet_pins_title) { Icons.Outlined.PushPin }
+        put(R.string.share_sheet_recents_clear_title) { Icons.Outlined.History }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
@@ -762,13 +833,17 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
+        put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
+        put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
+        put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
         put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
         put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }
         put(R.string.floating_button_idle_opacity_title) { Icons.Outlined.Contrast }
         put(R.string.floating_button_tuck_title) { Icons.Outlined.VisibilityOff }
         put(R.string.floating_button_while_typing_title) { Icons.Outlined.Keyboard }
+        put(R.string.floating_button_over_keyboard_title) { Icons.Outlined.Layers }
         put(R.string.floating_button_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.floating_button_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.floating_button_reset_position_title) { Icons.Outlined.Restore }
@@ -920,7 +995,10 @@ internal object SettingsRowIcons {
         // ---- Text expander ----
         put(R.string.expander_multi_expand_title) { Icons.Outlined.AltRoute }
         put(R.string.expander_grid_columns_title) { Icons.Outlined.GridView }
+        put(R.string.expander_titles_only_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.expander_panel_stays_title) { Icons.Outlined.PushPin }
         put(R.string.expander_secure_fields_title) { Icons.Outlined.Key }
+        put(R.string.expander_escape_title) { Icons.Outlined.Block }
         put(R.string.rows_snippet_multi_expand_label) { Icons.Outlined.AltRoute }
 
         // ---- Typing ----
@@ -934,6 +1012,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_language_detection_strength_title) { Icons.Outlined.Tune }
         put(R.string.typing_language_detection_by_app_title) { Icons.Outlined.Apps }
         put(R.string.languages_phonetic_english_title) { Icons.Outlined.Translate }
+        put(R.string.languages_khipro_english_title) { Icons.Outlined.Translate }
         put(R.string.languages_phonetic_english_switch_title) { Icons.Outlined.TouchApp }
         put(R.string.languages_ansi_allowed_title) { Icons.Outlined.FontDownload }
         put(R.string.languages_ansi_version_title) { Icons.Outlined.Numbers }
@@ -941,6 +1020,10 @@ internal object SettingsRowIcons {
         put(R.string.languages_zawgyi_key_font_title) { Icons.Outlined.FontDownload }
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
+        put(R.string.typing_neural_context_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.typing_context_revision_title) { Icons.Outlined.History }
+        put(R.string.typing_phrase_completion_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.typing_learned_gate_title) { Icons.Outlined.Tune }
         put(R.string.typing_learn_threshold_title) { Icons.Outlined.School }
         put(R.string.typing_new_word_sightings_title) { Icons.Outlined.LibraryAdd }
         put(R.string.typing_ask_before_learning_title) { Icons.Outlined.HelpOutline }
@@ -964,6 +1047,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_autocorrect_on_punctuation_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_dictionary_capitals_title) { Icons.Outlined.TextFields }
         put(R.string.typing_skip_typed_word_title) { Icons.Outlined.FilterList }
+        put(R.string.typing_typed_word_first_title) { Icons.Outlined.TextFields }
         put(R.string.typing_number_prediction_title) { Icons.Outlined.Numbers }
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }
@@ -981,6 +1065,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_punctuation_suggestions_title) { Icons.Outlined.MoreHoriz }
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
+        put(R.string.typing_fit_more_words_title) { Icons.Outlined.ViewWeek }
         put(R.string.typing_suggestion_emoji_slot_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_emoji_count_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_fixed_slots_title) { Icons.Outlined.ViewColumn }
@@ -1055,6 +1140,9 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_vocabulary_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.typing_glide_sandbox_title) { Icons.Outlined.Person }
         put(R.string.typing_glide_search_all_chip_title) { Icons.Outlined.Search }
+        put(R.string.typing_glide_kept_strokes_title) { Icons.Outlined.History }
+        put(R.string.typing_glide_checkup_title) { Icons.Outlined.QueryStats }
+        put(R.string.typing_glide_checkup_measure_title) { Icons.Outlined.Science }
         put(R.string.typing_glide_steadiness_title) { Icons.Outlined.Anchor }
         put(R.string.typing_glide_lookahead_title) { Icons.Outlined.FastForward }
         put(R.string.typing_glide_engine_title) { Icons.Outlined.Psychology }
@@ -1072,6 +1160,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_symbol_chords_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_symbol_chord_add_title) { Icons.Outlined.Add }
         put(R.string.typing_symbol_chords_reset_title) { Icons.Outlined.RestartAlt }
+        put(R.string.typing_key_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_key_swipe_add_title) { Icons.Outlined.Add }
+        put(R.string.typing_key_swipe_preset_title) { Icons.Outlined.Dashboard }
+        put(R.string.typing_key_swipes_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_two_thumb_word_end_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_two_thumb_pause_title) { Icons.Outlined.Timer }
         put(R.string.typing_two_thumb_tap_pause_title) { Icons.Outlined.Timer }
@@ -1085,6 +1177,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_backspace_undo_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.appearance_toolbar_placement_title) { Icons.Outlined.ViewAgenda }
         put(R.string.appearance_toolbar_show_strip_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.appearance_toolbar_landscape_column_title) { Icons.Outlined.ViewColumn }
         put(R.string.tooldetail_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_show_in_toolbox_title) { Icons.Outlined.Apps }
         put(R.string.tooldetail_icon_colour_title) { Icons.Outlined.Colorize }
@@ -1105,6 +1198,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_wiggle_extent_title) { Icons.Outlined.Straighten }
         put(R.string.typing_glide_shapes_per_word_title) { Icons.Outlined.Layers }
         put(R.string.typing_swipe_start_distance_title) { Icons.Outlined.Straighten }
+        put(R.string.typing_trail_style_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_trail_width_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_trail_length_title) { Icons.Outlined.Timeline }
         put(R.string.typing_trail_opacity_title) { Icons.Outlined.Opacity }
@@ -1128,6 +1222,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_space_cursor_edge_repeat_title) { Icons.Outlined.FastForward }
         put(R.string.typing_space_cursor_whole_keyboard_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_space_swipe_up_touchpad_title) { Icons.Outlined.SwipeUp }
+        put(R.string.typing_space_swipe_up_numpad_title) { Icons.Outlined.SwipeUp }
         put(R.string.typing_space_cursor_top_speed_title) { Icons.Outlined.Speed }
         put(R.string.typing_space_cursor_magnifier_title) { Icons.Outlined.ZoomIn }
         put(R.string.typing_space_swipe_down_hide_title) { Icons.Outlined.SwipeDown }
@@ -1213,6 +1308,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_card_buttons_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_card_shortcut_title) { Icons.Outlined.TouchApp }
         put(R.string.clipboard_type_out_title) { Icons.Outlined.Keyboard }
+        put(R.string.clipboard_bump_on_paste_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.clipboard_type_tags_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.clipboard_keep_rich_text_title) { Icons.Outlined.FormatBold }
         put(R.string.clipboard_swipe_pin_title) { Icons.Outlined.SwipeRight }
@@ -1232,6 +1328,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_fragments_on_strip_title) { Icons.Outlined.ContentCut }
         put(R.string.clipboard_chip_life_title) { Icons.Outlined.Timer }
         put(R.string.clipboard_recent_chips_title) { Icons.Outlined.ContentPaste }
+        put(R.string.clipboard_compact_paste_chip_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_phone_formats_title) { Icons.Outlined.Phone }
         put(R.string.clipboard_screenshots_title) { Icons.Outlined.Screenshot }
         put(R.string.clipboard_track_source_title) { Icons.Outlined.Apps }
@@ -1265,6 +1362,14 @@ internal object SettingsRowIcons {
         put(R.string.gallery_fallback_title) { Icons.Outlined.Share }
         put(R.string.gallery_close_after_send_title) { Icons.Outlined.KeyboardHide }
         put(R.string.gallery_save_edited_title) { Icons.Outlined.Save }
+        // To-do list (#920).
+        put(R.string.tooldetail_todo_open_title) { Icons.Outlined.Checklist }
+        put(R.string.tooldetail_todo_hide_done_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_todo_sync_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_sync_now_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_import_title) { Icons.Outlined.Download }
+        put(R.string.tooldetail_todo_clear_title) { Icons.Outlined.Delete }
+        put(R.string.todo_clear_done_title) { Icons.Outlined.Delete }
         // Send files (#729).
         put(R.string.send_instance_title) { Icons.Outlined.Dns }
         put(R.string.send_expire_title) { Icons.Outlined.Timer }
@@ -1303,6 +1408,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_icon_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
         put(R.string.tooldetail_launcher_icon_shape_title) { Icons.Outlined.RoundedCorner }
         put(R.string.tooldetail_launcher_hidden_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_launcher_work_title) { Icons.Outlined.WorkOutline }
+        put(R.string.tooldetail_launcher_folders_title) { Icons.Outlined.Folder }
         put(R.string.tooldetail_launcher_recents_title) { Icons.Outlined.History }
         put(R.string.tooldetail_launcher_recents_count_title) { Icons.Outlined.Numbers }
         put(R.string.tooldetail_launcher_drilldown_title) { Icons.Outlined.AppShortcut }
@@ -1353,6 +1460,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_incognito_private_clipboard_title) { Icons.Outlined.ContentCopy }
         put(R.string.tooldetail_incognito_auto_nav_title) { Icons.Outlined.Public }
         put(R.string.tooldetail_power_now_title) { Icons.Outlined.BatterySaver }
+        put(R.string.tooldetail_power_preset_title) { Icons.Outlined.Bolt }
         put(R.string.tooldetail_power_trigger_title) { Icons.Outlined.AutoMode }
         put(R.string.tooldetail_power_battery_title) { Icons.Outlined.BatteryAlert }
         put(R.string.tooldetail_power_charging_title) { Icons.Outlined.BatteryChargingFull }
@@ -1405,6 +1513,8 @@ internal object SettingsRowIcons {
         put(R.string.selection_macros_every_title) { Icons.Outlined.AllInclusive }
         put(R.string.selection_macros_caret_title) { Icons.Outlined.PushPin }
         put(R.string.selection_macros_detect_title) { Icons.Outlined.Sensors }
+        put(R.string.text_actions_settings_actions_title) { Icons.Outlined.Keyboard }
+        put(R.string.text_actions_settings_translate_title) { Icons.Outlined.Translate }
         put(R.string.selection_macros_actions_title) { Icons.Outlined.Checklist }
         put(R.string.selection_macros_ai_title) { Icons.Outlined.AutoAwesome }
         put(R.string.selection_macros_zones_title) { Icons.Outlined.Public }
@@ -1430,6 +1540,7 @@ internal object SettingsRowIcons {
         // download confirmation used to live.
         put(R.string.langemoji_lang_metered_title) { Icons.Outlined.DataSaverOn }
         put(R.string.statistics_toggle_title) { Icons.Outlined.QueryStats }
+        put(R.string.statistics_learned_corrections_action) { Icons.Outlined.Spellcheck }
         put(R.string.tooldetail_power_drop_popup_title) { Icons.Outlined.Notifications }
         put(R.string.tooldetail_power_drop_glass_blur_title) { Icons.Outlined.BlurOn }
         put(R.string.tooldetail_autocorrect_title) { Icons.Outlined.Spellcheck }
@@ -1462,6 +1573,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_media_sticker_per_row_title) { Icons.Outlined.ViewColumn }
         put(R.string.tooldetail_media_spacing_title) { Icons.Outlined.Padding }
         put(R.string.tooldetail_media_hide_header_title) { Icons.Outlined.SwipeUp }
+        put(R.string.tooldetail_media_remember_search_title) { Icons.Outlined.History }
         put(R.string.tooldetail_gif_recent_title) { Icons.Outlined.History }
         put(R.string.tooldetail_media_gifcities_title) { Icons.Outlined.History }
         put(R.string.tooldetail_gif_favourites_offline_title) { Icons.Outlined.Download }
@@ -1474,6 +1586,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_search_answer_title) { Icons.Outlined.AutoAwesome }
         put(R.string.tooldetail_search_open_browser_title) { Icons.Outlined.OpenInBrowser }
         put(R.string.tooldetail_tavily_advanced_title) { Icons.Outlined.TravelExplore }
+        put(R.string.tooldetail_searx_categories_title) { Icons.Outlined.Category }
         put(R.string.tooldetail_ocr_select_all_title) { Icons.Outlined.SelectAll }
         put(R.string.tooldetail_ocr_engine_title) { SymbolIcons.ConvertToText }
         put(R.string.tooldetail_qr_scan_auto_title) { Icons.Outlined.Bolt }
@@ -1495,6 +1608,9 @@ internal object SettingsRowIcons {
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
         put(R.string.voice_silence_stop_title) { Icons.Outlined.Timer }
+        put(R.string.voice_vad_title) { Icons.Outlined.RecordVoiceOver }
+        put(R.string.voice_vad_threshold_title) { Icons.Outlined.Tune }
+        put(R.string.voice_smart_turn_title) { Icons.Outlined.Psychology }
         put(R.string.voice_denoise_title) { Icons.Outlined.Waves }
         put(R.string.voice_punctuation_title) { Icons.Outlined.MoreHoriz }
         put(R.string.voice_auto_punctuation_title) { Icons.Outlined.Spellcheck }
@@ -1569,6 +1685,9 @@ internal object SettingsRowIcons {
         put(R.string.toolai_ai_actions_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_ai_diff_title) { Icons.Outlined.Difference }
         put(R.string.toolai_ai_diff_first_title) { Icons.Outlined.Difference }
+        put(R.string.toolai_strip_suggest_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.toolai_strip_suggest_word_only_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.toolai_strip_suggest_chars_title) { Icons.Outlined.Numbers }
         put(R.string.toolai_ai_tool_search_title) { Icons.Outlined.TravelExplore }
         put(R.string.toolai_ai_tool_search_needs_setup_title) { Icons.Outlined.TravelExplore }
         put(R.string.toolai_ai_tool_fetch_title) { Icons.AutoMirrored.Outlined.Article }
@@ -1582,6 +1701,9 @@ internal object SettingsRowIcons {
         put(R.string.toolai_keep_chats_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_chat_enter_sends_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.toolai_chat_auto_rename_title) { Icons.Outlined.DriveFileRenameOutline }
+        put(R.string.toolai_chat_follow_ups_title) { Icons.Outlined.Lightbulb }
+        put(R.string.toolai_research_depth_title) { Icons.Outlined.TravelExplore }
+        put(R.string.toolai_research_review_plan_title) { Icons.Outlined.Checklist }
         put(R.string.toolai_ai_selection_menu_title) { Icons.Outlined.HighlightAlt }
         put(R.string.toolai_delete_chats_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_memory_screen_title) { Icons.Outlined.Psychology }
@@ -1629,6 +1751,7 @@ internal object SettingsRowIcons {
         put(R.string.languages_phonetic_candidates_title) { Icons.Outlined.ViewAgenda }
         put(R.string.languages_neural_phonetic_title) { Icons.Outlined.AutoAwesome }
         put(R.string.languages_neural_phonetic_model_title) { Icons.Outlined.CloudDownload }
+        put(R.string.languages_romanized_dictation_model_title) { Icons.Outlined.CloudDownload }
         put(R.string.languages_neural_leads_title) { Icons.Outlined.SpaceBar }
         put(R.string.languages_phonetic_guide_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.langemoji_emoji_panel_title) { Icons.Outlined.GridView }
@@ -1639,6 +1762,12 @@ internal object SettingsRowIcons {
         put(R.string.layout_size_position_title) { Icons.Outlined.FormatSize }
         put(R.string.typing_group_corrections_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_group_gestures_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_group_glide_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_page_spacebar_title) { Icons.Outlined.SpaceBar }
+        put(R.string.typing_page_flicks_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_group_writing_title) { Icons.Outlined.Abc }
+        put(R.string.clipboard_page_chips_title) { Icons.Outlined.ContentPaste }
+        put(R.string.clipboard_page_rules_title) { Icons.Outlined.Shield }
         put(R.string.typing_group_hardware_title) { SymbolIcons.KeyboardExternalInput }
         put(R.string.typing_group_otp_title) { Icons.Outlined.Password }
         put(R.string.typing_group_smart_chips_title) { Icons.Outlined.AutoAwesome }
@@ -1801,6 +1930,8 @@ internal object SettingsRowIcons {
         put(R.string.modes_field_hints_title) { Icons.Outlined.Search }
         put(R.string.rows_snippet_propagate_case_label) { Icons.Outlined.KeyboardCapslock }
         put(R.string.rows_snippet_confirm_label) { Icons.Outlined.HelpOutline }
+        put(R.string.rows_snippet_immediate_label) { Icons.Outlined.Bolt }
+        put(R.string.rows_snippet_inside_words_label) { Icons.Outlined.TextFields }
         put(R.string.expander_folder_enabled_title) { Icons.Outlined.PowerSettingsNew }
 
         // ---- Tools, plugins, backup, photos, privacy ----
@@ -1872,6 +2003,281 @@ internal object SettingsRowIcons {
         put(SettingsR.string.core_settings_grammar_kind_formatting_label) { Icons.AutoMirrored.Outlined.FormatAlignLeft }
         put(SettingsR.string.core_settings_grammar_kind_regionalism_label) { Icons.Outlined.Public }
         put(SettingsR.string.core_settings_grammar_kind_nonstandard_label) { Icons.Outlined.ErrorOutline }
+
+        // ---- Clock tool ----
+        put(R.string.clock_open_title) { Icons.Outlined.OpenInNew }
+        put(R.string.clock_settings_title) { Icons.Outlined.Settings }
+        put(R.string.clock_hour_format_title) { Icons.Outlined.Schedule }
+        put(R.string.clock_show_seconds_title) { Icons.Outlined.Timer }
+        put(R.string.clock_sort_zones_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.clock_zones_grid_title) { Icons.Outlined.GridView }
+        put(R.string.clock_insert_format_title) { Icons.Outlined.TextFields }
+        put(R.string.clock_alarm_sound_title) { Icons.Outlined.Alarm }
+        put(R.string.clock_timer_sound_title) { Icons.Outlined.Timer }
+        put(R.string.clock_channel_sound_title) { Icons.AutoMirrored.Outlined.VolumeUp }
+        put(R.string.clock_vibrate_title) { Icons.Outlined.Vibration }
+        put(R.string.clock_snooze_title) { Icons.Outlined.Bedtime }
+        put(R.string.clock_fade_title) { Icons.AutoMirrored.Outlined.TrendingUp }
+        put(R.string.clock_auto_silence_title) { Icons.Outlined.TimerOff }
+        put(R.string.clock_auto_snooze_title) { Icons.Outlined.Update }
+        put(R.string.clock_upcoming_title) { Icons.Outlined.Event }
+        put(R.string.clock_snoozed_notice_title) { Icons.Outlined.Notifications }
+        put(R.string.clock_missed_notice_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.clock_volume_keys_title) { Icons.AutoMirrored.Outlined.VolumeOff }
+        put(R.string.clock_focus_title) { Icons.Outlined.CenterFocusStrong }
+        put(R.string.clock_short_break_title) { Icons.Outlined.HourglassEmpty }
+        put(R.string.clock_long_break_title) { Icons.Outlined.Weekend }
+        put(R.string.clock_long_every_title) { Icons.Outlined.Repeat }
+        put(R.string.clock_work_start_title) { Icons.Outlined.WbSunny }
+        put(R.string.clock_work_end_title) { Icons.Outlined.WbTwilight }
+        put(R.string.clock_history_keep_title) { Icons.Outlined.History }
+        put(R.string.clock_grant_exact_title) { Icons.Outlined.Alarm }
+        put(R.string.clock_grant_full_title) { Icons.Outlined.Fullscreen }
+        put(R.string.clock_grant_notify_title) { Icons.Outlined.Notifications }
+
+        // ---- Notes and to-do ----
+        put(R.string.notes_title) { Icons.Outlined.StickyNote2 }
+        put(R.string.tooldetail_notes_open_title) { Icons.Outlined.StickyNote2 }
+        put(R.string.notes_tags_title) { Icons.AutoMirrored.Outlined.Label }
+        put(R.string.notes_trash_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.notes_export_all_action) { Icons.Outlined.FolderZip }
+        put(R.string.notes_import_action) { Icons.Outlined.FileOpen }
+        put(R.string.notes_empty_trash_action) { Icons.Outlined.DeleteForever }
+        put(R.string.tooldetail_notes_sort_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.tooldetail_notes_markdown_title) { Icons.Outlined.FormatBold }
+        put(R.string.tooldetail_notes_panel_start_title) { Icons.Outlined.FirstPage }
+        put(R.string.tooldetail_notes_trash_days_title) { Icons.Outlined.HourglassBottom }
+        put(R.string.tooldetail_notes_save_selection_title) { Icons.Outlined.HighlightAlt }
+        put(R.string.tooldetail_notes_clear_title) { Icons.Outlined.DeleteForever }
+        put(R.string.tooldetail_todo_list_title) { Icons.Outlined.Checklist }
+
+        // ---- Music, speed test, location ----
+        put(R.string.music_text_format_title) { Icons.Outlined.TextFields }
+        put(R.string.music_card_style_title) { Icons.Outlined.Image }
+        put(R.string.music_open_link_title) { Icons.Outlined.OpenInNew }
+        put(R.string.music_clip_seconds_title) { Icons.Outlined.Timer }
+        put(R.string.music_now_playing_first_title) { Icons.Outlined.GraphicEq }
+        put(R.string.music_keep_history_title) { Icons.Outlined.History }
+        put(R.string.music_history_open_title) { Icons.Outlined.LibraryMusic }
+        put(R.string.music_history_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.tooldetail_speed_duration_title) { Icons.Outlined.Timer }
+        put(R.string.tooldetail_speed_connections_title) { Icons.Outlined.Lan }
+        put(R.string.tooldetail_speed_upload_title) { Icons.Outlined.Upload }
+        put(R.string.tooldetail_speed_unit_title) { Icons.Outlined.Speed }
+        put(R.string.tooldetail_speed_card_style_title) { Icons.Outlined.Palette }
+        put(R.string.tooldetail_speed_card_size_title) { Icons.Outlined.AspectRatio }
+        put(R.string.tooldetail_speed_card_layout_title) { Icons.Outlined.Dashboard }
+        put(R.string.tooldetail_speed_send_mode_title) { Icons.AutoMirrored.Outlined.Send }
+        put(R.string.tooldetail_speed_save_gallery_title) { Icons.Outlined.PhotoLibrary }
+        put(R.string.tooldetail_speed_show_ip_title) { Icons.Outlined.Public }
+        put(R.string.tooldetail_speed_librespeed_pick_title) { Icons.Outlined.Dns }
+        put(R.string.location_format_title) { Icons.Outlined.TextFields }
+        put(R.string.location_map_link_title) { Icons.Outlined.Explore }
+        put(R.string.location_precision_title) { Icons.Outlined.Adjust }
+        put(R.string.location_lookup_address_title) { Icons.Outlined.LocationCity }
+        put(R.string.location_locate_on_open_title) { Icons.Outlined.MyLocation }
+        put(R.string.location_add_place_title) { Icons.Outlined.PinDrop }
+        put(R.string.location_permission_title) { Icons.Outlined.LocationOn }
+        put(R.string.location_camera_stamp_title) { Icons.Outlined.PhotoCamera }
+        put(R.string.location_camera_caption_title) { Icons.Outlined.Subtitles }
+
+        // ---- Smart home ----
+        put(R.string.ha_enabled_title) { Icons.Outlined.PowerSettingsNew }
+        put(R.string.ha_favourites_title) { Icons.Outlined.Home }
+        put(R.string.ha_open_on_title) { Icons.Outlined.FirstPage }
+        put(R.string.ha_areas_tabs_title) { Icons.Outlined.Tab }
+        put(R.string.ha_tile_size_title) { Icons.Outlined.AspectRatio }
+        put(R.string.ha_confirm_risky_title) { Icons.Outlined.Warning }
+        put(R.string.ha_insert_format_title) { Icons.Outlined.TextFields }
+        put(R.string.ha_assist_enabled_title) { Icons.Outlined.QuestionAnswer }
+        put(R.string.ha_assist_agent_title) { Icons.Outlined.SmartToy }
+        put(R.string.ha_assist_language_title) { Icons.Outlined.Language }
+        put(R.string.ha_lifetime_title) { Icons.Outlined.Link }
+        put(R.string.ha_cache_title) { Icons.Outlined.Storage }
+        put(R.string.ha_ai_tools_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.ha_smart_chip_title) { Icons.Outlined.Lightbulb }
+
+        // ---- Emoji mixes, added emoji, kaomoji ----
+        put(R.string.emojimix_row_title) { Icons.Outlined.Interests }
+        put(R.string.emojimix_add_title) { Icons.Outlined.Add }
+        put(R.string.emojimix_panel_strip_title) { Icons.Outlined.ViewDay }
+        put(R.string.emojimix_typing_title) { Icons.Outlined.Lightbulb }
+        put(R.string.emojimix_style_title) { Icons.Outlined.Style }
+        put(R.string.emojimix_replace_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.emojimix_panel_title) { Icons.Outlined.GridView }
+        put(R.string.emojimix_order_title) { Icons.AutoMirrored.Outlined.Sort }
+        put(R.string.emojimix_send_title) { Icons.AutoMirrored.Outlined.Send }
+        put(R.string.emojimix_cell_size_title) { Icons.Outlined.AspectRatio }
+        put(R.string.emojimix_auto_refresh_title) { Icons.Outlined.Autorenew }
+        put(R.string.emojimix_clear_cache_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.langemoji_emoji_added_add_title) { Icons.Outlined.Add }
+        put(R.string.langemoji_emoji_added_import_title) { Icons.Outlined.FileOpen }
+        put(R.string.langemoji_emoji_added_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.langemoji_emoji_order_preset_title) { Icons.Outlined.Dashboard }
+        put(R.string.langemoji_emoji_categories_reset_title) { Icons.Outlined.RestartAlt }
+        put(R.string.langemoji_kaomoji_add_title) { Icons.Outlined.Add }
+        put(R.string.langemoji_kaomoji_new_tag_title) { Icons.AutoMirrored.Outlined.Label }
+        put(R.string.langemoji_kaomoji_rail_add) { Icons.Outlined.Add }
+        put(R.string.langemoji_kaomoji_rail_edit) { Icons.Outlined.Edit }
+        put(R.string.langemoji_kaomoji_rail_search) { Icons.Outlined.Search }
+        put(R.string.langemoji_kaomoji_rail_tags) { Icons.AutoMirrored.Outlined.Label }
+        put(R.string.typing_suggestion_pages_emoji_title) { Icons.Outlined.EmojiEmotions }
+        put(R.string.typing_suggestion_pages_fancy_title) { Icons.Outlined.FontDownload }
+
+        // ---- Text tools: repeat, word steps, find, PIN, QR, scanners, media ----
+        put(R.string.tooldetail_repeat_count_title) { Icons.Outlined.Repeat }
+        put(R.string.tooldetail_repeat_mode_title) { Icons.Outlined.Tune }
+        put(R.string.tooldetail_repeat_separator_title) { Icons.Outlined.HorizontalRule }
+        put(R.string.tooldetail_repeat_numbered_title) { Icons.Outlined.FormatListNumbered }
+        put(R.string.tooldetail_repeat_alternate_title) { Icons.Outlined.TextFormat }
+        put(R.string.tooldetail_repeat_max_chars_title) { Icons.Outlined.Straighten }
+        put(R.string.tooldetail_repeat_chip_insert_title) { Icons.Outlined.SmartButton }
+        put(R.string.tooldetail_repeat_recents_title) { Icons.Outlined.History }
+        put(R.string.tooldetail_repeat_recents_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.tooldetail_word_steps_title) { Icons.Outlined.KeyboardDoubleArrowRight }
+        put(R.string.tooldetail_word_steps_capitals_title) { Icons.Outlined.KeyboardCapslock }
+        put(R.string.tooldetail_word_steps_digits_title) { Icons.Outlined.Numbers }
+        put(R.string.tooldetail_find_history_title) { Icons.Outlined.History }
+        put(R.string.tooldetail_find_history_clear_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.tooldetail_pin_length_title) { Icons.Outlined.Pin }
+        put(R.string.tooldetail_pin_avoid_weak_title) { Icons.Outlined.Shield }
+        put(R.string.tooldetail_qr_gen_ecc_header) { Icons.Outlined.Healing }
+        put(R.string.tooldetail_qr_scan_zxing_title) { Icons.Outlined.QrCodeScanner }
+        put(R.string.tooldetail_doc_scan_builtin_title) { Icons.Outlined.DocumentScanner }
+        put(R.string.tooldetail_media_filter_header) { Icons.Outlined.FilterAlt }
+        put(R.string.tooldetail_image_search_moved_title) { Icons.Outlined.TravelExplore }
+        put(R.string.tooldetail_sticker_suggest_magnify_title) { Icons.Outlined.ZoomIn }
+        put(R.string.tooldetail_moon_arabic_title) { Icons.Outlined.Translate }
+        put(R.string.tooldetail_dictionary_packs_title) { Icons.Outlined.AutoStories }
+        put(R.string.toolai_typing_default_test_title) { Icons.Outlined.Speed }
+
+        // ---- Calendar ----
+        put(R.string.tooldetail_calendar_save_mode_title) { Icons.Outlined.EditCalendar }
+        put(R.string.tooldetail_calendar_default_calendar_title) { Icons.Outlined.CalendarMonth }
+        put(R.string.tooldetail_calendar_default_length_title) { Icons.Outlined.HourglassEmpty }
+        put(R.string.tooldetail_calendar_default_reminder_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.toolai_ai_builtin_calendar_mode_title) { Icons.Outlined.EditCalendar }
+
+        // ---- AI ----
+        put(R.string.settings_assistant_title) { Icons.Outlined.Assistant }
+        put(R.string.toolai_ai_in_use_title) { Icons.Outlined.CheckCircle }
+        put(R.string.toolai_ai_builtin_title) { Icons.Outlined.Handyman }
+        put(R.string.toolai_ai_mcp_import_title) { Icons.Outlined.DataObject }
+        put(R.string.toolai_ai_mcp_transport_title) { Icons.Outlined.Lan }
+        put(R.string.toolai_reply_catch_shots_title) { Icons.Outlined.Screenshot }
+        put(R.string.toolai_reply_tones_nav_title) { Icons.Outlined.Mood }
+
+        // ---- Sticker generator ----
+        put(R.string.stickergen_seed_lock_title) { Icons.Outlined.Lock }
+        put(R.string.stickergen_cutout_title) { Icons.Outlined.ContentCut }
+        put(R.string.stickergen_safety_title) { Icons.Outlined.Shield }
+
+        // ---- Look up, selection menu ----
+        put(R.string.lookup_settings_selection_title) { Icons.Outlined.HighlightAlt }
+        put(R.string.lookup_settings_tap_title) { Icons.Outlined.TouchApp }
+        put(R.string.lookup_settings_style_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.lookup_settings_anki_title) { Icons.Outlined.School }
+        put(R.string.selection_macros_icons_title) { Icons.Outlined.Image }
+        put(R.string.selection_macros_zones_sort_title) { Icons.AutoMirrored.Outlined.Sort }
+
+        // ---- Themes, panels, gallery ----
+        put(R.string.theme_assets_title) { Icons.Outlined.PhotoSizeSelectLarge }
+        put(R.string.theme_glass_title) { Icons.Outlined.Opacity }
+        put(R.string.theme_glass_window_blur_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glass_wallpaper_permission_title) { Icons.Outlined.Wallpaper }
+        put(R.string.theme_glass_accent_board_title) { Icons.Outlined.ColorLens }
+        put(R.string.theme_glass_blur_board_title) { Icons.Outlined.Layers }
+        put(R.string.theme_match_letter_keys_title) { Icons.Outlined.FormatColorFill }
+        put(R.string.panel_layout_media_tabs_idle_title) { SymbolIcons.GifBox }
+        put(R.string.gallery_folders_title) { Icons.Outlined.Folder }
+        put(R.string.floating_button_category_add_title) { Icons.Outlined.Add }
+
+        // ---- Typing, key press, layouts, languages ----
+        put(R.string.typing_recent_word_bar_title) { Icons.Outlined.History }
+        put(R.string.typing_shift_recase_caret_title) { SymbolIcons.Shift }
+        put(R.string.typing_shift_recase_inside_title) { SymbolIcons.Shift }
+        put(R.string.typing_smart_keep_text_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.typing_glide_shape_seeding_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_symbol_chord_row_title) { Icons.Outlined.Tag }
+        put(R.string.typing_key_swipe_row_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_finger_swipe_row_title) { Icons.Outlined.SwipeVertical }
+        put(R.string.keypress_word_stops_punctuation_title) { Icons.Outlined.FormatQuote }
+        put(R.string.keypress_word_stops_capitals_title) { Icons.Outlined.KeyboardCapslock }
+        put(R.string.keypress_word_stops_digits_title) { Icons.Outlined.Numbers }
+        put(R.string.keypress_no_accents_title) { Icons.Outlined.Block }
+        put(R.string.appearance_toolbar_hold_delay_title) { Icons.Outlined.Timer }
+        put(R.string.layout_editor_bottom_row_laid_out_title) { Icons.Outlined.PushPin }
+        put(R.string.layout_editor_mode_row_title) { Icons.Outlined.Tune }
+        put(R.string.layout_editor_ime_row_title) { Icons.Outlined.Keyboard }
+        put(R.string.layout_editor_popup_preview_title) { Icons.Outlined.Preview }
+        put(R.string.layout_bottom_row_keys_title) { Icons.Outlined.SpaceBar }
+        put(R.string.languages_picker_hidden_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.languages_vietnamese_strict_tones_title) { Icons.Outlined.Spellcheck }
+        put(R.string.languages_vietnamese_restore_marks_title) { Icons.Outlined.AutoFixHigh }
+        put(R.string.languages_bengali_vowel_twice_title) { Icons.Outlined.TouchApp }
+        put(R.string.languages_cjk_traditional_button_title) { Icons.Outlined.Translate }
+        put(R.string.languages_cjk_reading_in_field_title) { Icons.Outlined.TextFields }
+        put(R.string.languages_cjk_reading_on_switch_title) { Icons.Outlined.Language }
+        put(R.string.languages_avro_dictionary_title) { SymbolIcons.Dictionary }
+        put(R.string.languages_khipro_specs_title) { Icons.AutoMirrored.Outlined.Rule }
+        put(R.string.languages_khipro_specs_bundled_title) { Icons.Outlined.Inventory2 }
+        put(R.string.languages_rime_method_pinyin) { Icons.Outlined.Abc }
+        put(R.string.languages_rime_method_t9) { Icons.Outlined.Dialpad }
+        put(R.string.languages_rime_method_zhuyin) { Icons.Outlined.FontDownload }
+        put(R.string.languages_rime_method_cangjie) { Icons.Outlined.GridOn }
+        put(R.string.languages_rime_method_stroke) { Icons.Outlined.Draw }
+        put(R.string.languages_rime_method_jyutping) { Icons.Outlined.RecordVoiceOver }
+        put(R.string.languages_voikko_title) { Icons.Outlined.Spellcheck }
+        put(R.string.languages_hunspell_title) { Icons.Outlined.Spellcheck }
+        put(R.string.languages_speller_title) { Icons.Outlined.Spellcheck }
+
+        // ---- Backup, privacy, data, sending ----
+        put(R.string.backup_frequent_encrypt_title) { Icons.Outlined.Lock }
+        put(R.string.backup_sync_paired_title) { Icons.Outlined.Devices }
+        put(R.string.backup_sync_wifi_only_title) { Icons.Outlined.Wifi }
+        put(R.string.backup_sync_keep_theme_title) { Icons.Outlined.Palette }
+        put(R.string.clipboard_clean_links_title) { Icons.Outlined.LinkOff }
+        put(R.string.kdeconnect_codes_title) { Icons.Outlined.Password }
+        put(R.string.privacy_native_downloads_title) { Icons.Outlined.Download }
+        put(R.string.privacy_qualcomm_licence_title) { Icons.Outlined.Memory }
+        put(R.string.privacy_permissions_location_title) { Icons.Outlined.LocationOn }
+        put(R.string.privacy_permissions_nearby_title) { Icons.Outlined.Bluetooth }
+        put(R.string.privacy_permissions_calendar_write_title) { Icons.Outlined.EditCalendar }
+        put(R.string.datasaver_music_title) { Icons.Outlined.MusicNote }
+        put(R.string.datasaver_speed_test_title) { Icons.Outlined.Speed }
+        put(R.string.datasaver_send_title) { Icons.AutoMirrored.Outlined.Send }
+        put(R.string.send_instance_check_all) { Icons.Outlined.NetworkCheck }
+        put(R.string.send_history_clear_received) { Icons.Outlined.DeleteSweep }
+
+        // ---- App lock targets named after their screens ----
+        put(R.string.home_backup_title) { Icons.Outlined.Save }
+        put(R.string.home_privacy_title) { Icons.Outlined.Security }
+        put(R.string.home_screen_ai_chat_title) { Icons.AutoMirrored.Outlined.Chat }
+        put(R.string.home_screen_ai_history_title) { Icons.Outlined.History }
+        put(R.string.home_screen_blacklist_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.home_screen_debug_log_title) { Icons.AutoMirrored.Outlined.Article }
+        put(R.string.home_screen_dictionary_title) { SymbolIcons.Dictionary }
+
+        // ---- Stepper, permission and icon-picker rows ----
+        put(R.string.tooldetail_repeat_chip_after_title) { Icons.Outlined.SmartButton }
+        put(R.string.typing_smart_repeat_after_title) { Icons.Outlined.SmartButton }
+        put(R.string.privacy_permissions_exact_alarms_title) { Icons.Outlined.Alarm }
+        put(R.string.privacy_permissions_full_screen_title) { Icons.Outlined.Fullscreen }
+        put(R.string.privacy_permissions_clock_ring_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.layout_editor_icon_field_label) { Icons.Outlined.Image }
+        put(R.string.layout_editor_icon_hint_field_label) { Icons.Outlined.Lightbulb }
+
+        // ---- Frosted glass sliders ----
+        put(R.string.theme_glass_refraction_title) { Icons.Outlined.Waves }
+        put(R.string.theme_glass_dispersion_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_glass_blur_strength_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glass_fallback_title) { Icons.Outlined.Opacity }
+        put(R.string.theme_glass_backdrop_blur_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glass_saturation_title) { Icons.Outlined.InvertColors }
+        put(R.string.theme_glass_brightness_title) { Icons.Outlined.LightMode }
+        put(R.string.theme_glass_rim_title) { Icons.Outlined.BorderStyle }
+        put(R.string.theme_glass_rim_color_title) { Icons.Outlined.ColorLens }
+        put(R.string.theme_glass_grain_title) { Icons.Outlined.Grain }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()

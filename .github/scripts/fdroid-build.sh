@@ -14,8 +14,9 @@
 #
 # <versionCode> is the plain number in gradle.properties; the entry gets
 # `versionCode * 10 + ABI digit`, as app/build.gradle.kts gives the APK.
-# Leaves the unsigned APK at /src/dist/fdroid-unsigned-<abi>.apk and the
-# build log at /src/dist/fdroid-build-<abi>.log.
+# Leaves the unsigned APK at /src/dist/fdroid-unsigned-<abi>.apk, its R8
+# mapping at /src/dist/fdroid-mapping-<abi>.txt and the build log at
+# /src/dist/fdroid-build-<abi>.log.
 set -euo pipefail
 
 commit=${1:?commit}
@@ -101,6 +102,16 @@ apt-get install -qy sudo >/dev/null
 apk="$home_vagrant/tmp/${appid}_${code}.apk"
 [ -f "$apk" ] || { echo "fdroid build left no $apk"; ls -la "$home_vagrant/tmp"; exit 1; }
 cp "$apk" "/src/dist/fdroid-unsigned-$abi.apk"
+# R8's mapping for it. F-Droid's own build of this commit is this build byte
+# for byte (the reference APK only carries its signature over if it is), so
+# this is also the mapping for a crash from an F-Droid install, which the
+# retrace workflow could not read before (#963).
+maps=("$home_vagrant/build/$appid"/app/build/outputs/mapping/*/mapping.txt)
+if [ "${#maps[@]}" -ne 1 ] || [ ! -f "${maps[0]}" ]; then
+    echo "expected one R8 mapping, found: ${maps[*]}"
+    exit 1
+fi
+cp "${maps[0]}" "/src/dist/fdroid-mapping-$abi.txt"
 # The libraries F-Droid's build compiled from source and left out of the APK
 # (native delivery), for the data repository's natives release: an F-Droid
 # install that opts in to library downloads fetches these exact bytes.

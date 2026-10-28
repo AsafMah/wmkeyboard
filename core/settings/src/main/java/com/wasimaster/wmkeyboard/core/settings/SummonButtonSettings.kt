@@ -53,11 +53,25 @@ data class SummonButtonSettings(
     val doubleTapTyping: FloatingAction? = null,
     /** The quick menu's slots, in the order they fan out; at most [MAX_FLOATING_MENU_ITEMS]. */
     val menu: List<FloatingAction> = DefaultFloatingMenu,
+    /**
+     * The categories the quick menu's [FloatingAction.Category] slots open
+     * (#923), each a ring of its own. Only ever the ones some slot opens.
+     */
+    val categories: List<FloatingCategory> = emptyList(),
     /** Under each quick menu slot, its name. */
     val menuLabels: Boolean = true,
+    /**
+     * How far a ring's slots stand off the button's edge, in dp (#923); see
+     * [FloatingMenuGapRange]. The quick menu and every category share it.
+     */
+    val menuGapDp: Int = 22,
+    /** How a ring's slots come out of the button (#923). */
+    val menuAnimation: FloatingMenuAnimation = FloatingMenuAnimation.SPRING,
     /** The button's diameter in dp; see [FloatingButtonSizeRange]. */
     val sizeDp: Int = 52,
     val style: FloatingButtonStyle = FloatingButtonStyle.AUTO,
+    /** The button's outline, and its slots' (#933). */
+    val shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
     /** How solid the button is while it is being used, 0.3 to 1. */
     val opacity: Float = 0.92f,
     /**
@@ -74,6 +88,12 @@ data class SummonButtonSettings(
      * button goes when the keyboard comes and returns when it leaves.
      */
     val whileTyping: Boolean = true,
+    /**
+     * With [whileTyping], stay where it was put even over the keys (#926),
+     * rather than lifted clear of the keyboard. Only the button's own disc
+     * takes a touch; a key beside it gets its own.
+     */
+    val overKeyboard: Boolean = false,
     /** Leave landscape alone: games and videos, mostly. */
     val hideInLandscape: Boolean = false,
     /** A tick on a tap, a firmer one when the menu opens or a slot is picked. */
@@ -102,6 +122,30 @@ fun SummonButtonSettings.readsScreen(): Boolean {
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
-/** The quick menu's slots when some gesture opens it, else nothing. */
-fun SummonButtonSettings.opensMenuItems(): List<FloatingAction> =
-    if (FloatingAction.Menu in gestureActions()) menu else emptyList()
+/**
+ * Every slot a gesture can reach: the quick menu's when some gesture opens
+ * it, and the slots of each category reached from there or bound to a
+ * gesture itself (#923). Else nothing.
+ */
+fun SummonButtonSettings.opensMenuItems(): List<FloatingAction> {
+    val gestures = gestureActions()
+    val top = if (FloatingAction.Menu in gestures) menu else emptyList()
+    val opened = (gestures + top).filterIsInstance<FloatingAction.Category>()
+        .mapNotNull { categories.categoryById(it.id) }
+        .distinct()
+    return top + opened.flatMap { it.items }
+}
+
+/** The category [action] opens, or null when it opens none this button still has. */
+fun SummonButtonSettings.categoryOf(action: FloatingAction): FloatingCategory? =
+    (action as? FloatingAction.Category)?.let { categories.categoryById(it.id) }
+
+/** The slots of the ring [action] opens: the quick menu's, a category's, or null for an action that opens none. */
+fun SummonButtonSettings.ringOf(action: FloatingAction): List<FloatingAction>? = when (action) {
+    FloatingAction.Menu -> menu
+    is FloatingAction.Category -> categoryOf(action)?.items
+    else -> null
+}
+
+/** Whether the button sits over the keys while the keyboard is up (#926), as set. */
+val SummonButtonSettings.floatsOverKeyboard: Boolean get() = whileTyping && overKeyboard

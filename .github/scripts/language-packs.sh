@@ -10,6 +10,8 @@
 # (wmkb.stableResourceIds), so a resource in a pack has the ID the English
 # APK looks it up by. `aapt2 optimize --split` is how bundletool makes Play's
 # language splits: each pack holds one locale's values and nothing else.
+# language-pack-finish.sh then gives each a base APK's manifest, since the app
+# cannot check a split's signer, and signs it.
 #
 # Each pack is signed with the release key, which is what the app checks
 # before it loads one: release.keystore and the RELEASE_* variables must be
@@ -23,8 +25,6 @@ code=$4
 
 tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
 aapt2=$tools/aapt2
-zipalign=$tools/zipalign
-apksigner=$tools/apksigner
 
 # The app's own translations, by resource qualifier: values-fr -> fr,
 # values-zh-rCN -> zh-rCN. The same folders :app's APP_LOCALES is read from.
@@ -38,16 +38,17 @@ for locale in $locales; do
 done
 "$aapt2" optimize -o "$work/base.apk" "${args[@]}" "$apk"
 
+# The universal APK's own versionCode (release * 10 + its ABI digit), which
+# the app reads the release back out of.
+manifest_code=$("$aapt2" dump badging "$apk" | sed -n -E "s/^package: .*versionCode='([0-9]+)'.*/\1/p")
+[ -n "$manifest_code" ] || { echo "no versionCode in $apk" >&2; exit 1; }
+
 mkdir -p "$out"
 for locale in $locales; do
     split=$work/$locale.apk
     [ -f "$split" ] || { echo "aapt2 wrote no pack for $locale" >&2; exit 1; }
-    "$zipalign" -f -p 4 "$split" "$work/$locale-aligned.apk"
     target=$out/wmkeyboard-${version}-vc${code}-lang-${locale}.apk
-    "$apksigner" sign --ks release.keystore --ks-key-alias "$RELEASE_KEY_ALIAS" \
-        --ks-pass env:RELEASE_STORE_PASSWORD --key-pass env:RELEASE_KEY_PASSWORD \
-        --out "$target" "$work/$locale-aligned.apk"
-    rm -f "$target.idsig"
+    "$(dirname "$0")/language-pack-finish.sh" "$split" "$target" "$manifest_code"
     echo "$locale: $(wc -c < "$target") bytes"
 done
 rm -rf "$work"

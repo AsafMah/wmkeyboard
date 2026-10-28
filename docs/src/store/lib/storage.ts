@@ -51,6 +51,14 @@ export const SEEDED_REPOS: RepoRef[] = [
 		slug: 'sounds',
 		addedAt: 0,
 	},
+	// No slug yet: it gets a prerendered page (and an entry in
+	// src/lib/seed-repos.mjs with a snapshot) once the repository is live.
+	{
+		url: 'https://raw.githubusercontent.com/wasi-master/wmkeyboard-community-addons/HEAD/wmkeyboard-repo.json',
+		input: 'https://github.com/wasi-master/wmkeyboard-community-addons',
+		seeded: true,
+		addedAt: 0,
+	},
 ];
 
 /** The app's `MAX_REPOS`. */

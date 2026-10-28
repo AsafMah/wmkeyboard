@@ -216,9 +216,13 @@ object NativeDelivery {
         is NativeSource.Maven -> source.url.substringAfterLast('/')
     }
 
-    /** `arm64` → `arm64-v8a`: the ABI this process loads its own libraries for. */
+    /**
+     * `arm64` → `arm64-v8a`: the ABI this process loads its own libraries for.
+     * The directory is unset under Robolectric, which then reads as the first
+     * supported ABI.
+     */
     private fun processAbi(context: Context): String =
-        when (File(context.applicationInfo.nativeLibraryDir).name) {
+        when (context.applicationInfo.nativeLibraryDir?.let { File(it).name }) {
             "arm64" -> "arm64-v8a"
             "arm" -> "armeabi-v7a"
             "x86_64" -> "x86_64"

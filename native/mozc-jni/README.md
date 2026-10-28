@@ -22,12 +22,27 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/mozc-jni/build.sh
 ```
 
 Mozc builds with Bazel and nothing else, so this does too. The script
-fetches bazelisk at a pinned release and checks its SHA-256, has it fetch
-Bazel at the version Mozc names and checks that SHA-256 as well, clones Mozc
-at the pinned tag and checks the commit, copies this directory into the
-checkout as the package `src/wmkeyboard/`, and builds it with Mozc's own
-Android configuration (`--config oss_android --config release_build`), the
-one Mozc's CI builds `libmozc.so` with. Two edits to the checkout: the NDK is
+takes Bazel at the version Mozc names from `MOZC_BAZEL` or a `bazel` on
+PATH (a bazelisk install serves: the pinned version and its SHA-256 are
+exported for it), and otherwise, on macOS, fetches bazelisk at a pinned
+release, checks its SHA-256 and has it fetch that Bazel, checked as well.
+On Linux it builds Bazel from source instead: it fetches Bazel's
+distribution archive, checks its SHA-256 and bootstraps it with the
+archive's own `compile.sh` (a JDK 21 from `MOZC_JDK`, `JAVA_HOME` or
+Debian's `openjdk-21-jdk-headless`, plus `zip`, `unzip`, a C++ compiler
+and Python 3). That is the F-Droid path, since F-Droid takes no prebuilt
+Bazel ([#964](https://github.com/wasi-master/wmkeyboard/issues/964)), and
+the release workflow's reference build takes it too. Nothing prebuilt is
+downloaded on that path: the bootstrapped Bazel runs on the JDK found, and
+Mozc's build is told to use that JDK and the machine's `python3`
+(`--tool_java_runtime_version=local_jdk`,
+`--extra_toolchains=@rules_python//python/runtime_env_toolchains:all`)
+rather than the JDK and Python that Bazel and rules_python would fetch.
+Either way the script then clones Mozc at the pinned tag and checks the
+commit, copies this directory into the checkout as the package
+`src/wmkeyboard/`, and builds it with Mozc's own Android configuration
+(`--config oss_android --config release_build`), the one Mozc's CI builds
+`libmozc.so` with. Two edits to the checkout: the NDK is
 linked where Mozc's `MODULE.bazel` looks for it, and the API level is set to
 24, the keyboard's minimum, where Mozc leaves rules_android_ndk's 31. Bazel
 fetches Mozc's module dependencies (Abseil, Protocol Buffers and the rules)
@@ -52,7 +67,7 @@ release as the library, since its format is the library's.
 | Mozc | `3.34.6239`, commit `76887c679e1e4f156102e4bc62ea9cf9174678a3` | BSD-3-Clause |
 | Abseil | `20260107.1` (Mozc's `MODULE.bazel`) | Apache-2.0 |
 | Protocol Buffers | `34.1` (Mozc's `MODULE.bazel`) | BSD-3-Clause |
-| Bazel | `9.0.2` through bazelisk `1.29.0` | Apache-2.0, build tool only |
+| Bazel | `9.0.2`: on Linux bootstrapped from `bazel-9.0.2-dist.zip`, on macOS through bazelisk `1.29.0` | Apache-2.0, build tool only |
 | Mozc dictionary | built from Mozc's `src/data` at the same commit: IPAdic, ICOT, the Okinawa dictionary, and the Japanese usage dictionary Mozc's `MODULE.bazel` pins | see the notices |
 
 All unmodified. The licences of all of it are in the app as

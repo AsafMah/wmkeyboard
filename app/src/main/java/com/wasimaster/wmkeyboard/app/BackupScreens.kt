@@ -8,7 +8,6 @@ import android.text.format.DateUtils
 import android.net.Uri
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -19,7 +18,10 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,7 +41,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -48,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -75,6 +80,7 @@ import com.wasimaster.wmkeyboard.core.settings.AutoBackupKeepRange
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupRunner
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
+import com.wasimaster.wmkeyboard.core.settings.FrequentBackup
 import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.FtpConfig
 import com.wasimaster.wmkeyboard.core.settings.S3Config
@@ -109,6 +115,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudQueue
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Group
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalContentColor
@@ -128,6 +137,9 @@ import com.wasimaster.wmkeyboard.core.settings.keepLocalGroups
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncScheduler
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys
 import com.wasimaster.wmkeyboard.core.settings.targets
+import com.wasimaster.wmkeyboard.core.settings.BackupPause
+import com.wasimaster.wmkeyboard.core.settings.paused
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming
 
 // ---- backup ----
 
@@ -151,6 +163,7 @@ internal fun sectionLabelRes(section: ConfigBackup.Section): Int = when (section
     ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label
     ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label
     ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label
+    ConfigBackup.Section.TODO -> R.string.backup_section_todo_label
 }
 internal fun sectionLabel(context: Context, section: ConfigBackup.Section): String =
     context.getString(sectionLabelRes(section))
@@ -179,6 +192,7 @@ internal fun sectionLabelLowercase(context: Context, section: ConfigBackup.Secti
             ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label_lowercase
             ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label_lowercase
             ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label_lowercase
+            ConfigBackup.Section.TODO -> R.string.backup_section_todo_label_lowercase
         },
     )
 @PluralsRes
@@ -200,6 +214,7 @@ private fun sectionCountPlural(section: ConfigBackup.Section): Int = when (secti
     ConfigBackup.Section.CLOCK -> R.plurals.backup_section_clock_count
     ConfigBackup.Section.KAOMOJI -> R.plurals.backup_section_kaomoji_count
     ConfigBackup.Section.AI_MEMORY -> R.plurals.backup_section_ai_memory_count
+    ConfigBackup.Section.TODO -> R.plurals.backup_section_todo_count
 }
 /** "3 themes", "1 snippet": the count line shown per section on import. */
 internal fun sectionSummary(context: Context, section: ConfigBackup.Section, count: Int): String =
@@ -477,6 +492,10 @@ private fun BackupStatusCard(
     val hop = remember { Animatable(1f) }
     val active = auto.backupTargets
     val backupOn = auto.enabled && active.isNotEmpty()
+    // Read once per composition: the card is not where a pause running out
+    // has to show to the second.
+    val backupPaused = backupOn && auto.paused()
+    val syncPaused = auto.sync.enabled && auto.sync.paused()
     val error = autoBackupErrorText(context, auto.lastError, active.firstOrNull()?.type ?: BackupDestination.FOLDER)
     val syncError = auto.sync.lastError.takeIf { it.isNotEmpty() }?.let { syncErrorText(context, it, auto) }
     val problem = error != null || (auto.sync.enabled && syncError != null)
@@ -515,6 +534,7 @@ private fun BackupStatusCard(
                 AnimatedContent(
                     targetState = when {
                         problem -> Icons.Outlined.CloudOff
+                        backupPaused -> Icons.Outlined.Pause
                         backupOn -> Icons.Outlined.CloudDone
                         else -> Icons.Outlined.CloudQueue
                     },
@@ -535,7 +555,13 @@ private fun BackupStatusCard(
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(if (backupOn) R.string.backup_hub_backup_on else R.string.backup_hub_backup_off),
+                        stringResource(
+                            when {
+                                backupPaused -> R.string.backup_hub_backup_paused
+                                backupOn -> R.string.backup_hub_backup_on
+                                else -> R.string.backup_hub_backup_off
+                            },
+                        ),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
@@ -570,7 +596,9 @@ private fun BackupStatusCard(
             ) { line -> Text(line, style = MaterialTheme.typography.bodyMedium) }
             if (auto.sync.enabled) {
                 Text(
-                    syncError ?: if (auto.sync.lastRunAtMs > 0L) {
+                    syncError ?: if (syncPaused) {
+                        stringResource(R.string.backup_hub_sync_paused)
+                    } else if (auto.sync.lastRunAtMs > 0L) {
                         stringResource(
                             R.string.backup_hub_last_sync,
                             DateUtils.getRelativeTimeSpanString(auto.sync.lastRunAtMs).toString(),
@@ -674,10 +702,11 @@ private val SECTION_ROWS = listOf(
         R.string.backup_include_ai_memory_subtitle,
         R.string.backup_include_ai_memory_info,
     ),
+    SectionRow(ConfigBackup.Section.TODO, R.string.backup_include_todo_subtitle),
 )
 
 /**
- * The same sixteen switches for the three lists that pick sections: the
+ * The same seventeen switches for the three lists that pick sections: the
  * export, the automatic backup and sync. [sections] picks the list's sections
  * out of the settings, which each row reads for itself. [secrets] adds the
  * API-key switch under Settings where the list has one, shown while
@@ -743,6 +772,184 @@ private fun LocationCheckRow(location: BackupLocation, checked: Boolean, onChang
 }
 
 /**
+ * Pause or resume, for the automatic backup and for sync: one row that says
+ * which it is. Paused, the whole row resumes; otherwise it asks how long.
+ * [pausedUntilMs] is the stored value (see [BackupPause]).
+ */
+@Composable
+private fun PauseRow(
+    pausedUntilMs: Long,
+    @StringRes title: Int,
+    @StringRes subtitle: Int,
+    @StringRes pausedTitle: Int,
+    onPause: (untilMs: Long) -> Unit,
+    onResume: () -> Unit,
+) {
+    val context = LocalContext.current
+    // Recomposes when a timed pause runs out, so the row does not go on
+    // saying "paused" with the screen open.
+    val now by produceState(System.currentTimeMillis(), pausedUntilMs) {
+        while (BackupPause.isPaused(pausedUntilMs, value) && pausedUntilMs != BackupPause.FOREVER) {
+            delay((pausedUntilMs - value).coerceIn(1_000L, 60_000L))
+            value = System.currentTimeMillis()
+        }
+    }
+    val paused = BackupPause.isPaused(pausedUntilMs, now)
+    var asking by remember { mutableStateOf(false) }
+    if (paused) {
+        WmRow(
+            title = stringResource(pausedTitle),
+            subtitle = if (pausedUntilMs == BackupPause.FOREVER) {
+                stringResource(R.string.backup_paused_forever)
+            } else {
+                stringResource(
+                    R.string.backup_paused_until,
+                    DateUtils.formatDateTime(
+                        context,
+                        pausedUntilMs,
+                        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_MONTH,
+                    ),
+                )
+            },
+            icon = Icons.Outlined.PlayArrow,
+            trailing = { TextButton(onClick = onResume) { Text(stringResource(R.string.backup_pause_resume)) } },
+            onClick = onResume,
+        )
+    } else {
+        WmRow(
+            title = stringResource(title),
+            subtitle = stringResource(subtitle),
+            icon = Icons.Outlined.Pause,
+            onClick = { asking = true },
+        )
+    }
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text(stringResource(R.string.backup_pause_dialog_title)) },
+            text = {
+                Column {
+                    for (hours in BackupPause.CHOICES) {
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    stringResource(
+                                        when (hours) {
+                                            null -> R.string.backup_pause_until_resumed
+                                            1 -> R.string.backup_pause_hour
+                                            24 -> R.string.backup_pause_day
+                                            else -> R.string.backup_pause_week
+                                        },
+                                    ),
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                asking = false
+                                onPause(BackupPause.until(System.currentTimeMillis(), hours))
+                            },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { asking = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
+}
+
+/**
+ * Picks the sync group: a name to type, and the groups other devices already
+ * use at [locations], read from their sync files, to tap instead. [joining]
+ * is the location just ticked when the dialog opened because it holds other
+ * groups; it only changes the sentence on top.
+ *
+ * [onSave] gets the name as typed; the repository makes it a group name.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SyncGroupDialog(
+    current: String,
+    locations: List<BackupLocation>,
+    joining: BackupLocation?,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var text by remember { mutableStateOf(current) }
+    // Null while the locations are still being listed.
+    var found by remember { mutableStateOf<List<String>?>(null) }
+    LaunchedEffect(locations) {
+        found = locations.flatMap { SyncRunner.groupsAt(context, it).getOrNull().orEmpty() }.distinct().sorted()
+    }
+    val slug = SyncNaming.groupSlug(text)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_sync_group_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.backup_sync_group_info), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    if (joining != null) {
+                        stringResource(R.string.backup_sync_group_join_note, joining.title(context))
+                    } else {
+                        stringResource(R.string.backup_sync_group_change_note)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.backup_sync_group_label)) },
+                    supportingText = {
+                        Text(
+                            if (slug.isNotEmpty() && slug != text) {
+                                stringResource(R.string.backup_sync_group_saved_as, slug)
+                            } else {
+                                stringResource(R.string.backup_sync_group_supporting)
+                            },
+                        )
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(stringResource(R.string.backup_sync_group_found), style = MaterialTheme.typography.titleSmall)
+                val groups = found
+                when {
+                    groups == null -> Text(
+                        stringResource(R.string.backup_sync_group_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    groups.isEmpty() -> Text(
+                        stringResource(R.string.backup_sync_group_found_none),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    else -> FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (group in groups) {
+                            FilterChip(
+                                selected = slug == group,
+                                onClick = { text = group },
+                                label = {
+                                    Text(group.ifEmpty { stringResource(R.string.backup_sync_group_no_group) })
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(text) }) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/**
  * The "include API keys" switch, which asks before it goes on without a
  * passphrase. It does not refuse: the keys and the storage are the user's.
  * It says plainly what the file will then hold.
@@ -786,9 +993,10 @@ internal fun BackupSettings(
     var confirmImport by remember { mutableStateOf<PendingImport?>(null) }
 
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(ConfigBackup.MIME_TYPE),
+        CreateDocumentAt(ConfigBackup.MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_EXPORT, uri)
         val requested = settings.value.autoBackup.exportSectionSet
         val includeSecrets = settings.value.autoBackup.includeSecrets
         scope.launch {
@@ -834,9 +1042,10 @@ internal fun BackupSettings(
     // something to discover you have done. Both the full-config bundle and the
     // older settings-only file are accepted, plain or encrypted.
     val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+        OpenDocumentAt(PickerPlaces.BACKUP_IMPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_IMPORT, uri)
         scope.launch {
             // Before the text read, which would decode the ciphertext as UTF-8
             // and then call it not a backup.
@@ -876,8 +1085,11 @@ internal fun BackupSettings(
         }
     }
     val foreignLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri -> foreignUri = uri }
+        OpenDocumentAt(PickerPlaces.BACKUP_FOREIGN),
+    ) { uri ->
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_FOREIGN, uri)
+        foreignUri = uri
+    }
     val exportGuarded = rememberLockGuard(AppLockTargets["action_export_settings"]) {
         // Datestamped, Locale.US: see the automatic backup's names.
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
@@ -894,9 +1106,12 @@ internal fun BackupSettings(
             val schedule = settings.watch { s ->
                 s.autoBackup.takeIf { it.enabled && it.backupTargets.isNotEmpty() }?.let { it.intervalHours to it.keep }
             }
+            val backupPaused = settings.watch { it.autoBackup.paused() }
             NavRow(
                 R.string.backup_auto_group_title,
-                subtitle = if (schedule != null) {
+                subtitle = if (schedule != null && backupPaused) {
+                    stringResource(R.string.backup_hub_paused)
+                } else if (schedule != null) {
                     val (intervalHours, keep) = schedule
                     stringResource(
                         R.string.backup_hub_auto_summary,
@@ -909,14 +1124,17 @@ internal fun BackupSettings(
                 route = "backup/auto",
             ) { onNavigate("backup/auto") }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val syncOn = settings.watch { it.autoBackup.sync.enabled }
             val syncMode = settings.watch { it.autoBackup.sync.mode }
+            val syncPaused = settings.watch { it.autoBackup.sync.paused() }
             NavRow(
                 R.string.backup_sync_title,
                 subtitle = stringResource(
                     if (!syncOn) {
                         R.string.backup_sync_nav_subtitle
+                    } else if (syncPaused) {
+                        R.string.backup_hub_paused
                     } else {
                         when (syncMode) {
                             SyncMode.SOON -> R.string.backup_sync_mode_soon
@@ -943,7 +1161,7 @@ internal fun BackupSettings(
                 onClick = exportGuarded,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.backup_files_contents_title,
                 subtitle = stringResource(
@@ -962,7 +1180,7 @@ internal fun BackupSettings(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.backup_foreign_import_title),
                 subtitle = stringResource(R.string.backup_foreign_import_subtitle),
@@ -995,6 +1213,19 @@ internal fun BackupSettings(
                                         R.string.backup_import_section_line,
                                         sectionLabel(context, section),
                                         sectionSummary(context, section, count),
+                                    ),
+                                )
+                            }
+                            // What the file leaves out, so a restore that
+                            // brings back no clipboard says so before it runs:
+                            // each kind of backup keeps its own list of parts.
+                            val missing = ConfigBackup.Section.entries.filter { it !in counts.keys }
+                            if (missing.isNotEmpty()) {
+                                append("\n\n")
+                                append(
+                                    context.getString(
+                                        R.string.backup_import_missing,
+                                        missing.joinToString { sectionLabelLowercase(context, it) },
                                     ),
                                 )
                             }
@@ -1175,6 +1406,18 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
+        item(visible = autoOn && configured, level = SettingLevel.STANDARD) {
+            PauseRow(
+                pausedUntilMs = settings.watch { it.autoBackup.pausedUntilMs },
+                title = R.string.backup_pause_title,
+                subtitle = R.string.backup_pause_subtitle,
+                pausedTitle = R.string.backup_paused_title,
+                onPause = { until -> scope.launch { repository.setAutoBackupPausedUntil(until) } },
+                // A backup the pause held back is due at once, and the job,
+                // left in place, takes it at its next firing.
+                onResume = { scope.launch { repository.setAutoBackupPausedUntil(0L) } },
+            )
+        }
         item(visible = autoOn && configured) {
             // The ladder by index, so every stop is a value somebody would pick.
             SliderSetting(
@@ -1192,7 +1435,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item(visible = autoOn && configured) {
+        item(visible = autoOn && configured, level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.backup_auto_keep_title,
                 subtitle = stringResource(R.string.backup_auto_keep_subtitle),
@@ -1208,7 +1451,17 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.autoBackup.keep.toFloat(),
             ) { kept -> scope.launch { repository.setAutoBackupKeep(kept.roundToInt()) } }
         }
-        item(visible = autoOn && configured) {
+        // #970: older generations spread out in time, past the newest ones.
+        item(visible = autoOn && configured, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.backup_auto_staggered_title,
+                stringResource(R.string.backup_auto_staggered_subtitle),
+                settings.watch { it.autoBackup.staggered },
+                info = stringResource(R.string.backup_auto_staggered_info),
+                default = SettingsDefaults.autoBackup.staggered,
+            ) { scope.launch { repository.setAutoBackupStaggered(it) } }
+        }
+        item(visible = autoOn && configured, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.backup_auto_charging_title,
                 stringResource(R.string.backup_auto_charging_subtitle),
@@ -1224,7 +1477,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
         }
         // A folder is storage on this device: a network condition there would
         // only ever delay a backup that costs nothing.
-        item(visible = autoOn && configured && overNetwork) {
+        item(visible = autoOn && configured && overNetwork, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.backup_auto_unmetered_title,
                 stringResource(R.string.backup_auto_unmetered_subtitle),
@@ -1235,6 +1488,85 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 scope.launch {
                     repository.setAutoBackupRequireUnmetered(on)
                     resync()
+                }
+            }
+        }
+    }
+
+    // #970: a second, smaller backup on a schedule of its own.
+    val frequentOn = settings.watch { it.autoBackup.frequent.enabled }
+    val hasPassphrase = settings.watch { it.autoBackup.passphrase.isNotEmpty() }
+    if (autoOn && configured) {
+        SettingsGroup(
+            stringResource(R.string.backup_frequent_title),
+            info = stringResource(R.string.backup_frequent_info),
+            level = SettingLevel.STANDARD,
+        ) {
+            item {
+                ToggleSetting(
+                    R.string.backup_frequent_enabled_title,
+                    stringResource(R.string.backup_frequent_enabled_subtitle),
+                    frequentOn,
+                    default = SettingsDefaults.autoBackup.frequent.enabled,
+                ) { on ->
+                    scope.launch {
+                        repository.setFrequentBackupEnabled(on)
+                        resync()
+                    }
+                }
+            }
+            item(visible = frequentOn) {
+                SliderSetting(
+                    R.string.backup_frequent_interval_title,
+                    value = intervalSliderIndex(settings.watch { it.autoBackup.frequent.intervalHours }).toFloat(),
+                    range = 0f..(AutoBackupIntervals.size - 1).toFloat(),
+                    display = { backupIntervalLabel(context, intervalAt(it)) },
+                    typed = false,
+                    default = intervalSliderIndex(SettingsDefaults.autoBackup.frequent.intervalHours).toFloat(),
+                ) { index ->
+                    scope.launch {
+                        repository.setFrequentBackupIntervalHours(intervalAt(index))
+                        resync()
+                    }
+                }
+            }
+            item(visible = frequentOn) {
+                SliderSetting(
+                    R.string.backup_frequent_keep_title,
+                    subtitle = stringResource(R.string.backup_frequent_keep_subtitle),
+                    value = settings.watch { it.autoBackup.frequent.keep }.toFloat(),
+                    range = AutoBackupKeepRange.first.toFloat()..AutoBackupKeepRange.last.toFloat(),
+                    display = { kept ->
+                        context.resources.getQuantityString(R.plurals.backup_auto_keep_value, kept.roundToInt(), kept.roundToInt())
+                    },
+                    default = SettingsDefaults.autoBackup.frequent.keep.toFloat(),
+                ) { kept -> scope.launch { repository.setFrequentBackupKeep(kept.roundToInt()) } }
+            }
+            item(visible = frequentOn) {
+                ToggleSetting(
+                    R.string.backup_frequent_encrypt_title,
+                    stringResource(
+                        if (hasPassphrase) R.string.backup_frequent_encrypt_subtitle else R.string.backup_frequent_encrypt_needs_passphrase,
+                    ),
+                    settings.watch { it.autoBackup.frequent.encrypt } && hasPassphrase,
+                    enabled = hasPassphrase,
+                    default = SettingsDefaults.autoBackup.frequent.encrypt,
+                ) { on -> scope.launch { repository.setFrequentBackupEncrypt(on) } }
+            }
+        }
+        if (frequentOn) {
+            SettingsGroup(stringResource(R.string.backup_frequent_contents_title), level = SettingLevel.STANDARD) {
+                // No API-key switch: the frequent backup never carries them.
+                sectionRows(
+                    settings = settings,
+                    sections = { it.autoBackup.frequent.sectionSet },
+                    defaults = FrequentBackup.DEFAULT_SECTIONS,
+                    secrets = null,
+                ) { section, on ->
+                    scope.launch {
+                        val current = repository.settings.first().autoBackup.frequent.sectionSet
+                        repository.setFrequentBackupSections(if (on) current + section else current - section)
+                    }
                 }
             }
         }
@@ -1288,7 +1620,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
         StateBanner(stringResource(R.string.backup_auto_personal_warning), tone = BannerTone.WARNING)
     }
 
-    SettingsGroup(stringResource(R.string.backup_auto_contents_title)) {
+    SettingsGroup(stringResource(R.string.backup_auto_contents_title), level = SettingLevel.STANDARD) {
         sectionRows(
             settings = settings,
             sections = { it.autoBackup.sectionSet },
@@ -1335,6 +1667,9 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         }
     }
     val setKeys = rememberKeysSwitch(encrypted) { on -> scope.launch { repository.setSyncIncludeSecrets(on) } }
+    var pickingGroup by remember { mutableStateOf(false) }
+    // The location just ticked, when it holds groups this device is not in.
+    var joining by remember { mutableStateOf<BackupLocation?>(null) }
 
     fun runNow() {
         syncPhase = RunPhase.RUNNING
@@ -1380,7 +1715,23 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item(visible = syncOn) {
+        item(visible = syncOn, level = SettingLevel.STANDARD) {
+            PauseRow(
+                pausedUntilMs = settings.watch { it.autoBackup.sync.pausedUntilMs },
+                title = R.string.sync_pause_title,
+                subtitle = R.string.sync_pause_subtitle,
+                pausedTitle = R.string.sync_paused_title,
+                onPause = { until -> scope.launch { repository.setSyncPausedUntil(until) } },
+                onResume = {
+                    scope.launch {
+                        repository.setSyncPausedUntil(0L)
+                        // What the other devices changed meanwhile, now.
+                        SyncScheduler.requestSoon(context, repository.settings.first().autoBackup, delayMs = 0L)
+                    }
+                },
+            )
+        }
+        item(visible = syncOn, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.backup_sync_mode_title,
                 options = listOf(
@@ -1403,7 +1754,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 },
             ) { mode -> scope.launch { repository.setSyncMode(mode) } }
         }
-        item(visible = syncOn && syncMode == SyncMode.SCHEDULE) {
+        item(visible = syncOn && syncMode == SyncMode.SCHEDULE, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.backup_sync_interval_title,
                 value = intervalSliderIndex(settings.watch { it.autoBackup.sync.intervalHours }).toFloat(),
@@ -1414,7 +1765,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 default = intervalSliderIndex(SettingsDefaults.autoBackup.sync.intervalHours).toFloat(),
             ) { index -> scope.launch { repository.setSyncIntervalHours(intervalAt(index)) } }
         }
-        item(visible = syncOn) {
+        item(visible = syncOn, level = SettingLevel.ADVANCED) {
             val keysProtected = settings.watch { it.autoBackup.encrypt && it.autoBackup.passphrase.isNotEmpty() }
             ToggleSetting(
                 R.string.backup_sync_secrets_title,
@@ -1437,13 +1788,42 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         for (location in locations) {
             item {
                 LocationCheckRow(location, settings.watch { location.id in it.autoBackup.sync.locationIds }) { on ->
-                    scope.launch { repository.setSyncLocation(location.id, on) }
+                    scope.launch {
+                        repository.setSyncLocation(location.id, on)
+                        // Joining a shared folder: when the devices already
+                        // there sync in groups this one is not in, ask which
+                        // to join before the first pass picks for the user.
+                        if (on && location.type != BackupDestination.NEARBY) {
+                            val groups = SyncRunner.groupsAt(context, location).getOrNull().orEmpty()
+                            val mine = repository.settings.first().autoBackup.sync.group
+                            if (groups.isNotEmpty() && mine !in groups) {
+                                joining = location
+                                pickingGroup = true
+                            }
+                        }
+                    }
                 }
             }
         }
+        item(level = SettingLevel.ADVANCED) {
+            val group = settings.watch { it.autoBackup.sync.group }
+            WmRow(
+                title = stringResource(R.string.backup_sync_group_title),
+                subtitle = if (group.isEmpty()) {
+                    stringResource(R.string.backup_sync_group_none)
+                } else {
+                    stringResource(R.string.backup_sync_group_value, group)
+                },
+                icon = Icons.Outlined.Group,
+                onClick = {
+                    joining = null
+                    pickingGroup = true
+                },
+            )
+        }
         // A computer paired over KDE Connect turns into a location above,
         // ticked; this is the one switch for whether that happens.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.backup_sync_paired_title,
                 stringResource(R.string.backup_sync_paired_subtitle),
@@ -1452,11 +1832,21 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.autoBackup.sync.withPairedDevices,
             ) { on -> scope.launch { repository.setSyncWithPairedDevices(on) } }
         }
+        // #928: mobile data is the user's to spend.
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.backup_sync_wifi_only_title,
+                stringResource(R.string.backup_sync_wifi_only_subtitle),
+                settings.watch { it.autoBackup.sync.wifiOnly },
+                default = SettingsDefaults.autoBackup.sync.wifiOnly,
+            ) { on -> scope.launch { repository.setSyncWifiOnly(on) } }
+        }
     }
 
     SettingsGroup(
         stringResource(R.string.backup_sync_contents_title),
         info = stringResource(R.string.backup_sync_local_note),
+        level = SettingLevel.STANDARD,
     ) {
         sectionRows(
             settings = settings,
@@ -1472,27 +1862,29 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         }
     }
 
+    // What to keep out of the synced settings, so gone with them.
+    val syncsSettings = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.sync.sectionSet }
     SettingsGroup(
         stringResource(R.string.backup_sync_keep_local_title),
         info = stringResource(R.string.backup_sync_keep_local_info),
+        level = SettingLevel.ADVANCED,
     ) {
         for (group in SyncKeys.LocalGroup.entries) {
-            item {
-                val syncsSettings = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.sync.sectionSet }
+            item(visible = syncsSettings) {
                 ToggleSetting(
                     when (group) {
                         SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_title
                         SyncKeys.LocalGroup.LAYOUTS -> R.string.backup_sync_keep_layouts_title
+                        SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_title
                     },
                     stringResource(
-                        when {
-                            !syncsSettings -> R.string.backup_sync_keep_needs_settings
-                            group == SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_subtitle
+                        when (group) {
+                            SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_subtitle
+                            SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_subtitle
                             else -> R.string.backup_sync_keep_layouts_subtitle
                         },
                     ),
                     settings.watch { group in it.autoBackup.sync.keepLocalGroups },
-                    enabled = syncsSettings,
                     default = false,
                 ) { on ->
                     scope.launch {
@@ -1539,6 +1931,29 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         tone = if (syncError != null) BannerTone.WARNING else BannerTone.INFO,
     )
     Spacer(Modifier.height(16.dp))
+
+    if (pickingGroup) {
+        val auto = settings.value.autoBackup
+        SyncGroupDialog(
+            current = auto.sync.group,
+            locations = (auto.sync.targets(auto.locations) + listOfNotNull(joining))
+                .filter { it.type != BackupDestination.NEARBY }
+                .distinctBy { it.id },
+            joining = joining,
+            onSave = { entered ->
+                pickingGroup = false
+                joining = null
+                scope.launch {
+                    val changed = SyncRunner.joinGroup(context, repository, entered)
+                    if (changed && repository.settings.first().autoBackup.sync.enabled) runNow()
+                }
+            },
+            onDismiss = {
+                pickingGroup = false
+                joining = null
+            },
+        )
+    }
 
     val messageText = message
     if (messageText != null) {

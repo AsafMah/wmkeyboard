@@ -224,4 +224,23 @@ class GlideReadingsTest {
         readings.onCaret(5)
         assertEquals(listOf("from"), readings.readingsAt("form", 0))
     }
+
+    /** Issue #905: how many paths are kept is the user's to set. */
+    @Test
+    fun theStrokeWindowFollowsTheSetting() {
+        val readings = GlideReadings()
+        readings.strokeCapacity = 100
+        repeat(60) { i ->
+            val word = "w$i"
+            readings.remember(word, listOf(word))
+            readings.attach(word, stroke())
+            readings.onCaret(i * 10 + word.length + 1)
+        }
+        assertTrue(readings.strokeAt("w0", 0) != null)
+        readings.strokeCapacity = 10
+        assertNull(readings.strokeAt("w0", 0))
+        assertTrue(readings.strokeAt("w59", 590) != null)
+        readings.strokeCapacity = 0
+        assertNull(readings.strokeAt("w59", 590))
+    }
 }

@@ -19,12 +19,11 @@ import kotlinx.coroutines.launch
  * (issue #58), reachable from the one place that is always two swipes away
  * whatever app is in front. It exists alongside the shade controls rather than
  * instead of them: a tile needs no permission at all, so it still works for
- * someone who refused notifications, while the notification is the one that
- * can also *show* the keyboard.
+ * someone who refused notifications.
  *
- * Deliberately not a "show the keyboard" tile: pulling down Quick Settings
- * takes the focus away from whatever field would have received the text, so a
- * tile that summoned the keyboard would summon it into nothing.
+ * Showing the keyboard is a tile of its own, [ShowKeyboardTileService]: a
+ * summon, which outlasts the focus the shade takes from the app, rather than a
+ * state this one could toggle.
  */
 class PinKeyboardTileService : TileService() {
 

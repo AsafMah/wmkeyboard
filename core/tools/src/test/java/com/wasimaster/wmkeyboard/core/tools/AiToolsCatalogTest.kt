@@ -14,7 +14,8 @@ class AiToolsCatalogTest {
     @Test
     fun `every name is unique, short enough for every provider, and reserved from MCP`() {
         val names = AiTools.builtIns.map { it.name } + AiTools.WEB_SEARCH + AiTools.WEB_FETCH +
-            AiTools.REMEMBER + AiTools.FORGET + AiTools.RENAME_CHAT
+            AiTools.REMEMBER + AiTools.FORGET + AiTools.RENAME_CHAT +
+            AiTools.RESEARCH_PLAN + AiTools.RESEARCH_REVIEW
         assertEquals(names.size, names.toSet().size)
         // OpenAI and Gemini both cap a function name at 64 characters.
         assertTrue(names.all { it.length <= 64 && Regex("[a-z_]+").matches(it) })

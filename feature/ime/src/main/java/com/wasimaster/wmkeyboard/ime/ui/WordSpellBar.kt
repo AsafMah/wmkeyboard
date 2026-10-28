@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.WordCardAction
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The word card's spelling editor (#138), drawn in the suggestion strip's own
@@ -164,6 +165,7 @@ internal fun WordSpellBar(
             enabled = spell.draft.isNotBlank() && spell.draft != spell.word,
             tint = kb.accent,
             animate = animate,
+            disabledReason = DisabledReason(stringResource(R.string.ime_disabled_spell_unchanged)),
         ) {
             feedback()
             onAction(WordCardAction.CommitSpelling)
@@ -347,12 +349,14 @@ private fun SpellBarButton(
     enabled: Boolean,
     tint: Color,
     animate: Boolean,
+    /** What holding the button says while it is greyed out; see [IconHint]. */
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
     val spec: AnimationSpec<Float> = if (animate) tween(BUTTON_MS) else snap()
     val alpha by animateFloatAsState(if (enabled) 1f else 0.35f, spec, label = "spellButtonAlpha")
     val scale by animateFloatAsState(if (enabled) 1f else BUTTON_OFF_SCALE, spec, label = "spellButtonScale")
-    IconHint(description) {
+    IconHint(description, disabledReason = disabledReason.takeUnless { enabled }) {
         IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp)) {
             Icon(
                 icon,

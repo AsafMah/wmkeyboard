@@ -130,6 +130,9 @@ object BuiltInPanelLayouts {
     /** The sticker panel as it ships, the same shape as [GIF]. */
     val STICKER: PanelLayoutSpec = media(PanelKind.STICKER)
 
+    /** The emoji mixes panel as it ships, the same shape as [GIF]. */
+    val EMOJI_MIX: PanelLayoutSpec = media(PanelKind.EMOJI_MIX)
+
     /**
      * The clipboard: search pill and the grid / list switch, the fragment
      * chips pulled out of the history, the history itself. [bottomRow] adds the abc / space / backspace
@@ -289,6 +292,7 @@ object BuiltInPanelLayouts {
         PanelKind.TRACKPAD to TRACKPAD,
         PanelKind.NUMPAD to NUMPAD,
         PanelKind.HANDWRITING to HANDWRITING,
+        PanelKind.EMOJI_MIX to EMOJI_MIX,
     )
 
     fun default(kind: PanelKind): PanelLayoutSpec = byKind.getValue(kind)

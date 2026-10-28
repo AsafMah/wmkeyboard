@@ -45,6 +45,34 @@ class IndicXlitVocabTest {
         assertFalse(hi[4])
     }
 
+    // The other direction: native characters in, the letters out.
+    private val latin = IndicXlitVocab.parse(
+        sequenceOf(
+            "s\t<s>", "s\t<pad>", "s\t</s>", "s\t<unk>", "s\tআ", "s\tম", "s\tি", "s\t়", "s\tড", "s\t__bn__",
+            "t\t<s>", "t\t<pad>", "t\t</s>", "t\t<unk>", "t\ta", "t\tm", "t\ti", "t\tmadeupword0000", "t\t__bn__",
+        ),
+        IndicXlitModels.LATIN,
+    )
+
+    @Test
+    fun theLatinModelReadsANativeWordAsItLearnedIt() {
+        assertArrayEquals(intArrayOf(9, 4, 5, 6, 2), latin.encode("bn", "আমি"))
+        // No joiners, and ড় taken apart into ড and the nukta, which NFC does.
+        assertArrayEquals(intArrayOf(9, 4, 5, 6, 2), latin.encode("bn", "আ\u200Cমি"))
+        assertArrayEquals(intArrayOf(9, 8, 7, 2), latin.encode("bn", "\u09DC"))
+        assertNull(latin.encode("bn", "ami"))
+        assertNull(latin.encode("hi", "আমি"))
+    }
+
+    @Test
+    fun theLatinModelWritesTheLettersAndNothingElse() {
+        val bn = latin.allowed("bn")
+        assertTrue(bn[2] && bn[4] && bn[5] && bn[6])
+        assertFalse(bn[7])
+        assertFalse(bn[8])
+        assertFalse(bn[0] || bn[1] || bn[3])
+    }
+
     @Test
     fun packedReadingsUnpackBestFirst() {
         val packed = intArrayOf(3, (-0.1f).toBits(), 4, 5, 6, 2, (-0.7f).toBits(), 4, 5)

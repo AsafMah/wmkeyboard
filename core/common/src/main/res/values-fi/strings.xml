@@ -26,6 +26,7 @@
     <string name="common_default">Oletus</string>
     <string name="common_delete">Poista</string>
     <string name="common_disable">Poista käytöstä</string>
+    <string name="common_disabled_open_setting">Avaa asetus</string>
     <string name="common_disclosure_blocked_body">Android ei näytä tätä pyyntöä enää, koska hylkäsit luvan aiemmin. Voit silti kytkeä sen päälle sovelluksen asetussivulta.</string>
     <string name="common_disclosure_not_now">Ei nyt</string>
     <string name="common_done">Valmis</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Asenna</string>
     <string name="common_installing">Asennetaan…</string>
     <string name="common_loading">Ladataan…</string>
+    <string name="common_more">Lisää</string>
     <string name="common_next">Seuraava</string>
     <string name="common_none">Ei mitään</string>
     <string name="common_notify_channel_backup_body">Vain kun automaattinen varmuuskopiointi epäonnistuu. Onnistuneet varmuuskopiot ovat hiljaisia.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Näytä ilmoitukset</string>
     <string name="common_permission_storage_body">Android 9:ssä ja vanhemmissa näppäimistö tarvitsee tallennusoikeuden kuvan tallentamiseen galleriaasi. Vanha Android-oikeus kattaa myös tallennustilan lukemisen. Näppäimistö kirjoittaa vain kuvan, jonka pyydät sitä tallentamaan. Näppäimistö ei lue mitään eikä lataa mitään. Uudemmat Android-versiot eivät tarvitse tätä lupaa.</string>
     <string name="common_permission_storage_title">Tallennustilan käyttöoikeus galleriaan tallentamista varten</string>
+    <string name="common_permission_tasks_body">WM Keyboard pitää tehtäväluettelonsa ja yhden tehtäväsovelluksen tehtäväluettelon samana: tehtävät, niiden vaiheet, valinnat ja eräpäivät molempiin suuntiin. Käyttöoikeus kattaa jokaisen sovelluksen tehtäväluettelon. Näppäimistö lukee sovelluksen luetteloita vain, jotta voit valita yhden, ja se lukee ja kirjoittaa vain valitsemaasi luetteloa. Näppäimistö ei lähetä mitään minnekään. DAVx5, jos käytät sitä, synkronoi kyseisen luettelon oman CalDAV-palvelimesi kanssa. Ilman tätä käyttöoikeutta tehtäväluettelo pysyy tässä puhelimessa.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-käyttöoikeus tehtävälistalle</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-pääsy tehtävälistalle</string>
+    <string name="common_preview_scale_desc">Esikatselun koko</string>
+    <string name="common_preview_scale_larger">Suurenna esikatselua</string>
+    <string name="common_preview_scale_smaller">Pienennä esikatselua</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Poista</string>
     <string name="common_reset">Nollaa</string>
     <string name="common_reset_defaults">Palauta oletukset</string>

@@ -49,6 +49,8 @@
     <string name="datasaver_voice_subtitle">Voice typing that sends each phrase to your transcription server. About a megabyte for every 30 seconds of speech.</string>
     <string name="datasaver_grammar_title">Online grammar check</string>
     <string name="datasaver_grammar_subtitle">Grammar check that sends the text to a LanguageTool server, a few kilobytes after each pause in typing. Turned off, English is checked on the phone and other languages wait.</string>
+    <string name="datasaver_music_title">Song recognition online</string>
+    <string name="datasaver_music_subtitle">Music ID clips sent to a recognition service, a few hundred kilobytes per tap on Listen.</string>
 
     <!-- Issue #452: what the server-backed tools do with no connection. -->
     <string name="datasaver_offline_group">With no connection</string>
@@ -81,5 +83,6 @@
     <string name="datasaver_blocked_other_title">Turned off on a metered connection</string>
     <string name="datasaver_blocked_vpn_body">Downloads are off because Android counts the connection as metered. A VPN is on, and many VPN apps report a metered connection. Change this in Settings, under Data saver.</string>
     <string name="datasaver_blocked_other_body">Downloads are off because Android counts the connection as metered. Change this in Settings, under Data saver.</string>
-
+    <string name="datasaver_speed_test_title">Speed test</string>
+    <string name="datasaver_speed_test_subtitle">A run of the internet speed test moves tens to hundreds of megabytes on purpose. The panel says how much before it starts.</string>
 </resources>

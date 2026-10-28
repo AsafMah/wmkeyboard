@@ -78,6 +78,21 @@ class SelfHostedClientsTest {
     }
 
     @Test
+    fun `searx names the engines that found each result`() {
+        val body = """
+            {"results":[
+              {"url":"https://a.example/","title":"A","engine":"google","engines":["google","bing"]},
+              {"url":"https://b.example/","title":"B","engine":"duckduckgo"},
+              {"url":"https://c.example/","title":"C"}
+            ]}
+        """.trimIndent()
+        val results = SearxClient.parseWeb(body)
+        assertEquals(listOf("google", "bing"), results[0].engines)
+        assertEquals(listOf("duckduckgo"), results[1].engines)
+        assertEquals(emptyList<String>(), results[2].engines)
+    }
+
+    @Test
     fun `searx drops a web result with no url or title`() {
         val body = """
             {"results":[{"content":"orphan"},{"url":"https://a.example/","title":"Kept"}]}
@@ -127,6 +142,71 @@ class SelfHostedClientsTest {
     fun `searx finding nothing is an empty list rather than a failure`() {
         assertTrue(SearxClient.parseWeb("""{"results":[]}""").isEmpty())
         assertTrue(SearxClient.parseImages("""{"query":"x"}""").isEmpty())
+    }
+
+    @Test
+    fun `searx searches in the category asked for`() {
+        val news = SearxClient.searchUrl("searx.example.org", "rust", "news", safe = true)
+        assertTrue(news.contains("&categories=news&"))
+        // Categories with a space go encoded, as SearXNG splits the list on commas only.
+        val social = SearxClient.searchUrl("searx.example.org", "rust", "social media", safe = true, page = 2)
+        assertTrue(social.contains("&categories=social+media&"))
+        assertTrue(social.contains("&pageno=3"))
+        // Only images take the strict end of SafeSearch.
+        assertTrue(SearxClient.searchUrl("searx.example.org", "x", "videos", safe = true).contains("safesearch=1"))
+    }
+
+    @Test
+    fun `searx finds the config beside the search endpoint`() {
+        val expected = "https://searx.example.org/config"
+        assertEquals(expected, SearxClient.configUrl("searx.example.org"))
+        assertEquals(expected, SearxClient.configUrl("https://searx.example.org/"))
+        assertEquals(expected, SearxClient.configUrl("https://searx.example.org/search"))
+        assertEquals("http://10.0.0.2:8888/searxng/config", SearxClient.configUrl("http://10.0.0.2:8888/searxng"))
+    }
+
+    @Test
+    fun `searx lists the categories an enabled engine answers for, in the config's order`() {
+        val body = """
+            {"categories":["general","images","videos","news","science","music"],
+             "engines":[
+               {"name":"google","categories":["general"],"enabled":true},
+               {"name":"bing images","categories":["images"],"enabled":true},
+               {"name":"youtube","categories":["videos","music"],"enabled":true},
+               {"name":"arxiv","categories":["science"],"enabled":false}
+             ]}
+        """.trimIndent()
+        assertEquals(listOf("general", "images", "videos", "music"), SearxClient.parseCategories(body))
+    }
+
+    @Test
+    fun `searx takes a config without engines at its word`() {
+        val body = """{"categories":["general","news","news"," ","social media"]}"""
+        assertEquals(listOf("general", "news", "social media"), SearxClient.parseCategories(body))
+        assertTrue(SearxClient.parseCategories("""{"engines":[]}""").isEmpty())
+    }
+
+    @Test
+    fun `searx names categories as its own pages do`() {
+        assertEquals("IT", SearxClient.categoryLabel("it"))
+        assertEquals("Q&A", SearxClient.categoryLabel("q&a"))
+        assertEquals("Social media", SearxClient.categoryLabel("social media"))
+        assertEquals("Videos", SearxClient.categoryLabel("videos"))
+    }
+
+    @Test
+    fun `searx keeps a video's thumbnail`() {
+        val body = """
+            {"results":[
+              {"url":"https://v.example/1","title":"One","thumbnail":"https://i.example/1.jpg"},
+              {"url":"https://v.example/2","title":"Two","thumbnail_src":"https://i.example/2.jpg"},
+              {"url":"https://v.example/3","title":"Three","thumbnail":""}
+            ]}
+        """.trimIndent()
+        val results = SearxClient.parseWeb(body)
+        assertEquals("https://i.example/1.jpg", results[0].thumbnail)
+        assertEquals("https://i.example/2.jpg", results[1].thumbnail)
+        assertNull(results[2].thumbnail)
     }
 
     // ---- Wikimedia Commons -------------------------------------------------

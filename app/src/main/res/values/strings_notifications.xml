@@ -34,6 +34,8 @@
     <string name="notify_system_subtitle">Sound, badges and how each kind behaves</string>
 
     <string name="qs_pin_keyboard_label">Keep keyboard on screen</string>
+    <string name="qs_show_keyboard_label">Show keyboard</string>
+    <string name="qs_floating_button_label">Floating button</string>
 
     <!-- What a download notification calls the thing it is fetching. Each takes
          the name the settings screen shows for it. -->

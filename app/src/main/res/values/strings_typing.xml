@@ -17,12 +17,34 @@
     <string name="typing_group_enter_title">Enter key</string>
     <string name="typing_group_volume_title">Volume keys</string>
     <string name="typing_group_hardware_title">Physical keyboard</string>
-    <string name="typing_group_corrections_subtitle">Autocorrect, capitals, punctuation and spacing</string>
-    <string name="typing_group_suggestions_subtitle">The suggestion strip, learning, names and app names</string>
-    <string name="typing_group_smart_chips_subtitle">Sums, currencies, units, dates and lookups</string>
-    <string name="typing_group_otp_subtitle">Codes from messages and notifications</string>
-    <string name="typing_group_gestures_subtitle">Glide typing, spacebar swipes and handwriting</string>
-    <string name="typing_group_hardware_subtitle">Shortcuts, hotkeys and the shortcut key</string>
+    <string name="typing_group_corrections_subtitle">Autocorrect and how it learns</string>
+    <string name="typing_group_suggestions_subtitle">The suggestion strip and your words</string>
+    <string name="typing_group_smart_chips_subtitle">Sums, units, dates, lookups</string>
+    <string name="typing_group_otp_subtitle">Codes from messages</string>
+    <string name="typing_group_gestures_subtitle">Glide, spacebar, flicks</string>
+    <string name="typing_group_hardware_subtitle">Shortcuts and hotkeys</string>
+
+    <!-- Capitals, punctuation and spacing: the half of Automatic corrections
+         that is not autocorrect, a page of its own reached from the Typing hub
+         and from the Corrections page (SETTINGS_REDESIGN.md §4). -->
+    <string name="typing_group_writing_title">Capitals, punctuation and spacing</string>
+    <string name="typing_group_writing_subtitle">Capitals, double space, brackets, lists</string>
+    <string name="typing_group_capitals_title">Capitals</string>
+    <string name="typing_group_punctuation_title">Punctuation and spacing</string>
+    <string name="typing_group_brackets_title">Brackets and lists</string>
+
+    <!-- The Gestures hub's three pages (SETTINGS_REDESIGN.md §4). The glide
+         page keeps typing_group_glide_title as its name. -->
+    <string name="typing_page_glide_subtitle">Swipe over the letters to type a word, and how the swipe is read</string>
+    <string name="typing_page_spacebar_title">Spacebar</string>
+    <string name="typing_page_spacebar_subtitle">Swipes, the press and hold, and what the key shows</string>
+    <string name="typing_page_flicks_title">Flicks and swipes</string>
+    <string name="typing_page_flicks_subtitle">Short flicks on keys, finger swipes and chords</string>
+    <string name="typing_group_spacebar_swipes_title">Swipes</string>
+    <string name="typing_group_spacebar_hold_title">Press and hold</string>
+    <string name="typing_group_spacebar_label_title">What the spacebar shows</string>
+    <string name="typing_group_flicks_title">Flicks</string>
+    <string name="typing_group_other_swipes_title">Other swipes</string>
 
     <!-- ==== Typing settings: slider value labels ==== -->
     <!-- %1$s is the already formatted number, for example 2.5 -->
@@ -50,6 +72,22 @@
     <string name="typing_context_rerank_title">Context-aware suggestions</string>
     <string name="typing_context_rerank_subtitle">Reorder suggestions by the words around them</string>
     <string name="typing_context_rerank_info">The keyboard reorders the top suggestions with the words you typed before them: your own word pairs, common English pairs, and words from the current conversation. The reorder applies only when there is real evidence, so the usual order stays for unfamiliar contexts. This never changes which word autocorrect applies.</string>
+
+    <string name="typing_neural_context_title">Context model</string>
+    <string name="typing_neural_context_subtitle">Read the whole sentence to predict and rank words</string>
+    <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
+
+    <string name="typing_context_revision_title">Re-check the previous word</string>
+    <string name="typing_context_revision_subtitle">Offer a fix for the word before, once the next word shows what you meant</string>
+    <string name="typing_context_revision_info">After you type a word, the keyboard looks again at the word before it with the new word in sight. If one of the other readings it had fits the sentence much better (\"by a car\" → \"buy\"), a chip offers it. Nothing changes until you tap the chip. Needs the context model.</string>
+
+    <string name="typing_phrase_completion_title">Phrase suggestions</string>
+    <string name="typing_phrase_completion_subtitle">Offer the next few words as one chip</string>
+    <string name="typing_phrase_completion_info">After a space, the strip can offer two or three words at once, when the context model is sure of each of them. Tap the chip to type them all. Needs the context model.</string>
+
+    <string name="typing_learned_gate_title">Learned correction gate</string>
+    <string name="typing_learned_gate_subtitle">Judge each fix by everything the keyboard knows about it</string>
+    <string name="typing_learned_gate_info">Autocorrect used to apply a fix when the best candidate beat the runner-up by a fixed factor. The learned gate weighs everything at once: how far ahead the candidate is, what kind of slip explains the typo, how long the word is, whether your own words agree with the word list, what the context model thinks, and how fast you typed. It was fitted on thousands of typed sentences and on new words typed correctly, so it holds back from rewriting names and slang more often. The Autocorrect confidence slider moves its bar the same way. Off uses the fixed factor as before.</string>
 
     <string name="typing_number_row_corrections_title">Fix number row slips</string>
     <string name="typing_number_row_corrections_subtitle">Correct a stray digit to the letter below it</string>
@@ -243,8 +281,10 @@
     <string name="typing_smart_replies_info">Android System Intelligence can read the conversation on the screen and offer short answers, such as \"On my way!\". The answers show as chips beside the word suggestions, up to three at a time. The system draws them, not the keyboard. They come over the same channel as the password manager chips, but they count and switch apart from them. You can have saved logins in the suggestion strip without the system reading your messages, or the opposite. Incognito mode turns this off by itself. This setting needs Android 11 or newer, and only some apps offer replies.</string>
 
     <string name="typing_group_autopilot_title">Autopilot</string>
-    <string name="typing_group_autopilot_subtitle">Widen the touch area of the letters you type next</string>
+    <string name="typing_group_autopilot_subtitle">Wider keys for likely letters</string>
 
+    <string name="typing_typed_word_first_title">Word as typed first</string>
+    <string name="typing_typed_word_first_subtitle">Show what you typed in the first slot, wherever it ranks. A space still writes the bold word</string>
     <string name="typing_skip_typed_word_title">Only offer new words</string>
     <string name="typing_skip_typed_word_subtitle">Leave out the word you have already typed</string>
     <string name="typing_number_prediction_title">Numbers from the letter keys</string>
@@ -256,7 +296,7 @@
     <string name="typing_skip_typed_word_info">The suggestion strip normally keeps one slot for the word exactly as you typed it, which is how you keep a spelling the dictionary does not know. Turn this on and that slot is given to another suggestion instead, so all three offer something new. The cost is that a word the keyboard does not recognise has one fewer way to survive a correction, and the strip no longer shows you which candidate is the literal thing you wrote.</string>
 
     <string name="typing_group_octopus_title">Words on the keys</string>
-    <string name="typing_group_octopus_subtitle">Float the next word over the key that would reach it</string>
+    <string name="typing_group_octopus_subtitle">Next word over its key</string>
 
     <string name="typing_octopus_enabled_title">Words on the keys</string>
     <string name="typing_octopus_enabled_subtitle">Float a predicted word over the key you would press next</string>
@@ -539,6 +579,74 @@
     <string name="typing_glide_search_all_chip_subtitle">Show a search button for reading the stroke against every word list when you tap back into a swiped word</string>
     <string name="typing_glide_search_all_chip_info">When a glide produces the wrong word, the stroke you drew is the only record of what you meant — the letters left in the text are the keyboard\'s guess, not your finger\'s path. So the keyboard keeps the last dozen strokes of the field, and tapping back into one of those words can search its stroke against every word list you have, past whatever limit glide typing normally works under. That search is always available: hold a word on the suggestion strip and pick \"Search all words\". This setting adds a small search button to the suggestion strip that offers it without the hold. It is an icon rather than a sentence so the words beside it — the ones the search is offering to improve on — keep the room; hold the button to send it away. Whichever way you reach it, taking a word off the search fixes the text and teaches the keyboard that stroke, so the same swipe reads correctly next time.</string>
 
+    <!-- Slider: how many of the newest swiped words keep their stroke for the full search. -->
+    <string name="typing_glide_kept_strokes_title">Swiped words a full search can reach</string>
+    <string name="typing_glide_kept_strokes_subtitle">How many of the newest swiped words keep their stroke. More uses more memory</string>
+    <string name="typing_glide_kept_strokes_info">A full search reads the stroke you drew again, so it only works for a word whose stroke the keyboard still keeps. The keyboard keeps the strokes of the newest swiped words in the field, 24 by default. Each stroke is every point your finger passed through, a few kilobytes, so keeping 500 can take a few megabytes while you write a long text. Raise it to search words further back; lower it, or set it to 0, to save memory. Strokes are forgotten when you leave the field.</string>
+
+    <!-- The glide check-up (issue #966 §5.5): a row on the Glide typing page and the screen behind it. -->
+    <string name="typing_glide_checkup_title">Glide check-up</string>
+    <string name="typing_glide_checkup_subtitle">Measure your own swipes, get one change proposed with its expected effect, and confirm it later</string>
+    <string name="typing_glide_checkup_info">Two of the numbers behind glide typing depend on what you write rather than on the keyboard: how much of the dictionary a swipe may answer with, and how much a word\'s commonness counts against the shape you drew. The check-up finds the right values from your own swipes. While it is measuring, each word you swipe is read again in the background under a few candidate values, and only the words that come out are kept, never the stroke. After 30 swipes it proposes one change at a time, says how many of your own swipes it would have read right, and lets you apply it. After the next 40 swipes it compares how often you corrected swiped words before and after, and offers to keep or undo. A change is never applied or undone over a value you set by hand in the meantime.</string>
+    <!-- The row's subtitle, by state. %1$d and %2$d are counts of swipes. -->
+    <string name="typing_glide_checkup_state_off">Off. Open to start measuring</string>
+    <string name="typing_glide_checkup_state_collecting">Measuring: <xliff:g id="done" example="18">%1$d</xliff:g> of <xliff:g id="needed" example="30">%2$d</xliff:g> swipes</string>
+    <string name="typing_glide_checkup_state_ready">A change is ready</string>
+    <string name="typing_glide_checkup_state_checking">Checking the change: <xliff:g id="done" example="12">%1$d</xliff:g> of <xliff:g id="needed" example="40">%2$d</xliff:g> swipes</string>
+    <string name="typing_glide_checkup_state_checked">Change checked: open to keep or undo it</string>
+    <string name="typing_glide_checkup_state_nothing">Nothing to change on <xliff:g id="count" example="60">%1$d</xliff:g> swipes</string>
+    <!-- The screen. -->
+    <string name="typing_glide_checkup_measure_title">Measure my swipes</string>
+    <string name="typing_glide_checkup_measure_subtitle">Read each swiped word again under a few candidate values, in the background</string>
+    <string name="typing_glide_checkup_measure_info">On, each word you swipe costs a few more decodes after it is typed, off the keyboard\'s thread. Only the words that come out are kept, up to 200 of them; no stroke is stored. Turn it off once you have a change you are happy with.</string>
+    <string name="typing_glide_checkup_measured_title">Measured so far</string>
+    <string name="typing_glide_checkup_measured_none">No swipes measured yet</string>
+    <!-- %1$d swipes measured, %2$d of them read right by the current values. -->
+    <string name="typing_glide_checkup_measured"><xliff:g id="count" example="60">%1$d</xliff:g> swipes, <xliff:g id="right" example="52">%2$d</xliff:g> read right first time</string>
+    <string name="typing_glide_checkup_profile_title">Your swipes</string>
+    <string name="typing_glide_checkup_profile_corner_title">Corner cutting</string>
+    <!-- %1$s is a distance in key widths, such as 0.3. -->
+    <string name="typing_glide_checkup_profile_corner_value"><xliff:g id="keys" example="0.3">%1$s</xliff:g> keys inside the corner, on average</string>
+    <string name="typing_glide_checkup_profile_offset_title">Where your finger sits</string>
+    <!-- %1$s keys to the %2$s (left or right), %3$s keys %4$s (up or down). -->
+    <string name="typing_glide_checkup_profile_offset_value"><xliff:g id="x" example="0.1">%1$s</xliff:g> keys to the <xliff:g id="side" example="left">%2$s</xliff:g>, <xliff:g id="y" example="0.2">%3$s</xliff:g> keys <xliff:g id="updown" example="down">%4$s</xliff:g> of the letters</string>
+    <string name="typing_glide_checkup_profile_left">left</string>
+    <string name="typing_glide_checkup_profile_right">right</string>
+    <string name="typing_glide_checkup_profile_up">up</string>
+    <string name="typing_glide_checkup_profile_down">down</string>
+    <string name="typing_glide_checkup_profile_scale_title">Stroke size</string>
+    <!-- %1$d is a percentage. -->
+    <string name="typing_glide_checkup_profile_scale_value"><xliff:g id="percent" example="92">%1$d</xliff:g>%% of the span of the letters</string>
+    <string name="typing_glide_checkup_profile_start_title">Touch-down</string>
+    <string name="typing_glide_checkup_profile_start_value"><xliff:g id="keys" example="0.2">%1$s</xliff:g> keys from the first letter</string>
+    <string name="typing_glide_checkup_profile_lift_title">Lift-off</string>
+    <string name="typing_glide_checkup_profile_lift_value"><xliff:g id="keys" example="0.2">%1$s</xliff:g> keys from the last letter</string>
+    <string name="typing_glide_checkup_proposal_title">Suggested change</string>
+    <string name="typing_glide_checkup_no_proposal_title">Nothing proposed yet</string>
+    <!-- %1$d is how many more swipes are needed. -->
+    <string name="typing_glide_checkup_need_more">Swipe <xliff:g id="count" example="12">%1$d</xliff:g> more words with measuring on</string>
+    <!-- %1$d is the number of swipes measured. -->
+    <string name="typing_glide_checkup_nothing">On your <xliff:g id="count" example="60">%1$d</xliff:g> swipes no other value reads more of them right</string>
+    <!-- %1$d swipes; %2$d read right with the proposed value, %3$d with the current one; %4$d fixed, %5$d broken. -->
+    <string name="typing_glide_checkup_effect">On your last <xliff:g id="count" example="60">%1$d</xliff:g> swipes this would have read <xliff:g id="then" example="56">%2$d</xliff:g> right instead of <xliff:g id="now" example="52">%3$d</xliff:g>: <xliff:g id="more" example="5">%4$d</xliff:g> more, <xliff:g id="fewer" example="1">%5$d</xliff:g> fewer.</string>
+    <string name="typing_glide_checkup_not_now">Not now</string>
+    <string name="typing_glide_checkup_stale">Not applied: the setting changed after this was measured. Measuring starts over.</string>
+    <string name="typing_glide_checkup_confirm_title">Checking the change</string>
+    <!-- %1$d of %2$d swipes since the change. -->
+    <string name="typing_glide_checkup_confirm_progress"><xliff:g id="done" example="12">%1$d</xliff:g> of <xliff:g id="needed" example="40">%2$d</xliff:g> swipes since the change</string>
+    <!-- Corrections and swipes after the change, then before it. -->
+    <string name="typing_glide_checkup_confirm_rates">Since the change: <xliff:g id="after_fixed" example="2">%1$d</xliff:g> of <xliff:g id="after" example="40">%2$d</xliff:g> swiped words fixed. Before it: <xliff:g id="before_fixed" example="5">%3$d</xliff:g> of <xliff:g id="before" example="40">%4$d</xliff:g>.</string>
+    <string name="typing_glide_checkup_confirm_worse">You fixed more swipes than before. Undo puts the old value back.</string>
+    <string name="typing_glide_checkup_confirm_fine">No more fixes than before.</string>
+    <string name="typing_glide_checkup_keep">Keep</string>
+    <string name="typing_glide_checkup_frequency_title">Frequency weight</string>
+    <string name="typing_glide_checkup_frequency_own">The language\'s own</string>
+    <!-- %1$s is the weight, such as 0.5. -->
+    <string name="typing_glide_checkup_frequency_fitted"><xliff:g id="weight" example="0.5">%1$s</xliff:g>, fitted to your swipes</string>
+    <string name="typing_glide_checkup_reset">Start over</string>
+    <string name="typing_glide_checkup_reset_title">Start the check-up over?</string>
+    <string name="typing_glide_checkup_reset_body">Forgets what has been measured and which proposals you turned down. The values you applied stay as they are.</string>
+
     <!-- One-of-four choice: how hard the word shown mid-glide resists change. -->
     <string name="typing_glide_steadiness_title">Steadiness of the word while you glide</string>
     <string name="typing_glide_steadiness_subtitle">Stop the word changing under your finger on every small movement</string>
@@ -562,6 +670,8 @@
     <string name="typing_glide_library_missing">Not imported. This phone takes the %1$s build of libjni_latinime.so</string>
     <string name="typing_glide_library_imported">Imported. It loads the next time you swipe</string>
     <string name="typing_glide_library_loaded">Loaded</string>
+    <!-- After Remove, while the library is still in the keyboard's memory. Android cannot unload it. -->
+    <string name="typing_glide_library_removed">Removed. Glide typing uses the built-in decoder now. Android cannot unload the library, so it stays in memory until the keyboard restarts</string>
     <string name="typing_glide_library_failed_changed">The file is no longer the build that was imported. Import it again</string>
     <string name="typing_glide_library_failed_crashed">The keyboard closed while the gesture library was starting, so it is switched off. Try it again, or remove it</string>
     <string name="typing_glide_library_failed_load">Android would not load the gesture library: %1$s</string>
@@ -575,7 +685,7 @@
     <string name="typing_glide_library_remove_title">Remove gesture library</string>
     <string name="typing_glide_library_remove_subtitle">Deletes the file and the dictionaries built for it</string>
     <string name="typing_glide_library_remove">Remove</string>
-    <string name="typing_glide_library_remove_confirm">Delete the imported gesture library and its dictionaries? A library already in use stays in memory until the keyboard restarts.</string>
+    <string name="typing_glide_library_remove_confirm">Delete the imported gesture library and its dictionaries? Glide typing goes back to the built-in decoder at once. A library already in use stays in memory until the keyboard restarts.</string>
     <string name="typing_glide_lookahead_title">Finish long words early</string>
     <string name="typing_glide_lookahead_subtitle">Offer a word before you have glided all of it</string>
     <string name="typing_glide_lookahead_info">A swipe is normally read from end to end: the keyboard matches the first letter to where you started and the last to where you stopped, so a long word cannot be offered until you have glided every letter of it. Tapping does not work that way — four letters into \"dictionary\" the word is already there. With this on, the keyboard may offer a word your stroke has only started, and lifting your finger types it. It only does so when that word is clearly a better answer than anything you have actually spelled, so it stays quiet on short words and on strokes that could be many things, and a word you have drawn in full keeps its place: \"thing\" glided to the g stays \"thing\", not \"things\". \"When sure\" is cautious; \"Eager\" offers a word as soon as it is ahead. Under \"Prefer my words\" and \"Only my words\" the early word is always one of your own, and the dictionary only reads a stroke you finish. Lifting on an early word is a choice, so the strip then offers that word\'s neighbours — its plural, possessive and the shorter word it ran past — instead of the stroke\'s other readings. Off by default. Not available on phonetic layouts such as Avro, where a stroke spells a romanization rather than the word itself.</string>
@@ -693,6 +803,15 @@
     <string name="typing_handwrite_dot_subtitle">Time to add a dot or a cross before the press types a letter</string>
     <string name="typing_handwrite_dot_info">Letters such as i, j and t need a separate mark after the main stroke. For this time after you draw a stroke, a press over the letters becomes another stroke of the same character, the dot or the cross. It does not type that key. A press after the window types as usual. 0 turns this off.</string>
 
+    <!-- One choice over the three trail sliders below it. Each preset writes
+         the width, the length and the opacity together; Off is opacity zero. -->
+    <string name="typing_trail_style_title">Trail style</string>
+    <string name="typing_trail_style_subtitle">The line a glide draws behind your finger</string>
+    <string name="typing_trail_style_info">A glide draws a line behind your finger so you can see the stroke. Thin, Normal and Bold set its width, how long it lingers and how solid it is together. Off draws no line at all, and the glide still types. The three sliders under More settings set each of those on its own.</string>
+    <string name="typing_trail_style_thin_label">Thin</string>
+    <string name="typing_trail_style_normal_label">Normal</string>
+    <string name="typing_trail_style_bold_label">Bold</string>
+
     <string name="typing_trail_width_title">Trail width</string>
     <string name="typing_trail_width_subtitle">Thickness of the glide trail</string>
 
@@ -795,10 +914,11 @@
 
     <string name="typing_spacebar_display_title">The spacebar shows</string>
     <string name="typing_spacebar_display_subtitle">What the spacebar label shows at rest</string>
-    <string name="typing_spacebar_display_info">Language shows the name of the current language. Layout shows the name of the current layout. Both shows \"Language (Layout)\". When one language has more than one layout on, the keyboard adds the layout name, so you can see the difference.</string>
+    <string name="typing_spacebar_display_info">Language shows the name of the current language. Layout shows the name of the current layout. Both shows \"Language (Layout)\". Nothing leaves the spacebar blank, apart from your own text below; the language picker still shows names. When one language has more than one layout on, the keyboard adds the layout name, so you can see the difference.</string>
     <string name="typing_spacebar_display_language_label">Language</string>
     <string name="typing_spacebar_display_layout_label">Layout</string>
     <string name="typing_spacebar_display_both_label">Both</string>
+    <string name="typing_spacebar_display_none_label">Nothing</string>
     <string name="typing_language_echo_title">Keep the new language on screen</string>
     <string name="typing_language_echo_subtitle">How long a spacebar swipe shows the language it switched to</string>
     <string name="typing_language_echo_info">A quick flick on the spacebar is over before its preview can draw, so the keyboard keeps the language it landed on up for a moment after you lift, to show where you went. This is how long it stays, counting the time the preview was already up. Slide to Off to have it go the instant you lift. A slow swipe that rested on its language for a quarter of a second has already shown it, so it goes at once whatever this is set to.</string>
@@ -934,6 +1054,10 @@
     <string name="typing_punctuation_marks_hint">One mark per character, in the order you want them. Leave empty for . , ? ! \'</string>
 
     <string name="typing_suggestion_pages_title">Swipe down for more suggestions</string>
+    <string name="typing_suggestion_pages_emoji_title">Emoji in the grid</string>
+    <string name="typing_suggestion_pages_emoji_subtitle">After the words, the emoji that match the word you are typing</string>
+    <string name="typing_suggestion_pages_fancy_title">Fancy text in the grid</string>
+    <string name="typing_suggestion_pages_fancy_subtitle">Last, the word in every fancy text style, to pick by how it looks</string>
     <string name="typing_suggestion_pages_subtitle">Swipe down on the suggestions to see every word the keyboard ranked</string>
     <string name="typing_suggestion_swipe_up_title">Swipe up for more suggestions</string>
     <string name="typing_suggestion_swipe_up_subtitle">Swipe up on the suggestions, then slide onto a word and lift to use it</string>
@@ -943,6 +1067,10 @@
     <string name="typing_suggestion_pages_info">The strip shows only a few words. With this on, swipe down on it while it has words and a grid of up to 24 suggestions covers the keys, best first. Tap one to use it, or swipe the strip again or tap Back to the keys to close the grid. When this is on, a downward swipe over suggestions opens the grid instead of hiding the keyboard; over an empty strip it still hides it if that setting is on. This setting is off by default.</string>
     <string name="typing_suggestion_slots_title">Number of suggestions</string>
     <string name="typing_suggestion_slots_subtitle">How many words the suggestion strip shows at once</string>
+    <!-- #970: more suggestion slots while the words are short. -->
+    <string name="typing_fit_more_words_title">More slots for short words</string>
+    <string name="typing_fit_more_words_subtitle">Show up to three more suggestions when they are short enough to fit without shrinking</string>
+    <string name="typing_fit_more_words_info">The strip still starts from Number of suggestions. When the next words are short, it adds slots for them, up to three more, as long as every word fits its share of the strip at full size. Long words keep the usual number of slots. It does nothing while the suggestions scroll or are kept in place. This setting is off by default.</string>
     <string name="typing_suggestion_slots_info">The strip splits its width evenly between the suggestions, so more of them means each one is narrower and long words are shrunk further to fit. Three suits a phone. A tablet or a landscape screen has room for more. This setting is 3 by default.</string>
     <string name="typing_suggestion_emoji_slot_title">Emoji takes a slot</string>
     <string name="typing_suggestion_emoji_slot_subtitle">Count a suggested emoji as one of the suggestions</string>
@@ -961,7 +1089,7 @@
     <string name="typing_suggestion_scroll_subtitle">Show each word at full size, and every word found, in a strip that scrolls sideways</string>
     <string name="typing_suggestion_more_arrow_title">More suggestions arrow</string>
     <string name="typing_suggestion_more_arrow_subtitle">An arrow at the end of the strip that opens every word found</string>
-    <string name="typing_suggestion_more_arrow_info">When the strip scrolls and the keyboard found more words than fit, an arrow at its right end opens all of them in a grid. Turn this off to give that space back to the words. A swipe down on the strip still opens the same grid. This setting is on by default.</string>
+    <string name="typing_suggestion_more_arrow_info">When the strip scrolls and the keyboard found more words than fit, an arrow at its right end opens all of them in a grid. Turn this off to give that space back to the words. A swipe down on the strip still opens the same grid. This setting is off by default.</string>
     <string name="typing_suggestion_scroll_info">Normally the strip splits its width evenly and shrinks long words to fit their slot. With this on, every word keeps its natural size and the strip scrolls sideways instead. The strip also carries on past the number of suggestions, through every word the keyboard found, so the one you want is a swipe away even when it ranked fourth or tenth. Short words still fill the visible part as before. Turn it on if you want five or six suggestions on a narrow phone, or if your word is often not among the first few. This setting is off by default.</string>
 
     <string name="typing_double_space_title">Double space</string>
@@ -985,6 +1113,9 @@
     <string name="typing_space_swipe_up_touchpad_title">Swipe up for the touchpad</string>
     <string name="typing_space_swipe_up_touchpad_subtitle">A swipe up from the spacebar moves the cursor in every direction</string>
     <string name="typing_space_swipe_up_touchpad_info">Swipe up from the spacebar, then keep your finger down and move it: the cursor follows left, right, up and down, like the 2-D cursor touchpad, until you lift. The swipe has to go a short way up first, so a tap that slides a little still types a space. Sideways swipes keep the actions set above, so a quick swipe can still switch the language and you do not have to hold the spacebar first. With Keep moving while held and Whole keyboard as touchpad both on, the cursor keeps going when your finger reaches any edge of the keyboard: the sides move it along the line, the top and bottom move it between lines. This setting is off by default.</string>
+    <string name="typing_space_swipe_up_numpad_title">Swipe up for the number pad</string>
+    <string name="typing_space_swipe_up_numpad_subtitle">A swipe up from the spacebar opens the number pad</string>
+    <string name="typing_space_swipe_up_numpad_info">Swipe up from the spacebar, at any speed, and the number pad opens, the way SwiftKey does it. The swipe has to go a short way up first, so a tap that slides a little still types a space. Sideways swipes keep the actions set above. If Swipe up for the touchpad is on as well, the touchpad wins. This setting is off by default.</string>
     <string name="typing_space_cursor_whole_keyboard_title">Whole keyboard as touchpad</string>
     <string name="typing_space_cursor_whole_keyboard_subtitle">A cursor swipe can use the whole keyboard, and the other keys pause</string>
     <string name="typing_space_cursor_whole_keyboard_info">Once a spacebar swipe starts moving the cursor, the whole keyboard becomes its touchpad. The keys dim, and touching them with another finger types nothing until you lift. With Keep moving while held on, the cursor keeps going when your finger reaches either side of the keyboard rather than the end of the spacebar. Your finger can always leave the spacebar during a swipe; this setting stops the other keys from reacting while it does. This setting is off by default.</string>
@@ -996,6 +1127,7 @@
     <string name="typing_space_cursor_accelerate_info">After a short distance at the normal cursor speed, each character needs less movement. The speed increases until it gets to the top speed, and it stays at that speed while you continue in the same direction. When you go back, the speed starts again at the normal speed, so you can correct an overshoot accurately. With the 2-D cursor touchpad, movement up and down also increases speed in the same way. A short swipe moves one character at a time, as before. This setting is off by default.</string>
     <string name="typing_space_cursor_top_speed_title">Top cursor speed</string>
     <string name="typing_space_cursor_top_speed_subtitle">How fast a long spacebar swipe moves the cursor at its fastest</string>
+    <!-- Long press on the greyed-out slider. -->
     <string name="typing_space_cursor_top_speed_info">The value is how many times faster than the normal cursor speed the cursor goes at the end of a long swipe. This setting is 4× by default.</string>
     <string name="typing_space_cursor_magnifier_title">Cursor magnifier</string>
     <string name="typing_space_cursor_magnifier_subtitle">Show the text at the cursor, larger, while a spacebar swipe moves the cursor</string>
@@ -1036,6 +1168,7 @@
     <string name="typing_word_menu_item_add">Add</string>
     <string name="typing_word_menu_item_delete">Delete</string>
     <string name="typing_word_menu_item_synonyms">Synonyms</string>
+    <string name="typing_word_menu_item_rank">Suggest higher or lower</string>
     <string name="typing_synonym_sources_title">Synonym sources</string>
     <string name="typing_synonym_sources_subtitle">Where the word menu looks for synonyms, in order</string>
     <string name="typing_synonym_sources_info">The keyboard asks the first source that is on. When it has no synonyms for the word, or cannot be reached, the keyboard asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you held, and a look-up is not stopped by Data saver, because you ask for it.</string>
@@ -1135,4 +1268,23 @@
     <string name="typing_symbol_chord_key_hint">The one character the key types</string>
     <string name="typing_symbol_chords_reset_title">Reset chords</string>
     <string name="typing_symbol_chords_reset_subtitle">Put the chords back to the default</string>
+    <string name="typing_group_key_swipes_title">Swipes on keys</string>
+    <string name="typing_key_swipes_title">Swipes on keys</string>
+    <string name="typing_key_swipes_subtitle">Your own short swipes off letter keys, on every layout</string>
+    <string name="typing_key_swipes_info">Put a character or an action on any of the eight directions around a key, and a short swipe that way off the key types it or runs it. The swipes belong to the key, not to a layout, so the 1 you put up and to the right of Q is there on QWERTY, AZERTY and every other layout with a Q. Where a layout already has a swipe in that direction, the layout\'s own swipe stays. Each key draws its swipes small on its face, and glide typing still works: a swipe that turns, or carries on into another letter, glides a word. A key with swipes gives up the swipe down for its hint and the slide to select. Only the letters page gets them.</string>
+    <string name="typing_key_swipe_row_title">%1$s key</string>
+    <string name="typing_key_swipe_add_title">Add a key</string>
+    <string name="typing_key_swipe_add_subtitle">Pick a key, then what each swipe off it does</string>
+    <string name="typing_key_swipe_key_title">Key to swipe from</string>
+    <string name="typing_key_swipe_pad_hint">Tap a direction to choose what a short swipe that way does.</string>
+    <string name="typing_key_swipe_preset_title">Add a preset</string>
+    <string name="typing_key_swipe_preset_subtitle">Numbers, symbols or editing shortcuts in one go</string>
+    <string name="typing_key_swipe_preset_numbers">Numbers</string>
+    <string name="typing_key_swipe_preset_numbers_desc">1 to 0 up and to the right on the top row</string>
+    <string name="typing_key_swipe_preset_symbols">Symbols</string>
+    <string name="typing_key_swipe_preset_symbols_desc" formatted="false">! @ # $ % ^ &amp; * ( ) up and to the left on the top row</string>
+    <string name="typing_key_swipe_preset_editing">Editing shortcuts</string>
+    <string name="typing_key_swipe_preset_editing_desc">Select all, copy, paste, cut, undo and redo down and to the left on A, C, V, X, Z and Y</string>
+    <string name="typing_key_swipes_reset_title">Remove all key swipes</string>
+    <string name="typing_key_swipes_reset_subtitle">Take every swipe you added off the keys</string>
 </resources>

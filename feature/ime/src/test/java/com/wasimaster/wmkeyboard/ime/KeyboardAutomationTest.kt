@@ -158,6 +158,7 @@ class KeyboardAutomationTest {
             AutomationPermission.INCOGNITO_OFF,
             AutomationPermission.WORDS,
             AutomationPermission.BACKUP,
+            AutomationPermission.BACKUP_PAUSE,
             AutomationPermission.LAYOUT_EVENTS,
             AutomationPermission.TYPE_TEXT,
         )
@@ -258,5 +259,33 @@ class KeyboardAutomationTest {
         assertNull(KeyboardAutomation.cleanWord("two words"))
         assertNull(KeyboardAutomation.cleanWord(""))
         assertNull(KeyboardAutomation.cleanWord("x".repeat(65)))
+    }
+
+    @Test
+    fun `a pause reads hours, and refuses what it cannot read rather than pausing forever`() {
+        assertEquals(0, KeyboardAutomation.pauseHours(null))
+        assertEquals(0, KeyboardAutomation.pauseHours(""))
+        assertEquals(0, KeyboardAutomation.pauseHours(0))
+        assertEquals(24, KeyboardAutomation.pauseHours(24))
+        assertEquals(24, KeyboardAutomation.pauseHours(" 24 "))
+        assertEquals(168, KeyboardAutomation.pauseHours(168L))
+        assertNull(KeyboardAutomation.pauseHours(169))
+        assertNull(KeyboardAutomation.pauseHours(-1))
+        assertNull(KeyboardAutomation.pauseHours(1.5))
+        assertNull(KeyboardAutomation.pauseHours("a day"))
+        assertNull(KeyboardAutomation.pauseHours(true))
+    }
+
+    @Test
+    fun `pausing and resuming need their own permission, not back up now`() {
+        for (action in listOf(
+            KeyboardAutomation.ACTION_PAUSE_BACKUP,
+            KeyboardAutomation.ACTION_RESUME_BACKUP,
+            KeyboardAutomation.ACTION_PAUSE_SYNC,
+            KeyboardAutomation.ACTION_RESUME_SYNC,
+        )) {
+            assertEquals(action, AutomationPermission.BACKUP_PAUSE, KeyboardAutomation.permissions[action])
+            assertTrue(action, action in KeyboardAutomation.actions)
+        }
     }
 }

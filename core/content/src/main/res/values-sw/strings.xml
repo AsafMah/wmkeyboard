@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Nakili</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Nambari</string>
+    <string name="core_content_selection_macro_edit_word">Hariri neno</string>
     <string name="core_content_selection_macro_email">Barua pepe</string>
     <string name="core_content_selection_macro_fancy">Ya kupendeza</string>
     <string name="core_content_selection_macro_find">Tafuta</string>

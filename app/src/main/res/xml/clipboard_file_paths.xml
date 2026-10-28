@@ -10,12 +10,17 @@
     <files-path name="kde_received" path="kdeconnect/received/" />
     <!-- Downloaded GIFs/stickers/search images, committed via commitContent. -->
     <cache-path name="media_cache" path="media/" />
+    <!-- Emoji mixes: images fetched from a source, and the pictures in an imported pack. -->
+    <cache-path name="emoji_mix" path="emoji_mix/" />
+    <files-path name="emoji_mix_packs" path="emoji_mix/" />
     <!-- A note shared as a .md or .txt file from the Notes screen. -->
     <!-- The Send files tool: field text saved as a file to upload, and copies made for sending. -->
     <cache-path name="send" path="send/" />
     <cache-path name="notes_share" path="notes/" />
     <!-- The AI chat's Photo button (#882): where the camera app writes the shot. -->
     <cache-path name="ai_chat_camera" path="ai_chat_camera/" />
+    <!-- An AI chat answer shared as a Markdown file or a PDF. -->
+    <cache-path name="ai_exports" path="ai_exports/" />
     <!-- The diagnostics report, shared out of the debug log screen. -->
     <cache-path name="diagnostics" path="diagnostics/" />
 </paths>

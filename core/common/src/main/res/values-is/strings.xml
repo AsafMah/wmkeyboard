@@ -26,6 +26,7 @@
     <string name="common_default">Sjálfgefið</string>
     <string name="common_delete">Eyða</string>
     <string name="common_disable">Slökkva á</string>
+    <string name="common_disabled_open_setting">Opna stillinguna</string>
     <string name="common_disclosure_blocked_body">Android sýnir ekki þessa beiðni lengur, vegna þess að þú hafnaðir leyfinu áður. Þú getur samt kveikt á því í stillingaskjá forritsins.</string>
     <string name="common_disclosure_not_now">Ekki núna</string>
     <string name="common_done">Lokið</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Setja upp</string>
     <string name="common_installing">Set upp…</string>
     <string name="common_loading">Hleður…</string>
+    <string name="common_more">Meira</string>
     <string name="common_next">Næsta</string>
     <string name="common_none">Ekkert</string>
     <string name="common_notify_channel_backup_body">Aðeins þegar sjálfvirkt afrit mistekst. Árangursrík afrit eru hljóðlaus.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Sýna tilkynningar</string>
     <string name="common_permission_storage_body">Á Android 9 og eldri þarf lyklaborðið leyfi fyrir geymslu til að vista mynd í myndasafnið þitt. Gamla Android leyfið nær einnig yfir lestur á geymslunni þinni. Lyklaborðið skrifar aðeins myndina sem þú biður það um að vista. Lyklaborðið les ekkert og hleður engu upp. Nýrri Android útgáfur þurfa ekki þetta leyfi.</string>
     <string name="common_permission_storage_title">Aðgangur að geymslu til að vista í myndasafnið þitt</string>
+    <string name="common_permission_tasks_body">WM Keyboard heldur verkefnalistanum sínum og einum verkefnalista í verkefnaforritinu samstilltum: verkefnin, skrefin þeirra, merkingar og skiladagar, í báðar áttir. Heimildin nær yfir alla verkefnalista í forritinu. Lyklaborðið les lista forritsins eingöngu svo þú getir valið einn, og það les og skrifar aðeins listann sem þú valdir. Lyklaborðið sendir ekkert neitt. DAVx5, ef þú notar það, samstillir þann lista við þinn eigin CalDAV-þjón. Án þessarar heimildar verður verkefnalistinn áfram í þessum síma.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-aðgangur fyrir verkefnalistann</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org aðgangur fyrir verkefnalistann</string>
+    <string name="common_preview_scale_desc">Forskoðunarstærð</string>
+    <string name="common_preview_scale_larger">Stækka forskoðun</string>
+    <string name="common_preview_scale_smaller">Gera forskoðun minni</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Fjarlægja</string>
     <string name="common_reset">Endurstilla</string>
     <string name="common_reset_defaults">Endurstilla á sjálfgefið</string>

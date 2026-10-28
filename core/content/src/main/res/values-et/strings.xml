@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Kopeeri</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Numbrid</string>
+    <string name="core_content_selection_macro_edit_word">Muuda sõna</string>
     <string name="core_content_selection_macro_email">E-post</string>
     <string name="core_content_selection_macro_fancy">Uhke</string>
     <string name="core_content_selection_macro_find">Otsi</string>

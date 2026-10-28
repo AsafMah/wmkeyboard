@@ -86,6 +86,45 @@ class StickerPackFileTest {
     }
 
     @Test
+    fun `stages a pack and adds only the stickers picked from it`() {
+        val source = store("source")
+        val pack = seed(source, "Cats", 4)
+        val bytes = export(source, pack)
+
+        val target = store("target")
+        val staged = StickerPackFile.stage(ByteArrayInputStream(bytes), target, FALLBACK_NAME)
+        assertTrue(staged is StickerStageResult.Ready)
+        val ready = (staged as StickerStageResult.Ready).pack
+        assertEquals("Cats", ready.name)
+        assertEquals(listOf(0, 1, 2, 3), ready.pickable)
+        // Nothing is in the store until the user says which.
+        assertTrue(target.isEmpty())
+        assertTrue(ready.stickers.all { it.file!!.isFile })
+
+        val result = ready.adopt(target, setOf(1, 3), normalize = passthrough)
+
+        val imported = (result as StickerImportResult.Imported).pack
+        assertEquals(listOf("sticker 1", "sticker 3"), imported.stickers.map { it.name })
+        assertTrue(result.repairs.isEmpty())
+        // The staged pictures go once the pack is in.
+        assertFalse(ready.stickers.first().file!!.exists())
+    }
+
+    @Test
+    fun `discarding a staged pack keeps nothing`() {
+        val source = store("source")
+        val bytes = export(source, seed(source, "Cats", 2))
+
+        val target = store("target")
+        val ready = (StickerPackFile.stage(ByteArrayInputStream(bytes), target, FALLBACK_NAME) as StickerStageResult.Ready).pack
+        val file = ready.stickers.first().file!!
+        ready.discard()
+
+        assertFalse(file.exists())
+        assertTrue(target.isEmpty())
+    }
+
+    @Test
     fun `import regenerates ids so a re-import cannot collide`() {
         val source = store("source")
         val pack = seed(source, "Cats", 2)

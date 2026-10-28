@@ -110,6 +110,18 @@ class EspansoWriterTest {
     }
 
     @Test
+    fun `expanding immediately round-trips both ways`() {
+        val anywhere = snippet(trigger = ":sig").copy(immediate = true, insideWords = true)
+        val atStart = snippet(trigger = "btw").copy(immediate = true)
+        val written = EspansoWriter.encodeMatchFile(listOf(anywhere, atStart)).text
+        assertTrue(written.contains("left_word: true"))
+        assertFalse(written.contains("    word: true"))
+        val back = roundTrip(anywhere, atStart).snippets
+        assertTrue(back[0].immediate && back[0].insideWords)
+        assertTrue(back[1].immediate && !back[1].insideWords)
+    }
+
+    @Test
     fun `propagate case round-trips with its style`() {
         val out = roundTrip(
             snippet(propagateCase = true, style = UppercaseStyle.CAPITALIZE_WORDS),

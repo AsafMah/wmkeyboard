@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Music ID tool. -->
+<resources>
+    <string name="ime_music_tab_listen">Listen</string>
+    <string name="ime_music_tab_history">History</string>
+    <string name="ime_music_tab_history_count">History (%1$d)</string>
+    <string name="ime_music_settings_desc">Music ID settings</string>
+
+    <string name="ime_music_listen_action">Listen</string>
+    <string name="ime_music_listen_desc">Listen for the song that is playing</string>
+    <string name="ime_music_idle_hint">Hold the phone towards the music and tap</string>
+    <string name="ime_music_sources_online">Asks %1$s</string>
+    <string name="ime_music_listening_progress">Listening… %1$d s</string>
+    <string name="ime_music_listening_hint">Tap to stop early</string>
+    <string name="ime_music_stop_desc">Stop listening and ask now</string>
+    <string name="ime_music_recognizing_online">Asking %1$s…</string>
+    <string name="ime_music_too_short">Listen a little longer before stopping</string>
+    <string name="ime_music_mic_busy">Voice typing has the microphone. Stop dictating first.</string>
+    <string name="ime_music_mic_failed">The microphone could not be opened</string>
+    <string name="ime_music_mic_blocked">The microphone is blocked in Quick Settings</string>
+    <string name="ime_music_failed_generic">The recogniser did not answer</string>
+
+    <string name="ime_music_now_playing_title">Now playing on this phone</string>
+    <string name="ime_music_listen_anyway">Listen anyway</string>
+    <string name="ime_music_via">Recognised by %1$s</string>
+    <string name="ime_music_insert">Insert</string>
+    <string name="ime_music_picture">Picture</string>
+    <string name="ime_music_picture_desc">Send the song as a picture</string>
+    <string name="ime_music_open_in">Open in %1$s</string>
+    <string name="ime_music_copy">Copy</string>
+    <string name="ime_music_copied">Copied</string>
+    <string name="ime_music_listen_again">Listen again</string>
+    <string name="ime_music_no_app">No app can open that link</string>
+    <string name="ime_music_picture_sent">Picture sent</string>
+    <string name="ime_music_picture_failed">Could not make the picture</string>
+    <string name="ime_music_card_footer">WM Keyboard</string>
+
+    <string name="ime_music_no_match_title">No match</string>
+    <string name="ime_music_no_match_body">Nobody knew this one. Get closer to the sound and try again, or try with another recogniser on.</string>
+    <string name="ime_music_silent_title">Nothing heard</string>
+    <string name="ime_music_silent_body">The microphone heard a quiet room. Is the music playing?</string>
+    <string name="ime_music_failed_title">Could not ask</string>
+    <string name="ime_music_retry">Try again</string>
+
+    <string name="ime_music_needs_mic_title">Microphone needed</string>
+    <string name="ime_music_needs_mic_body">The keyboard records ten seconds only when you tap Listen, and sends it only to the recognisers you turned on.</string>
+    <string name="ime_music_allow_mic">Allow microphone</string>
+
+    <string name="ime_music_needs_provider_title">No recogniser yet</string>
+    <string name="ime_music_needs_provider_body">Turn on a recognition service with your key in the tool\'s settings.</string>
+    <string name="ime_music_set_up">Set up</string>
+
+    <string name="ime_music_metered_title">On mobile data</string>
+    <string name="ime_music_metered_body">Data saving holds the clip back. Sending it uses a few hundred kilobytes.</string>
+    <string name="ime_music_use_data">Use data</string>
+    <string name="ime_music_metered_blocked">Data saving blocks online recognition on this connection</string>
+    <string name="ime_music_secure_field">Online recognisers are skipped in a password field or incognito</string>
+
+    <string name="ime_music_history_empty_title">Nothing recognised yet</string>
+    <string name="ime_music_history_empty_body">Songs you recognise are kept here, ready to type again.</string>
+    <string name="ime_music_history_clear">Clear history</string>
+    <string name="ime_music_history_delete">Remove</string>
+    <string name="ime_music_history_insert">Insert</string>
+    <string name="ime_music_history_off">History is off in settings; nothing new is kept</string>
+</resources>

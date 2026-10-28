@@ -252,4 +252,24 @@ class AiChatStoreTest {
         assertEquals(listOf("kept.jpg"), conversation.images)
         assertEquals(1, conversation.firstImageOf(1))
     }
+
+    @Test
+    fun `a message's mode and format go to the model with it, and a plain one adds nothing`() {
+        assertEquals("hi", user("hi").promptText())
+        val summary = user("https://a.example").copy(mode = "summarize", format = "plain").promptText()
+        assertTrue(summary.startsWith("https://a.example\n\n<instructions>\nSummarise"))
+        assertTrue(summary.contains("plain text with no Markdown"))
+    }
+
+    @Test
+    fun `a file from before modes and follow-ups still decodes`() {
+        val file = tmp.newFile("chats.json")
+        file.writeText(
+            "{\"conversations\":[{\"id\":1,\"createdAt\":1,\"updatedAt\":1,\"messages\":[" +
+                "{\"role\":\"USER\",\"content\":\"q\",\"timestamp\":1}]}]}",
+        )
+        val message = AiChatStore(file).get(1)!!.messages.single()
+        assertEquals("", message.mode)
+        assertTrue(message.followUps.isEmpty())
+    }
 }

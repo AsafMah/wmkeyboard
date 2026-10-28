@@ -169,6 +169,29 @@ data class Snippet(
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val confirm: Boolean = false,
     /**
+     * Expand on the keystroke that finishes the trigger, with no space,
+     * punctuation or Enter after it.
+     *
+     * Espanso's default, and what its `word: true` turns off. A trigger that
+     * expands this way is never looked up again when the word ends: if it did
+     * not fire on its last letter it was escaped or taken back, and the space
+     * after it must leave it alone. Inert for a pattern, which is matched over
+     * whole words, and for a snippet that [asks], which has nothing to fire.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val immediate: Boolean = false,
+    /**
+     * With [immediate], fire in the middle of a word as well as at its start.
+     *
+     * Off, a trigger that begins with a letter or a digit needs something
+     * other than a letter or a digit in front of it, the same boundary every
+     * other trigger needs, so `btw` leaves "subtwig" alone. On, it fires
+     * wherever the text ends with it, which is what an Espanso match with no
+     * `word`, `left_word` or `right_word` does.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val insideWords: Boolean = false,
+    /**
      * The [SnippetFolder] this snippet belongs to, or 0 for none.
      *
      * Folders are one level deep and a snippet is in at most one of them, so
@@ -878,6 +901,25 @@ class SnippetStore(private val storageFile: File?) {
 
     /** True when some prefix trigger offers itself instead of expanding. */
     fun hasConfirmPrefixTriggers(): Boolean = index().hasConfirmPrefixTriggers
+
+    /** True when some trigger expands on its own last keystroke. */
+    fun hasImmediateTriggers(): Boolean = index().hasImmediateTriggers
+
+    /** Longest immediate trigger, in characters. See [SnippetIndex.immediateReach]. */
+    fun immediateReach(): Int = index().immediateReach
+
+    /**
+     * True when typing [last] could finish an immediate trigger, given [buffer]
+     * is the composing word, asked without reading the field.
+     */
+    fun couldFinishImmediate(last: Char, buffer: CharSequence): Boolean =
+        index().couldFinishImmediate(last, buffer)
+
+    /** The immediate trigger [before] ends with, or null. See [SnippetIndex.matchImmediate]. */
+    fun matchImmediate(before: CharSequence): ImmediateTrigger? = index().matchImmediate(before)
+
+    /** The snippet whose one-word immediate trigger is [word], for a glide. */
+    fun matchImmediateWord(word: String): Snippet? = index().matchImmediateWord(word)
 
     /** True when some trigger ends in a symbol (#471), the suffix path's gate. */
     fun hasSuffixTriggers(): Boolean = index().hasSuffixTriggers

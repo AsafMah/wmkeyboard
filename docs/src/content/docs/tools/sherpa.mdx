@@ -37,7 +37,7 @@ The sizes include Silero VAD (2 MB), a small voice detector every model carries 
 
 While you speak, the words go into the field as underlined composing text, rewritten as they grow, and the line under the microphone shows them too. When the phrase ends, the finished text replaces them and goes through the same spacing, spoken punctuation, casing and undo as any other dictation (see [Voice typing](/tools/voice/)).
 
-**Where a phrase ends.** With **Stop after a pause** set, Silero listens for you to stop talking and ends the phrase after that long a pause; with **Keep listening** on, the next phrase starts at once. Silero hears speech rather than loudness, so a fan or traffic does not keep the phrase open the way it can for a loudness threshold. With the setting off, the phrase runs until you press the microphone or two minutes pass.
+**Where a phrase ends.** With **Stop after a pause** set, Silero listens for you to stop talking and ends the phrase after that long a pause; with **Keep listening** on, the next phrase starts at once. Silero hears speech rather than loudness, so a fan or traffic does not keep the phrase open the way it can for a loudness threshold. With the setting off, the phrase runs until you press the microphone or two minutes pass. **Phrase end detector** on the Voice typing screen swaps Silero for FireRedVAD, plain loudness or a model of your own, and **Smart Turn** ends the phrase sooner when you sound finished; see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase).
 
 **Which model.** When two downloaded models know the language, the larger one dictates. The model list marks each one in use, and **Engine for each language** can pin a language to a particular model.
 
@@ -69,6 +69,6 @@ For Bangla, Sherpa is the only offline engine that shows the words while you spe
 
 **Several languages at once.** A dictation that listens for more than one language at a time needs one Sherpa model that knows all of them, which only the eight-language model can be. Otherwise the panel asks for a model.
 
-**The licences.** sherpa-onnx is Apache-2.0, ONNX Runtime is Microsoft's under MIT, Silero VAD is MIT. The Kroko models are Banafo's community models under CC-BY-SA-4.0, the Vosk models Alpha Cephei's under Apache-2.0. All of them are credited in the app's About screen.
+**The licences.** sherpa-onnx is Apache-2.0, ONNX Runtime is Microsoft's under MIT, Silero VAD is MIT, FireRedVAD is FireRedTeam's under Apache-2.0 and Smart Turn is pipecat's under BSD-2-Clause. The Kroko models are Banafo's community models under CC-BY-SA-4.0, the Vosk models Alpha Cephei's under Apache-2.0. All of them are credited in the app's About screen.
 
 **Where the runtime comes from.** The app never carries a copy of ONNX Runtime rebuilt by anyone but Microsoft: the Play build gets it from Play, the offline build carries Microsoft's own file inside the APK, and the GitHub and F-Droid builds read Microsoft's file straight out of its package on Maven Central, checked against a SHA-256 built into the app. See [Network activity](/privacy/network/).

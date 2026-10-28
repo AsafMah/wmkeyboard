@@ -41,11 +41,18 @@ jobs:
       # The test tasks build native/wm-engine-jni for this runner first
       # (build-host.sh), so the JVM suites and the prediction and glide evals
       # run the real Rust engine. The runner image has cargo; this keeps its
-      # build between runs.
+      # build between runs, and the engine's own test build.
       - name: Cache the Rust engine's host build
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: native/wm-engine-jni
+          workspaces: |
+            native/wm-engine
+            native/wm-engine-jni
+
+      # The engine's own tests (the glide join and frequency-weight ones
+      # among them), which no Gradle task runs.
+      - name: Test the Rust engine
+        run: cargo test --release --manifest-path native/wm-engine/Cargo.toml
 
       - name: Run unit tests
         # `unitTests` and not a bare testIntlDebugUnitTest: :app carries the

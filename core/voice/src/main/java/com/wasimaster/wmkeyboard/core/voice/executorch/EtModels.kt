@@ -135,7 +135,7 @@ object EtCatalog {
      * Omnilingual's audio into phrases. Kept beside each model rather than
      * once, so deleting a model never breaks another.
      */
-    private val SILERO_VAD = EtFile(
+    internal val SILERO_VAD = EtFile(
         "silero_vad.onnx", 1_807_522L, "a35ebf52fd3ce5f1469b2a36158dba761bc47b973ea3382b3186ca15b1f5af28",
         from = EtSource("csukuangfj/vad", "fba88cd2e921609e7675c3aaf51e0b9b295da4bc"),
     )

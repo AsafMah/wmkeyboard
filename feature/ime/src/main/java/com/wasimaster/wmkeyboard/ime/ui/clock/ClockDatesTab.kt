@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui.clock
 import android.icu.util.MeasureUnit
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -310,8 +311,9 @@ private fun CountdownCard(c: Countdown, today: LocalDay, menuOpen: Boolean, onHo
 
 /**
  * One date with steppers: a month back, a day back, the date (tap for
- * today), a day on, a month on.
+ * today, press and hold to type one), a day on, a month on.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DateStepper(label: String, day: LocalDay, field: DateField, act: (ClockAction) -> Unit) {
     val kb = LocalKbTheme.current
@@ -328,7 +330,10 @@ private fun DateStepper(label: String, day: LocalDay, field: DateField, act: (Cl
         Column(
             Modifier
                 .weight(1f)
-                .clickable { act(ClockAction.DateToday(field)) }
+                .combinedClickable(
+                    onLongClickLabel = stringResource(R.string.ime_clock_date_type_desc),
+                    onLongClick = { act(ClockAction.DateType(field)) },
+                ) { act(ClockAction.DateToday(field)) }
                 .padding(horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

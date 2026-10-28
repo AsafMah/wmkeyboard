@@ -329,6 +329,84 @@ object ToolHttp {
             }
     }
 
+    /** What [bytes] got back: the body as it came, its media type, and the headers asked for. */
+    class BytesResponse(
+        /** The media type alone, lower case, without its parameters. Empty when the server sent none. */
+        val contentType: String,
+        val body: ByteArray,
+        val headers: Map<String, String>,
+    )
+
+    /**
+     * One request whose answer is kept as bytes rather than text: a picture
+     * an image service sends back as the body, or fetches from where it put
+     * it. [body] is sent with [contentType] when given. Fails the way
+     * [postJson] does; a body past [maxBytes] fails as too large.
+     */
+    @Suppress("LongParameterList")
+    fun bytes(
+        url: String,
+        method: String = "GET",
+        body: ByteArray? = null,
+        contentType: String? = null,
+        headers: Map<String, String> = emptyMap(),
+        wantHeaders: Set<String> = emptySet(),
+        timeoutMs: Int = 120_000,
+        maxBytes: Long = 40L * 1024 * 1024,
+        source: NetSource? = null,
+        route: String? = null,
+    ): BytesResponse = metered(url, method, source, route) { connection, call ->
+        connection.connectTimeout = 15_000
+        connection.readTimeout = timeoutMs
+        connection.instanceFollowRedirects = true
+        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.requestMethod = method
+        for ((name, value) in headers) connection.setRequestProperty(name, value)
+        if (body != null) {
+            connection.doOutput = true
+            connection.setFixedLengthStreamingMode(body.size)
+            if (contentType != null) connection.setRequestProperty("Content-Type", contentType)
+            connection.send(body, call)
+        }
+        val status = connection.responseCode
+        call.status = status
+        val kept = wantHeaders.mapNotNull { name -> connection.getHeaderField(name)?.let { name to it } }.toMap()
+        if (status !in 200..299) throw httpFailure(status, connection.readError(call), kept)
+        val type = connection.contentType.orEmpty().substringBefore(';').trim().lowercase()
+        val out = java.io.ByteArrayOutputStream()
+        call.countIn(connection.inputStream).use { input ->
+            val buffer = ByteArray(16_384)
+            var total = 0L
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                total += read
+                if (total > maxBytes) throw ToolHttpException(R.string.core_tools_error_file_too_large)
+                out.write(buffer, 0, read)
+            }
+        }
+        BytesResponse(type, out.toByteArray(), kept)
+    }
+
+    /** [bytes] with a `multipart/form-data` body of [fields] and an optional [file]. */
+    @Suppress("LongParameterList")
+    fun multipartBytes(
+        url: String,
+        fields: List<Pair<String, String>>,
+        file: FilePart? = null,
+        headers: Map<String, String> = emptyMap(),
+        wantHeaders: Set<String> = emptySet(),
+        timeoutMs: Int = 120_000,
+        source: NetSource? = null,
+        route: String? = null,
+    ): BytesResponse {
+        val boundary = "----wmkb" + java.util.UUID.randomUUID().toString().replace("-", "")
+        return bytes(
+            url, "POST", multipartBody(boundary, fields, file), "multipart/form-data; boundary=$boundary",
+            headers, wantHeaders, timeoutMs, source = source, route = route,
+        )
+    }
+
     /** What [exchange] hands its reader: the response before its body is read. */
     class Exchange(
         val status: Int,
@@ -549,18 +627,27 @@ object ToolHttp {
      * The provider's own error text, when the response body carried any.
      * Google APIs return `{"error": {"message": …}}` and Brave
      * `{"error": {"detail": …}}`; Tavily returns `{"detail": {"error": …}}`,
-     * or `{"error": …}` when rate-limited. Anything else reads as no message
-     * at all.
+     * or `{"error": …}` when rate-limited. The image services add two more:
+     * `{"message": …}` (AI Horde, Stability's account calls) and
+     * `{"errors": […]}` (Stability, Cloudflare), a list of strings or of
+     * objects with a message. A bare `{"detail": …}` string is left out: it
+     * is usually a framework's "Not Found", which says less than our own
+     * wording for the status. Anything else reads as no message at all.
      */
     fun apiErrorText(body: String?): String? = body?.let {
         runCatching {
             val root = Json.parseToJsonElement(it).jsonObject
             val error = root["error"]
+            fun text(e: kotlinx.serialization.json.JsonElement?): String? =
+                (e as? JsonPrimitive)?.takeIf { p -> p.isString }?.content
             (error as? JsonObject)?.let { e -> e["message"] ?: e["detail"] }
                 ?.let { m -> (m as? JsonPrimitive)?.content }
-                ?: (error as? JsonPrimitive)?.takeIf { e -> e.isString }?.content
-                ?: ((root["detail"] as? JsonObject)?.get("error") as? JsonPrimitive)
-                    ?.takeIf { e -> e.isString }?.content
+                ?: text(error)
+                ?: text((root["detail"] as? JsonObject)?.get("error"))
+                ?: text(root["message"])
+                ?: (root["errors"] as? kotlinx.serialization.json.JsonArray)?.firstOrNull()?.let { first ->
+                    text(first) ?: text((first as? JsonObject)?.get("message"))
+                }
         }.getOrNull()
     }?.takeIf { it.isNotBlank() }
 

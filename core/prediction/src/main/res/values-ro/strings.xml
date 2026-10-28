@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Numărate din subtitrări și text web. Mult mai multe cuvinte, cu mai multe nume, argou și greșeli de scriere.</string>
     <string name="core_pred_wordlist_source_frequency_label">Frecvență</string>
+    <string name="core_pred_wordlist_variant_australia_label">Australia</string>
     <string name="core_pred_wordlist_variant_brazil_label">Brazilia</string>
+    <string name="core_pred_wordlist_variant_canada_label">Canada</string>
     <string name="core_pred_wordlist_variant_europe_label">Europa</string>
     <string name="core_pred_wordlist_variant_uk_label">Regatul Unit</string>
     <string name="core_pred_wordlist_variant_us_label">Statele Unite</string>

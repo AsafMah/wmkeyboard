@@ -66,10 +66,11 @@ class ConfigBackupTest {
     }
 
     @Test
-    fun `clock encodes after notes and AI memory comes last`() {
+    fun `clock encodes after notes and the to-do list comes last`() {
         // Sections encode in declaration order and older builds read bundles
         // positionally, so a new section may only ever be appended.
-        assertEquals(ConfigBackup.Section.AI_MEMORY, ConfigBackup.Section.entries.last())
+        assertEquals(ConfigBackup.Section.TODO, ConfigBackup.Section.entries.last())
+        assertEquals(ConfigBackup.Section.AI_MEMORY, ConfigBackup.Section.entries[ConfigBackup.Section.entries.size - 2])
         val payload = buildJsonObject { put("a", JsonPrimitive(1)) }
         val text = ConfigBackup.encode(
             1,

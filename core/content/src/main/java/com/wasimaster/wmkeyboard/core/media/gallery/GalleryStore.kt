@@ -144,9 +144,16 @@ object GalleryStore {
         filter: GalleryFilter,
         videos: Boolean,
         sentIds: List<Long>,
+        hiddenFolders: Set<String> = emptySet(),
     ): Pair<String, Array<String>> {
         val parts = mutableListOf(typeClause(videos))
         val args = mutableListOf<String>()
+        // Folders the user took out of the gallery (#970), by bucket id: gone
+        // from every album, Recents and Favorites included, not just their own.
+        if (hiddenFolders.isNotEmpty()) {
+            parts += "$BUCKET_ID NOT IN (${hiddenFolders.joinToString(",") { "?" }})"
+            args += hiddenFolders
+        }
         when (filter) {
             GalleryFilter.ALL -> Unit
             GalleryFilter.PHOTOS -> parts += "${MediaStore.Files.FileColumns.MEDIA_TYPE}=" +
@@ -194,8 +201,9 @@ object GalleryStore {
         limit: Int,
         videos: Boolean,
         sentIds: List<Long> = emptyList(),
+        hiddenFolders: Set<String> = emptySet(),
     ): List<GalleryItem> {
-        val (where, args) = selection(album, filter, videos && canReadVideos(context), sentIds)
+        val (where, args) = selection(album, filter, videos && canReadVideos(context), sentIds, hiddenFolders)
         val items = query(context.contentResolver, where, args, newestFirst, offset, limit) { readItem(it) }
         if (album.kind != AlbumKind.SENT) return items
         val rank = sentIds.withIndex().associate { (i, id) -> id to i }
@@ -217,7 +225,12 @@ object GalleryStore {
      * columns of the whole library, which is a few tens of milliseconds even
      * on a library of tens of thousands.
      */
-    fun albums(context: Context, videos: Boolean, sentIds: List<Long>): List<GalleryAlbum> {
+    fun albums(
+        context: Context,
+        videos: Boolean,
+        sentIds: List<Long>,
+        hiddenFolders: Set<String> = emptySet(),
+    ): List<GalleryAlbum> {
         val withVideos = videos && canReadVideos(context)
         val cols = buildList {
             add(MediaStore.Files.FileColumns._ID)
@@ -245,6 +258,7 @@ object GalleryStore {
             val path = c.getColumnIndex(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) RELATIVE_PATH else DATA)
             val fav = c.getColumnIndex(MediaStore.MediaColumns.IS_FAVORITE)
             while (c.moveToNext()) {
+                if (hiddenFolders.isNotEmpty() && c.getStringOrEmpty(bucket) in hiddenFolders) continue
                 val rowId = c.getLong(id)
                 val m = c.getStringOrEmpty(mime)
                 val kind = GalleryItem.kindOf(m, c.getIntOr(type, 0))

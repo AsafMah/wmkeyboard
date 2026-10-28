@@ -84,7 +84,7 @@ class DictionaryCatalogTest {
     fun everyAospListHasACountedListBesideIt() {
         // "Use ours instead" has to be possible wherever AOSP is the default.
         val aosp = DictionaryCatalog.entries.filter { it.source == WordlistSource.AOSP }
-        assertEquals(25, aosp.size)
+        assertEquals(27, aosp.size)
         for (entry in aosp) {
             assertTrue(
                 "${entry.id} has no counted list to switch to",
@@ -110,12 +110,14 @@ class DictionaryCatalogTest {
     }
 
     @Test
-    fun englishAospListsAreTheTwoSpellings() {
+    fun englishAospListsAreTheFourSpellings() {
         val en = DictionaryCatalog.forLanguage("en").filter { it.source == WordlistSource.AOSP }
         assertEquals(
             listOf(
                 "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_aosp.txt.gz",
                 "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_gb_aosp.txt.gz",
+                "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_ca_aosp.txt.gz",
+                "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/en/en_au_aosp.txt.gz",
             ),
             en.map { it.url },
         )

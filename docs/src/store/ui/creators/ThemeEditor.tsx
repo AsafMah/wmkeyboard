@@ -9,6 +9,7 @@ import { slugify } from '../../lib/util';
 import { CopyButton, Notice } from '../common';
 import { IconDownload, IconPlus, IconTrash, IconWarn } from '../icons';
 import { KeyboardMock } from '../previews/KeyboardMock';
+import { CommunitySubmit } from './CommunitySubmit';
 import { Area, bytesToBase64, Color, DropZone, ExportPanel, idError, Num, Range, saveJson, Section, Select, Text, Toggle, useDraft } from './shared';
 
 const SHAPES = KEY_SHAPES.filter((s) => s !== 'NONE');
@@ -271,6 +272,14 @@ export function ThemeEditor() {
 					<span class="st-small st-muted">{Math.round(json.length / 1024)} KB{assetBytes ? ` · ${Math.round(assetBytes / 1024)} KB of images embedded` : ''}</span>
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) reset(); }}>Start over</button>
 				</ExportPanel>
+				<CommunitySubmit
+					kind="theme"
+					name={s.name}
+					// The credit travels in its own form field, not inside the file.
+					json={JSON.stringify({ ...spec, basedOn: undefined }, null, 2)}
+					basedOn={(s.basedOn as { key?: string } | null | undefined)?.key}
+					disabled={!s.id || !s.name}
+				/>
 			</aside>
 		</div>
 	);

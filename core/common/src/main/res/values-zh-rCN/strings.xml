@@ -26,6 +26,7 @@
     <string name="common_default">默认</string>
     <string name="common_delete">删除</string>
     <string name="common_disable">关闭</string>
+    <string name="common_disabled_open_setting">打开设置</string>
     <string name="common_disclosure_blocked_body">由于您之前拒绝了该权限，Android 不再显示此请求。您仍然可以在应用设置屏幕中将其开启。</string>
     <string name="common_disclosure_not_now">以后再说</string>
     <string name="common_done">完成</string>
@@ -44,6 +45,7 @@
     <string name="common_install">安装</string>
     <string name="common_installing">正在安装…</string>
     <string name="common_loading">正在加载…</string>
+    <string name="common_more">更多</string>
     <string name="common_next">下一步</string>
     <string name="common_none">无</string>
     <string name="common_notify_channel_backup_body">仅在自动备份失败时通知。成功的备份不会发出通知。</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">显示通知</string>
     <string name="common_permission_storage_body">在 Android 9 及更早版本中，键盘需要存储权限才能将图片保存到您的相册。旧版 Android 权限也涵盖了读取存储空间。键盘仅写入您要求保存的图片。键盘不会读取或上传任何内容。较新的 Android 版本不需要此权限。</string>
     <string name="common_permission_storage_title">保存到图库所需的存储访问权限</string>
+    <string name="common_permission_tasks_body">WM 键盘可将其待办事项列表与任务应用中的一个任务列表保持同步：包括任务、步骤、勾选状态和截止日期，实现双向同步。此权限涵盖应用中的所有任务列表。键盘仅读取应用列表以便您进行选择，且仅读取和写入您所选的列表。键盘不会向任何地方发送数据。如果您使用 DAVx5，它会将该列表与您自己的 CalDAV 服务器同步。若无此权限，待办事项列表将仅保留在本机上。</string>
+    <string name="common_permission_tasks_opentasks_title">用于待办事项列表的 OpenTasks 访问权限</string>
+    <string name="common_permission_tasks_tasks_org_title">用于待办事项列表的 Tasks.org 访问权限</string>
+    <string name="common_preview_scale_desc">预览大小</string>
+    <string name="common_preview_scale_larger">放大预览</string>
+    <string name="common_preview_scale_smaller">缩小预览</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">移除</string>
     <string name="common_reset">重置</string>
     <string name="common_reset_defaults">重置为默认值</string>

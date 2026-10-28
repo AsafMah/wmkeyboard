@@ -46,6 +46,7 @@ import com.wasimaster.wmkeyboard.app.ChoiceSetting
 import com.wasimaster.wmkeyboard.app.LiveSettings
 import com.wasimaster.wmkeyboard.app.NavRow
 import com.wasimaster.wmkeyboard.app.PermissionDisclosures
+import com.wasimaster.wmkeyboard.app.SettingLevel
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
 import com.wasimaster.wmkeyboard.app.SwipeAction
@@ -121,7 +122,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 default = d.expireSeconds,
             ) { v -> update { it.copy(expireSeconds = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.send_downloads_title,
                 subtitle = stringResource(R.string.send_downloads_subtitle),
@@ -130,7 +131,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 default = d.downloads,
             ) { v -> update { it.copy(downloads = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.send_password_title,
                 subtitle = stringResource(R.string.send_password_subtitle),
@@ -143,7 +144,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 default = d.password,
             ) { v -> update { it.copy(password = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.send_after_title,
                 subtitle = stringResource(R.string.send_after_subtitle),
@@ -159,7 +160,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
         }
     }
 
-    SettingsGroup(stringResource(R.string.send_receive_group)) {
+    SettingsGroup(stringResource(R.string.send_receive_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.send_detect_title,
@@ -192,7 +193,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
             tone = BannerTone.INFO,
         ) { ask() }
     }
-    SettingsGroup(stringResource(R.string.send_nearby_group)) {
+    SettingsGroup(stringResource(R.string.send_nearby_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.send_nearby_title,
@@ -201,7 +202,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
                 default = d.nearby,
             ) { v -> update { it.copy(nearby = v) } }
         }
-        item(visible = nearby) {
+        item(visible = nearby, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.send_keep_direct_title,
                 stringResource(R.string.send_keep_direct_subtitle),
@@ -218,7 +219,7 @@ internal fun SendToolSettings(repository: SettingsRepository, settings: LiveSett
         }
     }
 
-    SettingsGroup(stringResource(R.string.send_sharing_group)) {
+    SettingsGroup(stringResource(R.string.send_sharing_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.send_share_sheet_title,

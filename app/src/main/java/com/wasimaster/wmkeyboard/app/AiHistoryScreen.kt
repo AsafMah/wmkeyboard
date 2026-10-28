@@ -150,7 +150,7 @@ internal fun AiHistoryScreen(repository: SettingsRepository, settings: LiveSetti
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_models_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_continue_group_title)) {
         item {
             val charsFormat = stringResource(R.string.values_number)
             SliderSetting(

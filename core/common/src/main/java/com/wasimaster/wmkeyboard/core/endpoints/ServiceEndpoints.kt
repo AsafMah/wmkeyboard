@@ -6,7 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * The part of the settings a service belongs to, for grouping the fields on
  * the Servers screen. The labels live in `:app`.
  */
-enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, AI, UPDATES }
+enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, SPEED_TEST, AI, MUSIC, UPDATES }
 
 /**
  * Every network API the keyboard calls, and the base address it calls by
@@ -84,11 +84,29 @@ enum class ServiceEndpoint(
     ER_API("er_api", "https://open.er-api.com", ServiceGroup.CURRENCY),
     COINBASE("coinbase", "https://api.coinbase.com", ServiceGroup.CURRENCY),
     COINGECKO("coingecko", "https://api.coingecko.com", ServiceGroup.CURRENCY),
+
+    /**
+     * The speed test's default server: Cloudflare's `__down` and `__up`
+     * endpoints, which hand out and swallow random bytes, and `/meta`, which
+     * names the connection's network and the data centre that answered.
+     */
+    CLOUDFLARE_SPEED("cloudflare_speed", "https://speed.cloudflare.com", ServiceGroup.SPEED_TEST),
+
+    /** Where the list of volunteer LibreSpeed servers is fetched from, for the picker. */
+    LIBRESPEED_LIST("librespeed_list", "https://librespeed.org", ServiceGroup.SPEED_TEST),
     ANTHROPIC("anthropic", "https://api.anthropic.com", ServiceGroup.AI),
     OPENAI("openai", "https://api.openai.com", ServiceGroup.AI),
     GEMINI("gemini", "https://generativelanguage.googleapis.com", ServiceGroup.AI),
     XAI("xai", "https://api.x.ai", ServiceGroup.AI),
     DEEPSEEK("deepseek", "https://api.deepseek.com", ServiceGroup.AI),
+    /** The Music ID tool's recognition services; ACRCloud is not here, since each project has a host of its own. */
+    AUDD("audd", "https://api.audd.io", ServiceGroup.MUSIC),
+    AUDIOTAG("audiotag", "https://audiotag.info", ServiceGroup.MUSIC),
+    RAPIDAPI_SHAZAM("rapidapi_shazam", "https://shazam.p.rapidapi.com", ServiceGroup.MUSIC),
+
+    /** Cover art and store links for a song named without them. */
+    ITUNES_SEARCH("itunes_search", "https://itunes.apple.com", ServiceGroup.MUSIC),
+    DEEZER_API("deezer_api", "https://api.deezer.com", ServiceGroup.MUSIC),
     KEYMAN_API("keyman_api", "https://api.keyman.com", ServiceGroup.DOWNLOADS),
     KEYMAN_DOWNLOADS("keyman_downloads", "https://downloads.keyman.com", ServiceGroup.DOWNLOADS),
     ANIMATED_EMOJI("animated_emoji", "https://fonts.gstatic.com/s/e/notoemoji/latest", ServiceGroup.DOWNLOADS),
@@ -118,6 +136,13 @@ enum class ServiceRepo(
 
     /** The key-sound repository offered on a fresh install. */
     SOUNDS("sounds", RepoLocation(GitForge.GITHUB, "github.com", "wasi-master", "wmkeyboard-monkeytype-sounds")),
+
+    /**
+     * Themes and layouts people made and submitted, offered on a fresh install.
+     * Submissions go to this repository's GitHub issues whatever the mirror
+     * says, since that is where its bot runs.
+     */
+    COMMUNITY("community", RepoLocation(GitForge.GITHUB, "github.com", "wasi-master", "wmkeyboard-community-addons")),
 
     /** The Espanso Hub's package repository, for `hub.espanso.org/<package>` links. */
     ESPANSO_HUB("espanso_hub", RepoLocation(GitForge.GITHUB, "github.com", "espanso", "hub", "main")),

@@ -13,6 +13,8 @@
     <string name="tooldetail_enabled_needs_key_subtitle">Add the API key below to turn this tool on</string>
     <string name="tooldetail_enabled_needs_instance_subtitle">Needs a SearXNG instance. Add its address under Search settings.</string>
     <string name="tooldetail_enabled_voice_off_subtitle">Voice typing is off. Turn it on under All voice typing settings below.</string>
+    <string name="tooldetail_enabled_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
+    <string name="tooldetail_enabled_needs_music_provider_subtitle">Set up a song recogniser with your key under Song recognisers below to turn this tool on</string>
     <string name="tooldetail_enabled_needs_layout_subtitle">Make a secondary layout under Key layouts below to turn this tool on</string>
     <!-- A switch under the one above. Off takes the tool out of the toolbox grid
          (the panel that lists every tool) while it stays on everywhere else. -->
@@ -107,6 +109,8 @@
     <!-- Moon phase tool. -->
     <string name="tooldetail_moon_southern_title">Southern hemisphere</string>
     <string name="tooldetail_moon_southern_subtitle">Show the moon the way it looks south of the equator</string>
+    <string name="tooldetail_moon_arabic_title">Arabic names too</string>
+    <string name="tooldetail_moon_arabic_subtitle">Show the name of each phase in Arabic as well, under the name in your language</string>
 
     <!-- Weather tool. -->
     <string name="tooldetail_weather_fahrenheit_title">Fahrenheit</string>
@@ -342,6 +346,17 @@
 
     <!-- Power saving tool: which features it drops. -->
     <string name="tooldetail_power_drop_group">Effects to drop</string>
+    <!-- One bundle over the twelve drop switches. -->
+    <string name="tooldetail_power_preset_title">What to drop</string>
+    <string name="tooldetail_power_preset_subtitle">A bundle of the switches further down</string>
+    <string name="tooldetail_power_preset_light">Light</string>
+    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, the glide trail, glass blur and the background watchers</string>
+    <string name="tooldetail_power_preset_balanced">Balanced</string>
+    <string name="tooldetail_power_preset_balanced_desc">Light, plus background fetches and the on-device models</string>
+    <string name="tooldetail_power_preset_aggressive">Aggressive</string>
+    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions and smart chips</string>
+    <string name="tooldetail_power_preset_custom">Custom</string>
+    <string name="tooldetail_power_preset_custom_desc">Your own mix of the switches further down</string>
     <string name="tooldetail_power_drop_helpers_group">Typing helpers to drop</string>
     <string name="tooldetail_power_drop_background_group">Background work to drop</string>
     <string name="tooldetail_power_drop_haptics_title">Key vibration</string>
@@ -443,7 +458,7 @@
     <string name="tooldetail_handwriting_full_screen_automatic_label">Stylus</string>
     <string name="tooldetail_handwriting_full_screen_automatic_desc">A stylus writes and a finger keeps using the app. Start each run of writing over a text field. Needs Android\'s own setting for writing in text fields with a stylus</string>
     <string name="tooldetail_handwriting_models_header">Recognition models</string>
-    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device, with Google ML Kit or, for Chinese and Japanese, zinnia. Each language needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 52 MB. After that, handwriting works offline.</string>
+    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device, with Google ML Kit, zinnia for Chinese and Japanese, or PaddleOCR where ML Kit has no model (one row per script). Each needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 52 MB. After that, handwriting works offline.</string>
     <string name="tooldetail_handwriting_languages_title">Languages and layouts</string>
     <string name="tooldetail_handwriting_languages_subtitle">Add a language to get its handwriting model here</string>
 
@@ -554,6 +569,10 @@
     <string name="tooldetail_media_spacing_title">Gap between cells</string>
     <string name="tooldetail_media_spacing_subtitle">The space around each GIF and sticker in the grid. This applies to both tools</string>
     <string name="tooldetail_media_spacing_value" tools:ignore="PluralsCandidate">%1$d dp</string>
+    <!-- Toggle: whether the GIF and sticker panels reopen on the last search. -->
+    <string name="tooldetail_media_remember_search_title">Remember the last search</string>
+    <string name="tooldetail_media_remember_search_subtitle">Open the panel on the search you left it on, instead of trending</string>
+    <string name="tooldetail_media_remember_search_info">On, closing the panel or moving to another text box keeps the search and the category chip you picked, and the panel opens on them next time. Off, the panel always opens on trending with no search typed. This applies to both tools.</string>
     <string name="tooldetail_media_hide_header_title">Hide the search when you scroll</string>
     <string name="tooldetail_media_hide_header_subtitle">Scroll down to fold the search box and the chips away, and scroll up to bring them back</string>
     <string name="tooldetail_gif_collections_group">Favourites and recent</string>
@@ -648,6 +667,12 @@
     <string name="tooldetail_tavily_advanced_title">Search depth</string>
     <string name="tooldetail_tavily_advanced_subtitle">Faster answers, or better results for more credits</string>
     <string name="tooldetail_tavily_advanced_info">Tavily has four search depths. Basic is the default. Ultra fast and Fast answer sooner and cost 1 credit, but they do not take SafeSearch, so results are not filtered at those depths. Advanced looks deeper into each page for the parts that match your query, and costs 2 credits. The free plan gives 1,000 credits each month.</string>
+    <!-- SearXNG is a brand name: keep it as it is. -->
+    <string name="tooldetail_searx_group">SearXNG</string>
+    <string name="tooldetail_searx_categories_title">Search categories</string>
+    <string name="tooldetail_searx_categories_subtitle">Show these beside All and Images in the search panel</string>
+    <string name="tooldetail_searx_categories_fallback">Your instance did not list its categories, so these are the usual ones</string>
+    <string name="tooldetail_searx_categories_info">SearXNG sorts its search engines into categories, such as news, videos, science and music. The ones you pick here show as chips in the search panel, beside All and Images, and a tap on one searches in that category only. The list comes from your instance, so it shows only the categories that the instance has. Images is always a tab of its own. The chips show only while a SearXNG instance does the search.</string>
     <string name="tooldetail_tavily_depth_ultra_fast">Ultra fast</string>
     <string name="tooldetail_tavily_depth_ultra_fast_desc">The quickest answer, with one short summary of each page. 1 credit. No SafeSearch.</string>
     <string name="tooldetail_tavily_depth_fast">Fast</string>
@@ -857,6 +882,11 @@
     <string name="tooldetail_passphrase_capitalize_subtitle" translatable="false">correct-Horse → Correct-Horse</string>
     <string name="tooldetail_passphrase_digit_title">Include a digit</string>
     <string name="tooldetail_passphrase_digit_subtitle">The keyboard adds it to a random word</string>
+    <string name="tooldetail_pin_group">PIN</string>
+    <string name="tooldetail_pin_length_title">Digits</string>
+    <string name="tooldetail_pin_avoid_weak_title">No easy PINs</string>
+    <!-- The digits are examples of PINs the generator skips. Keep them as they are. -->
+    <string name="tooldetail_pin_avoid_weak_subtitle">Skip PINs like 1111, 1234, 1212 and dates, which many apps refuse and guessers try first</string>
     <string name="tooldetail_password_info">The keyboard generates everything on your device with a cryptographic random source. It never stores it and never logs it. Passphrase words come from the bundled English word list of the keyboard.</string>
 
     <!-- Text repeat tool. The panel edits these too, so they are also where it was last left. -->
@@ -956,6 +986,15 @@
         <item quantity="other">%1$d pairs</item>
     </plurals>
     <string name="tooldetail_launcher_combos_none_subtitle">Two apps that open side by side with one tap</string>
+    <string name="tooldetail_launcher_work_title">Work apps</string>
+    <string name="tooldetail_launcher_work_subtitle">Also list the apps in your work profile</string>
+    <string name="tooldetail_launcher_work_info">Work apps carry a briefcase on their icon. While work apps are paused they show dimmed, and opening one asks Android to turn work apps back on. The keyboard needs no extra permission for this.</string>
+    <string name="tooldetail_launcher_folders_title">App folders</string>
+    <string name="tooldetail_launcher_folders_none_subtitle">No folders yet. Press and hold an app in the panel and pick Add to folder.</string>
+    <plurals name="tooldetail_launcher_folders_count">
+        <item quantity="one">%1$d folder. Tap to remove it and put its apps back in the grid.</item>
+        <item quantity="other">%1$d folders. Tap to remove all of them and put their apps back in the grid.</item>
+    </plurals>
 
     <string name="tooldetail_camera_timer_title">Self-timer</string>
     <string name="tooldetail_camera_timer_subtitle">The timer the camera opens on</string>

@@ -13,6 +13,8 @@
     <string name="ime_clock_search_hint">Search a city, a country or an offset like +5:30</string>
     <string name="ime_clock_label_hint">Label</string>
     <string name="ime_clock_countdown_title_hint">What are you counting down to?</string>
+    <string name="ime_clock_date_hint">Type a date, like 17/5/2004</string>
+    <string name="ime_clock_date_type_desc">Type a date</string>
     <string name="ime_clock_zone_label_hint">Name for this clock, such as Mum or Office</string>
     <string name="ime_clock_undo_alarm">Alarm deleted</string>
     <string name="ime_clock_undo_history">History cleared</string>

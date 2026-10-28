@@ -240,7 +240,7 @@ fun PhotoRotationScreen(
                     onClick = { intervalOpen = true },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NavRow(
                     title = R.string.photo_rotation_scope_title,
                     value = stringResource(settings.watch { it.photoBackground.scope }.labelRes),
@@ -248,7 +248,7 @@ fun PhotoRotationScreen(
                 )
             }
             // Without this the "Themes I select" choice would select nothing.
-            item(visible = pickingThemes) {
+            item(visible = pickingThemes, level = SettingLevel.STANDARD) {
                 val picked = settings.watch { it.photoBackground.scopeThemeIds.size }
                 NavRow(
                     title = R.string.photo_rotation_scope_pick_title,
@@ -302,7 +302,7 @@ fun PhotoRotationScreen(
                         onClick = { topicsOpen = true },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     TextFieldSetting(
                         label = stringResource(R.string.photo_rotation_terms_label),
                         value = settings.watch { it.photoBackground.queries }.joinToString(", "),
@@ -314,7 +314,7 @@ fun PhotoRotationScreen(
                         )
                     }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         title = R.string.photo_rotation_wide_title,
                         subtitle = stringResource(R.string.photo_rotation_wide_subtitle),
@@ -322,7 +322,7 @@ fun PhotoRotationScreen(
                         default = SettingsDefaults.photoBackground.landscapeOnly,
                     ) { scope.launch { repository.setPhotoLandscapeOnly(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         title = R.string.photo_rotation_safe_title,
                         subtitle = stringResource(R.string.photo_rotation_safe_subtitle),
@@ -334,7 +334,7 @@ fun PhotoRotationScreen(
                 // network without touching the stored choice, so the row says
                 // so and points at the policy instead of showing a switch that
                 // does nothing there.
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         title = R.string.photo_rotation_metered_title,
                         subtitle = stringResource(
@@ -345,7 +345,7 @@ fun PhotoRotationScreen(
                         default = SettingsDefaults.photoBackground.fetchOnMetered,
                     ) { scope.launch { repository.setPhotoFetchOnMetered(it) } }
                 }
-                item(visible = saverStops) {
+                item(visible = saverStops, level = SettingLevel.STANDARD) {
                     NavRow(
                         title = R.string.home_datasaver_title,
                         subtitle = stringResource(R.string.photo_rotation_metered_saver_nav_subtitle),
@@ -353,7 +353,7 @@ fun PhotoRotationScreen(
                         onClick = { onNavigate("datasaver") },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     NavRow(
                         title = R.string.photo_services_title,
                         subtitle = stringResource(R.string.photo_services_subtitle),
@@ -368,7 +368,7 @@ fun PhotoRotationScreen(
         // and no screen ever drew them: the palette rebuild was unreachable and
         // the scrim dimmed the board on every rotation with nothing to say so.
         SettingsGroup(stringResource(R.string.photo_rotation_look_section_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.photo_rotation_seed_palette_title,
                     stringResource(R.string.photo_rotation_seed_palette_subtitle),
@@ -377,7 +377,7 @@ fun PhotoRotationScreen(
                     default = SettingsDefaults.photoBackground.seedPalette,
                 ) { scope.launch { repository.setPhotoSeedPalette(it) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.photo_rotation_readability_title,
                     stringResource(R.string.photo_rotation_readability_subtitle),
@@ -386,7 +386,7 @@ fun PhotoRotationScreen(
                     default = SettingsDefaults.photoBackground.readabilityGuard,
                 ) { scope.launch { repository.setPhotoReadabilityGuard(it) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val percentFormat = stringResource(R.string.typing_value_percent)
                 SliderSetting(
                     title = R.string.photo_rotation_key_opacity_title,
@@ -401,7 +401,7 @@ fun PhotoRotationScreen(
         }
 
         SettingsGroup(stringResource(R.string.photo_rotation_storage_section_title)) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderSetting(
                     title = R.string.photo_rotation_pool_title,
                     value = settings.watch { it.photoBackground.poolTarget }.toFloat(),
@@ -412,7 +412,7 @@ fun PhotoRotationScreen(
                     default = SettingsDefaults.photoBackground.poolTarget.toFloat(),
                 ) { scope.launch { repository.setPhotoPoolTarget(it.toInt()) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val mbFormat = stringResource(R.string.photo_value_megabytes)
                 SliderSetting(
                     title = R.string.photo_rotation_budget_title,
@@ -433,7 +433,7 @@ fun PhotoRotationScreen(
                     onClick = { onNavigate(photoLibraryRoute(null)) },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 WmRow(
                     title = stringResource(R.string.photo_rotation_delete_downloads_title),
                     icon = SettingsRowIcons[R.string.photo_rotation_delete_downloads_title],

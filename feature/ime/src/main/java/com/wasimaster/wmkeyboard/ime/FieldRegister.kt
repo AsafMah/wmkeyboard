@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import com.wasimaster.wmkeyboard.core.prediction.ContextField
 import com.wasimaster.wmkeyboard.core.prediction.Register
 
 /**
@@ -11,6 +12,17 @@ import com.wasimaster.wmkeyboard.core.prediction.Register
  * wrong NEUTRAL costs nothing, a wrong FORMAL fights the user.
  */
 object FieldRegister {
+
+    /**
+     * Where the text is going, for the context model's conditioning prefix:
+     * the same allowlists, plus a search box, which the Enter key names.
+     */
+    fun field(packageName: String?, fieldKind: FieldKind, enterAction: EnterAction): ContextField = when {
+        fieldKind == FieldKind.EMAIL || packageName in EMAIL -> ContextField.EMAIL
+        enterAction == EnterAction.SEARCH -> ContextField.SEARCH
+        packageName in MESSAGING -> ContextField.CHAT
+        else -> ContextField.OTHER
+    }
 
     fun resolve(packageName: String?, fieldKind: FieldKind): Register = when {
         packageName in MESSAGING -> Register.CASUAL

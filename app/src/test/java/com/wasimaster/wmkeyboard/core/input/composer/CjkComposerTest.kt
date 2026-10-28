@@ -1045,4 +1045,35 @@ class CjkComposerTest {
         assertEquals(listOf("好"), dict.exact("hao"))
         assertTrue("你好" in dict.candidates("nihao"))
     }
+
+    // #960: editing inside a reading, and punctuation joining it.
+
+    @Test
+    fun `japanese caret offsets follow the whole reading's kana`() {
+        // `kana` is かな: the n starts な, so a caret after `ka` is one kana in
+        // and a caret after `kan` is still one kana in, in front of な.
+        assertEquals(1, JapaneseComposer.previewOffset("kana", 2))
+        assertEquals(1, JapaneseComposer.previewOffset("kana", 3))
+        assertEquals(2, JapaneseComposer.previewOffset("kana", 4))
+        assertEquals(0, JapaneseComposer.previewOffset("kana", 0))
+    }
+
+    @Test
+    fun `japanese caret in the field maps back to the keys in front of it`() {
+        assertEquals(0, JapaneseComposer.bufferIndex("kana", 0))
+        assertEquals(2, JapaneseComposer.bufferIndex("kana", 1))
+        assertEquals(4, JapaneseComposer.bufferIndex("kana", 2))
+        // Kana typed on a kana board is one key per kana.
+        assertEquals(2, JapaneseComposer.bufferIndex("かつこう", 2))
+    }
+
+    @Test
+    fun `japanese punctuation joins a reading and not an empty buffer`() {
+        assertTrue(JapaneseComposer.buffersChar('。', "nihon"))
+        assertTrue(JapaneseComposer.buffersChar('、', "kyou"))
+        assertTrue(JapaneseComposer.buffersChar('-', "ka"))
+        assertTrue(!JapaneseComposer.buffersChar('。', ""))
+        assertTrue(!JapaneseComposer.buffersChar('「', "ka"))
+        assertEquals("にほん。", JapaneseComposer.composeBuffer("nihon。"))
+    }
 }

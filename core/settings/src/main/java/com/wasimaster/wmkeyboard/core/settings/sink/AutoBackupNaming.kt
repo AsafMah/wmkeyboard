@@ -24,6 +24,14 @@ object AutoBackupNaming {
      */
     const val PREFIX = "wmkeyboard-auto-"
 
+    /**
+     * The frequent schedule's files (#970). A prefix of their own, not a
+     * mark inside the name: a build from before them would read any odd name
+     * under [PREFIX] as an unowned legacy backup, which its rotation deletes,
+     * and a phone sharing the location may well be running one.
+     */
+    const val FREQUENT_PREFIX = "wmkeyboard-quick-"
+
     /** A backup that is still being written, or was being written when we died. */
     const val PART_SUFFIX = ".part"
 
@@ -45,6 +53,9 @@ object AutoBackupNaming {
     /** Longest device part a name carries. A name is not the place for a paragraph. */
     private const val DEVICE_MAX = 32
 
+    /** Between the group and the device inside the device part; see [name]. */
+    private const val GROUP_MARK = "--"
+
     /**
      * The name for a backup taken at [stampMs].
      *
@@ -53,6 +64,15 @@ object AutoBackupNaming {
      * hold several phones' backups, and rotation must only ever count its own.
      * Both are optional so a name without them, which is what every backup
      * before them was called, still parses.
+     *
+     * [group] is the sync group (see
+     * [com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming]), so the restore
+     * list can say whose backup is whose at a location several people share.
+     * It goes inside the device part, as `<group>--<device>`, and not as a
+     * part of its own: a build from before groups parses that as an odd device
+     * name and still finds the owner, where a name it could not parse at all
+     * would count as an unowned legacy backup, which its rotation deletes. A
+     * device slug never holds two hyphens in a row, so the split is exact.
      *
      * [zone] is a parameter only so tests are not at the mercy of the machine
      * running them; every caller in the app takes the default.
@@ -63,6 +83,9 @@ object AutoBackupNaming {
         zone: TimeZone = TimeZone.getDefault(),
         installId: String = "",
         device: String = "",
+        group: String = "",
+        /** One of the frequent schedule's (#970), under [FREQUENT_PREFIX]. */
+        frequent: Boolean = false,
     ): String {
         val stamp = SimpleDateFormat(STAMP_FORMAT, Locale.US)
             .apply { timeZone = zone }
@@ -72,11 +95,16 @@ object AutoBackupNaming {
         val owner = buildString {
             if (installId.isNotEmpty()) {
                 append('_').append(installId)
-                val slug = deviceSlug(device)
+                val tag = com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.groupSlug(group)
+                val slug = if (tag.isEmpty()) {
+                    deviceSlug(device)
+                } else {
+                    tag + GROUP_MARK + deviceSlug(device).take(DEVICE_MAX - tag.length - GROUP_MARK.length).trimEnd('-')
+                }
                 if (slug.isNotEmpty()) append('_').append(slug)
             }
         }
-        return "$PREFIX$stamp$owner.$extension"
+        return "${if (frequent) FREQUENT_PREFIX else PREFIX}$stamp$owner.$extension"
     }
 
     /**
@@ -97,10 +125,14 @@ object AutoBackupNaming {
         /** The device slug, hyphens and all, or null when the name has none. */
         val device: String?,
         val encrypted: Boolean,
+        /** The sync group it was taken in, or empty for none. */
+        val group: String = "",
+        /** One of the frequent schedule's (#970). */
+        val frequent: Boolean = false,
     )
 
     private val SHAPE = Regex(
-        "^" + Regex.escape(PREFIX) +
+        "^(" + Regex.escape(PREFIX) + "|" + Regex.escape(FREQUENT_PREFIX) + ")" +
             "(\\d{8}-\\d{6})(?:_([0-9a-f]{8})(?:_([A-Za-z0-9-]{1,$DEVICE_MAX}))?)?" +
             "\\.(" + Regex.escape(ConfigBackup.FILE_EXTENSION) + "|" +
             Regex.escape(ConfigBackup.ENCRYPTED_FILE_EXTENSION) + ")$",
@@ -112,7 +144,10 @@ object AutoBackupNaming {
      */
     fun parse(displayName: String, zone: TimeZone = TimeZone.getDefault()): Parsed? {
         val match = SHAPE.matchEntire(displayName) ?: return null
-        val (stamp, id, device, extension) = match.destructured
+        val (prefix, stamp, id, owner, extension) = match.destructured
+        val marked = owner.indexOf(GROUP_MARK)
+        val group = if (marked > 0) owner.substring(0, marked).lowercase(Locale.ROOT) else ""
+        val device = if (marked > 0) owner.substring(marked + GROUP_MARK.length) else owner
         val stampMs = runCatching {
             SimpleDateFormat(STAMP_FORMAT, Locale.US).apply {
                 timeZone = zone
@@ -124,6 +159,8 @@ object AutoBackupNaming {
             installId = id.ifEmpty { null },
             device = device.ifEmpty { null },
             encrypted = extension == ConfigBackup.ENCRYPTED_FILE_EXTENSION,
+            group = group,
+            frequent = prefix == FREQUENT_PREFIX,
         )
     }
 
@@ -133,8 +170,8 @@ object AutoBackupNaming {
      * Deliberately strict. A file we do not recognise is left alone forever,
      * which costs nothing; a file we wrongly claim is deleted.
      */
-    fun isOurs(displayName: String): Boolean =
-        displayName.startsWith(PREFIX) &&
+    fun isOurs(displayName: String, frequent: Boolean = false): Boolean =
+        displayName.startsWith(if (frequent) FREQUENT_PREFIX else PREFIX) &&
             !displayName.endsWith(PART_SUFFIX) &&
             !displayName.endsWith(UPLOAD_SUFFIX) &&
             (
@@ -149,13 +186,14 @@ object AutoBackupNaming {
      * [com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs].
      */
     fun isListed(displayName: String): Boolean =
-        isOurs(displayName) ||
+        isOurs(displayName) || isOurs(displayName, frequent = true) ||
             com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.isOurs(displayName)
 
     /** Whether [displayName] is one of our half-written files, backup or sync, ours to sweep. */
     fun isPart(displayName: String): Boolean =
-        (displayName.startsWith(PREFIX) ||
-            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.PREFIX)) &&
+        (displayName.startsWith(PREFIX) || displayName.startsWith(FREQUENT_PREFIX) ||
+            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.PREFIX) ||
+            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.GROUP_PREFIX)) &&
             (displayName.endsWith(PART_SUFFIX) || displayName.endsWith(UPLOAD_SUFFIX))
 
     /**
@@ -174,8 +212,21 @@ object AutoBackupNaming {
      * from an install of this app that rotated them already, and without a
      * claim they would otherwise sit there forever. Another phone's backups
      * are never touched, however many there are.
+     *
+     * [staggered] spares some older backups as well, spread out in time
+     * (#970): past the [keep] newest, the newest backup of each day for a week,
+     * of each week for five weeks and of each month for a year. A setting
+     * broken a fortnight ago can then still be taken back, without keeping a
+     * fortnight of dailies to do it. Ages count back from the newest backup,
+     * not from the clock, so a phone that stopped backing up for a while does
+     * not see its spread-out copies age away while nothing replaces them.
      */
-    fun rotation(entries: List<SinkEntry>, keep: Int, installId: String? = null): List<SinkEntry> {
+    fun rotation(
+        entries: List<SinkEntry>,
+        keep: Int,
+        installId: String? = null,
+        staggered: Boolean = false,
+    ): List<SinkEntry> {
         val mine = if (installId == null) {
             entries
         } else {
@@ -187,6 +238,42 @@ object AutoBackupNaming {
         val survivors = keep.coerceAtLeast(1)
         if (mine.size <= survivors) return emptyList()
         val oldestFirst = mine.sortedWith(compareBy({ it.modifiedAtMs }, { it.name }))
-        return oldestFirst.take(mine.size - survivors)
+        val older = oldestFirst.take(mine.size - survivors)
+        if (!staggered) return older
+        val spared = staggeredKeepers(oldestFirst)
+        return older.filterNot { it in spared }
+    }
+
+    /** One tier of [staggered] rotation: buckets [bucketMs] wide, reaching [spanMs] back. */
+    private class Tier(val bucketMs: Long, val spanMs: Long)
+
+    private const val DAY_MS = 24L * 60 * 60 * 1000
+    private val TIERS = listOf(
+        Tier(DAY_MS, 7 * DAY_MS),
+        Tier(7 * DAY_MS, 35 * DAY_MS),
+        Tier(30 * DAY_MS, 365 * DAY_MS),
+    )
+
+    /** When [entry] was taken: the stamp in its name, else what the destination reports. */
+    private fun takenAt(entry: SinkEntry): Long =
+        parse(entry.name)?.stampMs ?: entry.modifiedAtMs
+
+    /** The newest entry of every bucket of every tier, out of [oldestFirst]. */
+    private fun staggeredKeepers(oldestFirst: List<SinkEntry>): Set<SinkEntry> {
+        val newest = oldestFirst.maxOf { takenAt(it) }
+        val kept = HashSet<SinkEntry>()
+        // Newest first, so the first entry met in a bucket is the one it keeps.
+        // By the time in the name: the list is ordered by what the destination
+        // reports, which a provider that rewrites modified times can shuffle.
+        val newestFirst = oldestFirst.sortedByDescending { takenAt(it) }
+        for (tier in TIERS) {
+            val seen = HashSet<Long>()
+            for (entry in newestFirst) {
+                val age = newest - takenAt(entry)
+                if (age >= tier.spanMs) break
+                if (seen.add(age / tier.bucketMs)) kept += entry
+            }
+        }
+        return kept
     }
 }

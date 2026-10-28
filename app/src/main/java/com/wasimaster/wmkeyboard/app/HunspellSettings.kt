@@ -95,6 +95,7 @@ internal fun HunspellRow(langId: String, settings: LiveSettings) {
     Column {
         WmRow(
             title = stringResource(R.string.languages_hunspell_title),
+            icon = SettingsRowIcons[R.string.languages_hunspell_title],
             supporting = {
                 Text(
                     stringResource(

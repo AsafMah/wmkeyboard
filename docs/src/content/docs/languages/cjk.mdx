@@ -162,11 +162,11 @@ Type `v` and then a number, with a decimal point if you like, for the number in 
 
 ### Narrowing the list by strokes
 
-When the character you want is far down a long list, narrow it by how the character is written. Hold <KeyCap>'词</KeyCap> for a backtick, then type the first strokes with the letters fcitx and Sogou use: `h` for 横 (一), `s` for 竖 (丨), `p` for 撇 (丿), `d` or `n` for 点 (丶) and `z` for 折 (乙). `yi` then `` `z `` leaves 乙 and the other characters that start with 折; the composing text shows the strokes as you type them. Picking a candidate ends the filter, and only the letters that candidate covers are used up. It needs the Stroke dictionary download, which is where the stroke order comes from. Without it the filter narrows nothing.
+When the character you want is far down a long list, narrow it by how the character is written. Hold <KeyCap>'词</KeyCap> and slide to the backtick, then type the first strokes with the letters fcitx and Sogou use: `h` for 横 (一), `s` for 竖 (丨), `p` for 撇 (丿), `d` or `n` for 点 (丶) and `z` for 折 (乙). `yi` then `` `z `` leaves 乙 and the other characters that start with 折; the composing text shows the strokes as you type them. Picking a candidate ends the filter, and only the letters that candidate covers are used up. It needs the Stroke dictionary download, which is where the stroke order comes from. Without it the filter narrows nothing.
 
 ### The word separator key
 
-On the Pinyin layout the key left of <KeyCap>z</KeyCap> is <KeyCap>'词</KeyCap> (<KeyCap>'詞</KeyCap> with Traditional characters on), not Shift. It types the apostrophe that marks a syllable boundary, so `xi'an` and `s'h` take one tap each, the way Gboard's Pinyin keyboard has it.
+On the Pinyin layout the key left of <KeyCap>z</KeyCap> is <KeyCap>'词</KeyCap> (<KeyCap>'詞</KeyCap> with Traditional characters on), not Shift. It types the apostrophe that marks a syllable boundary, so `xi'an` and `s'h` take one tap each, the way Gboard's Pinyin keyboard has it. Hold it and let go to switch between Simplified and Traditional characters, see [Switching scripts from the keyboard](#switching-scripts-from-the-keyboard); the backtick is the second entry in the same popup.
 
 ### Swiping
 
@@ -192,6 +192,15 @@ A single toggle switches candidate output from Simplified to Traditional Han, ap
 The character tables ship with the app. The phrase table is the **Traditional characters phrase table** pack, about 1 MB, which you download from the Chinese or Cantonese options page like the other tables below. It is one download: the row on either page is the same file. Without it, Traditional output still works, but one character at a time: each character takes its most common form, so 头发 comes out as 頭發. Conversion itself never goes online. The tables load the first time you turn the toggle on, so for a moment after that the candidates can still show in Simplified.
 
 With Traditional on, a second control appears: a region picker (Standard / Taiwan / Taiwan wording / Hong Kong). **Taiwan** follows OpenCC's `s2tw`: Taiwan's character preferences (為, 裡, 著), and the word stays the one you typed, so `chuzuche` gives 出租車 and `jichengche` gives 計程車. **Taiwan wording** follows OpenCC's `s2twp`, which also swaps regional vocabulary: Taiwan's 計程車 instead of the mainland's 出租車 for "taxi," for instance, even though you typed the reading of 出租車. Vocabulary is matched inside a candidate too, so 出租车光盘 becomes 計程車光碟. It is a separate choice because a swap can also change the meaning: 支持 becomes 支援 and 文件 becomes 檔案 in every sense of the word. **Hong Kong** follows OpenCC's `s2hk`: the standard wording with Hong Kong's character preferences (説, 衞, 温). The Hong Kong choices come straight from OpenCC's tables and have not been reviewed by a Hong Kong writer yet; a wrong one is worth reporting.
+
+### Switching scripts from the keyboard
+
+For a message in the other script you don't need the settings app. Two switches flip **Traditional characters** from the keys, and each one changes the same setting as the row on the options page, so it stays the way you left it:
+
+- **Hold <KeyCap>'词</KeyCap>** on the Pinyin layout and let go. A toast says which script the keyboard now writes.
+- **The 繁 button.** Turn on **繁 button** under <SettingsPath path="Languages & layouts / Chinese / Chinese options / 繁 button" /> (also on the Cantonese page; off by default). A 繁 button then sits beside the candidates on every Chinese and Cantonese layout, lit while candidates come out Traditional. Like the other buttons beside the words, it shows while the candidate strip is up, not while the toolbar is.
+
+A reading you are in the middle of typing switches with it: the candidates on the strip are drawn again in the new script, so you can type `toufa`, see 头发, switch and pick 頭髮. Any layout can carry the switch too: in the [layout editor](/languages/custom-layouts/) it's the **Simplified / Traditional Chinese** action, and in a layout file it's `{"type": "han_script"}`.
 
 Both controls are on the Chinese and Cantonese options pages only, and they are one setting shared by the two languages. Japanese candidates never pass through this conversion, so the Japanese page does not show them.
 
@@ -223,6 +232,14 @@ It only ever adds marks. A が or a っ you typed was asked for by name and is n
 
 Romaji is never widened. `ga` costs exactly what `ka` does on a QWERTY layout, so `kaki` means かき and nothing else, which keeps the strip as tight as it was.
 
+### Swiping on Kana JIS
+
+With [glide typing](/typing/glide-typing/) on, you can swipe across the Kana JIS layout. A stroke spells a reading, which goes into the text you're composing as if you'd tapped its kana, and the strip converts it the usual way. Nothing commits and no space follows, so a second swipe carries the same sentence on.
+
+You don't have to visit ゛ or ゜ on the way. A stroke through か, つ, こ and う reads as かつこう, and [Match kana without marks](#kana-without-marks) finds 学校 in it. When the word you meant doesn't come up, draw the mark: pass over ゛ straight after か and the stroke reads as がつこう. With Match kana without marks off, that's the only way a swipe gets a mark. Small kana are always drawn on their full-size key (つ for っ, や for ゃ), and the candidates put the small form back.
+
+The readings come from the Japanese dictionary, so swiping waits until it's downloaded, and only readings common enough to be swiped are in the list: a rare name still has to be tapped. Conjugated forms the dictionary doesn't list, such as わかった or いきました, don't come out of a single stroke yet. A layout of your own glides the same way if it has a key for most kana. Romaji and Flick don't glide.
+
 ## Punctuation
 
 Every Japanese and Chinese layout carries its language's punctuation, whichever input method you type with.
@@ -247,7 +264,9 @@ Japanese and Chinese text is spaced with the ideographic space (U+3000, 「　�
 
 Whenever a conversion composer has a non-empty buffer, the usual word-suggestion strip is replaced by a horizontally-scrolling row of ranked candidates. They're sized to their text and packed from the left rather than spaced evenly, so the best candidate stays in a consistent spot instead of jumping around as the list changes length. Each new reading opens the row back at its left edge, however far the last one was scrolled. A chevron at the end opens an expanded view, and it sits outside the scrolling area so it never scrolls off. That expanded view is a wrapping grid, and it covers the key rows while it's open, the same way Sogou, Baidu, and QQ handle it. By then you're choosing a character rather than typing one. Neither view pages. Both scroll.
 
-Tapping a candidate (in the strip or the grid) resolves by its position in the ranked list, not by its text, because the same word can legitimately appear twice at different reading lengths (a Japanese reading might list 行 for both い and いき). Only the part of your typed buffer that the candidate covers gets deleted. The rest re-converts. Space is the fast path: it commits the top-ranked candidate for the leading syllables and moves on, so repeated space presses walk a whole sentence through without ever opening the strip. No path here adds a trailing space, since Chinese and Japanese don't put spaces between words. <KeyCap>Enter</KeyCap> converts nothing: it confirms the reading exactly as typed and does nothing else, so no line break and no send. In Japanese that is the hiragana you see, which is how you keep a word in kana; in Chinese it is the letters you pressed, so with Double Pinyin on, `nihc` goes in as `nihc` and not as the `nihao` the composing line spells out. That makes Enter the quick way to drop a Latin word into a sentence without switching keyboards. Any other commit (punctuation, moving the cursor, switching layout, or leaving the field) ends the reading too. In Japanese it keeps the kana as typed, the way Enter does, so なるといいです！ stays in hiragana and only space or a candidate you pick converts. A candidate you highlighted with the arrow keys or a stepping space bar still goes in. In Chinese it flushes the whole buffer by repeatedly taking the top candidate until nothing's left, so you're never left with pinyin letters in the text.
+Tapping a candidate (in the strip or the grid) resolves by its position in the ranked list, not by its text, because the same word can legitimately appear twice at different reading lengths (a Japanese reading might list 行 for both い and いき). Only the part of your typed buffer that the candidate covers gets deleted. The rest re-converts. Space is the fast path: it commits the top-ranked candidate for the leading syllables and moves on, so repeated space presses walk a whole sentence through without ever opening the strip. No path here adds a trailing space, since Chinese and Japanese don't put spaces between words. <KeyCap>Enter</KeyCap> converts nothing: it confirms the reading exactly as typed and does nothing else, so no line break and no send. In Japanese that is the hiragana you see, which is how you keep a word in kana; in Chinese it is the letters you pressed, so with Double Pinyin on, `nihc` goes in as `nihc` and not as the `nihao` the composing line spells out. That makes Enter the quick way to drop a Latin word into a sentence without switching keyboards. Any other commit (punctuation, moving the cursor away, switching layout, or leaving the field) ends the reading too. In Japanese it keeps the kana as typed, the way Enter does, and only space or a candidate you pick converts. A candidate you highlighted with the arrow keys or a stepping space bar still goes in. In Chinese it flushes the whole buffer by repeatedly taking the top candidate until nothing's left, so you're never left with pinyin letters in the text.
+
+Japanese is more forgiving about two of those. Its punctuation (、。，．！？・…〜) typed after kana joins the reading instead of ending it, so なるといいです！ stays one reading that space can still convert, and the mark goes in with it. Brackets still end the reading. And a tap inside the underlined reading moves the cursor there without ending it: what you type goes in at the cursor, <KeyCap>Delete</KeyCap> takes out the kana in front of it, and <KeyCap>小゛゜</KeyCap> changes that kana, so one wrong letter can be fixed without typing the sentence again. Tap at the end of the reading to carry on there. Converting starts from the reading's beginning wherever the cursor is. With Mozc, this works until the arrow keys split the reading into segments.
 
 In Pinyin the list runs from the whole buffer down to its first letter. Every reading of everything you typed comes first, then the best readings of shorter stretches from the start, longest first, then the single characters for the first syllable. `wbxh` offers 我不喜欢 and 我不想和, then 我不想 and 我必须, then 我不, then 我. Each one commits the letters it covers and leaves the rest to convert.
 
@@ -284,6 +303,16 @@ Emoji come up the way they do on any other layout: the top candidate is looked u
 Out of the box the space bar types the first candidate straight away. Turn on **Space steps through candidates** and it works the way Japanese input methods do instead: the first press highlights the first candidate, each press after it moves the highlight one along (wrapping back to the start at the end), and <KeyCap>Enter</KeyCap> types the highlighted one. Keep typing and the highlighted candidate goes in before the next reading starts; <KeyCap>⌫</KeyCap> drops the highlight and leaves you editing the reading again. The strip scrolls to keep the highlight in view, and it draws the same outline the keyboard uses for anything picked with the keys. The setting is per language, and off by default, so you can have it for Japanese and keep the quick space for Chinese.
 
 On a physical keyboard the candidates come up even though the on-screen keys stay hidden: just the strip appears while a reading is waiting to convert, and goes again once it's done. The arrow keys move the highlight whether or not the setting is on (<KeyCap>→</KeyCap> or <KeyCap>↓</KeyCap> for the next candidate, <KeyCap>←</KeyCap> or <KeyCap>↑</KeyCap> for the one before), and <KeyCap>Space</KeyCap> or <KeyCap>Enter</KeyCap> types it. Once a candidate is highlighted, <KeyCap>1</KeyCap> to <KeyCap>9</KeyCap> pick one by its place on the strip and <KeyCap>Esc</KeyCap> goes back to the reading. Before that the number keys are left alone, because Jyutping's tones and the T9 pad type digits into the reading. Enter only stops confirming the reading as typed once you've moved the highlight, so it still works for dropping in a word as you typed it.
+
+### Where the reading shows, and switching language mid-reading
+
+<SettingsPath path="Languages & layouts / Chinese / Chinese options / Show the reading in the text field" />
+
+The pinyin, zhuyin or Jyutping you type sits underlined in the text field until you pick a candidate, as it does on Gboard and Sogou. Turn **Show the reading in the text field** off and the field stays as it was: the reading shows at the start of the candidate strip instead, in front of the candidates, and only the candidate you pick goes into the field. That is how fcitx5 works. A long reading shows its end on the strip, where the next key lands. Move the cursor yourself, by tapping somewhere else in the text or selecting some of it, and the reading is dropped, as in fcitx5, so nothing you typed lands in a spot you didn't mean. The setting is shared by Chinese and Cantonese, sits on both options pages, and is on by default. Japanese always shows its reading in the field.
+
+<SettingsPath path="Languages & layouts / Chinese / Chinese options / When you switch language mid-reading" />
+
+Switch to another language or layout with a reading still waiting, and by default its best candidates go in, as if you had pressed space until it was all converted. **When you switch language mid-reading** offers two other choices. **Type what you typed** puts the reading in as letters (`nihao`, or the zhuyin itself), the way fcitx5 does. **Discard it** throws the reading away, and nothing goes in. Like the row above, it covers Chinese and Cantonese together.
 
 ### The keyboard's own boxes
 
@@ -323,6 +352,9 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 |---|---|---|
 | Conversion dictionary download | Not downloaded | Chinese, Cantonese, Japanese (see below) |
 | Traditional characters | Off | Chinese and Cantonese, shared between them |
+| 繁 button | Off | Same, a switch for the row above beside the candidates |
+| Show the reading in the text field | On | Chinese and Cantonese, shared between them |
+| When you switch language mid-reading | Type the first candidate | Same |
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |
@@ -374,6 +406,7 @@ A list you import for Chinese, Cantonese or Japanese goes into the candidates, n
 - **Rime** dictionaries (`.dict.yaml`), such as Luna Pinyin: `word`, the spaced reading, then a count or a percentage. The YAML header is skipped.
 - **Mozc and Google Japanese Input** user dictionaries: `reading`, `word`, part of speech. A katakana reading is read as hiragana.
 - The packs' own format, `reading`, `word`, `frequency`, one tab between each.
+- **Sogou's `.scel` cell dictionaries** (细胞词库), as Sogou publishes them: each word with its pinyin and Sogou's count.
 
 Tone numbers and tone marks are dropped and ü is spelt `v`, the same as in the packs. A line with no reading, such as a plain column of characters, is skipped, and the count on the Custom dictionaries screen is the number of lines that do have one.
 
@@ -385,12 +418,11 @@ A list goes live the next time you open a text field, and only the table for its
 
 Most Chinese dictionary projects on GitHub are built for the desktop input methods, and many ship two files per release: a `.dict` for fcitx5 and a `.dict.yaml` for Rime. Take the `.dict.yaml`. It is the Rime format from the list above, so it imports as it is: pick **Chinese**, open **Custom dictionaries** and import the file.
 
-The other formats are compiled, and the keyboard can't read them:
+Sogou's own `.scel` cell dictionaries import directly too, from Custom dictionaries or by opening the file with WM Keyboard; the import names them as a Chinese list.
 
-- **fcitx5's `.dict`** is libime's binary dictionary. Look for the Rime file in the same release, or convert the project's source text instead.
-- **Sogou's `.scel` cell dictionaries** (细胞词库) are binary too. [imewlconverter](https://github.com/studyzy/imewlconverter) (深蓝词库转换) turns them into Rime's format: choose 搜狗细胞词库 scel as the input and Rime 中州韵 as the output, then import what it writes.
+fcitx5's `.dict` is compiled, and the keyboard can't read it: it is libime's binary dictionary. Look for the Rime file or the `.scel` files in the same release, or convert the project's source text instead.
 
-Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Convert the topics you actually type, such as computing, place names or medicine, and import those. A few thematic lists of a few megabytes each give most of the benefit and load fast.
+Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Unpack it and import the `.scel` files for the topics you actually type, such as computing, place names or medicine. A few thematic lists of a few megabytes each give most of the benefit and load fast.
 
 ## The RIME engine
 

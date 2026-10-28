@@ -10,9 +10,6 @@ import android.os.Build
 import android.os.LocaleList
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.app.language.fetchAppLanguage
-import com.wasimaster.wmkeyboard.core.script.DeviceLanguageSignals
-import com.wasimaster.wmkeyboard.core.script.LanguageSuggestions
-import com.wasimaster.wmkeyboard.core.script.SuggestionReason
 import java.util.Locale
 
 /**
@@ -162,49 +159,6 @@ internal fun matchAvailable(tag: String, available: List<String>): String? {
     val language = wanted.substringBefore('-')
     return available.firstOrNull { canonicalLocaleTag(it).substringBefore('-') == language }
 }
-
-/**
- * Regions where English is what most people read, so the wizard does not stop
- * to ask about the app's language: the app already starts in the phone's.
- * Countries where English is official but most people read another language
- * first (India, Nigeria, the Philippines, Singapore) are deliberately absent.
- */
-internal val EnglishFirstRegions: Set<String> = setOf(
-    "US", "GB", "AU", "NZ", "IE", "CA",
-    "JM", "BS", "BB", "TT", "GY", "BZ", "AG", "DM", "GD", "KN", "LC", "VC",
-    "GU", "AS", "VI", "MP", "UM", "KY", "BM", "VG", "AI", "MS", "TC", "FK",
-    "GI", "IM", "JE", "GG", "SH", "NF", "CX", "CC", "PN", "IO",
-)
-
-/**
- * Whether the wizard should open on the app-language page: there is more than
- * one language to pick from, and the phone is somewhere English is not the
- * first language. The region is the strongest one [DeviceLanguageSignals]
- * has (SIM, then network, then time zone, then locale). With no region at all
- * there is nothing to go on, and the page stays out.
- */
-internal fun shouldAskAppLanguage(signals: DeviceLanguageSignals, available: List<String>): Boolean {
-    if (available.size <= 1) return false
-    val region = signals.regionCodes.firstOrNull()?.uppercase(Locale.ROOT) ?: return false
-    return region !in EnglishFirstRegions
-}
-
-/**
- * The interface languages worth putting first: the phone's own languages and
- * the ones widely read where it is, as [LanguageSuggestions] ranks them, kept
- * to those this build has a translation for. English is left out, because the
- * page lists it anyway.
- */
-internal fun suggestedAppLanguages(
-    signals: DeviceLanguageSignals,
-    available: List<String>,
-    limit: Int = 4,
-): List<String> = LanguageSuggestions.suggest(signals, limit = LanguageSuggestions.DEFAULT_LIMIT * 2)
-    .filter { it.reason != SuggestionReason.FALLBACK }
-    .mapNotNull { matchAvailable(it.language.localeTag.ifEmpty { it.language.id }, available) }
-    .filter { canonicalLocaleTag(it).substringBefore('-') != "en" }
-    .distinct()
-    .take(limit)
 
 internal tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

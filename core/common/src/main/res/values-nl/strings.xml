@@ -26,6 +26,7 @@
     <string name="common_default">Standaard</string>
     <string name="common_delete">Verwijderen</string>
     <string name="common_disable">Uitschakelen</string>
+    <string name="common_disabled_open_setting">Open de instelling</string>
     <string name="common_disclosure_blocked_body">Android toont dit verzoek niet meer omdat je de toestemming eerder hebt geweigerd. Je kunt het nog steeds inschakelen via het instellingenscherm van de app.</string>
     <string name="common_disclosure_not_now">Niet nu</string>
     <string name="common_done">Klaar</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installeren</string>
     <string name="common_installing">Installeren…</string>
     <string name="common_loading">Laden…</string>
+    <string name="common_more">Meer</string>
     <string name="common_next">Volgende</string>
     <string name="common_none">Geen</string>
     <string name="common_notify_channel_backup_body">Alleen wanneer een automatische back-up mislukt. Succesvolle back-ups zijn stil.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Meldingen weergeven</string>
     <string name="common_permission_storage_body">Op Android 9 en ouder heeft het toetsenbord opslagtoestemming nodig om een afbeelding in je galerij op te slaan. De oude Android-toestemming omvat ook het lezen van je opslag. Het toetsenbord schrijft alleen de afbeelding die je vraagt op te slaan. Het toetsenbord leest niets en uploadt niets. Nieuwere Android-versies hebben deze toestemming niet nodig.</string>
     <string name="common_permission_storage_title">Opslagtoegang om op te slaan in je galerij</string>
+    <string name="common_permission_tasks_body">WM Keyboard houdt zijn takenlijst en één takenlijst in de taken-app gelijk: de taken, hun stappen, hun vinkjes en hun vervaldatums, in beide richtingen. De toestemming dekt elke takenlijst in de app. Het toetsenbord leest de lijsten van de app alleen zodat je er een kunt kiezen, en het leest en schrijft alleen de lijst die je hebt gekozen. Het toetsenbord stuurt niets naar ergens anders. DAVx5, als je het gebruikt, synchroniseert die lijst met je eigen CalDAV-server. Zonder deze toestemming blijft de takenlijst op deze telefoon.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-toegang voor de takenlijst</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-toegang voor de takenlijst</string>
+    <string name="common_preview_scale_desc">Voorbeeldgrootte</string>
+    <string name="common_preview_scale_larger">Voorbeeld groter maken</string>
+    <string name="common_preview_scale_smaller">Voorbeeld kleiner maken</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Verwijderen</string>
     <string name="common_reset">Resetten</string>
     <string name="common_reset_defaults">Herstellen naar standaardwaarden</string>

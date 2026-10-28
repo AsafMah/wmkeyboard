@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.TimeZone
 import kotlinx.serialization.Serializable
 
 /**
@@ -22,6 +23,10 @@ data class ClockConfig(
     val hour24: Boolean? = null,
     val showSeconds: Boolean = true,
     val zones: List<WorldZone> = emptyList(),
+    /** The world clocks list earliest time first rather than in the order they were put in (#970). */
+    val sortZonesByTime: Boolean = false,
+    /** The world clocks two to a row, smaller, rather than one card each (#970). */
+    val zonesGrid: Boolean = false,
     val insertFormat: String = InsertFormat.TIME_PLACE.id,
     /** The [DiscordStyle.code] the Discord format types. */
     val discordStyle: String = "F",
@@ -30,6 +35,21 @@ data class ClockConfig(
     val snoozeMinutes: Int = 10,
     val fadeInSeconds: Int = 20,
     val autoSilenceMinutes: Int = 10,
+    /**
+     * How many times an alarm nobody answers snoozes itself, at the end of
+     * [autoSilenceMinutes], before it counts as missed (#970). 0, the default,
+     * stops it the first time.
+     */
+    val autoSnoozes: Int = 0,
+    /**
+     * Minutes before an alarm a notice says it is coming, with a button that
+     * skips it (#970). 0, the default, posts none.
+     */
+    val upcomingNoticeMinutes: Int = 0,
+    /** A notice in the shade while an alarm is snoozed, with a button that ends the snooze (#970). */
+    val snoozedNotice: Boolean = true,
+    /** A notice in the shade for an alarm that rang with nobody there (#970). */
+    val missedNotice: Boolean = true,
     val vibrate: Boolean = true,
     /** Null rings the system's default alarm sound; empty rings nothing. */
     val alarmSound: String? = null,
@@ -49,6 +69,14 @@ data class ClockConfig(
         get() = PomodoroPlan(focusMinutes, shortBreakMinutes, longBreakMinutes, longBreakEvery)
 
     fun is24(systemIs24: Boolean): Boolean = hour24 ?: systemIs24
+
+    /**
+     * [zones] in the order the world clocks show them at [now]: as arranged,
+     * or by the time there, earliest first, when [sortZonesByTime] is on.
+     * Stable, so two cities on one offset keep the order they were put in.
+     */
+    fun shownZones(now: Long = System.currentTimeMillis()): List<WorldZone> =
+        if (sortZonesByTime) zones.sortedBy { TimeZone.getTimeZone(it.zoneId).getOffset(now) } else zones
 }
 
 /** The panel's tabs, in order. */

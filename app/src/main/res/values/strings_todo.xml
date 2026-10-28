@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- To-do list tool (#920): the list in the settings app, and the tool's own page. -->
+    <string name="todo_title">To-do list</string>
+    <string name="todo_add_hint">Add a task</string>
+    <string name="todo_add_desc">Add</string>
+    <string name="todo_empty">Nothing to do. Add a task above, or from the keyboard\'s To-do list tool.</string>
+    <!-- %1$d of %2$d steps are ticked. -->
+    <string name="todo_steps_progress"><xliff:g id="done" example="2">%1$d</xliff:g> of <xliff:g id="total" example="5">%2$d</xliff:g> steps</string>
+    <string name="todo_add_step_action">Add a step</string>
+    <string name="todo_step_hint">A new step</string>
+    <!-- %1$s is a date, or a date and a time. -->
+    <string name="todo_due_label">Due <xliff:g id="when" example="24 Oct, 09:00">%1$s</xliff:g></string>
+    <string name="todo_overdue_label">Overdue since <xliff:g id="when" example="24 Oct, 09:00">%1$s</xliff:g></string>
+    <string name="todo_edit_title">Edit task</string>
+    <string name="todo_text_label">Task</string>
+    <string name="todo_due_set_action">Set a due date</string>
+    <string name="todo_due_change_action">Change the date</string>
+    <string name="todo_due_clear_action">No due date</string>
+    <string name="todo_delete_action">Delete</string>
+    <string name="todo_deleted_snackbar">Task deleted</string>
+    <plurals name="todo_cleared_snackbar">
+        <item quantity="one">%1$d finished task cleared</item>
+        <item quantity="other">%1$d finished tasks cleared</item>
+    </plurals>
+    <string name="todo_clear_done_title">Clear finished tasks</string>
+    <string name="todo_clear_done_subtitle">Delete every ticked task and every ticked step</string>
+    <string name="todo_clear_done_button">Clear</string>
+    <!-- TalkBack names the long press with this. -->
+    <string name="todo_edit_desc">Edit</string>
+    <string name="todo_expand_desc">Show the steps</string>
+    <string name="todo_collapse_desc">Hide the steps</string>
+
+    <!-- The tool's page. -->
+    <string name="tooldetail_todo_group">To-do list</string>
+    <string name="tooldetail_todo_open_title">Your tasks</string>
+    <plurals name="tooldetail_todo_open_subtitle">
+        <item quantity="one">%1$d task to do</item>
+        <item quantity="other">%1$d tasks to do</item>
+    </plurals>
+    <string name="tooldetail_todo_open_none_subtitle">Nothing to do</string>
+    <string name="tooldetail_todo_hide_done_title">Hide finished tasks in the keyboard</string>
+    <string name="tooldetail_todo_hide_done_subtitle">The keyboard\'s list opens with ticked tasks left out. Its Hide done chip shows them again for that visit.</string>
+
+    <string name="tooldetail_todo_sync_group">Task app sync</string>
+    <string name="tooldetail_todo_sync_title">Sync with a task app</string>
+    <string name="tooldetail_todo_sync_subtitle">Keep the list the same as a task list in OpenTasks or Tasks.org. DAVx5 syncs that list with your CalDAV server.</string>
+    <string name="tooldetail_todo_sync_info">WM Keyboard reads and writes the list through the task app on this phone. It never connects to your server itself; DAVx5 does that, on its own schedule.\n\nTasks you add here appear in the task app, and tasks you add there appear here. Ticks, edits and deletes go both ways. Steps stay steps. The to-do list has no reminders, so a reminder set in the task app stays there.\n\njtx Board is not supported. Its provider only answers sync adapters, and a change written that way never reaches the server.</string>
+    <string name="tooldetail_todo_sync_none_subtitle">Install OpenTasks or Tasks.org, and add your CalDAV account to DAVx5, to sync. Until then the list stays on this phone.</string>
+    <string name="tooldetail_todo_list_title">Task list</string>
+    <string name="tooldetail_todo_list_none">None picked</string>
+    <string name="tooldetail_todo_list_pick_title">Pick a task list</string>
+    <!-- %1$s is a task app's name, for example "OpenTasks". -->
+    <string name="tooldetail_todo_list_allow_action">Allow access to <xliff:g id="app" example="OpenTasks">%1$s</xliff:g></string>
+    <string name="tooldetail_todo_list_empty">This app has no task lists yet. Add a CalDAV account in DAVx5 and tick its task lists.</string>
+    <!-- %1$s is the list's name, %2$s the account it belongs to. -->
+    <string name="tooldetail_todo_list_entry"><xliff:g id="list" example="Personal">%1$s</xliff:g> (<xliff:g id="account" example="me@example.com">%2$s</xliff:g>)</string>
+    <string name="tooldetail_todo_sync_now_title">Sync now</string>
+    <string name="tooldetail_todo_sync_now_button">Sync</string>
+    <!-- %1$s is when the last sync finished. -->
+    <string name="tooldetail_todo_sync_last">Last synced <xliff:g id="when" example="5 minutes ago">%1$s</xliff:g></string>
+    <string name="tooldetail_todo_sync_never">Not synced yet</string>
+    <!-- %1$d tasks came from the task app, %2$d went to it, %3$d were deleted there and here. -->
+    <string name="tooldetail_todo_sync_done">Synced. <xliff:g id="in" example="2">%1$d</xliff:g> in, <xliff:g id="out" example="1">%2$d</xliff:g> out, <xliff:g id="removed" example="0">%3$d</xliff:g> removed.</string>
+    <string name="tooldetail_todo_sync_no_list">The task list is gone. Pick another one.</string>
+    <string name="tooldetail_todo_sync_no_permission">The task app\'s permission is off. Pick the list again to allow it.</string>
+    <!-- %1$s is the error the task app gave. -->
+    <string name="tooldetail_todo_sync_failed">The sync failed: <xliff:g id="error" example="database locked">%1$s</xliff:g></string>
+    <string name="tooldetail_todo_app_opentasks">OpenTasks</string>
+    <string name="tooldetail_todo_app_tasks_org">Tasks.org</string>
+
+    <string name="tooldetail_todo_import_title">Import from the Todo List plugin</string>
+    <string name="tooldetail_todo_import_subtitle">Copy the plugin\'s tasks, ticks and due dates into this list. The plugin keeps its own copy and its reminders.</string>
+    <string name="tooldetail_todo_import_button">Import</string>
+    <plurals name="tooldetail_todo_imported">
+        <item quantity="one">%1$d task imported.</item>
+        <item quantity="other">%1$d tasks imported.</item>
+    </plurals>
+    <string name="tooldetail_todo_imported_none">Every task in the plugin is already on the list.</string>
+    <string name="tooldetail_todo_clear_title">Delete all tasks</string>
+    <string name="tooldetail_todo_clear_subtitle">Every task and step on this phone. With sync on, the task app keeps its own tasks, and the next sync brings them back.</string>
+    <string name="tooldetail_todo_clear_confirm">Delete every task? This cannot be undone. A backup that holds the To-do list section can bring them back.</string>
+</resources>

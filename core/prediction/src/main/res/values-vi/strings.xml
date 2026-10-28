@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Được đếm từ phụ đề và văn bản trên web. Nhiều từ hơn, bao gồm nhiều tên riêng, tiếng lóng và lỗi chính tả.</string>
     <string name="core_pred_wordlist_source_frequency_label">Tần suất</string>
+    <string name="core_pred_wordlist_variant_australia_label">Úc</string>
     <string name="core_pred_wordlist_variant_brazil_label">Brazil</string>
+    <string name="core_pred_wordlist_variant_canada_label">Canada</string>
     <string name="core_pred_wordlist_variant_europe_label">Châu Âu</string>
     <string name="core_pred_wordlist_variant_uk_label">Vương quốc Anh</string>
     <string name="core_pred_wordlist_variant_us_label">Hoa Kỳ</string>

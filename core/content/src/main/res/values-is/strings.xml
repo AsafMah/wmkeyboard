@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Afrita</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Tölustafir</string>
+    <string name="core_content_selection_macro_edit_word">Breyta orði</string>
     <string name="core_content_selection_macro_email">Netfang</string>
     <string name="core_content_selection_macro_fancy">Flott</string>
     <string name="core_content_selection_macro_find">Finna</string>

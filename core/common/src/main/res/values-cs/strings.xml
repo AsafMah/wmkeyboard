@@ -26,6 +26,7 @@
     <string name="common_default">Výchozí</string>
     <string name="common_delete">Smazat</string>
     <string name="common_disable">Vypnout</string>
+    <string name="common_disabled_open_setting">Otevřít nastavení</string>
     <string name="common_disclosure_blocked_body">Systém Android již tuto žádost nezobrazuje, protože jste oprávnění dříve odmítli. Stále jej můžete zapnout na obrazovce nastavení aplikace.</string>
     <string name="common_disclosure_not_now">Teď ne</string>
     <string name="common_done">Hotovo</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instalovat</string>
     <string name="common_installing">Instaluji…</string>
     <string name="common_loading">Načítání…</string>
+    <string name="common_more">Více</string>
     <string name="common_next">Další</string>
     <string name="common_none">Žádné</string>
     <string name="common_notify_channel_backup_body">Pouze pokud automatické zálohování selže. Úspěšné zálohy jsou tiché.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Zobrazit oznámení</string>
     <string name="common_permission_storage_body">V systému Android 9 a starším potřebuje klávesnice oprávnění k úložišti, aby mohla uložit obrázek do vaší galerie. Staré oprávnění systému Android zahrnuje také čtení vašeho úložiště. Klávesnice zapisuje pouze obrázek, který si vyžádáte uložit. Klávesnice nic nečte a nic nenahrává. Novější verze systému Android toto oprávnění nepotřebují.</string>
     <string name="common_permission_storage_title">Přístup k úložišti pro ukládání do galerie</string>
+    <string name="common_permission_tasks_body">Klávesnice WM udržuje svůj seznam úkolů a jeden seznam úkolů v aplikaci Úkoly shodné: úkoly, jejich kroky, zaškrtnutí i termíny se synchronizují obousměrně. Oprávnění se vztahuje na každý seznam úkolů v aplikaci. Klávesnice čte seznamy aplikace pouze proto, abyste si jeden mohli vybrat, a čte i zapisuje pouze ten seznam, který jste vybrali. Klávesnice nic nikam neodesílá. DAVx5, pokud ho používáte, synchronizuje tento seznam s vaším vlastním serverem CalDAV. Bez tohoto oprávnění zůstává seznam úkolů pouze v tomto telefonu.</string>
+    <string name="common_permission_tasks_opentasks_title">Přístup OpenTasks pro seznam úkolů</string>
+    <string name="common_permission_tasks_tasks_org_title">Přístup Tasks.org pro seznam úkolů</string>
+    <string name="common_preview_scale_desc">Velikost náhledu</string>
+    <string name="common_preview_scale_larger">Zvětšit náhled</string>
+    <string name="common_preview_scale_smaller">Zmenšit náhled</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Odstranit</string>
     <string name="common_reset">Resetovat</string>
     <string name="common_reset_defaults">Obnovit výchozí nastavení</string>

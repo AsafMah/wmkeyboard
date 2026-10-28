@@ -87,8 +87,24 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
     /**
      * The decoder's weights, injectable so the harness can sweep them rather
-     * than the author guessing. The defaults are what the sweep settled on; see
-     * `GlideTuningSweepTest` for the surface they were picked off.
+     * than the author guessing.
+     *
+     * The defaults are fitted on real strokes (2026-10-22): coordinate descent
+     * (`native/bench/futo-swipe/fit_glide.py` over `wm-engine`'s
+     * `glide_beam_eval`) on 35,928 strokes from 8,701 sessions of FUTO's
+     * swipe.futo.org train split, then checked on the 38,103 test-split
+     * strokes the fit never saw, over the bundled en.txt:
+     *
+     *     top-1  .7982 -> .8734      short doubled words  .712 -> .721
+     *     top-4  .9358 -> .9598      six letters or more  .862 -> .860
+     *
+     * and over AOSP's 160k en_US list .8165 -> .8683. Strokes redrawn with a
+     * loop on the doubled key go .815 -> .834, with a stray loop .798 ->
+     * .863. Most of it is the language model counting for more: the shape
+     * weights were set on synthetic strokes (`SwipeCorpus`), which trace the
+     * keys far more faithfully than a thumb does, and on real ones the shape
+     * term was outvoting word frequency. `GlideRealSwipeFloorTest` holds a
+     * 2,000-stroke slice of the test split to a floor.
      */
     data class Tuning(
         /**
@@ -101,26 +117,53 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * Ceiling on one sample's location cost. Without it a single sample
          * flung off by a dropped touch report outweighs the whole alignment.
          */
-        val maxPointCost: Float = 12.0f,
+        val maxPointCost: Float = 18.0f,
         /**
          * Nats per key width of disagreement between how far the finger
          * travelled between two letters and how far apart their keys are. This
          * is the term that reads `hello` off a `hello` stroke rather than `ho`.
          */
-        val gapWeight: Float = 2.0f,
+        val gapWeight: Float = 1.33f,
         /** How far, in samples, a placement may sit from where the arc length
          * says it should before the search stops considering it. */
-        val gapWindow: Float = 14f,
+        val gapWindow: Float = 32f,
         /** Nats per unit of alignment cost — the dial that trades shape against
-         * the language model. */
-        val shapeWeight: Double = 2.5,
+         * the language model. 2.5 until the real-swipe fit (see [Tuning]). */
+        val shapeWeight: Double = 0.5,
+        /**
+         * Nats per nat of `ln(1 + frequency)`: how much a word's frequency
+         * counts against the stroke's shape. 1.0 is the unweighted language
+         * model the decoder was fitted with, and every bound in the walk
+         * carries the weight too, so pruning stays sound at any value.
+         *
+         * No setting reaches it, and no single value is right: it is a
+         * property of the language and its word list (issue #966). German's
+         * useful words are rare in every list (its compounds sit at a
+         * median rank of 20,714 in a 150k list, against 369 for the English
+         * words people swipe), so at 1.0 frequency outvotes shape there.
+         * Swept on 2,588 real German swipes (FUTO, Wikipedia text), 10,908
+         * more (HeliBoard, rare words) and 2,129 English, success per
+         * swipe over a 150k list:
+         *
+         *     1.0    71.41   21.95   81.49       0.5    73.69   30.46   80.41
+         *     0.8    72.84   25.60   80.98       0.4    73.38   31.94   79.66
+         *     0.6    73.49   28.80   80.55       0.25   71.48   32.90     -
+         *
+         * Monotonically worse for English, better for German: the signature
+         * of a language's setting. [GlideLanguageProfiles] holds the value
+         * per language and the engine applies it on top of the user's
+         * tuning; the default here stays the English fit.
+         */
+        val freqWeight: Double = 1.0,
         /**
          * Flat charge for a doubled letter, which the stroke's shape cannot show.
          *
          * 0.1 until 2026-10-22, lowered with [unloopedRepeat] (#886); the
-         * measurement is written up there.
+         * measurement is written up there. 0.8 since the real-swipe fit the
+         * same day, against a [shapeWeight] cut to a fifth: an unlooped
+         * doubling costs 0.45 nats where it cost 0.375.
          */
-        val repeatCost: Float = 0.05f,
+        val repeatCost: Float = 0.8f,
         /**
          * Extra charge for a doubled letter the finger did *not* loop on.
          *
@@ -168,7 +211,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * letters (see [unloopedRepeat]). Floored where it is used (see
          * [dwellScale]): at zero every step of an evenly drawn stroke is 0/0.
          */
-        val dwellFull: Float = 3.0f,
+        val dwellFull: Float = 2.0f,
         /**
          * Charge per unit of pause a finished word leaves unexplained.
          *
@@ -203,7 +246,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * single letters, .9333 at zero to .9433 at 2.0 — still climbing at
          * 4.0, but that is where the plain corpus starts paying it back.
          */
-        val unclaimedDwell: Float = 2.0f,
+        val unclaimedDwell: Float = 0.9f,
         /**
          * Widest a loop may be, in key widths, for the decoder to read it as a
          * mark on a key; 0 switches loop reading off altogether.
@@ -328,7 +371,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * plain corpus reads the same at 0 and 0.5, and the looped one goes
          * .835 to .852 on doubled words.
          */
-        val unclaimedLoop: Float = 0.5f,
+        val unclaimedLoop: Float = 1.1f,
         /**
          * The most a shape learned from the user's own kept glides may shorten
          * a word's shape distance, in the shape channel's units. A word scores
@@ -354,7 +397,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * question of the top few candidates: never mind where it was drawn, was
          * it drawn in that shape? Zero switches it off.
          */
-        val shapeChannel: Double = 45.0,
+        val shapeChannel: Double = 6.0,
         /**
          * How far the stroke's *first* sample may sit from the word's first
          * key, in key widths.
@@ -379,20 +422,27 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * the touch-down to the key was travel the gap term charged, so a word
          * starting 2.5 keys off trailed one starting under the finger by about
          * 40 nats against a dictionary's whole frequency spread of about 14.
-         * The excess over the default is now [startSlack]: that much of the
+         * The excess over [SLACK_BASE] is now [startSlack]: that much of the
          * distance to the first key is free on the first sample, that much of
          * the lead-in is free as gap, the shape channel sees the lead-in on
          * the word's own path, and the key is walkable even if the stroke
-         * never passes within [nearRadius] of it. At or under the default all
-         * four are zero, so the shipped decoder is unchanged.
+         * never passes within [nearRadius] of it. At or under the base all
+         * four are zero.
          */
         val startRadius: Float = 1.6f,
-        /** How far the stroke's *last* sample may sit from the word's last key,
-         * in key widths. See [startRadius]. */
-        val endRadius: Float = 1.6f,
+        /**
+         * How far the stroke's *last* sample may sit from the word's last key,
+         * in key widths. See [startRadius].
+         *
+         * 2.0 since the real-swipe fit (see [Tuning]), so 0.4 key widths of
+         * [endSlack] ship switched on: real lifts stop short of the last key
+         * often enough that forgiving it was worth 1.7 points of top-1 on the
+         * fit's own strokes. The start stayed at 1.6.
+         */
+        val endRadius: Float = 2.0f,
         /** How close the stroke must pass to a key for that key's subtree to be
-         * worth walking at all, in key widths. */
-        val nearRadius: Float = 1.5f,
+         * worth walking at all, in key widths. 1.5 until the real-swipe fit. */
+        val nearRadius: Float = 1.9f,
         /**
          * How many of a dictionary's commonest words a stroke may decode to,
          * or 0 for all of them.
@@ -477,6 +527,47 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * user added by hand still wins the moment nothing plain competes.
          */
         val joinerCost: Float = 0.2f,
+        /**
+         * Nats charged for each join of a compound read as two or three
+         * listed words in a row (issue #966 §5.2), and the switch: infinite,
+         * the default, reads no compounds and the decode is the plain one
+         * to the bit.
+         *
+         * A list cannot hold the compounds a language builds as it goes.
+         * On real German swipes 36 % of the words of 15 letters or more
+         * were missing from a 150k list, and adding generated compounds to
+         * the list was a net loss (under 2 % of them were words anyone
+         * writes); an oracle that held just the missing ones read 4.9 more
+         * swipes in a hundred. So the decoder reads them where the stroke
+         * is decoded instead: at a listed word of three letters or more
+         * with stroke still ahead of it, the walk may go on from the top of
+         * the trie as a second part, on the same alignment, as if the list
+         * held the joined spelling. The joined word scores on the rarest of
+         * its parts, this much the poorer per join, so a listed compound
+         * beats its own joining and a common short word plus a stray one
+         * does not beat a word the list holds whole. The bound carries
+         * both, so the walk's pruning stays exact.
+         *
+         * No setting reaches it: [GlideLanguageProfiles] sets it per
+         * language, German first; `glide_beam_eval` takes `join_cost=` for
+         * the sweep.
+         */
+        val joinCost: Double = Double.POSITIVE_INFINITY,
+        /**
+         * Letters every part of a joined compound must have, the first and
+         * the last alike ([joinCost]). Three by default; German's four
+         * keeps `hast` + `alt` from reading as a word.
+         */
+        val joinMinPart: Int = 3,
+        /**
+         * Nats each part a join goes on from pays per `ln(1 + frequency)`
+         * of its own (issue #966): the commoner the part, the dearer the
+         * join, so two common short words do not outbid a listed word.
+         * The last part, which no join follows, pays nothing. With the
+         * bare charge, German lost 3.5 swipes in a hundred to such splits;
+         * at `8 / 4 / 0.1` the joining gains half a point over none.
+         */
+        val joinPartPenalty: Double = 0.0,
     ) {
         val invTwoSigmaSq: Float get() = 1f / (2f * sigma * sigma)
         val startRadiusSq: Float get() = startRadius * startRadius
@@ -485,14 +576,14 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val loopRadiusSq: Float get() = loopRadius * loopRadius
 
         /**
-         * How much of [startRadius] lies past the shipped one, in key widths:
+         * How much of [startRadius] lies past [SLACK_BASE], in key widths:
          * the distance from the touch-down to a word's first key that the
          * score forgives. See [anchorSlack].
          */
-        val startSlack: Float get() = (startRadius - DEFAULT.startRadius).coerceAtLeast(0f)
+        val startSlack: Float get() = (startRadius - SLACK_BASE).coerceAtLeast(0f)
 
         /** [startSlack] for [endRadius] and the lift-off. */
-        val endSlack: Float get() = (endRadius - DEFAULT.endRadius).coerceAtLeast(0f)
+        val endSlack: Float get() = (endRadius - SLACK_BASE).coerceAtLeast(0f)
 
         /** [dwellFull] as the divisor it is used as, floored off zero. */
         val dwellScale: Float get() = if (dwellFull > MIN_DWELL_FULL) dwellFull else MIN_DWELL_FULL
@@ -505,6 +596,15 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
              * invisible until someone presses the row's reset.
              */
             val DEFAULT = Tuning()
+
+            /**
+             * The anchor radius past which the score forgives the distance
+             * as well as the gate admitting it (issue #805). Fixed rather
+             * than the default, which it was until the default end radius
+             * moved past it: measured from the default, a radius shipped at
+             * 2.0 would have forgiven nothing.
+             */
+            const val SLACK_BASE = 1.6f
 
             /**
              * What the wiggle reading is worth *when someone switches it on*.
@@ -574,6 +674,11 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * short to be a gesture, or when nothing in the tries explains it.
      * [shapes] are the user's own learned shapes for this grid, when they
      * have any, for the shape channel to compare against beside the ideal.
+     * [openHead] and [openTail] are how many of the path's first and last
+     * samples are a walk from or to the spacebar (#968, a chained stroke):
+     * the first letter may stand anywhere on the head, the last anywhere on
+     * the tail, and the samples outside the word cost nothing. 0 and 0 for
+     * a stroke that began and ended on keys.
      */
     @Suppress("LongParameterList", "ReturnCount", "UNUSED_PARAMETER")
     fun decode(
@@ -585,11 +690,14 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         limit: Int = 4,
         shapes: GlideShapeSource? = null,
         lookAhead: Int = 0,
+        openHead: Int = 0,
+        openTail: Int = 0,
     ): List<Candidate> {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return emptyList()
         if (keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
-        return NativeGlide.decode(tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead)
-            ?: error(NO_TWIN)
+        return NativeGlide.decode(
+            tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead, openHead, openTail,
+        ) ?: error(NO_TWIN)
     }
 
     /**

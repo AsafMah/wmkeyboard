@@ -63,18 +63,19 @@ internal fun ServersSettingsScreen(repository: SettingsRepository, settings: Liv
 }
 
 /**
- * The server rows for [endpoints] and [repos], added to the caller's group.
- * Adds nothing outside the F-Droid build.
+ * The server rows for [endpoints] and [repos], added to the caller's group at
+ * [level] on the settings depth. Adds nothing outside the F-Droid build.
  */
 internal fun SettingsGroupScope.serverItems(
     repository: SettingsRepository,
     settings: LiveSettings,
     endpoints: List<ServiceEndpoint> = emptyList(),
     repos: List<ServiceRepo> = emptyList(),
+    level: SettingLevel = SettingLevel.BASIC,
 ) {
     if (!BuildConfig.ENABLE_FDROID) return
-    for (repo in repos) item { RepoLocationRows(repo, repository, settings) }
-    for (endpoint in endpoints) item { EndpointField(endpoint, repository, settings) }
+    for (repo in repos) item(level = level) { RepoLocationRows(repo, repository, settings) }
+    for (endpoint in endpoints) item(level = level) { EndpointField(endpoint, repository, settings) }
 }
 
 /** The same rows as a group of their own, for a page with no natural group to put them in. */
@@ -84,11 +85,14 @@ internal fun ServerFieldsGroup(
     settings: LiveSettings,
     endpoints: List<ServiceEndpoint> = emptyList(),
     repos: List<ServiceRepo> = emptyList(),
+    /** How far down the settings depth the group sits; see [SettingLevel]. */
+    level: SettingLevel = SettingLevel.BASIC,
 ) {
     if (!BuildConfig.ENABLE_FDROID || (endpoints.isEmpty() && repos.isEmpty())) return
     SettingsGroup(
         stringResource(R.string.servers_group_title),
         info = stringResource(R.string.servers_group_info),
+        level = level,
     ) {
         serverItems(repository, settings, endpoints, repos)
     }
@@ -238,7 +242,9 @@ private val ServiceGroup.titleRes: Int
         ServiceGroup.WEATHER -> R.string.servers_section_weather
         ServiceGroup.MAPS -> R.string.servers_section_maps
         ServiceGroup.CURRENCY -> R.string.servers_section_currency
+        ServiceGroup.SPEED_TEST -> R.string.servers_section_speed_test
         ServiceGroup.AI -> R.string.servers_section_ai
+        ServiceGroup.MUSIC -> R.string.servers_section_music
         ServiceGroup.UPDATES -> R.string.servers_section_updates
     }
 
@@ -265,12 +271,19 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.OPEN_METEO -> R.string.servers_open_meteo
         ServiceEndpoint.OPEN_METEO_GEOCODING -> R.string.servers_open_meteo_geocoding
         ServiceEndpoint.NOMINATIM -> R.string.servers_nominatim
+        ServiceEndpoint.AUDD -> R.string.servers_audd
+        ServiceEndpoint.AUDIOTAG -> R.string.servers_audiotag
+        ServiceEndpoint.RAPIDAPI_SHAZAM -> R.string.servers_rapidapi_shazam
+        ServiceEndpoint.ITUNES_SEARCH -> R.string.servers_itunes_search
+        ServiceEndpoint.DEEZER_API -> R.string.servers_deezer_api
         ServiceEndpoint.CURRENCY_API -> R.string.servers_currency_api
         ServiceEndpoint.CURRENCY_API_MIRROR -> R.string.servers_currency_api_mirror
         ServiceEndpoint.FRANKFURTER -> R.string.servers_frankfurter
         ServiceEndpoint.ER_API -> R.string.servers_er_api
         ServiceEndpoint.COINBASE -> R.string.servers_coinbase
         ServiceEndpoint.COINGECKO -> R.string.servers_coingecko
+        ServiceEndpoint.CLOUDFLARE_SPEED -> R.string.servers_cloudflare_speed
+        ServiceEndpoint.LIBRESPEED_LIST -> R.string.servers_librespeed_list
         ServiceEndpoint.ANTHROPIC -> R.string.servers_anthropic
         ServiceEndpoint.OPENAI -> R.string.servers_openai
         ServiceEndpoint.GEMINI -> R.string.servers_gemini
@@ -288,6 +301,7 @@ private val ServiceRepo.labelRes: Int
         ServiceRepo.DATA -> R.string.servers_repo_data
         ServiceRepo.ADDONS -> R.string.servers_repo_addons
         ServiceRepo.SOUNDS -> R.string.servers_repo_sounds
+        ServiceRepo.COMMUNITY -> R.string.servers_repo_community
         ServiceRepo.ESPANSO_HUB -> R.string.servers_repo_espanso_hub
     }
 

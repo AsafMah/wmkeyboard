@@ -91,12 +91,15 @@ internal data class InkTag(val tag: String) {
  * (recognition, in-panel download) and the settings app (model manager), so
  * both always agree on which models exist and their language tags.
  *
- * Two recognisers sit behind it. ML Kit's Digital Ink reads 126 of the
+ * Three recognisers sit behind it. ML Kit's Digital Ink reads 126 of the
  * keyboard's languages wherever the build carries it. zinnia
  * ([ZinniaModels], tags starting `zinnia-`) reads Chinese and Japanese only,
  * and takes them where ML Kit is not in the build (F-Droid's), where ML Kit
  * has no model (Cantonese), or where the user picked it ([preferZinnia]).
- * Every function here takes either kind of tag.
+ * PaddleOCR's line recognisers ([InkOcrModels], tags starting `inkocr-`)
+ * read Latin, Cyrillic, Arabic, Devanagari, Tamil, Telugu, Thai, Greek and
+ * Korean writing wherever ML Kit has no model for the language, which in
+ * F-Droid's build is everywhere. Every function here takes any kind of tag.
  *
  * Nothing here imports ML Kit. Those calls sit behind [InkRuntime], reached
  * by reflection, because on Play the library ships in an on-demand module
@@ -191,14 +194,16 @@ object HandwritingModels {
 
     /**
      * The recognition model tag for one of the keyboard's languages, or null
-     * when neither recogniser has a model for it: zinnia's for Chinese and
+     * when no recogniser has a model for it: zinnia's for Chinese and
      * Japanese when it is the one to use (see the class comment), ML Kit's
-     * otherwise. [zinniaPicked] is the user's switch; the settings screen
-     * passes the value it shows, the keyboard leaves it to [preferZinnia].
+     * otherwise, and PaddleOCR's where ML Kit has none. [zinniaPicked] is
+     * the user's switch; the settings screen passes the value it shows, the
+     * keyboard leaves it to [preferZinnia].
      */
     fun tagFor(language: LanguageDef, zinniaPicked: Boolean = preferZinnia): String? {
         val mlKit = if (mlKitInBuild) mlKitTagFor(language) else null
-        val zinnia = ZinniaModels.tagFor(language, CjkConfig.traditionalOutput) ?: return mlKit
+        val zinnia = ZinniaModels.tagFor(language, CjkConfig.traditionalOutput)
+            ?: return mlKit ?: InkOcrModels.tagFor(language)
         return if (zinniaPicked || mlKit == null) zinnia else mlKit
     }
 
@@ -238,13 +243,16 @@ object HandwritingModels {
      * skipping the ones no recogniser can read. This is what the settings
      * screen lists, so enabling a language is all it takes for its model to
      * show up there. Chinese through zinnia lists both its models, since the
-     * Traditional output switch picks between them at writing time.
+     * Traditional output switch picks between them at writing time; the
+     * languages of one script that PaddleOCR reads share one row, its model.
      */
     fun modelsFor(languages: List<LanguageDef>, zinniaPicked: Boolean = preferZinnia): List<HandwritingLanguage> =
         languages.distinctBy { it.id }.flatMap { language ->
             val tag = tagFor(language, zinniaPicked) ?: return@flatMap emptyList()
             if (ZinniaModels.isTag(tag)) {
                 ZinniaModels.tagsFor(language).map { HandwritingLanguage(it, ZinniaModels.displayName(it)) }
+            } else if (InkOcrModels.isTag(tag)) {
+                listOf(HandwritingLanguage(tag, InkOcrModels.displayName(tag)))
             } else {
                 listOf(HandwritingLanguage(tag, language.displayName))
             }
@@ -258,12 +266,25 @@ object HandwritingModels {
     fun shortLabel(tag: String): String =
         if (ZinniaModels.isTag(tag)) {
             ZinniaModels.shortLabel(tag)
+        } else if (InkOcrModels.isTag(tag)) {
+            InkOcrModels.shortLabel(tag)
         } else {
             (languageForTag(tag)?.id ?: tag.substringBefore('-')).uppercase()
         }
 
-    fun displayName(tag: String): String =
-        if (ZinniaModels.isTag(tag)) ZinniaModels.displayName(tag) else languageForTag(tag)?.displayName ?: tag
+    fun displayName(tag: String): String = when {
+        ZinniaModels.isTag(tag) -> ZinniaModels.displayName(tag)
+        InkOcrModels.isTag(tag) -> InkOcrModels.displayName(tag)
+        else -> languageForTag(tag)?.displayName ?: tag
+    }
+
+    /**
+     * Whether a word written with [tag] gets a capital at the start of a
+     * sentence: English through ML Kit, and every script with capitals
+     * through PaddleOCR. Other ML Kit models are left as they read.
+     */
+    fun capitalizesSentences(tag: String): Boolean =
+        tag == "en-US" || InkOcrModels.packFor(tag)?.cased == true
 
     private fun languageForTag(tag: String): LanguageDef? {
         val subtag = tag.substringBefore('-')
@@ -303,8 +324,11 @@ object HandwritingModels {
     private const val STATUS_TIMEOUT_MS = 60_000L
 
     /** Whether a recogniser in this build has a model for [tag] at all. */
-    fun hasModel(tag: String): Boolean =
-        if (ZinniaModels.isTag(tag)) ZinniaModels.packFor(tag) != null else mlKitInBuild && tag in allTags
+    fun hasModel(tag: String): Boolean = when {
+        ZinniaModels.isTag(tag) -> ZinniaModels.packFor(tag) != null
+        InkOcrModels.isTag(tag) -> InkOcrModels.packFor(tag) != null
+        else -> mlKitInBuild && tag in allTags
+    }
 
     /**
      * Whether [tag]'s model is on the device. False on Play until the
@@ -312,6 +336,7 @@ object HandwritingModels {
      */
     suspend fun isDownloaded(tag: String): Boolean {
         if (ZinniaModels.isTag(tag)) return ZinniaModels.isDownloaded(tag)
+        if (InkOcrModels.isTag(tag)) return InkOcrModels.isDownloaded(tag)
         if (!hasModel(tag)) return false
         val engine = runtime() ?: return false
         engine.prepare()
@@ -344,6 +369,7 @@ object HandwritingModels {
         onProgress: (HandwritingDownloadProgress) -> Unit = {},
     ) {
         if (ZinniaModels.isTag(tag)) return ZinniaModels.download(context, tag, onProgress)
+        if (InkOcrModels.isTag(tag)) return InkOcrModels.download(context, tag, onProgress)
         require(hasModel(tag)) { "No model for $tag" }
         // Packs imported from another device (#666) are served off disk, so
         // that download needs neither the network nor the permission for it.
@@ -443,6 +469,7 @@ object HandwritingModels {
 
     suspend fun delete(tag: String) {
         if (ZinniaModels.isTag(tag)) return ZinniaModels.delete(tag)
+        if (InkOcrModels.isTag(tag)) return InkOcrModels.delete(tag)
         if (!hasModel(tag)) return
         val engine = runtime() ?: return
         engine.prepare()
@@ -454,11 +481,19 @@ data class HandwritingLanguage(val tag: String, val displayName: String)
 
 /**
  * A recognizer for the active language. Holds one recognizer at a time, ML
- * Kit's or zinnia's; switching languages closes the old one. All calls are
- * main-thread safe — ML Kit runs recognition on its own executor, zinnia on
- * the default dispatcher.
+ * Kit's, zinnia's or PaddleOCR's; switching languages closes the old one.
+ * All calls are main-thread safe — ML Kit runs recognition on its own
+ * executor, the other two on the default dispatcher.
  */
 class HandwritingRecognizerCache {
+
+    /**
+     * The keyboard's word lists, for PaddleOCR's reader to weigh its
+     * readings against ([InkOcrDecoder]); ML Kit and zinnia read without
+     * them. Null reads plainly.
+     */
+    @Volatile
+    var lexicon: InkLexicon? = null
 
     private var recognizer: InkRuntime.Recognizer? = null
     private var recognizerTag: String? = null
@@ -487,13 +522,18 @@ class HandwritingRecognizerCache {
         maxCandidates: Int = 4,
     ): List<String> {
         if (strokes.isEmpty()) return emptyList()
-        val recognizer = if (ZinniaModels.isTag(tag)) {
-            recognizerFor(tag) { ZinniaModels.recognizer(tag) }
-        } else {
-            val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
-            HandwritingModels.prepare(engine)
-            recognizerFor(tag) { engine.recognizer(tag) }
-        } ?: error("No recognizer for $tag")
+        // Bracketed so the elvis covers every branch, not only the last.
+        val recognizer = (
+            if (ZinniaModels.isTag(tag)) {
+                recognizerFor(tag) { ZinniaModels.recognizer(tag) }
+            } else if (InkOcrModels.isTag(tag)) {
+                recognizerFor(tag) { InkOcrModels.recognizer(tag) }?.also { (it as? InkOcrRecognizer)?.lexicon = lexicon }
+            } else {
+                val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
+                HandwritingModels.prepare(engine)
+                recognizerFor(tag) { engine.recognizer(tag) }
+            }
+            ) ?: error("No recognizer for $tag")
         return recognizer.recognize(strokes, preContext, writingAreaWidth, writingAreaHeight)
             .filter { it.isNotEmpty() }
             .distinct()

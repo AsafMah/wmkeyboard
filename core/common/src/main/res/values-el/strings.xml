@@ -26,6 +26,7 @@
     <string name="common_default">Προεπιλογή</string>
     <string name="common_delete">Διαγραφή</string>
     <string name="common_disable">Απενεργοποίηση</string>
+    <string name="common_disabled_open_setting">Άνοιγμα της ρύθμισης</string>
     <string name="common_disclosure_blocked_body">Το Android δεν εμφανίζει πλέον αυτό το αίτημα, επειδή αρνηθήκατε την άδεια στο παρελθόν. Μπορείτε ακόμα να την ενεργοποιήσετε από την οθόνη ρυθμίσεων της εφαρμογής.</string>
     <string name="common_disclosure_not_now">Όχι τώρα</string>
     <string name="common_done">Τέλος</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Εγκατάσταση</string>
     <string name="common_installing">Εγκατάσταση…</string>
     <string name="common_loading">Φόρτωση…</string>
+    <string name="common_more">Περισσότερα</string>
     <string name="common_next">Επόμενο</string>
     <string name="common_none">Κανένα</string>
     <string name="common_notify_channel_backup_body">Μόνο όταν αποτυγχάνει ένα αυτόματο αντίγραφο ασφαλείας. Τα επιτυχημένα αντίγραφα ασφαλείας είναι αθόρυβα.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Εμφάνιση ειδοποιήσεων</string>
     <string name="common_permission_storage_body">Στο Android 9 και παλαιότερες εκδόσεις, το πληκτρολόγιο χρειάζεται άδεια αποθήκευσης για να αποθηκεύσει μια εικόνα στη συλλογή σας. Η παλιά άδεια Android καλύπτει επίσης την ανάγνωση του αποθηκευτικού σας χώρου. Το πληκτρολόγιο γράφει μόνο την εικόνα που του ζητάτε να αποθηκεύσει. Το πληκτρολόγιο δεν διαβάζει τίποτα και δεν ανεβάζει τίποτα. Οι νεότερες εκδόσεις Android δεν χρειάζονται αυτή την άδεια.</string>
     <string name="common_permission_storage_title">Πρόσβαση στον αποθηκευτικό χώρο για αποθήκευση στη συλλογή σας</string>
+    <string name="common_permission_tasks_body">Το πληκτρολόγιο WM διατηρεί τη λίστα υποχρεώσεών του και τη λίστα εργασιών στην εφαρμογή εργασιών συγχρονισμένες: οι εργασίες, τα βήματά τους, τα σύμβολα επιλογής τους και οι προθεσμίες τους, και προς τις δύο κατευθύνσεις. Η άδεια καλύπτει κάθε λίστα εργασιών στην εφαρμογή. Το πληκτρολόγιο διαβάζει τις λίστες της εφαρμογής μόνο για να μπορέσετε να επιλέξετε μία, και διαβάζει και γράφει μόνο στη λίστα που επιλέξατε. Το πληκτρολόγιο δεν στέλνει τίποτα πουθενά. Το DAVx5, αν το χρησιμοποιείτε, συγχρονίζει αυτή τη λίστα με τον δικό σας διακομιστή CalDAV. Χωρίς αυτήν την άδεια, η λίστα υποχρεώσεων παραμένει σε αυτό το τηλέφωνο.</string>
+    <string name="common_permission_tasks_opentasks_title">Πρόσβαση στο OpenTasks για τη λίστα εργασιών</string>
+    <string name="common_permission_tasks_tasks_org_title">Πρόσβαση στο Tasks.org για τη λίστα εργασιών</string>
+    <string name="common_preview_scale_desc">Μέγεθος προεπισκόπησης</string>
+    <string name="common_preview_scale_larger">Μεγέθυνση προεπισκόπησης</string>
+    <string name="common_preview_scale_smaller">Σμίκρυνση προεπισκόπησης</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Κατάργηση</string>
     <string name="common_reset">Επαναφορά</string>
     <string name="common_reset_defaults">Επαναφορά στις προεπιλογές</string>

@@ -26,6 +26,7 @@
     <string name="common_default">Standard</string>
     <string name="common_delete">Löschen</string>
     <string name="common_disable">Ausschalten</string>
+    <string name="common_disabled_open_setting">Einstellung öffnen</string>
     <string name="common_disclosure_blocked_body">Android zeigt diese Anfrage nicht mehr an, da du die Berechtigung zuvor verweigert hast. Du kannst sie weiterhin in den App-Einstellungen aktivieren.</string>
     <string name="common_disclosure_not_now">Nicht jetzt</string>
     <string name="common_done">Fertig</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installieren</string>
     <string name="common_installing">Installiere…</string>
     <string name="common_loading">Wird geladen…</string>
+    <string name="common_more">Mehr</string>
     <string name="common_next">Weiter</string>
     <string name="common_none">Keine</string>
     <string name="common_notify_channel_backup_body">Nur wenn ein automatisches Backup fehlschlägt. Erfolgreiche Backups erfolgen lautlos.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Benachrichtigungen anzeigen</string>
     <string name="common_permission_storage_body">Unter Android 9 und älter benötigt die Tastatur die Speicherberechtigung, um ein Bild in deiner Galerie zu speichern. Die alte Android-Berechtigung umfasst auch das Lesen deines Speichers. Die Tastatur schreibt nur das Bild, das du speichern möchtest. Die Tastatur liest nichts und lädt nichts hoch. Neuere Android-Versionen benötigen diese Berechtigung nicht.</string>
     <string name="common_permission_storage_title">Speicherzugriff zum Speichern in Ihrer Galerie</string>
+    <string name="common_permission_tasks_body">WM Keyboard hält seine Aufgabenliste und eine Aufgabenliste in der Aufgaben-App synchron: die Aufgaben, ihre Schritte, ihre Häkchen und ihre Fälligkeitsdaten, in beide Richtungen. Die Berechtigung umfasst jede Aufgabenliste in der App. Die Tastatur liest die Listen der App nur, damit Sie eine auswählen können, und sie liest und schreibt nur die von Ihnen ausgewählte Liste. Die Tastatur sendet nichts irgendwohin. DAVx5, falls Sie es verwenden, synchronisiert diese Liste mit Ihrem eigenen CalDAV-Server. Ohne diese Berechtigung bleibt die Aufgabenliste auf diesem Telefon.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-Zugriff für die Aufgabenliste</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-Zugriff für die Aufgabenliste</string>
+    <string name="common_preview_scale_desc">Vorschaugröße</string>
+    <string name="common_preview_scale_larger">Vorschau vergrößern</string>
+    <string name="common_preview_scale_smaller">Vorschau verkleinern</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Entfernen</string>
     <string name="common_reset">Zurücksetzen</string>
     <string name="common_reset_defaults">Auf Standardeinstellungen zurücksetzen</string>

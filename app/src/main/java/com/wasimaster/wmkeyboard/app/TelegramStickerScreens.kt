@@ -3,12 +3,9 @@ package com.wasimaster.wmkeyboard.app
 import android.content.Intent
 import android.net.Uri
 import android.widget.ImageView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
@@ -34,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -267,6 +262,9 @@ internal fun TelegramPackScreen(
     val mine = remember(revision) {
         store.packs().firstOrNull { it.source == StickerPack.telegramSource(setName) }
     }
+    // The stickers ticked for adding (#965), by unique id: all of them once
+    // the set loads, and only those are downloaded and converted.
+    var chosen by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     val notFound = stringResource(R.string.import_telegram_error_not_found)
     val badToken = stringResource(R.string.import_telegram_error_bad_token)
@@ -284,7 +282,10 @@ internal fun TelegramPackScreen(
                 TelegramStickerDownloads.stickerSet(token, setName)
             }
             load = when (outcome) {
-                is TelegramStickerDownloads.SetOutcome.Ok -> SetLoad.Loaded(outcome.set)
+                is TelegramStickerDownloads.SetOutcome.Ok -> {
+                    chosen = outcome.set.stickers.mapTo(HashSet()) { it.uniqueId }
+                    SetLoad.Loaded(outcome.set)
+                }
                 TelegramStickerDownloads.SetOutcome.NotFound -> SetLoad.Failed(notFound)
                 TelegramStickerDownloads.SetOutcome.BadToken -> SetLoad.Failed(badToken, needsToken = true)
                 is TelegramStickerDownloads.SetOutcome.Failed ->
@@ -308,11 +309,12 @@ internal fun TelegramPackScreen(
 
     fun add(set: TelegramStickerSet) {
         val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-        progress = SetProgress(TelegramStickerDownloads.Phase.DOWNLOADING, 0, set.stickers.size)
+        val only = chosen
+        progress = SetProgress(TelegramStickerDownloads.Phase.DOWNLOADING, 0, only.size)
         scope.launch {
             val text = try {
                 TelegramStickerDownloads.import(
-                    store, token, set, fallbackName, cacheDir,
+                    store, token, set, fallbackName, cacheDir, only,
                 ) { phase, done, total -> progress = SetProgress(phase, done, total) }
                     .describe(context)
             } catch (e: IOException) {
@@ -352,6 +354,8 @@ internal fun TelegramPackScreen(
             cacheDir = cacheDir,
             mine = mine,
             progress = progress,
+            chosen = chosen,
+            onChosenChange = { chosen = it },
             onAdd = { add(current.set) },
             onOpenMine = { mine?.let { onNavigate(stickerPackRoute(it.id)) } },
         )
@@ -394,10 +398,14 @@ private fun LoadedSet(
     cacheDir: File,
     mine: StickerPack?,
     progress: SetProgress?,
+    chosen: Set<String>,
+    onChosenChange: (Set<String>) -> Unit,
     onAdd: () -> Unit,
     onOpenMine: () -> Unit,
 ) {
     val count = set.stickers.size
+    // Ticking is for a set that is not in yet and not on its way in.
+    val picking = mine == null && progress == null
     val moving = set.stickers.any { it.format != TelegramStickerFormat.STATIC }
     SettingsGroup(set.title.ifBlank { stringResource(R.string.import_telegram_untitled) }) {
         item {
@@ -442,15 +450,29 @@ private fun LoadedSet(
                 )
 
                 else -> WmRow(
-                    title = stringResource(R.string.import_telegram_add_title),
+                    title = if (chosen.size == count) {
+                        stringResource(R.string.import_telegram_add_title)
+                    } else {
+                        pluralStringResource(R.plurals.import_stickers_add_chosen, chosen.size, chosen.size)
+                    },
                     subtitle = stringResource(R.string.import_telegram_add_subtitle),
                     icon = Icons.Outlined.Add,
                     accent = routeAccent("sticker_packs"),
-                    enabled = count > 0,
+                    enabled = chosen.isNotEmpty(),
                     onClick = onAdd,
                 )
             }
         }
+    }
+
+    if (picking && count > 0) {
+        StickerPickBar(
+            chosen = chosen.size,
+            total = count,
+            onAll = { onChosenChange(set.stickers.mapTo(HashSet()) { it.uniqueId }) },
+            onNone = { onChosenChange(emptySet()) },
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+        )
     }
 
     val loader = rememberMediaImageLoader()
@@ -468,11 +490,9 @@ private fun LoadedSet(
             val preview by produceState<SetPreview?>(null, set.name, sticker.uniqueId) {
                 value = withContext(Dispatchers.IO) { runCatching { preview(token, set.name, sticker, cacheDir) }.getOrNull() }
             }
-            Box(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            StickerPickCell(
+                checked = if (picking) sticker.uniqueId in chosen else null,
+                onClick = if (picking) ({ onChosenChange(chosen.withToggled(sticker.uniqueId)) }) else null,
             ) {
                 val label = sticker.emoji.ifBlank { unnamed }
                 when (val shown = preview) {

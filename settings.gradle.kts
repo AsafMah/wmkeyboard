@@ -96,12 +96,14 @@ if (wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE", default = false))
         // A gate the build switches off has no module either: the NPU
         // runtime unless wmkb.enableNpu (the flag :core:config reads), the
         // Google Home APIs unless their SDK is unpacked under
-        // feature/ime/libs/googlehome and wmkb.enableGoogleHome is on.
+        // feature/ime/libs/googlehome (no flag: the SDK being there is the
+        // decision).
         val by = gate["enabledBy"] as Map<*, *>?
         if (by != null) {
             val dir = by["requiresDir"] as String?
             if (dir != null && !file(dir).isDirectory) continue
-            if (!wmkbFlag(by["flag"] as String, by["env"] as String, by["default"] as Boolean)) continue
+            val flag = by["flag"] as String?
+            if (flag != null && !wmkbFlag(flag, by["env"] as String, by["default"] as Boolean)) continue
         }
         include(":feature:${gate["id"]}")
     }

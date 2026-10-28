@@ -46,6 +46,10 @@ internal object EngineNative {
     external fun khiproWarm(variant: Int)
     external fun khiproSpellings(word: String): Array<String>
     external fun khiproRomanizerWarm()
+    external fun khiproInstall(variant: Int, spec: String): String
+    external fun khiproReset(variant: Int)
+    external fun khiproCheck(spec: String, cases: String, skip: String): String
+    external fun khiproBundledRevision(): String
 
     // Bijoy ANSI.
     external fun bijoy(text: String, version: Int, before: String): String

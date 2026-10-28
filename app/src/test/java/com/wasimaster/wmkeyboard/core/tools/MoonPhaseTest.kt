@@ -16,6 +16,18 @@ class MoonPhaseTest {
     }
 
     @Test
+    fun `the main phases around a moment, a quarter month apart`() {
+        val now = 947_182_440_000L + (MoonPhase.SYNODIC_DAYS * 0.6 * 86_400_000).toLong()
+        val quarters = MoonPhase.quarters(now)
+        assertEquals(listOf(4, 6, 0, 2), quarters.map { it.phaseIndex })
+        assertTrue(quarters[0].atMillis <= now && quarters[1].atMillis > now)
+        val quarterMs = MoonPhase.SYNODIC_DAYS / 4 * 86_400_000
+        quarters.zipWithNext().forEach { (a, b) -> assertEquals(quarterMs, (b.atMillis - a.atMillis).toDouble(), 2.0) }
+        // The phase [at] gives at each instant is the one it is listed as.
+        quarters.forEach { assertEquals(it.phaseIndex, MoonPhase.at(it.atMillis + 1_000).phaseIndex) }
+    }
+
+    @Test
     fun `full moon half cycle later`() {
         val half = (MoonPhase.SYNODIC_DAYS / 2 * 86_400_000).toLong()
         val info = MoonPhase.at(947_182_440_000L + half)

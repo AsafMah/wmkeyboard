@@ -367,7 +367,7 @@ internal fun VocabularyToolSettings(
                 scope.launch { repository.setVocabNudges(it) }
             }
         }
-        item(visible = nudges) {
+        item(visible = nudges, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.tooldetail_vocab_nudge_self_title,
                 stringResource(R.string.tooldetail_vocab_nudge_self_subtitle),
@@ -375,7 +375,7 @@ internal fun VocabularyToolSettings(
                 default = d.nudgeOnVocabWord,
             ) { scope.launch { repository.setVocabNudgeOnVocabWord(it) } }
         }
-        item(visible = nudges) {
+        item(visible = nudges, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_tap_title,
                 subtitle = stringResource(R.string.tooldetail_vocab_tap_subtitle),
@@ -387,7 +387,7 @@ internal fun VocabularyToolSettings(
                 default = d.chipTapAction,
             ) { scope.launch { repository.setVocabChipTapAction(it) } }
         }
-        item(visible = nudges) {
+        item(visible = nudges, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_scope_title,
                 options = listOf(
@@ -399,7 +399,7 @@ internal fun VocabularyToolSettings(
                 default = d.nudgeScope,
             ) { scope.launch { repository.setVocabNudgeScope(it) } }
         }
-        item(visible = nudges) {
+        item(visible = nudges, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_level_title,
                 subtitle = stringResource(R.string.tooldetail_vocab_level_subtitle),
@@ -412,7 +412,7 @@ internal fun VocabularyToolSettings(
                 default = d.nudgeLevel,
             ) { scope.launch { repository.setVocabNudgeLevel(it) } }
         }
-        item(visible = nudges) {
+        item(visible = nudges, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_cooldown_title,
                 options = listOf(
@@ -445,6 +445,7 @@ internal fun VocabularyToolSettings(
                 }
             }
         },
+        level = SettingLevel.ADVANCED,
     ) {
         for (field in VocabCardField.entries) {
             item {
@@ -470,9 +471,10 @@ internal fun VocabularyToolSettings(
         repository,
         settings,
         endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
+        level = SettingLevel.ADVANCED,
     )
-    SettingsGroup(stringResource(R.string.tooldetail_vocab_related_group)) {
-        item {
+    SettingsGroup(stringResource(R.string.tooldetail_vocab_related_group), level = SettingLevel.STANDARD) {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_related_title,
                 subtitle = stringResource(R.string.tooldetail_vocab_related_subtitle),
@@ -516,8 +518,13 @@ internal fun VocabularyToolSettings(
         settings,
         ProviderTool.VOCAB_AUTOFILL,
         info = stringResource(R.string.tooldetail_vocab_providers_info),
+        level = SettingLevel.STANDARD,
     )
-    SettingsGroup(stringResource(R.string.tooldetail_vocab_audio_group), info = stringResource(R.string.tooldetail_vocab_audio_info)) {
+    SettingsGroup(
+        stringResource(R.string.tooldetail_vocab_audio_group),
+        info = stringResource(R.string.tooldetail_vocab_audio_info),
+        level = SettingLevel.STANDARD,
+    ) {
         item {
             ChoiceSetting(
                 R.string.tooldetail_vocab_audio_source_title,
@@ -542,7 +549,7 @@ internal fun VocabularyToolSettings(
                 default = d.accent,
             ) { scope.launch { repository.setVocabAccent(it) } }
         }
-        item(visible = ttsTunable) {
+        item(visible = ttsTunable, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.tooldetail_vocab_tts_rate_title,
                 value = settings.watch { it.vocabulary.ttsRate },
@@ -551,7 +558,7 @@ internal fun VocabularyToolSettings(
                 default = d.ttsRate,
             ) { scope.launch { repository.setVocabTtsRate(it) } }
         }
-        item(visible = ttsTunable) {
+        item(visible = ttsTunable, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.tooldetail_vocab_tts_pitch_title,
                 value = settings.watch { it.vocabulary.ttsPitch },
@@ -573,8 +580,9 @@ internal fun VocabularyToolSettings(
     SettingsGroup(
         stringResource(R.string.tooldetail_vocab_flashcards_group),
         info = stringResource(R.string.tooldetail_vocab_flashcards_info),
+        level = SettingLevel.STANDARD,
     ) {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.tooldetail_vocab_scheduler_title,
                 options = listOf(
@@ -608,7 +616,7 @@ internal fun VocabularyToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.tooldetail_vocab_wotd_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_vocab_wotd_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.tooldetail_vocab_wotd_card_title,
@@ -646,7 +654,7 @@ internal fun VocabularyToolSettings(
                 default = d.wordInterval,
             ) { scope.launch { repository.setVocabWordInterval(it) } }
         }
-        item(visible = wordChip) {
+        item(visible = wordChip, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.tooldetail_vocab_wotd_chip_times_title,
                 subtitle = stringResource(R.string.tooldetail_vocab_wotd_chip_times_subtitle),

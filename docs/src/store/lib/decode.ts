@@ -91,6 +91,7 @@ export function decodeManifestObject(raw: unknown): DecodeResult {
 			licenseText: str(a.licenseText),
 			licenseFile: str(a.licenseFile),
 			requires: strList(a.requires),
+			basedOn: str(a.basedOn),
 		});
 	});
 	const known = new Set(['format', 'version', 'repo', 'addons', '$schema']);

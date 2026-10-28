@@ -215,6 +215,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     if (module != ModuleState.Installed && needsModule) {
         WhisperModuleBanner(
             module = module,
+            gateId = "litert",
             onDownload = {
                 when (downloadDecisionNow(context, settings.value)) {
                     MeteredDecision.ALLOWED -> WhisperEngine.requestModule()
@@ -264,7 +265,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     // value was only ever written by adopting a sole download or clearing a
     // deleted one, so the docs listed a setting that no control wrote.
     if (onDisk.size > 1) {
-        SettingsGroup(stringResource(R.string.models_whisper_fallback_title)) {
+        SettingsGroup(stringResource(R.string.models_whisper_fallback_title), level = SettingLevel.ADVANCED) {
             item {
                 val autoLabel = stringResource(R.string.models_whisper_fallback_auto)
                 ChoiceSetting(
@@ -332,7 +333,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         }
     }
     SettingsGroup {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_whisper_subtitle),
                 links = offlineLinks,
@@ -421,7 +422,7 @@ private fun WhisperComputeGroup(repository: SettingsRepository, settings: LiveSe
             ?.let { stringResource(R.string.models_whisper_compute_subtitle_named, it) }
             ?: stringResource(R.string.models_whisper_compute_subtitle)
     }
-    SettingsGroup(stringResource(R.string.models_whisper_compute_title)) {
+    SettingsGroup(stringResource(R.string.models_whisper_compute_title), level = SettingLevel.ADVANCED) {
         item {
             ChoiceSetting(
                 title = R.string.models_whisper_compute_title,
@@ -463,6 +464,7 @@ private fun WhisperRoutingCard(
     SettingsGroup(
         stringResource(R.string.models_whisper_per_language_title),
         info = stringResource(R.string.models_whisper_routing_info),
+        level = SettingLevel.STANDARD,
     ) {
         for (language in languages) {
             item {
@@ -975,15 +977,21 @@ private fun WhisperDownloadProgress(bytes: Long, total: Long) {
  * default, or `:feature:executorch` (the ExecuTorch runtime) for Asr4All,
  * Parakeet, Moonshine and the FUTO Swipe glide engine. Nothing where the
  * libraries are in the APK. Asks the way the interpreter's banner does.
+ * [gateId] is [gate]'s id in `native/gates.json`, which names the files the
+ * offline build's banner sends the user for.
  */
 @Composable
-internal fun SpeechModuleBanner(settings: LiveSettings, gate: ModuleGate = FeatureModules.speech) {
+internal fun SpeechModuleBanner(
+    settings: LiveSettings,
+    gate: ModuleGate = FeatureModules.speech,
+    gateId: String = "speech",
+) {
     val context = LocalContext.current
     val module by gate.state.collectAsState()
     if (module == ModuleState.Installed) return
     var metered by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
-    WhisperModuleBanner(module) {
+    WhisperModuleBanner(module, gateId) {
         when (downloadDecisionNow(context, settings.value)) {
             MeteredDecision.ALLOWED -> gate.requestInstall()
             MeteredDecision.ASK -> metered = true
@@ -1015,7 +1023,7 @@ internal fun OnnxModuleBanner(settings: LiveSettings) {
     if (module == ModuleState.Installed) return
     var metered by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
-    WhisperModuleBanner(module) {
+    WhisperModuleBanner(module, "onnx") {
         when (downloadDecisionNow(context, settings.value)) {
             MeteredDecision.ALLOWED -> SherpaNative.requestModule()
             MeteredDecision.ASK -> metered = true
@@ -1038,10 +1046,12 @@ internal fun OnnxModuleBanner(settings: LiveSettings) {
 /**
  * The interpreter's own download, on a Play install that has not fetched it.
  * Live state with the button that fixes it, the same shape as the translate
- * screen's module banner.
+ * screen's module banner. [gateId] is the gate whose missing files the offline
+ * build's banner lists: the library this banner is about, not always LiteRT
+ * (#946).
  */
 @Composable
-private fun WhisperModuleBanner(module: ModuleState, onDownload: () -> Unit) {
+private fun WhisperModuleBanner(module: ModuleState, gateId: String, onDownload: () -> Unit) {
     val context = LocalContext.current
     when (module) {
         is ModuleState.Installing -> StateBanner(
@@ -1057,7 +1067,7 @@ private fun WhisperModuleBanner(module: ModuleState, onDownload: () -> Unit) {
         )
         // F-Droid, before the user has opted in to library downloads: a
         // retry would only stop at the same place, so say where to turn it on.
-        is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), "litert")
+        is ModuleState.Missing if module.consent != null -> NativeConsentBanner(module.consent.orEmpty(), gateId)
         is ModuleState.Missing -> StateBanner(
             stringResource(
                 if (module.failed) {

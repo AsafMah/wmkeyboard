@@ -48,6 +48,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mood
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
@@ -377,6 +378,39 @@ internal fun AddonStoreRow(type: AddonType, onNavigate: (String) -> Unit) {
     )
 }
 
+/**
+ * The community repository's [type]s, the ones other people made and shared
+ * from their phones. Opens its catalogue filtered to [type]; when the user has
+ * removed the repository, the add dialog pre-filled with it instead, so the row
+ * is never a dead end and never adds anything on its own.
+ */
+@Composable
+internal fun CommunityAddonsRow(type: AddonType, onNavigate: (String) -> Unit) {
+    val context = LocalContext.current
+    val (title, subtitle) = when (type) {
+        AddonType.Layout -> R.string.layout_community_title to R.string.layout_community_subtitle
+        else -> R.string.theme_community_title to R.string.theme_community_subtitle
+    }
+    WmRow(
+        title = stringResource(title),
+        subtitle = stringResource(subtitle),
+        icon = Icons.Outlined.Public,
+        accent = tintFor(type),
+        trailing = {
+            Icon(
+                Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        onClick = takeOffClick {
+            val url = AddonRepoCodec.resolveManifestUrl(AddonStore.COMMUNITY_SEED) ?: return@takeOffClick
+            val added = AddonStore.get(context).repo(url) != null
+            onNavigate(if (added) addonRepoRoute(url, type) else addonsAddRoute(url))
+        },
+    )
+}
+
 /** [AddonStoreRow] as a group of its own, for a screen that has nowhere to put it. */
 @Composable
 internal fun AddonStoreGroup(type: AddonType, onNavigate: (String) -> Unit) {
@@ -577,9 +611,13 @@ internal fun AddonsScreen(
         RefreshSettingsGroup(store, autoRefresh, refreshUnmeteredOnly)
     }
 
-    // Where the two repositories offered on a fresh install are fetched from.
+    // Where the repositories offered on a fresh install are fetched from.
     if (repository != null && settings != null) {
-        ServerFieldsGroup(repository, settings, repos = listOf(ServiceRepo.ADDONS, ServiceRepo.SOUNDS))
+        ServerFieldsGroup(
+            repository,
+            settings,
+            repos = listOf(ServiceRepo.ADDONS, ServiceRepo.SOUNDS, ServiceRepo.COMMUNITY),
+        )
     }
 
     if (installed.isNotEmpty()) {
@@ -1015,7 +1053,7 @@ private fun RefreshSettingsGroup(
     refreshUnmeteredOnly: Boolean,
 ) {
     SettingsGroup(stringResource(R.string.addon_refresh_section_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.addon_auto_refresh_title,
                 stringResource(R.string.addon_auto_refresh_subtitle),
@@ -1024,7 +1062,7 @@ private fun RefreshSettingsGroup(
                 default = true,
             ) { store.setAutoRefresh(it) }
         }
-        item(visible = autoRefresh) {
+        item(visible = autoRefresh, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.addon_refresh_unmetered_title,
                 stringResource(R.string.addon_refresh_unmetered_subtitle),
@@ -1696,6 +1734,24 @@ internal fun AddonDetailScreen(
         if (entry.description.isNotBlank()) {
             Spacer(Modifier.height(12.dp))
             Text(entry.description, style = MaterialTheme.typography.bodyMedium)
+        }
+        entry.basedOn?.takeIf { it.isNotBlank() }?.let { basedOn ->
+            // The original, when it is in this same repository: named and
+            // opened from here. One from elsewhere is only named by its key.
+            val original = loaded.addons.firstOrNull { "${loaded.repo.id}/${it.id}" == basedOn }
+            val label = original?.let { listOf(it.name, it.author).filter(String::isNotBlank).joinToString(" · ") }
+                ?: basedOn
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.addon_based_on, label),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (original != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = if (original != null) {
+                    Modifier.clickable { onNavigate(addonDetailRoute(manifestUrl, original.id)) }
+                } else {
+                    Modifier
+                },
+            )
         }
     }
 

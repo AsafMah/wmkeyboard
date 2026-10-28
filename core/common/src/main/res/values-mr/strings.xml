@@ -26,6 +26,7 @@
     <string name="common_default">डीफॉल्ट</string>
     <string name="common_delete">हटवा</string>
     <string name="common_disable">बंद करा</string>
+    <string name="common_disabled_open_setting">सेटिंग उघडा</string>
     <string name="common_disclosure_blocked_body">Android आता ही विनंती दाखवत नाही, कारण तुम्ही आधी परवानगी नाकारली होती. तुम्ही ती अजूनही ॲप सेटिंग्ज स्क्रीनवरून चालू करू शकता.</string>
     <string name="common_disclosure_not_now">आता नको</string>
     <string name="common_done">पूर्ण झाले</string>
@@ -44,6 +45,7 @@
     <string name="common_install">इन्स्टॉल करा</string>
     <string name="common_installing">इन्स्टॉल होत आहे...</string>
     <string name="common_loading">लोड होत आहे…</string>
+    <string name="common_more">अधिक</string>
     <string name="common_next">पुढे</string>
     <string name="common_none">काहीही नाही</string>
     <string name="common_notify_channel_backup_body">केवळ जेव्हा स्वयंचलित बॅकअप अयशस्वी होतो. यशस्वी बॅकअप शांत असतात.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">सूचना दाखवा</string>
     <string name="common_permission_storage_body">Android 9 आणि त्यापेक्षा जुन्या आवृत्त्यांवर, तुमच्या गॅलरीत प्रतिमा सेव्ह करण्यासाठी कीबोर्डला स्टोरेज परवानगीची आवश्यकता असते. जुनी Android परवानगी तुमचे स्टोरेज वाचणे देखील कव्हर करते. कीबोर्ड फक्त तुम्ही सेव्ह करण्यास सांगितलेली प्रतिमा लिहितो. कीबोर्ड काहीही वाचत नाही आणि काहीही अपलोड करत नाही. नवीन Android आवृत्त्यांना या परवानगीची आवश्यकता नाही.</string>
     <string name="common_permission_storage_title">तुमच्या गॅलरीत सेव्ह करण्यासाठी स्टोरेज ॲक्सेस</string>
+    <string name="common_permission_tasks_body">WM कीबोर्ड त्याची टू-डू लिस्ट आणि टास्क ॲपमधील एक टास्क लिस्ट दोन्ही प्रकारे समान ठेवतो: टास्क, त्यांचे टप्पे, त्यांच्या खुणा आणि त्यांच्या देय तारखा. ही परवानगी ॲपमधील प्रत्येक टास्क लिस्टसाठी लागू होते. कीबोर्ड फक्त ॲपच्या लिस्ट वाचतो जेणेकरून तुम्ही एक निवडू शकाल आणि तो फक्त तुम्ही निवडलेली लिस्ट वाचतो आणि लिहितो. कीबोर्ड काहीही कुठेही पाठवत नाही. जर तुम्ही DAVx5 वापरत असाल, तर ते ती लिस्ट तुमच्या स्वतःच्या CalDAV सर्व्हरसह सिंक करते. या परवानगीशिवाय, टू-डू लिस्ट या फोनवरच राहते.</string>
+    <string name="common_permission_tasks_opentasks_title">टू-डू लिस्टसाठी OpenTasks ॲक्सेस</string>
+    <string name="common_permission_tasks_tasks_org_title">टू-डू लिस्टसाठी Tasks.org ॲक्सेस</string>
+    <string name="common_preview_scale_desc">पूर्वावलोकन आकार</string>
+    <string name="common_preview_scale_larger">पूर्वावलोकन मोठे करा</string>
+    <string name="common_preview_scale_smaller">पूर्वावलोकन लहान करा</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">काढून टाका</string>
     <string name="common_reset">रीसेट करा</string>
     <string name="common_reset_defaults">डीफॉल्टवर रीसेट करा</string>

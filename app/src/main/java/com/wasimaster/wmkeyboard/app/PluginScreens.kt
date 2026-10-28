@@ -113,7 +113,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                 )
             }
         }
-        item(visible = enabled) {
+        item(visible = enabled, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.plugins_auto_disable_title,
                 stringResource(R.string.plugins_auto_disable_subtitle),
@@ -127,6 +127,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
     SettingsGroup(
         stringResource(R.string.plugins_facts_title),
         info = stringResource(R.string.plugins_facts_info),
+        level = SettingLevel.STANDARD,
     ) {
         item { PluginFact(stringResource(R.string.plugins_fact_no_typing), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_no_field), allowed = false) }
@@ -139,7 +140,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
 
     // Outside the master switch on purpose: writing and previewing a plugin runs
     // nothing in the keyboard, and a plugin can be written before plugins are on.
-    SettingsGroup(stringResource(R.string.plugin_ide_group_title)) {
+    SettingsGroup(stringResource(R.string.plugin_ide_group_title), level = SettingLevel.ADVANCED) {
         item {
             WmRow(
                 title = stringResource(R.string.plugin_ide_entry_title),
@@ -316,9 +317,13 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 },
                 checked = plugin.enabled,
                 enabled = subsystemOn,
+                disabledReason = rememberDisabledReason(
+                    stringResource(R.string.plugins_detail_subsystem_off_subtitle),
+                    R.string.plugins_allow_title,
+                ),
             ) { store.setEnabled(pluginId, it) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             WmRow(
                 title = stringResource(R.string.plugin_ide_edit_title),
                 icon = SettingsRowIcons[R.string.plugin_ide_edit_title],
@@ -357,7 +362,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         }
     }
 
-    SettingsGroup(stringResource(R.string.plugins_storage_title)) {
+    SettingsGroup(stringResource(R.string.plugins_storage_title), level = SettingLevel.STANDARD) {
         item {
             WmRow(
                 title = stringResource(
@@ -383,6 +388,7 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         SettingsGroup(
             stringResource(R.string.plugins_log_title),
             info = stringResource(R.string.plugins_log_info),
+            level = SettingLevel.ADVANCED,
         ) {
             for (line in log.takeLast(LOG_LINES)) {
                 item {

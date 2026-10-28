@@ -297,13 +297,13 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 381
-    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:
@@ -353,13 +353,13 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 382
-    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:
@@ -409,13 +409,13 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 383
-    commit: 92f243048893bb52cca35a3371ac1b5282f7f809
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:

@@ -26,6 +26,7 @@
     <string name="common_default">Default</string>
     <string name="common_delete">Hapus</string>
     <string name="common_disable">Matikan</string>
+    <string name="common_disabled_open_setting">Buka pengaturan</string>
     <string name="common_disclosure_blocked_body">Android tidak lagi menampilkan permintaan ini karena Anda telah menolak izin sebelumnya. Anda masih dapat mengaktifkannya dari layar pengaturan aplikasi.</string>
     <string name="common_disclosure_not_now">Jangan sekarang</string>
     <string name="common_done">Selesai</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instal</string>
     <string name="common_installing">Menginstal…</string>
     <string name="common_loading">Memuat…</string>
+    <string name="common_more">Lainnya</string>
     <string name="common_next">Berikutnya</string>
     <string name="common_none">Tidak ada</string>
     <string name="common_notify_channel_backup_body">Hanya saat pencadangan otomatis gagal. Pencadangan yang berhasil tidak akan memunculkan notifikasi.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Tampilkan notifikasi</string>
     <string name="common_permission_storage_body">Pada Android 9 dan yang lebih lama, papan ketik memerlukan izin penyimpanan untuk menyimpan gambar ke galeri Anda. Izin Android lama juga mencakup pembacaan penyimpanan Anda. Papan ketik hanya menulis gambar yang Anda minta untuk disimpan. Papan ketik tidak membaca apa pun dan tidak mengunggah apa pun. Versi Android yang lebih baru tidak memerlukan izin ini.</string>
     <string name="common_permission_storage_title">Akses penyimpanan untuk menyimpan ke galeri Anda</string>
+    <string name="common_permission_tasks_body">Papan Ketik WM menyinkronkan daftar tugasnya dan satu daftar tugas di aplikasi tugas agar tetap sama: tugas, langkah-langkah, tanda centang, dan tanggal jatuh temponya, secara dua arah. Izin ini mencakup setiap daftar tugas di aplikasi tersebut. Papan ketik hanya membaca daftar aplikasi agar Anda dapat memilih salah satunya, dan papan ketik hanya membaca serta menulis pada daftar yang Anda pilih. Papan ketik tidak mengirimkan apa pun ke mana pun. Jika Anda menggunakannya, DAVx5 akan menyinkronkan daftar tersebut dengan server CalDAV milik Anda. Tanpa izin ini, daftar tugas hanya akan tersimpan di ponsel ini.</string>
+    <string name="common_permission_tasks_opentasks_title">Akses OpenTasks untuk daftar tugas</string>
+    <string name="common_permission_tasks_tasks_org_title">Akses Tasks.org untuk daftar tugas</string>
+    <string name="common_preview_scale_desc">Ukuran pratinjau</string>
+    <string name="common_preview_scale_larger">Perbesar pratinjau</string>
+    <string name="common_preview_scale_smaller">Perkecil pratinjau</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Hapus</string>
     <string name="common_reset">Atur ulang</string>
     <string name="common_reset_defaults">Setel ulang ke default</string>

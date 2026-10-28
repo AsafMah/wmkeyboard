@@ -20,7 +20,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Laptop
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Smartphone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tablet
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tv
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +59,7 @@ import com.wasimaster.wmkeyboard.app.ChoiceSetting
 import com.wasimaster.wmkeyboard.app.ExpandableCard
 import com.wasimaster.wmkeyboard.app.LiveSettings
 import com.wasimaster.wmkeyboard.app.NavRow
+import com.wasimaster.wmkeyboard.app.SettingLevel
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.SliderSetting
 import com.wasimaster.wmkeyboard.app.SpecialAccess
@@ -65,6 +69,7 @@ import com.wasimaster.wmkeyboard.app.ToggleSetting
 import com.wasimaster.wmkeyboard.app.rememberDisclosedSpecialAccess
 import com.wasimaster.wmkeyboard.app.rememberGrantState
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
+import com.wasimaster.wmkeyboard.core.kdeconnect.KdeClipboardPause
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDevice
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDeviceType
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairState
@@ -155,7 +160,7 @@ internal fun KdeConnectToolSettings(
                 },
             ) { onNavigate(KdeDevices.ROUTE) }
         }
-        item(visible = kdeOn) {
+        item(visible = kdeOn, level = SettingLevel.STANDARD) {
             TextFieldSetting(
                 label = stringResource(R.string.kdeconnect_name_label),
                 value = settings.watch { it.kdeConnect.deviceName },
@@ -166,7 +171,7 @@ internal fun KdeConnectToolSettings(
     }
     if (!kdeOn) return
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_connection)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_connection), level = SettingLevel.ADVANCED) {
         item {
             val details = mapOf(
                 KdeLinkLifetime.PANEL to stringResource(R.string.kdeconnect_lifetime_panel_detail),
@@ -196,7 +201,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_clipboard)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_clipboard), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_clipboard_receive_title,
@@ -205,7 +210,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.clipboardReceive,
             ) { scope.launch { repository.setKdeClipboardReceive(it) } }
         }
-        item(visible = clipboardReceive) {
+        item(visible = clipboardReceive, level = SettingLevel.ADVANCED) {
             val minutesFormat = stringResource(R.string.values_minutes)
             val off = stringResource(R.string.kdeconnect_clear_secrets_off)
             SliderSetting(
@@ -229,7 +234,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_typing)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_typing), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_remote_typing_title,
@@ -238,7 +243,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.remoteTyping,
             ) { scope.launch { repository.setKdeRemoteTyping(it) } }
         }
-        item(visible = remoteTyping) {
+        item(visible = remoteTyping, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pipeline_title,
                 stringResource(R.string.kdeconnect_pipeline_subtitle),
@@ -249,7 +254,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_touchpad)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_touchpad), level = SettingLevel.STANDARD) {
         val times: (Float) -> String = { String.format(Locale.getDefault(), "%.1f×", it) }
         item {
             SliderSetting(
@@ -260,7 +265,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.padSensitivity,
             ) { scope.launch { repository.setKdePadSensitivity(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pad_accel_title,
                 stringResource(R.string.kdeconnect_pad_accel_subtitle),
@@ -293,7 +298,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.tapToClick,
             ) { scope.launch { repository.setKdeTapToClick(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pad_haptics_title,
                 null,
@@ -305,7 +310,7 @@ internal fun KdeConnectToolSettings(
 
     val hasAccess = rememberGrantState(::hasNotificationAccess)
     val openAccess = rememberDisclosedSpecialAccess(SpecialAccess.NOTIFICATIONS)
-    SettingsGroup(stringResource(R.string.kdeconnect_group_sharing)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_sharing), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_receive_files_title,
@@ -322,7 +327,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.shareSheet,
             ) { scope.launch { repository.setKdeShareSheet(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_battery_title,
                 stringResource(R.string.kdeconnect_battery_subtitle),
@@ -330,7 +335,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.batteryReport,
             ) { scope.launch { repository.setKdeBatteryReport(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_codes_title,
                 stringResource(R.string.kdeconnect_codes_subtitle),
@@ -400,7 +405,26 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
     hub.devices.firstOrNull { it.pairState == KdePairState.REQUESTED || it.pairState == KdePairState.REQUESTED_BY_PEER }
         ?.let { PairingCard(it) }
 
+    // Redrawn as a timed pause ends: nothing else changes when it does.
+    val pauses = settings.watch { it.kdeConnect.clipboardPauses }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(pauses) {
+        while (true) {
+            now = System.currentTimeMillis()
+            val end = KdeClipboardPause.nextEnd(pauses, now) ?: break
+            delay((end - now).coerceAtLeast(0) + 50)
+        }
+    }
+
     SettingsGroup(stringResource(R.string.kdeconnect_devices_paired)) {
+        if (hub.paired.size > 1 || KdeClipboardPause.allPausedUntil(pauses, now) > 0) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
+                    Text(stringResource(R.string.kdeconnect_pause_all_title), fontWeight = FontWeight.Medium)
+                    ClipboardPauseRow(KdeClipboardPause.allPausedUntil(pauses, now), deviceId = null, resumeId = null)
+                }
+            }
+        }
         for (device in hub.paired) {
             item {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
@@ -418,6 +442,11 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
                                 label = { Text(stringResource(label)) },
                             )
                         }
+                    }
+                    if (KdePluginKeys.CLIPBOARD !in device.disabled) {
+                        val until = KdeClipboardPause.pausedUntil(pauses, device.id, now)
+                        val byAll = until > 0 && KdeClipboardPause.allPausedUntil(pauses, now) >= until
+                        ClipboardPauseRow(until, device.id, resumeId = if (byAll) null else device.id)
                     }
                 }
             }
@@ -501,6 +530,59 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
             }
         }
     }
+}
+
+/**
+ * Pause or resume clipboard sharing (#918) with one computer, or with all of
+ * them when [deviceId] is null. [until] is when the pause in force ends, 0 for
+ * none. A computer held by the pause on all of them resumes all ([resumeId] null).
+ */
+@Composable
+private fun ClipboardPauseRow(until: Long, deviceId: String?, resumeId: String?) {
+    val context = LocalContext.current
+    var menu by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val status = when {
+            until == 0L -> stringResource(R.string.kdeconnect_pause_off)
+            until == KdeClipboardPause.FOREVER -> stringResource(R.string.kdeconnect_pause_forever)
+            else -> stringResource(
+                R.string.kdeconnect_pause_until,
+                android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(until)),
+            )
+        }
+        Text(
+            status,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        if (until > 0) {
+            TextButton(onClick = { KdeConnectHub.resumeClipboard(context, resumeId) }) {
+                Text(stringResource(R.string.kdeconnect_pause_resume))
+            }
+        } else {
+            Box {
+                TextButton(onClick = { menu = true }) { Text(stringResource(R.string.kdeconnect_pause_action)) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    for (minutes in KdeClipboardPause.PRESET_MINUTES) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(pauseLabel(minutes))) },
+                            onClick = {
+                                menu = false
+                                KdeConnectHub.pauseClipboard(context, deviceId, minutes)
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun pauseLabel(minutes: Int): Int = when (minutes) {
+    15 -> R.string.kdeconnect_pause_15m
+    60 -> R.string.kdeconnect_pause_1h
+    else -> R.string.kdeconnect_pause_until_resumed
 }
 
 @Composable

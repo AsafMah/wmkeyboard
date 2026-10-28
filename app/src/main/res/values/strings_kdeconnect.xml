@@ -26,13 +26,13 @@
     <!-- Connection -->
     <string name="kdeconnect_group_connection">Connection</string>
     <string name="kdeconnect_lifetime_title">Stay connected</string>
-    <string name="kdeconnect_lifetime_info">There is no background service. The link lives inside the keyboard, so even Always ends when Android closes the keyboard, and battery saving may pause it.</string>
+    <string name="kdeconnect_lifetime_info">There is no background service. The link lives inside the keyboard, so after the keyboard hides it lasts only until Android pauses or closes the keyboard in the background. Many phones do that within minutes, some at once. Setting WM Keyboard\'s battery use to Unrestricted in Android\'s app settings keeps it up longer, but nothing guarantees it.</string>
     <string name="kdeconnect_lifetime_panel">Panel open</string>
     <string name="kdeconnect_lifetime_keyboard">Keyboard showing</string>
-    <string name="kdeconnect_lifetime_always">Always</string>
+    <string name="kdeconnect_lifetime_always">In the background too</string>
     <string name="kdeconnect_lifetime_panel_detail">Only while the KDE Connect panel is open. The computer cannot type or send the clipboard at other times.</string>
     <string name="kdeconnect_lifetime_keyboard_detail">While the keyboard is on screen, and for a minute after.</string>
-    <string name="kdeconnect_lifetime_always_detail">Whenever this is the active keyboard, shown or not. Uses more battery.</string>
+    <string name="kdeconnect_lifetime_always_detail">Also after the keyboard hides, until Android pauses or closes it there, which on many phones is soon. Uses more battery.</string>
     <string name="kdeconnect_auto_connect_title">Connect automatically</string>
     <string name="kdeconnect_auto_connect_subtitle">Reconnect to paired computers when they are found</string>
 
@@ -106,6 +106,15 @@
     <string name="kdeconnect_device_files">Files and text</string>
     <string name="kdeconnect_device_sync">Sync</string>
     <string name="kdeconnect_device_battery">Battery report</string>
+    <string name="kdeconnect_pause_all_title">All computers</string>
+    <string name="kdeconnect_pause_off">Clipboard shared</string>
+    <string name="kdeconnect_pause_until">Clipboard paused until %1$s</string>
+    <string name="kdeconnect_pause_forever">Clipboard paused until you resume it</string>
+    <string name="kdeconnect_pause_action">Pause clipboard</string>
+    <string name="kdeconnect_pause_resume">Resume</string>
+    <string name="kdeconnect_pause_15m">For 15 minutes</string>
+    <string name="kdeconnect_pause_1h">For 1 hour</string>
+    <string name="kdeconnect_pause_until_resumed">Until I resume it</string>
     <string name="kdeconnect_pairing_outgoing">Waiting for %1$s. Accept on the computer if it shows this code</string>
     <string name="kdeconnect_pairing_incoming">%1$s wants to pair. Accept only if it shows this code</string>
     <string name="kdeconnect_pairing_accept">Accept</string>

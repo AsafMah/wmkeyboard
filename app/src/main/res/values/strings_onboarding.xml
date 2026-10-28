@@ -4,13 +4,6 @@
     <!-- First-run onboarding wizard: the buttons that move between pages. -->
     <string name="onboarding_finish_action">Finish</string>
 
-    <!-- Onboarding, app language page (#322). Shown first, and only where
-         English is not the first language of the country. -->
-    <string name="onboarding_app_language_title">Choose your language</string>
-    <string name="onboarding_app_language_subtitle">The language of the app\'s menus and settings. You choose the languages you type in later.</string>
-    <string name="onboarding_app_language_all">Show all languages</string>
-    <string name="onboarding_app_language_later">You can change this at any time in Settings, then About.</string>
-
     <!-- Onboarding, welcome page. -->
     <string name="onboarding_welcome_title">Welcome to WM Keyboard</string>
     <string name="onboarding_welcome_subtitle">Two steps and you are typing.</string>
@@ -67,35 +60,6 @@
     <string name="onboarding_keyboard_theme_auto_info">Select one theme for each. The keyboard changes with your device.</string>
     <!-- Name of the Android colour system. It is a brand name. -->
     <string name="onboarding_keyboard_theme_material_you_label" translatable="false">Material You</string>
-
-    <!-- Onboarding, emoji page. The skin tone question appears for everybody.
-         The part about the emoji images appears when the font of the device
-         cannot draw some emoji, and on the devices that draw emoji in the set
-         of the manufacturer. -->
-    <string name="onboarding_emoji_title">Emoji</string>
-    <string name="onboarding_emoji_subtitle">Choose the skin tone for the emoji of people and hands.</string>
-    <string name="onboarding_emoji_tone_title">Default skin tone</string>
-    <string name="onboarding_emoji_tone_body">Every emoji of a person or a hand uses this tone. To give one emoji a different tone, hold it in the emoji panel and select a tone there.</string>
-    <!-- Heading above the emoji font part of the page, which only some devices
-         see. It separates that part from the skin tone question above it. -->
-    <string name="onboarding_emoji_font_section_title">Emoji images</string>
-    <!-- %1$d is how many emoji in the catalog the font of the device cannot draw. -->
-    <plurals name="onboarding_emoji_missing_count">
-        <item quantity="one">Your device cannot draw %1$d emoji in the catalog. It shows an empty box instead.</item>
-        <item quantity="other">Your device cannot draw %1$d emoji in the catalog. They show as empty boxes instead.</item>
-    </plurals>
-    <!-- Shown in place of the count above, on a device that draws every emoji
-         but draws them in the set of the manufacturer. -->
-    <string name="onboarding_emoji_own_set_body">Your device draws every emoji, but it uses the set of the manufacturer. These are not the images that most other devices show. Select the emoji you want to see.</string>
-    <!-- Labels of the two rows that draw the same emoji in each font. -->
-    <string name="onboarding_emoji_compare_device">On your device</string>
-    <string name="onboarding_emoji_compare_google">With Google emoji</string>
-    <string name="onboarding_emoji_hide_title">Hide the emoji your device cannot draw</string>
-    <string name="onboarding_emoji_hide_subtitle">The emoji panel, the search and the suggestions leave out the empty boxes</string>
-    <string name="onboarding_emoji_font_info">To see all of the emoji, use a complete emoji font. Select \"Google\" (Noto Color Emoji), or import an emoji font file such as Twemoji or OpenMoji. Both are in Emoji, then Emoji font. WM Keyboard uses the emoji font of your device and includes no font of its own. You can change all of this later in Settings, then Emoji.</string>
-    <!-- Says that emoji fonts can also be downloaded from an add-on repository,
-         which is the answer for someone with no font file to import. -->
-    <string name="onboarding_emoji_font_download_info">You can also download more emoji fonts later. Go to Settings, then Emoji, and press \"Download more\" under Emoji font. Add-ons come from repositories that you add yourself, and nothing installs until you press Install.</string>
 
     <!-- Onboarding, typing feedback page. -->
     <string name="onboarding_feedback_title">Typing feedback</string>
@@ -165,16 +129,11 @@
     <string name="onboarding_persona_many_notice">Both spacebar swipes now change the language. You can give one back to the cursor on the next pages.</string>
     <string name="onboarding_persona_q_depth">What kind of keyboard do you want?</string>
     <string name="onboarding_persona_depth_minimal_title">Keep it simple</string>
-    <string name="onboarding_persona_depth_minimal_subtitle">A small set of tools, and fewer setup pages.</string>
+    <string name="onboarding_persona_depth_minimal_subtitle">A small set of tools, fewer setup pages, and the simple settings.</string>
     <string name="onboarding_persona_depth_balanced_title">A good middle</string>
-    <string name="onboarding_persona_depth_balanced_subtitle">The tools most people use.</string>
+    <string name="onboarding_persona_depth_balanced_subtitle">The tools most people use, and the standard settings.</string>
     <string name="onboarding_persona_depth_power_title">Show me everything</string>
-    <string name="onboarding_persona_depth_power_subtitle">All pages, and every tool to pick from.</string>
-    <string name="onboarding_persona_q_privacy">How private should it be?</string>
-    <string name="onboarding_persona_privacy_standard_title">Standard</string>
-    <string name="onboarding_persona_privacy_standard_subtitle">Learns your words. Nothing leaves the device.</string>
-    <string name="onboarding_persona_privacy_strict_title">Extra strict</string>
-    <string name="onboarding_persona_privacy_strict_subtitle">No learning, no clipboard history, no statistics.</string>
+    <string name="onboarding_persona_depth_power_subtitle">All pages, every tool to pick from, and every setting.</string>
 
     <!-- Onboarding, discover page: the features people would not guess at. -->
     <string name="onboarding_discover_title">Worth knowing about</string>
@@ -208,8 +167,6 @@
     <string name="onboarding_discover_modes_title">Per-app keyboards</string>
     <string name="onboarding_discover_modes_pitch">A different keyboard for each app: its own layout, theme and tools.</string>
     <string name="onboarding_discover_modes_hint">Build them in Settings, then Modes.</string>
-    <string name="onboarding_discover_quick_toggles_title">Toggles on the keyboard</string>
-    <string name="onboarding_discover_quick_toggles_pitch">Flip incognito or autocorrect straight from the toolbar while you type. No settings trip.</string>
 
     <!-- Onboarding, try page: a live field plus prompts for the tricks the
          wizard just enabled. -->

@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Преброени от субтитри и уеб текст. Много повече думи, включително имена, жаргон и печатни грешки.</string>
     <string name="core_pred_wordlist_source_frequency_label">Честота</string>
+    <string name="core_pred_wordlist_variant_australia_label">Австралия</string>
     <string name="core_pred_wordlist_variant_brazil_label">Бразилия</string>
+    <string name="core_pred_wordlist_variant_canada_label">Канада</string>
     <string name="core_pred_wordlist_variant_europe_label">Европа</string>
     <string name="core_pred_wordlist_variant_uk_label">Обединено кралство</string>
     <string name="core_pred_wordlist_variant_us_label">Съединени щати</string>

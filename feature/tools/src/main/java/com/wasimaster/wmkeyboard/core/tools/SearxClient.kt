@@ -35,6 +35,8 @@ object SearxClient {
      *
      * [source] is what the network log files the request under. It is the
      * search tool unless the AI tool ran the search itself (#470).
+     * [category] is one of the instance's categories (#934): news, videos,
+     * science and the rest come back as web results like the general ones.
      */
     fun webSearch(
         query: String,
@@ -43,9 +45,48 @@ object SearxClient {
         safe: Boolean,
         source: NetSource = NetSource.WEB_SEARCH,
         page: Int = 0,
+        category: String = GENERAL,
     ): WebSearchPage {
-        val body = get(searchUrl(instance, query, categories = "general", safe = safe, page = page), source)
+        val body = get(searchUrl(instance, query, categories = category, safe = safe, page = page), source)
         return WebSearchPage(parseWeb(body).take(count.coerceIn(1, 50)), parseAnswer(body))
+    }
+
+    /**
+     * The categories [instance] searches in (#934), from its `/config`, in its
+     * own order. Blocking; call on an IO dispatcher. Throws on failure.
+     */
+    fun categories(instance: String): List<String> =
+        parseCategories(get(configUrl(instance), NetSource.WEB_SEARCH))
+
+    /**
+     * The `/config` endpoint beside [searchBase]'s `/search`. It answers JSON
+     * whatever `search.formats` says, so an instance that refuses JSON
+     * searches still lists its categories.
+     */
+    internal fun configUrl(instance: String): String =
+        searchBase(instance).removeSuffix("/search") + "/config"
+
+    /**
+     * The `categories` of an instance's `/config` that at least one enabled
+     * engine answers for. A category whose engines are all off would only
+     * ever find nothing, so it is left out; a config without its `engines`
+     * (an older or trimmed one) is taken at its word.
+     */
+    internal fun parseCategories(body: String): List<String> {
+        val config = Json.parseToJsonElement(body).jsonObject
+        val named = (config["categories"] as? JsonArray).orEmpty()
+            .mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content?.trim()?.takeIf(String::isNotEmpty) }
+            .distinct()
+        val engines = config["engines"] as? JsonArray ?: return named
+        val answered = HashSet<String>()
+        for (engine in engines) {
+            val item = engine as? JsonObject ?: continue
+            if ((item["enabled"] as? JsonPrimitive)?.content == "false") continue
+            (item["categories"] as? JsonArray)?.forEach { c ->
+                (c as? JsonPrimitive)?.content?.let(answered::add)
+            }
+        }
+        return named.filter { it in answered }
     }
 
     /**
@@ -66,7 +107,7 @@ object SearxClient {
 
     /** Blocking; call on an IO dispatcher. Throws on failure. [page] counts from 0. */
     fun imageSearch(query: String, instance: String, count: Int, safe: Boolean, page: Int = 0): List<ImageResult> =
-        parseImages(get(searchUrl(instance, query, categories = "images", safe = safe, page = page), NetSource.IMAGE_SEARCH))
+        parseImages(get(searchUrl(instance, query, categories = IMAGES, safe = safe, page = page), NetSource.IMAGE_SEARCH))
             .take(count.coerceIn(1, 50))
 
     /**
@@ -148,14 +189,14 @@ object SearxClient {
     ): String {
         val safesearch = when {
             !safe -> 0
-            categories == "images" -> 2
+            categories == IMAGES -> 2
             else -> 1
         }
         return buildString {
             append(searchBase(instance))
             append("?q=${ToolHttp.encode(query.trim())}")
             append("&format=json")
-            append("&categories=$categories")
+            append("&categories=${ToolHttp.encode(categories)}")
             append("&safesearch=$safesearch")
             if (page > 0) append("&pageno=${page + 1}")
         }
@@ -193,6 +234,16 @@ object SearxClient {
                 snippet = item["content"]?.jsonPrimitive?.content.orEmpty(),
                 url = url,
                 displayUrl = hostOf(url),
+                // Every engine that returned it, or the one SearXNG credits.
+                engines = (item["engines"] as? kotlinx.serialization.json.JsonArray)
+                    ?.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf(String::isNotBlank) }
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: listOfNotNull((item["engine"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf(String::isNotBlank)),
+                // A video's still (#934), under whichever name its engine uses.
+                thumbnail = sequenceOf("thumbnail", "thumbnail_src")
+                    .firstNotNullOfOrNull { key ->
+                        (item[key] as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { it.startsWith("http") }
+                    },
             )
         }
     }
@@ -242,6 +293,28 @@ object SearxClient {
     /** "https://en.wikipedia.org/wiki/X" -> "en.wikipedia.org". */
     internal fun hostOf(url: String): String =
         url.substringAfter("://").substringBefore('/')
+
+    /** The category the All tab searches. */
+    const val GENERAL = "general"
+
+    /** The category the Images tab searches; it has its own tab, so it is never offered as a chip. */
+    const val IMAGES = "images"
+
+    /**
+     * The categories a stock SearXNG has (#934), offered while an instance's
+     * own list is not to hand.
+     */
+    val USUAL_CATEGORIES = listOf("news", "videos", "science", "it", "music", "files", "map", "social media")
+
+    /**
+     * A category as the instance's own pages name it: "it" is IT, "q&a" Q&A,
+     * and the rest start with a capital.
+     */
+    fun categoryLabel(name: String): String = when (name.lowercase()) {
+        "it" -> "IT"
+        "q&a" -> "Q&A"
+        else -> name.replaceFirstChar { it.titlecase(Locale.ROOT) }
+    }
 
     private const val HTTP_FORBIDDEN = 403
     private const val HTTP_TOO_MANY_REQUESTS = 429

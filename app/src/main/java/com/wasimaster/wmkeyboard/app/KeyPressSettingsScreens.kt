@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SwiftKeyHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -816,7 +818,7 @@ internal fun KeyPressSettings(
                 onNavigate("keypress/popup")
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.keypress_shortcuts_group_title,
                 stringResource(R.string.keypress_shortcuts_group_subtitle),
@@ -843,7 +845,7 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setBackspaceSwipeDelete(it) } }
         }
         if (swipeDelete) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ChoiceSetting(
                     R.string.typing_backspace_unit_title,
                     subtitle = stringResource(R.string.typing_backspace_unit_subtitle),
@@ -869,7 +871,7 @@ internal fun KeyPressSettings(
                     },
                 ) { scope.launch { repository.setBackspaceSwipeUnit(it) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.typing_backspace_preview_title,
                     stringResource(R.string.typing_backspace_preview_subtitle),
@@ -879,7 +881,7 @@ internal fun KeyPressSettings(
                 ) { scope.launch { repository.setBackspaceSwipePreview(it) } }
             }
             if (swipeUnit == BackspaceSwipeUnit.WORD) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.typing_backspace_step_title,
                         subtitle = stringResource(R.string.typing_backspace_step_subtitle),
@@ -891,7 +893,7 @@ internal fun KeyPressSettings(
                     ) { scope.launch { repository.setBackspaceWordStepDp(it.toInt()) } }
                 }
             } else {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.typing_backspace_char_step_title,
                         subtitle = stringResource(R.string.typing_backspace_char_step_subtitle),
@@ -904,7 +906,7 @@ internal fun KeyPressSettings(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_forward_delete_swipe_title,
                 stringResource(R.string.typing_forward_delete_swipe_subtitle),
@@ -913,7 +915,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.forwardDeleteSwipe,
             ) { scope.launch { repository.setForwardDeleteSwipe(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_web_backspace_key_title,
                 stringResource(R.string.typing_web_backspace_key_subtitle),
@@ -928,7 +930,7 @@ internal fun KeyPressSettings(
     // bubble's: they are a different popup, sized against a grid instead of a
     // fixed box, and sharing the bubble's font slider was what kept them small
     // (issue #64).
-    SettingsGroup(stringResource(R.string.keypress_alternates_group_title)) {
+    SettingsGroup(stringResource(R.string.keypress_alternates_group_title), level = SettingLevel.ADVANCED) {
         item {
             SliderSetting(
                 R.string.keypress_alternates_size_title,
@@ -1031,7 +1033,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.longPressDelayMs.toFloat(),
             ) { scope.launch { repository.setLongPressDelayMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_repeat_start_title,
                 subtitle = stringResource(R.string.keypress_repeat_start_subtitle),
@@ -1042,7 +1044,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.startDelayMs.toFloat(),
             ) { scope.launch { repository.setKeyRepeatStartDelayMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_delete_repeat_title,
                 subtitle = stringResource(R.string.keypress_delete_repeat_subtitle),
@@ -1053,7 +1055,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.deleteMs.toFloat(),
             ) { scope.launch { repository.setDeleteRepeatIntervalMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_hold_words_title,
                 stringResource(R.string.keypress_hold_words_subtitle),
@@ -1064,7 +1066,7 @@ internal fun KeyPressSettings(
         }
         // What one word is, for every delete that takes words: this hold, and a
         // backspace swipe set to words (#662).
-        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD), level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_word_stops_punctuation_title,
                 stringResource(R.string.keypress_word_stops_punctuation_subtitle),
@@ -1073,7 +1075,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.deleteWordStopsAtPunctuation,
             ) { scope.launch { repository.setDeleteWordStopsAtPunctuation(it) } }
         }
-        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD), level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_word_stops_capitals_title,
                 stringResource(R.string.keypress_word_stops_capitals_subtitle),
@@ -1081,7 +1083,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.deleteWordStopsAtCapitals,
             ) { scope.launch { repository.setDeleteWordStopsAtCapitals(it) } }
         }
-        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD), level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_word_stops_digits_title,
                 stringResource(R.string.keypress_word_stops_digits_subtitle),
@@ -1089,7 +1091,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.deleteWordStopsAtDigits,
             ) { scope.launch { repository.setDeleteWordStopsAtDigits(it) } }
         }
-        item(visible = holdDeletesWords) {
+        item(visible = holdDeletesWords, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_word_delete_repeat_title,
                 subtitle = stringResource(R.string.keypress_word_delete_repeat_subtitle),
@@ -1100,7 +1102,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.wordDeleteMs.toFloat(),
             ) { scope.launch { repository.setWordDeleteRepeatIntervalMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_space_repeat_title,
                 subtitle = stringResource(R.string.keypress_space_repeat_subtitle),
@@ -1111,7 +1113,7 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.spaceMs.toFloat(),
             ) { scope.launch { repository.setSpaceRepeatIntervalMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_custom_repeat_title,
                 subtitle = stringResource(R.string.keypress_custom_repeat_subtitle),
@@ -1122,7 +1124,15 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.customKeyMs.toFloat(),
             ) { scope.launch { repository.setCustomKeyRepeatIntervalMs(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.keypress_flicks_repeat_title,
+                stringResource(R.string.keypress_flicks_repeat_subtitle),
+                settings.watch { it.keyRepeat.flicksRepeat },
+                default = SettingsDefaults.keyRepeat.flicksRepeat,
+            ) { scope.launch { repository.setFlicksRepeat(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.keypress_caps_lock_title,
                 subtitle = stringResource(R.string.keypress_caps_lock_subtitle),
@@ -1174,7 +1184,7 @@ internal fun KeyPressHapticsSettings(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ControlSetting(
                 R.string.keypress_haptic_style_title,
                 info = stringResource(R.string.keypress_haptic_style_info),
@@ -1205,7 +1215,7 @@ internal fun KeyPressHapticsSettings(
                 }
             }
         }
-        item(visible = hapticStyle == HapticStyle.CUSTOM) {
+        item(visible = hapticStyle == HapticStyle.CUSTOM, level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.keypress_haptic_strength_title,
                 subtitle = stringResource(R.string.keypress_haptic_strength_subtitle),
@@ -1223,7 +1233,7 @@ internal fun KeyPressHapticsSettings(
                 scope.launch { repository.setHapticStrengthMs(it.toInt()) }
             }
         }
-        item(visible = hapticStyle == HapticStyle.CUSTOM || hapticStyle == HapticStyle.SHARP) {
+        item(visible = hapticStyle == HapticStyle.CUSTOM || hapticStyle == HapticStyle.SHARP, level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.keypress_haptic_intensity_title,
                 subtitle = stringResource(R.string.keypress_haptic_intensity_subtitle),
@@ -1243,7 +1253,7 @@ internal fun KeyPressHapticsSettings(
                 scope.launch { repository.setHapticAmplitude(it.toInt()) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_long_press_haptics_title,
                 stringResource(R.string.keypress_long_press_haptics_subtitle),
@@ -1252,7 +1262,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.haptics.onLongPress,
             ) { scope.launch { repository.setHapticOnLongPress(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_long_press_release_title,
                 stringResource(R.string.keypress_long_press_release_subtitle),
@@ -1261,7 +1271,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.haptics.onLongPressRelease,
             ) { scope.launch { repository.setHapticOnLongPressRelease(it) } }
         }
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_cursor_haptics_title,
                 stringResource(R.string.keypress_cursor_haptics_subtitle),
@@ -1272,7 +1282,7 @@ internal fun KeyPressHapticsSettings(
         }
         // Per-event gates: only meaningful while the master switch above is on,
         // so they fold away when it is off.
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_vibrate_space_title,
                 stringResource(R.string.keypress_vibrate_space_subtitle),
@@ -1281,7 +1291,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.feedback.vibrateOnSpace,
             ) { scope.launch { repository.setVibrateOnSpace(it) } }
         }
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_vibrate_delete_swipe_title,
                 stringResource(R.string.keypress_vibrate_delete_swipe_subtitle),
@@ -1290,7 +1300,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.feedback.vibrateOnDeleteSwipe,
             ) { scope.launch { repository.setVibrateOnDeleteSwipe(it) } }
         }
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_vibrate_repeat_title,
                 stringResource(R.string.keypress_vibrate_repeat_subtitle),
@@ -1299,7 +1309,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.feedback.vibrateOnRepeat,
             ) { scope.launch { repository.setVibrateOnRepeat(it) } }
         }
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_system_touch_title,
                 stringResource(R.string.keypress_system_touch_subtitle),
@@ -1328,7 +1338,7 @@ internal fun KeyPressHapticsSettings(
                 tone = if (bypassing) BannerTone.INFO else BannerTone.WARNING,
             )
         }
-        item(visible = hapticsOn && !respectSystemTouch && HapticPlayer.canBypassSystemTouch()) {
+        item(visible = hapticsOn && !respectSystemTouch && HapticPlayer.canBypassSystemTouch(), level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_haptics_hardware_title,
                 stringResource(R.string.keypress_haptics_hardware_subtitle),
@@ -1337,7 +1347,7 @@ internal fun KeyPressHapticsSettings(
                 default = SettingsDefaults.feedback.hapticsAsHardwareFeedback,
             ) { scope.launch { repository.setHapticsAsHardwareFeedback(it) } }
         }
-        item(visible = hapticsOn) {
+        item(visible = hapticsOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_dnd_mute_title,
                 stringResource(R.string.keypress_dnd_mute_subtitle),
@@ -1396,7 +1406,7 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.enabled,
             ) { scope.launch { repository.setKeyPopup(it) } }
         }
-        item(visible = popupOn) {
+        item(visible = popupOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_popup_numeric_title,
                 stringResource(R.string.keypress_popup_numeric_subtitle),
@@ -1405,7 +1415,7 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.inNumericFields,
             ) { scope.launch { repository.setKeyPopupInNumericFields(it) } }
         }
-        item(visible = popupOn) {
+        item(visible = popupOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_popup_window_band_title,
                 stringResource(R.string.keypress_popup_window_band_subtitle),
@@ -1414,7 +1424,7 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.windowBand,
             ) { scope.launch { repository.setKeyPopupWindowBand(it) } }
         }
-        item(visible = popupOn) {
+        item(visible = popupOn, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_popup_min_duration_title,
                 subtitle = stringResource(R.string.keypress_popup_min_duration_subtitle),
@@ -1425,17 +1435,10 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.minDurationMs.toFloat(),
             ) { scope.launch { repository.setKeyPopupMinDurationMs(it.toInt()) } }
         }
-        item(visible = popupOn) {
-            SliderSetting(
-                R.string.keypress_popup_max_duration_title,
-                subtitle = stringResource(R.string.keypress_popup_max_duration_subtitle),
-                value = settings.watch { it.popup.maxDurationMs }.toFloat(),
-                range = 400f..2000f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_popup_max_duration_info),
-                default = SettingsDefaults.popup.maxDurationMs.toFloat(),
-            ) { scope.launch { repository.setKeyPopupMaxDurationMs(it.toInt()) } }
-        }
+        // The maximum duration has no row (SETTINGS_REDESIGN.md §4). It is the
+        // stuck-bubble backstop, not a feel, and its own info text said never
+        // to lower it; the stored value is read as the constant floor it
+        // ships at, and a value set before this is still honoured.
         // These stop at the preview bubble, and no bubble is published while
         // the switch at the top of the group is off. The font size below is
         // not among them: the flick popup and the spacebar language tooltip
@@ -1443,17 +1446,18 @@ internal fun KeyPressPopupSettings(
         if (popupOn) item {
             // A theme may name the placement itself; the row then says so
             // rather than flipping a switch the board no longer reads (#88).
-            val pinned = themePinSubtitle(settings) { popupOnKeyOrNull(it.popupPlacement) }
+            val pin = themePin(settings) { popupOnKeyOrNull(it.popupPlacement) }
             ToggleSetting(
                 R.string.keypress_popup_on_key_title,
-                pinned ?: stringResource(R.string.keypress_popup_on_key_subtitle),
+                pin?.text ?: stringResource(R.string.keypress_popup_on_key_subtitle),
                 onKey,
                 info = stringResource(R.string.keypress_popup_on_key_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.popup.onKey,
             ) { scope.launch { repository.setKeyPopupOnKey(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_popup_font_size_title,
                 subtitle = stringResource(R.string.keypress_popup_font_size_subtitle),
@@ -1467,18 +1471,19 @@ internal fun KeyPressPopupSettings(
         if (popupOn) item {
             // Pinned when the theme sizes the style the board is drawing —
             // its own placement where it names one, else this switch's.
-            val pinned = themePinSubtitle(settings) { spec ->
+            val pin = themePin(settings) { spec ->
                 val drawnOnKey = popupOnKeyOrNull(spec.popupPlacement) ?: onKey
                 if (drawnOnKey) spec.popupHeightDp else spec.popupFloatingHeightDp
             }
             SliderSetting(
                 R.string.keypress_popup_height_title,
-                subtitle = pinned ?: stringResource(R.string.keypress_popup_height_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.keypress_popup_height_subtitle),
                 value = settings.watch { it.popup.heightDp }.toFloat(),
                 range = 32f..160f,
                 display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
                 info = stringResource(R.string.keypress_popup_height_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 // The default of the style the slider is showing: the on-key
                 // one was handed to the floating bubble too, so a reset while
                 // floating set it to 110 dp.
@@ -1488,7 +1493,7 @@ internal fun KeyPressPopupSettings(
         // Only the floating bubble is placed by these. The on-key one grows out
         // of the key it covers, so there is no distance to set: its height is
         // what carries it past the finger, and that slider is above.
-        item(visible = popupOn && !onKey) {
+        item(visible = popupOn && !onKey, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_popup_offset_y_title,
                 subtitle = stringResource(R.string.keypress_popup_offset_y_subtitle),
@@ -1499,7 +1504,7 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.floatingOffsetYDp.toFloat(),
             ) { scope.launch { repository.setKeyPopupFloatingOffsetYDp(it.toInt()) } }
         }
-        item(visible = popupOn && !onKey) {
+        item(visible = popupOn && !onKey, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_popup_offset_x_title,
                 subtitle = stringResource(R.string.keypress_popup_offset_x_subtitle),
@@ -1513,7 +1518,7 @@ internal fun KeyPressPopupSettings(
         // Shape and radius govern every popup surface, not only the preview
         // bubble: the long-press alternates, the language picker and the panel
         // menus all draw with them.
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.keypress_popup_shape_title,
                 subtitle = stringResource(R.string.keypress_popup_shape_subtitle),
@@ -1521,7 +1526,7 @@ internal fun KeyPressPopupSettings(
                 onClick = { popupShapePickerOpen = true },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.keypress_popup_radius_title,
                 subtitle = stringResource(R.string.keypress_popup_radius_subtitle),
@@ -1576,7 +1581,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.longPressHints,
             ) { scope.launch { repository.setLongPressHints(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_all_accents_title,
                 stringResource(R.string.keypress_all_accents_subtitle),
@@ -1585,7 +1590,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.showAllPopupKeys,
             ) { scope.launch { repository.setShowAllPopupKeys(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Issue #677: the accents out of every letter's popup at once.
             ToggleSetting(
                 R.string.keypress_no_accents_title,
@@ -1595,7 +1600,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.noLetterAccents,
             ) { scope.launch { repository.setNoLetterAccents(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // Issue #672: the digits on Q-P, decided apart from the number row.
             ChoiceSetting(
                 R.string.keypress_top_row_holds_title,
@@ -1623,7 +1628,29 @@ internal fun KeyPressShortcutsSettings(
                 },
             ) { scope.launch { repository.setTopRowHolds(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
+            // Telegram group: the symbols SwiftKey or Samsung put on the
+            // letters, without editing every layout.
+            var editing by remember { mutableStateOf(false) }
+            val symbols = settings.watch { it.layoutBehavior.holdSymbols }
+            WmRow(
+                title = stringResource(R.string.keypress_hold_symbols_title),
+                icon = SettingsRowIcons[R.string.keypress_hold_symbols_title],
+                subtitle = if (symbols.isEmpty()) {
+                    stringResource(R.string.keypress_hold_symbols_subtitle)
+                } else {
+                    symbols.entries.sortedBy { it.key }.joinToString("  ") { "${it.key} ${it.value}" }
+                },
+                onClick = { editing = true },
+            )
+            if (editing) {
+                HoldSymbolsDialog(symbols, onDismiss = { editing = false }) { chosen ->
+                    editing = false
+                    scope.launch { repository.setHoldSymbols(chosen) }
+                }
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
             // Discussion #382: ü ahead of 7 on German's u.
             ToggleSetting(
                 R.string.keypress_native_letters_title,
@@ -1633,7 +1660,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.nativeLettersFirst,
             ) { scope.launch { repository.setNativeLettersFirst(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Issue #108: the capital of every letter joins its popup, which is
             // where a layer peek has to reach one from.
             ToggleSetting(
@@ -1644,7 +1671,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.shiftedPopupKeys,
             ) { scope.launch { repository.setShiftedPopupKeys(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_symbols_numpad_title,
                 stringResource(R.string.keypress_symbols_numpad_subtitle),
@@ -1653,7 +1680,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.symbolsLongPressNumpad,
             ) { scope.launch { repository.setSymbolsLongPressNumpad(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_enter_emoji_title,
                 stringResource(R.string.keypress_enter_emoji_subtitle),
@@ -1662,7 +1689,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.layoutBehavior.enterLongPressEmoji,
             ) { scope.launch { repository.setEnterLongPressEmoji(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // A44: the $ key's long-press currency glyphs, space-separated. Blank
             // restores the built-in set. Mirrors the layout editor's alternates field.
             val currencyKeys = settings.watch { it.layoutBehavior.currencyKeys }
@@ -1690,7 +1717,7 @@ internal fun KeyPressShortcutsSettings(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.keypress_ctrl_raw_title,
                 stringResource(R.string.keypress_ctrl_raw_subtitle),
@@ -1699,7 +1726,7 @@ internal fun KeyPressShortcutsSettings(
                 default = SettingsDefaults.rawClipboardShortcuts,
             ) { scope.launch { repository.setRawClipboardShortcuts(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val actions = holdActions
             MultiChoiceSetting(
                 R.string.keypress_hold_actions_title,
@@ -1726,7 +1753,7 @@ internal fun KeyPressShortcutsSettings(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // The same six shortcuts, reached by sliding off 🌐 onto the key.
             ToggleSetting(
                 R.string.keypress_globe_drag_title,
@@ -1738,7 +1765,7 @@ internal fun KeyPressShortcutsSettings(
         }
         // The keys matter to both gestures, so either one keeps the row.
         if (anyHoldAction || holdActions.globeDrag) {
-            item { HoldShortcutLettersSetting(repository, holdActions) }
+            item(level = SettingLevel.ADVANCED) { HoldShortcutLettersSetting(repository, holdActions) }
         }
     }
 }
@@ -1893,3 +1920,56 @@ private enum class HoldAction(
 
 private val DefaultHoldActions: Set<HoldAction> =
     HoldAction.entries.filterTo(mutableSetOf()) { it.isOn(SettingsDefaults.longPressLetterActions) }
+
+/** The letter rows of the hold-symbol editor, in QWERTY order. */
+private val HoldSymbolRows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
+
+/**
+ * One box per letter for [LayoutBehaviorSettings.holdSymbols], with SwiftKey's
+ * set as a starting point and a way back to every layout's own. A box left
+ * empty keeps the layout's symbol for that letter.
+ */
+@Composable
+private fun HoldSymbolsDialog(
+    initial: Map<String, String>,
+    onDismiss: () -> Unit,
+    onSave: (Map<String, String>) -> Unit,
+) {
+    var symbols by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.keypress_hold_symbols_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(stringResource(R.string.keypress_hold_symbols_info))
+                for (row in HoldSymbolRows) {
+                    FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        for (letter in row) {
+                            val key = letter.toString()
+                            OutlinedTextField(
+                                value = symbols[key].orEmpty(),
+                                onValueChange = { text ->
+                                    val symbol = text.trim().take(4)
+                                    symbols = if (symbol.isEmpty()) symbols - key else symbols + (key to symbol)
+                                },
+                                label = { Text(key) },
+                                singleLine = true,
+                                modifier = Modifier.width(64.dp).padding(end = 4.dp),
+                            )
+                        }
+                    }
+                }
+                Row(Modifier.padding(top = 8.dp)) {
+                    TextButton(onClick = { symbols = SwiftKeyHoldSymbols }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_swiftkey))
+                    }
+                    TextButton(onClick = { symbols = emptyMap() }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_clear))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(symbols) }) { Text(stringResource(android.R.string.ok)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+    )
+}

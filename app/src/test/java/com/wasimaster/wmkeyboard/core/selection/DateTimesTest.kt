@@ -105,6 +105,18 @@ class DateTimesTest {
     }
 
     @Test
+    fun `now is the moment itself, in a zone when one is named`() {
+        for (text in listOf("now", "Now", "time now", "right now", "এখন")) {
+            val hit = parse(text)!!
+            assertEquals(text, now, hit.startMillis)
+            assertTrue(hit.hasTime)
+            assertFalse(hit.hasDate)
+        }
+        assertEquals("UTC", parse("now UTC")!!.zoneId)
+        assertNull(parse("nowhere"))
+    }
+
+    @Test
     fun `phrases DateSuggest knows are whole selections too`() {
         assertEquals(at(2026, 9, 15), parse("tomorrow")!!.startMillis)
         assertEquals(at(2026, 9, 15), parse("tmr")!!.startMillis)

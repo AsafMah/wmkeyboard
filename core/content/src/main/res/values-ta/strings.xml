@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">நகலெடு</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">எண்கள்</string>
+    <string name="core_content_selection_macro_edit_word">சொல்லைத் திருத்து</string>
     <string name="core_content_selection_macro_email">மின்னஞ்சல்</string>
     <string name="core_content_selection_macro_fancy">அலங்காரமான</string>
     <string name="core_content_selection_macro_find">கண்டுபிடி</string>

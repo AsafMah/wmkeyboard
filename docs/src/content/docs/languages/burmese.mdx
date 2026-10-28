@@ -9,6 +9,12 @@ import SettingsPath from '@components/SettingsPath.astro';
 
 Burmese ships three layouts. **မြန်မာ (Burmese)** is the standard Myanmar3 arrangement and is what you get when you add Burmese. **မြန်မာ (Myanmar, letters row)** gives the consonants a row of their own, and **T9 (မြန်မာ)** is the keypad (see [Ambiguous layouts](/languages/ambiguous/#t9-in-other-languages)). All three type Unicode. The key beside the spacebar types the section mark ။, with `.` first on its long-press, and the digit keys can type Burmese digits (see [Digits](/languages/overview/)).
 
+## Typing order
+
+You can type a syllable in the order it's drawn or in the order Unicode stores it, and either way it lands in Unicode. ေ and medial ra (ြ) are drawn to the left of their consonant, so many people type them first. Type ေ and then န and you get နေ, not a ေ with a dotted circle in front of န. A medial typed after that goes in front of the ေ too, so ေ, မ, ြ gives မြေ, and ေ, က, ျ gives ကျေ.
+
+Until the consonant arrives the ေ stands on its own, so it shows a dotted circle for that one keystroke. Converted [Keyman](/languages/keyman/) layouts keep their own ordering rules.
+
 ## Turning it on
 
 <SettingsPath path="Languages & layouts / မြန်မာ · Burmese / Layouts" />

@@ -29,7 +29,17 @@ import com.wasimaster.wmkeyboard.core.net.NetworkWatcher
 import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
+import com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat
+import com.wasimaster.wmkeyboard.core.tools.AiCalendarArgs
+import com.wasimaster.wmkeyboard.core.tools.AiChatMode
+import com.wasimaster.wmkeyboard.core.tools.AiChatModes
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.AiFollowUps
+import com.wasimaster.wmkeyboard.core.tools.AiResearch
+import com.wasimaster.wmkeyboard.core.tools.AiResearchWeb
+import com.wasimaster.wmkeyboard.core.tools.AiToolCall
+import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
+import com.wasimaster.wmkeyboard.core.tools.WebFetchClient
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
@@ -146,6 +156,8 @@ object AiChatController {
          * [AiToolActivity.running]. Lands in the stored answer at the end.
          */
         val tools: List<AiToolActivity> = emptyList(),
+        /** What the message being answered asked for: a research run draws its plan, for one. */
+        val mode: AiChatMode = AiChatMode.CHAT,
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -256,6 +268,10 @@ object AiChatController {
         incognito: Boolean = false,
         /** Files sent with it (#882), as [AiChatFiles.import] read or copied them. */
         files: List<AiChatFile> = emptyList(),
+        /** What to do with the message beyond answering it: research it, sum it up, compare. */
+        mode: AiChatMode = AiChatMode.CHAT,
+        /** The shape the answer is asked to take; Auto leaves it to the mode. */
+        format: AiAnswerFormat = AiAnswerFormat.AUTO,
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
@@ -271,6 +287,8 @@ object AiChatController {
             attachment = attachment.trim(),
             images = images.take(AiChatStore.MAX_IMAGES),
             files = files.take(AiChatStore.MAX_FILES),
+            mode = if (mode == AiChatMode.CHAT) "" else mode.id,
+            format = if (format == AiAnswerFormat.AUTO) "" else format.id,
         )
         val updated = store.appendMessage(conversationId, message) ?: return
         store.setLastModelKey(choice.key)
@@ -419,8 +437,19 @@ object AiChatController {
         // A private chat (begun in incognito) or a send from an incognito
         // field neither reads nor changes the AI memory.
         val privateChat = incognito || store(appContext).isEphemeral(conversationId)
+        val asked = store(appContext).get(conversationId)?.messages
+            ?.lastOrNull { it.role == AiChatMessage.ROLE_USER }
+        val mode = asked?.chatMode ?: AiChatMode.CHAT
+        // A research run and a summary of links go to the web as well as the
+        // model, so they need both of Data Saver's answers.
+        val links = if (mode == AiChatMode.SUMMARIZE) AiChatModes.links(asked?.content + "\n" + asked?.attachment) else emptyList()
+        val usesWeb = mode == AiChatMode.RESEARCH || links.isNotEmpty()
         // One gate for every way in, the keyboard's chat and the app's (#826).
-        val decision = if (granted) MeteredDecision.ALLOWED else cloudAiDecision(appContext, settings, choice)
+        val decision = when {
+            granted -> MeteredDecision.ALLOWED
+            usesWeb -> stricter(cloudAiDecision(appContext, settings, choice), webDecision(appContext, settings))
+            else -> cloudAiDecision(appContext, settings, choice)
+        }
         meteredAsked = null
         val seq = ++runSeq
         val implicitThink =
@@ -431,6 +460,7 @@ object AiChatController {
             userText = user,
             implicitThink = implicitThink,
             choice = choice,
+            mode = mode,
         )
 
         job = scope.launch {
@@ -448,10 +478,14 @@ object AiChatController {
                     ),
                 )
             } else runCatching {
-                if (choice.provider == AiProvider.ON_DEVICE) {
-                    runOnDevice(appContext, settings, conversationId, choice, user, seq, privateChat)
-                } else {
-                    runRemote(appContext, settings, conversationId, choice, user, seq, privateChat)
+                // A summary reads its links first, so every model gets the
+                // pages, the ones with no tools at all included.
+                val pages = if (links.isEmpty()) "" else readLinks(links, seq, choice.provider == AiProvider.ON_DEVICE)
+                when {
+                    mode == AiChatMode.RESEARCH -> runResearch(appContext, settings, conversationId, choice, seq)
+                    choice.provider == AiProvider.ON_DEVICE ->
+                        runOnDevice(appContext, settings, conversationId, choice, joined(user, pages), seq, privateChat)
+                    else -> runRemote(appContext, settings, conversationId, choice, user, seq, privateChat, pages)
                 }
             }
             finishRun(appContext, conversationId, choice, user, seq, result)
@@ -551,7 +585,7 @@ object AiChatController {
             current.conversationId,
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = parts.output.trim(),
+                content = AiFollowUps.split(parts.output).first.trim(),
                 reasoning = parts.reasoning,
                 timestamp = System.currentTimeMillis(),
                 provider = current.choice.provider.name,
@@ -733,6 +767,8 @@ object AiChatController {
         user: String,
         seq: Int,
         privateChat: Boolean,
+        /** Pages a summary read, added under the newest message for this answer only. */
+        pages: String = "",
     ): String {
         // The picker's row stands in for the one in use, so chatting with a
         // different model never rewrites the keyboard's own selection.
@@ -762,7 +798,11 @@ object AiChatController {
                 } else {
                     AiClient.ChatRole.ASSISTANT
                 },
-                promptAt(requireNotNull(conversation), index),
+                if (index == newestUser) {
+                    joined(promptAt(requireNotNull(conversation), index), pages)
+                } else {
+                    promptAt(requireNotNull(conversation), index)
+                },
                 images = if (index == newestUser) {
                     (if (sendsPictures) pictures(context, message.images) else emptyList()) +
                         media(context, choice.provider, message.files)
@@ -783,7 +823,7 @@ object AiChatController {
         )
         val completion = AiClient.completeWithTools(
             config = config,
-            system = AiPrompts.chatPrompt() + memoryPart,
+            system = AiPrompts.chatPrompt() + memoryPart + if (settings.ai.chatFollowUps) AiFollowUps.RULE else "",
             turns = turns,
             maxTokens = AiClient.effectiveMaxTokens(chosen),
             tools = runner.tools(),
@@ -894,6 +934,142 @@ object AiChatController {
             AiClient.AiImage(file.mime, android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP))
         }
     }
+
+    /** Why Deep research cannot run with [choice], as a string resource; null when it can. */
+    fun researchBlock(settings: KeyboardSettings, choice: ModelChoice?): Int? = when {
+        choice == null -> null
+        // The research loop asks for plans, notes and a long report, all of
+        // which want a tool-calling model with a big context: a model on the
+        // phone has neither, and Brave's Answers takes one message only.
+        !AiClient.supportsNativeTools(choice.provider) -> R.string.ime_ai_research_needs_model
+        ToolApiKeys.searchBackend(settings) == null -> R.string.ime_ai_research_needs_search
+        else -> null
+    }
+
+    /** A Deep research run that cannot start; its message is what the chat shows. */
+    private class ResearchRefusedException(val messageRes: Int) : java.io.IOException()
+
+    /** What Data Saver says about the web searches and pages a run would fetch now. */
+    private fun webDecision(context: Context, settings: KeyboardSettings): MeteredDecision {
+        val network = NetworkWatcher(context.applicationContext).apply { refresh() }.state.value
+        return DataSaverStatus(active = settings.dataSaver.appliesTo(network), settings = settings.dataSaver)
+            .decide(MeteredFeature.WEB_SEARCH)
+    }
+
+    /** The stricter of two answers: blocked over asked over allowed. */
+    private fun stricter(a: MeteredDecision, b: MeteredDecision): MeteredDecision = when {
+        a == MeteredDecision.BLOCKED || b == MeteredDecision.BLOCKED -> MeteredDecision.BLOCKED
+        a == MeteredDecision.ASK || b == MeteredDecision.ASK -> MeteredDecision.ASK
+        else -> MeteredDecision.ALLOWED
+    }
+
+    private fun joined(text: String, more: String): String = if (more.isEmpty()) text else "$text\n\n$more"
+
+    /**
+     * A summary's links read as text, each a step on the chain like a page
+     * the model fetched itself; one that cannot be read is left out, and the
+     * model is told so by its absence. An on-device model gets less of each.
+     */
+    private fun readLinks(links: List<String>, seq: Int, onDevice: Boolean): String {
+        val pages = ArrayList<Pair<String, String>>()
+        for (url in links) {
+            if (seq != runSeq) break
+            val call = AiToolCall("", AiTools.WEB_FETCH, kotlinx.serialization.json.buildJsonObject {
+                put("url", kotlinx.serialization.json.JsonPrimitive(url))
+            }.toString())
+            postToolStarted(seq, AiToolActivity.started(call))
+            val page = runCatching { WebFetchClient.fetch(url, if (onDevice) ON_DEVICE_PAGE_CHARS else WebFetchClient.MAX_CHARS) }
+            postToolResult(
+                seq,
+                page.fold(
+                    onSuccess = { AiToolResult(call, it.text, sources = listOf(com.wasimaster.wmkeyboard.core.tools.AiToolSource(it.title.trim(), url))) },
+                    onFailure = { AiToolResult(call, "", error = it.message.orEmpty().ifEmpty { "Could not read the page" }) },
+                ),
+            )
+            page.getOrNull()?.takeIf { it.text.isNotBlank() }?.let { pages += url to it.text }
+        }
+        return AiChatModes.pagesBlock(pages)
+    }
+
+    /**
+     * Deep research ([AiResearch]) for the newest question: its plan, each
+     * search and each page read go onto the run's chain of steps as they
+     * happen, the plan first and ticked as it goes, and the report streams
+     * in as the answer. The same model writes every step.
+     */
+    private fun runResearch(
+        context: Context,
+        settings: KeyboardSettings,
+        conversationId: Long,
+        choice: ModelChoice,
+        seq: Int,
+    ): String {
+        researchBlock(settings, choice)?.let { throw ResearchRefusedException(it) }
+        val conversation = store(context).get(conversationId) ?: return ""
+        val kept = conversation.messages.filter { !it.failed }
+        val asked = kept.lastOrNull { it.role == AiChatMessage.ROLE_USER } ?: return ""
+        // The question as written, its quoted text and files with it, but
+        // without the format's words: the report has its own instructions.
+        val question = buildString {
+            val earlier = kept.dropLast(1).takeLast(RESEARCH_CONTEXT_TURNS)
+            if (earlier.isNotEmpty()) {
+                append("Earlier in this chat, for context:\n")
+                earlier.forEach { append(if (it.role == AiChatMessage.ROLE_USER) "User: " else "Assistant: ").append(it.content.take(RESEARCH_CONTEXT_CHARS)).append('\n') }
+                append("\nThe question to research:\n")
+            }
+            append(asked.copy(mode = "", format = "").promptText())
+        }
+        val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+        val config = AiClient.config(chosen).copy(
+            netSource = NetSource.AI_CHAT,
+            sessionId = UUID.nameUUIDFromBytes("wmkb-chat-$conversationId".toByteArray()).toString(),
+            reasoning = settings.ai.chatReasoning,
+        )
+        val maxTokens = AiClient.effectiveMaxTokens(chosen)
+        var lastPartialAt = 0L
+        val model = AiResearch.Model { system, user, stream, onPartial ->
+            AiClient.completeStreaming(
+                // The plan and the look-again are quick judgements; only the
+                // report is worth the model's reasoning.
+                if (stream) config else config.copy(reasoning = false),
+                if (stream && settings.ai.chatFollowUps) system + AiFollowUps.RULE else system,
+                user,
+                maxTokens,
+                onPhase = { phase -> if (stream) postPhase(seq, phase) },
+                onPartial = onPartial,
+                isActive = { seq == runSeq },
+            ).text
+        }
+        val network = NetworkWatcher(context.applicationContext).apply { refresh() }.state.value
+        val limits = AiResearch.limits(settings.ai.research.depth, dataSaver = settings.dataSaver.appliesTo(network))
+        val approver = if (settings.ai.research.reviewPlan) toolApprover(seq) else null
+        val listener = object : AiResearch.Listener {
+            override fun started(step: AiToolActivity) = postToolStarted(seq, step)
+            override fun finished(step: AiToolActivity) = postToolShown(seq, step)
+            override fun planChanged(step: AiToolActivity) = postPlan(seq, step)
+            override fun approve(step: AiToolActivity): Boolean =
+                approver == null || approver.approve(step).let { it == AiToolApproval.ONCE || it == AiToolApproval.ALWAYS }
+            override fun partial(text: String) {
+                val now = System.currentTimeMillis()
+                if (seq == runSeq && now - lastPartialAt >= AI_PARTIAL_INTERVAL_MS) {
+                    lastPartialAt = now
+                    postPartial(seq, text)
+                }
+            }
+        }
+        val format = AiChatModes.effectiveFormat(AiChatMode.RESEARCH, asked.answerFormat)
+        return AiResearch(limits, model, AiResearchWeb(settings), listener) { seq == runSeq }
+            .run(question, format, AiCalendarArgs.today())
+    }
+
+    /** The research plan, always the run's first step, with an item ticked or added. */
+    private fun postPlan(seq: Int, plan: AiToolActivity) {
+        _run.update { run ->
+            if (run == null || run.seq != seq || seq != runSeq || run.tools.isEmpty()) run
+            else run.copy(tools = listOf(plan) + run.tools.drop(1))
+        }
+    }
+
 
     private fun postPhase(seq: Int, phase: AiPhase) {
         if (seq != runSeq) return
@@ -1018,11 +1194,14 @@ object AiChatController {
             // A finished answer with no marks at all did not reason this
             // time, whatever the model's name says, so implicit is off here.
             val parts = AiThinking.parts(raw)
-            val answer = parts.output.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" }
+            // The suggested questions come out of the answer, to sit under it.
+            val (said, followUps) = AiFollowUps.split(parts.output)
+            val answer = said.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" }
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
                 content = answer,
                 reasoning = parts.reasoning,
+                followUps = followUps,
                 // Reasoning and no answer: cut off at the ceiling while it
                 // thought. A failed turn, so it offers Retry rather than
                 // standing there blank under its Reasoning step.
@@ -1054,6 +1233,10 @@ object AiChatController {
         val message = t?.message
         return when {
             t is ToolHttpException -> ToolHttp.friendlyMessage(context, t)
+            t is ResearchRefusedException -> context.getString(t.messageRes)
+            t is AiResearch.DeclinedException -> context.getString(R.string.ime_ai_research_declined)
+            t is AiResearch.NothingFoundException -> context.getString(R.string.ime_ai_research_nothing_found) +
+                t.lastError.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
             !message.isNullOrBlank() -> message
             else -> context.getString(R.string.ime_ai_chat_error_generic)
         }
@@ -1086,6 +1269,13 @@ object AiChatController {
     }
 
     private const val AI_PARTIAL_INTERVAL_MS = 120L
+
+    /** Characters of each linked page a summary hands an on-device model, whose context is small. */
+    private const val ON_DEVICE_PAGE_CHARS = 2_500
+
+    /** Earlier messages a research question carries for context, and how much of each. */
+    private const val RESEARCH_CONTEXT_TURNS = 4
+    private const val RESEARCH_CONTEXT_CHARS = 600
 
     /** How much of the first question and answer a title is written from. */
     private const val TITLE_INPUT_CHARS = 1500

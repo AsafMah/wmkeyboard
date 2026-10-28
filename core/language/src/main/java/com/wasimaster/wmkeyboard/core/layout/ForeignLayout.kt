@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptDef
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.language.R
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -907,10 +908,12 @@ internal fun keyActionForCode(code: Int): KeyAction? = when (code) {
     -10046, -10047 -> KeyAction.Mod(ModifierKey.ALT)
     -10048, -10049 -> KeyAction.Mod(ModifierKey.META)
 
-    // Editing. DELETE_WORD has no action of its own here; a plain delete is
-    // closer than no key at all, and the note says so.
-    -7, -8 -> KeyAction.Delete
-    -9, -10 -> KeyAction.ForwardDelete
+    // Editing. DELETE_WORD and FORWARD_DELETE_WORD have actions of their own
+    // since #980.
+    -7 -> KeyAction.Delete
+    -8 -> KeyAction.Edit(TextEditAction.DELETE_WORD)
+    -9 -> KeyAction.ForwardDelete
+    -10 -> KeyAction.Edit(TextEditAction.DELETE_WORD_FORWARD)
     -10005 -> KeyAction.Enter
 
     // Views. SYMBOLS2 is the second symbols page, which the symbols key already
@@ -959,7 +962,7 @@ internal fun keyActionForCode(code: Int): KeyAction? = when (code) {
  * the import can say how many keys were approximated, without claiming the
  * layout came across untouched.
  */
-internal val ApproximateCodes: Set<Int> = setOf(-8, -10, -203, -10005)
+internal val ApproximateCodes: Set<Int> = setOf(-203, -10005)
 
 /**
  * Foreign widths brought onto this app's grid.

@@ -35,6 +35,8 @@ enum class PanelKind(val shipped: Boolean = true) {
     @SerialName("numpad") NUMPAD,
     /** The handwriting panel (#568): the writing canvas plus the keys around it. */
     @SerialName("handwriting") HANDWRITING,
+    /** The emoji mixes panel: two emoji put together, laid out like the GIF panel. */
+    @SerialName("emoji_mix") EMOJI_MIX,
     ;
 
     /**
@@ -57,6 +59,7 @@ enum class PanelKind(val shipped: Boolean = true) {
             CLIPBOARD -> PanelFieldKind.CLIPBOARD_LIST
             TRACKPAD -> PanelFieldKind.TRACKPAD
             HANDWRITING -> PanelFieldKind.HANDWRITING_CANVAS
+            EMOJI_MIX -> PanelFieldKind.EMOJI_MIX_BROWSER
             TEXT_EDIT, NUMPAD -> null
         }
 }

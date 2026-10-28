@@ -145,6 +145,29 @@ class LayoutFileTest {
     }
 
     @Test
+    fun `several layouts go in one file and come back with their ids`() {
+        val a = usable()
+        val b = usable().copy(id = "custom_2", name = "Other")
+        val text = LayoutFile.encodeBundle(listOf(a, b), 12, "1.2")
+        val back = LayoutFile.decodeBundle(text)!!
+        assertEquals(listOf(a.id, "custom_2"), back.map { it.layout.id })
+        assertEquals(listOf("Mine", "Other"), back.map { it.layout.name })
+        // Neither reader takes the other's file.
+        assertNull(LayoutFile.decode(text))
+        assertNull(LayoutFile.decodeBundle(encode(a)))
+        assertTrue(LayoutFile.bundleFileName(0L).endsWith(".wmlayouts.json"))
+    }
+
+    @Test
+    fun `an export names the time after the layout and is indented`() {
+        val name = LayoutFile.fileName(usable(), stampMs = 0L)
+        assertTrue(name, Regex("Mine-19(69|70)\\d{4}-\\d{4}\\.wmlayout\\.json").matches(name))
+        val text = encode(usable())
+        assertTrue(text.contains("\n  \"format\": \"wmkeyboard-layout\""))
+        assertNotNull(LayoutFile.decode(text))
+    }
+
+    @Test
     fun `the import picker accepts the types providers actually report`() {
         assertTrue("application/json" in LayoutFile.IMPORT_MIME_TYPES)
         assertTrue(

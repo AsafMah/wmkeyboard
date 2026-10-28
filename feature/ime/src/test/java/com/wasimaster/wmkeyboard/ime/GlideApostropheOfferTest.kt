@@ -153,6 +153,34 @@ class GlideApostropheOfferTest {
         assertEquals("id ", editor.text.toString())
     }
 
+    /** Puts [text] in the field as typed words, so the next glide reads it as context. */
+    private fun typeWords(service: WMKeyboardService, text: String) {
+        text.split(' ').filter { it.isNotEmpty() }.forEach { word ->
+            type(service, word)
+            endWord(service)
+        }
+    }
+
+    @Test
+    fun `hell glided where a clause starts types he'll, with hell behind it`() {
+        val (service, editor) = keyboard(settings(twoThumb = false))
+        typeWords(service, "I think")
+        val before = editor.text.toString()
+        swipe(service, "hell")
+        assertEquals("${before}he'll ", editor.text.toString())
+        assertEquals(listOf("he'll", "hell"), strip(service).take(2))
+    }
+
+    @Test
+    fun `hell glided after other words stays hell, with he'll behind it`() {
+        val (service, editor) = keyboard(settings(twoThumb = false))
+        typeWords(service, "go to")
+        val before = editor.text.toString()
+        swipe(service, "hell")
+        assertEquals("${before}hell ", editor.text.toString())
+        assertEquals(listOf("hell", "he'll"), strip(service).take(2))
+    }
+
     private companion object {
         const val STEPS = 5
         const val STEP_MS = 20L

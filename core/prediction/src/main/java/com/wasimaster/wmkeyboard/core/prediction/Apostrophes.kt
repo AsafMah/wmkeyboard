@@ -131,6 +131,20 @@ object Apostrophes {
     )
 
     /**
+     * The [DECLARED] forms that are a pronoun and its verb, so the contraction
+     * starts a clause and the bare word almost never does: *He'll be late*
+     * against *hell*, *we'd* against *wed* (#949).
+     */
+    private val CLAUSE_STARTERS: Set<String> = setOf("hell", "shell", "shed", "wed", "id")
+
+    /** Words a clause follows: after one of these, as at a sentence start, the contraction is the likely reading. */
+    private val CLAUSE_OPENERS: Set<String> = setOf(
+        "and", "but", "so", "if", "when", "because", "cause", "then",
+        "until", "unless", "said", "says", "think", "hope", "guess", "bet", "know",
+        "maybe", "probably", "where", "why", "how",
+    )
+
+    /**
      * German's *es* worn down to *'s* on the verb in front of it: `gehts` is
      * *geht's*, `gibts` is *gibt's*, `habs` is *hab's* (#518).
      *
@@ -203,6 +217,19 @@ object Apostrophes {
      * contraction next to it and the space bar leaves the word alone (#384).
      */
     fun offer(word: String): String? = fix(word, DECLARED)
+
+    /**
+     * The contraction a glided [word] leads with, where the stroke cannot tell
+     * the two apart but the word before can: `hell` drawn at the start of a
+     * sentence, or after *and* or *said*, is *he'll* (#949). Null everywhere
+     * else, where the bare word stands and the contraction is only [offer]ed.
+     */
+    fun leadsAfter(word: String, previousWord: String?): String? {
+        if (word.lowercase() !in CLAUSE_STARTERS) return null
+        val prev = previousWord?.lowercase() ?: return null
+        if (!WordContext.isSentinel(prev) && prev !in CLAUSE_OPENERS) return null
+        return fix(word, DECLARED)
+    }
 
     /** [offer] for [languageId]: only English has spellings that are also words. */
     fun offer(word: String, languageId: String): String? =

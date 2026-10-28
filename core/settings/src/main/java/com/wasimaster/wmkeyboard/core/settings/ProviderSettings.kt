@@ -227,6 +227,8 @@ object ProviderResolution {
                     ""
                 }
             }
+            // An image kind borrows the key typed for its AI service (OpenAI, Gemini, xAI).
+            .ifBlank { type?.keyFrom?.let { from -> credentials.firstOrNull { it.id == from }?.apiKey?.trim() }.orEmpty() }
         val url = credential?.url?.trim().orEmpty()
         val model = credential?.model?.trim().orEmpty()
         val problem = when {
@@ -237,11 +239,15 @@ object ProviderResolution {
             type === ProviderTypes.DEEPL && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
             // Brave Answers with neither its own key nor a search key to borrow.
             type === ProviderTypes.BRAVE_ANSWERS && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
+            // An image kind with neither its own key nor its AI service's to borrow.
+            type.keyFrom != null && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             type.credential.url == Need.REQUIRED && url.isBlank() -> ProviderProblem.NEEDS_SERVER
             // A home's key is a pairing or a sign-in, which the row says in its own words.
             HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
             type.credential.modelRequired && model.isBlank() -> ProviderProblem.NEEDS_MODEL
             type.credential.key == Need.REQUIRED && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
+            // A kind signed with two secrets (ACRCloud) needs both; the row says "key" for either.
+            type.credential.secret && credential?.extra?.get(CredentialSpec.SECRET).isNullOrBlank() -> ProviderProblem.NEEDS_KEY
             else -> null
         }
         return ResolvedProvider(entry, type, credential, apiKey, url, model, problem)
@@ -473,6 +479,31 @@ object LegacyProviders {
             ProviderTool.GRAMMAR -> ProviderChain(
                 listOf(entry(ProviderTypes.HARPER), entry(ProviderTypes.LANGUAGETOOL, on = false)),
             )
+            // The phone's models alone, as before the list. The two free
+            // services are listed so they can be found, but off: they send
+            // the prompt away, so they wait until the user switches them on.
+            ProviderTool.IMAGE_GEN -> ProviderChain(
+                listOf(
+                    entry(ProviderTypes.ON_DEVICE_IMAGE),
+                    entry(ProviderTypes.POLLINATIONS, on = false),
+                    entry(ProviderTypes.AI_HORDE, on = false),
+                ),
+                ChainMode.PICK,
+            )
+            // Nothing came before the list, and nothing runs on the phone:
+            // the services are listed so they can be found, but off until a
+            // key is typed, since each is sent the clip.
+            ProviderTool.MUSIC -> ProviderChain(
+                listOf(
+                    entry(ProviderTypes.AUDD, on = false),
+                    entry(ProviderTypes.ACRCLOUD, on = false),
+                    entry(ProviderTypes.AUDIOTAG, on = false),
+                    entry(ProviderTypes.RAPID_SHAZAM, on = false),
+                ),
+            )
+            // New with the tool: Cloudflare alone, which needs nothing set up.
+            // A LibreSpeed server is only ever added by the user.
+            ProviderTool.SPEED_TEST -> ProviderChain(listOf(entry(ProviderTypes.CLOUDFLARE_SPEED)), ChainMode.PICK)
         }
     }
 

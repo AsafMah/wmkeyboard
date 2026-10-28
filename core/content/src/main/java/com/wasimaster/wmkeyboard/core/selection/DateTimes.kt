@@ -80,6 +80,8 @@ object DateTimes {
     private val DAY_MONTH = Regex("""(\d{1,2})(?:st|nd|rd|th|ই|শে|লা|রা|ঠা)?\s*(?:of\s+)?($MONTH_NAMES)(?:,?\s+(\d{4}))?""")
     private val MONTH_DAY = Regex("""($MONTH_NAMES)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?""")
     private val TODAY = setOf("today", "tonight", "আজ", "আজকে")
+    /** The moment itself (#970): "now" in a message is a time like any other. */
+    private val NOW = setOf("now", "right now", "time now", "the time now", "এখন", "এখনই")
     /** `Mon 14 Sep`: the weekday is decoration on a date that names its day. */
     private val WEEKDAY_PREFIX = Regex(
         """^(?:sun|sunday|mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|sat|saturday)[,\s]+(?=\d)""",
@@ -147,6 +149,17 @@ object DateTimes {
             zoneNamed = true
         }
         if (t.isEmpty()) return null
+        if (t in NOW) {
+            return DateTimeHit(
+                startMillis = nowMillis,
+                endMillis = nowMillis + HOUR_MS,
+                hasDate = false,
+                hasTime = true,
+                zoneId = interpretation.id,
+                zoneNamed = zoneNamed,
+                ambiguousOrder = false,
+            )
+        }
 
         val found = TIME_SHAPES.firstNotNullOfOrNull { shape ->
             val match = shape.regex.find(t) ?: return@firstNotNullOfOrNull null

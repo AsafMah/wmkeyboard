@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryQuality
 
 /** What a tap on a photo in the grid does; the round check in its corner always selects. */
@@ -81,6 +82,12 @@ data class GallerySettings(
     val keepHistory: Boolean = true,
     /** The album last open, for [rememberAlbum]: an album id. Not a preference anyone sets by hand. */
     val lastAlbum: String = "",
+    /**
+     * Folders left out of the gallery altogether (#970), by MediaStore bucket
+     * id: their photos are in no album, Recents included. A folder of
+     * screenshots of receipts, a messaging app's saved media.
+     */
+    val hiddenFolders: Set<String> = emptySet(),
 ) {
     companion object {
         const val MIN_COLUMNS = 2
@@ -113,6 +120,7 @@ object GalleryPrefs {
     private val SAVE_EDITED = booleanPreferencesKey("gallery_save_edited")
     private val KEEP_HISTORY = booleanPreferencesKey("gallery_keep_history")
     private val LAST_ALBUM = stringPreferencesKey("gallery_last_album")
+    private val HIDDEN_FOLDERS = stringSetPreferencesKey("gallery_hidden_folders")
 
     private inline fun <reified E : Enum<E>> enumOf(name: String?): E? =
         name?.let { n -> enumValues<E>().firstOrNull { it.name == n } }
@@ -138,6 +146,7 @@ object GalleryPrefs {
         saveEdited = p[SAVE_EDITED] ?: d.saveEdited,
         keepHistory = p[KEEP_HISTORY] ?: d.keepHistory,
         lastAlbum = p[LAST_ALBUM] ?: d.lastAlbum,
+        hiddenFolders = p[HIDDEN_FOLDERS] ?: d.hiddenFolders,
     )
 
     /** Writes only what differs from [old], so a one-field change is a one-key edit. */
@@ -165,5 +174,6 @@ object GalleryPrefs {
         if (new.saveEdited != old.saveEdited) p[SAVE_EDITED] = new.saveEdited
         if (new.keepHistory != old.keepHistory) p[KEEP_HISTORY] = new.keepHistory
         if (new.lastAlbum != old.lastAlbum) p[LAST_ALBUM] = new.lastAlbum
+        if (new.hiddenFolders != old.hiddenFolders) p[HIDDEN_FOLDERS] = new.hiddenFolders
     }
 }

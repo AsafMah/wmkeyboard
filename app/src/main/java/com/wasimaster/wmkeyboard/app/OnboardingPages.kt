@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -78,12 +77,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -91,7 +88,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.feedback.HapticPlayer
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
-import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
@@ -100,8 +96,6 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolOrder
-import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
-import com.wasimaster.wmkeyboard.core.settings.EmojiSkinTone
 import com.wasimaster.wmkeyboard.core.settings.EverythingTools
 import com.wasimaster.wmkeyboard.core.settings.RecommendedTools
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -207,85 +201,6 @@ private fun RestoreBackupButton(repository: SettingsRepository, onRestored: () -
             },
         )
     }
-}
-
-/**
- * The language the app itself is shown in, asked first where English is not
- * the first language (#322). [suggested] is what the phone's languages and
- * region point at; English and "System default" are always there, and the
- * rest of the translations are one press away.
- *
- * A pick applies at once. The screen restarts in the new language and the
- * wizard comes back on this page, so the reader sees the result before Next.
- */
-@Composable
-internal fun AppLanguagePage(suggested: List<String>) {
-    val context = LocalContext.current
-    // Held here as well as read from the system, so the radio moves the moment
-    // it is pressed. A Play build on Android 12 or older may first have to
-    // download the language, and the screen restarts only after that.
-    var selected by remember { mutableStateOf(AppLanguage.selected(context)) }
-    var showAll by rememberSaveable { mutableStateOf(false) }
-    val uiLocale = LocalConfiguration.current.locales[0]
-    val pick: (String?) -> Unit = { tag ->
-        if (tag != selected) {
-            selected = tag
-            AppLanguage.select(context, tag)
-        }
-    }
-    val system = AppLanguage.systemLocale()
-    AppLanguageRow(
-        title = stringResource(
-            R.string.about_app_language_system,
-            nativeLanguageName(system.toLanguageTag()),
-        ),
-        subtitle = null,
-        selected = selected == null,
-        onClick = { pick(null) },
-    )
-    // English and the current pick stay in view even when they are not
-    // suggestions, so the way back is never behind "Show all".
-    val english = AppLanguage.available.first()
-    val shortList = (suggested + listOfNotNull(selected) + english).distinct()
-    val rest = AppLanguage.available.filter { it !in shortList }
-        .sortedWith(compareBy(java.text.Collator.getInstance(uiLocale)) { nativeLanguageName(it) })
-    val shown = if (showAll) shortList + rest else shortList
-    if (suggested.isNotEmpty()) {
-        OnboardingSectionTitle(stringResource(R.string.onboarding_language_suggested_title))
-    }
-    for (tag in shown) {
-        if (tag == rest.firstOrNull()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        val native = nativeLanguageName(tag)
-        val local = languageNameIn(tag, uiLocale)
-        AppLanguageRow(
-            title = native,
-            subtitle = local.takeIf { it != native },
-            selected = selected == tag,
-            onClick = { pick(tag) },
-        )
-    }
-    if (!showAll && rest.isNotEmpty()) {
-        TextButton(
-            onClick = { showAll = true },
-            modifier = Modifier.padding(horizontal = 8.dp),
-        ) {
-            Text(stringResource(R.string.onboarding_app_language_all))
-        }
-    }
-    OnboardingNotice(stringResource(R.string.onboarding_app_language_later))
-}
-
-/** One language on [AppLanguagePage]: a radio, its own name, and ours for it. */
-@Composable
-private fun AppLanguageRow(title: String, subtitle: String?, selected: Boolean, onClick: () -> Unit) {
-    ListItem(
-        leadingContent = { RadioButton(selected = selected, onClick = null) },
-        headlineContent = { Text(title) },
-        supportingContent = subtitle?.let { { Text(it) } },
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    )
 }
 
 @Composable
@@ -942,153 +857,6 @@ private fun OnboardingThemeCard(
             RadioButton(selected = selected, onClick = null)
         }
     }
-}
-
-/**
- * Skin tone for everyone, plus the emoji-font repair for the phones that need
- * it. [missing] is which catalog emoji this phone's font can't draw (empty on
- * a phone that draws them all), and [ownEmojiSet] is the other way onto the
- * font half — a maker that ships a complete set of its own.
- *
- * The skin tone is why this page is no longer conditional: it is a question
- * about the person, not about the device, and the one place a keyboard can ask
- * it before the first emoji is inserted is here.
- */
-@Composable
-internal fun EmojiPage(
-    repository: SettingsRepository,
-    settings: LiveSettings,
-    missing: List<String>,
-    ownEmojiSet: Boolean,
-) {
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val missingCount = missing.size
-    Text(
-        stringResource(R.string.onboarding_emoji_tone_title),
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
-    )
-    // The tone is drawn on the raised hand, which is the emoji the settings
-    // screen uses for the same choice — one glyph, six versions of it, so the
-    // difference between the options is the only thing that varies.
-    ChoiceControl(
-        options = listOf(
-            EmojiSkinTone.NONE to "✋",
-            EmojiSkinTone.LIGHT to "✋🏻",
-            EmojiSkinTone.MEDIUM_LIGHT to "✋🏼",
-            EmojiSkinTone.MEDIUM to "✋🏽",
-            EmojiSkinTone.MEDIUM_DARK to "✋🏾",
-            EmojiSkinTone.DARK to "✋🏿",
-        ),
-        selected = settings.watch { it.emoji.defaultSkinTone },
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-    ) { tone -> scope.launch { repository.setEmojiDefaultSkinTone(tone) } }
-    Text(
-        stringResource(R.string.onboarding_emoji_tone_body),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-    )
-    // Everything below is the font repair, which most phones never see.
-    if (missingCount == 0 && !ownEmojiSet) return
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-    Text(
-        stringResource(R.string.onboarding_emoji_font_section_title),
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-    )
-    Text(
-        if (missingCount > 0) {
-            pluralStringResource(
-                R.plurals.onboarding_emoji_missing_count,
-                missingCount,
-                missingCount,
-            )
-        } else {
-            // The other way onto this page: everything draws, it just draws in
-            // the phone maker's own set.
-            stringResource(R.string.onboarding_emoji_own_set_body)
-        },
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-    )
-    // The count is an abstraction; the boxes are the argument. Showing the
-    // same faces twice — once in the device's font, once in Google's — is the
-    // whole case for changing the setting below, made in one glance.
-    if (missingCount > 0 && PlayServices.hasFontProvider(context)) {
-        MissingEmojiComparison(missing, modifier = Modifier.padding(horizontal = 16.dp))
-    }
-    // Installed faces are only worth offering when there is one to pick.
-    val installedFonts = remember { FontStore.get(context).emojiFonts() }
-    val fontOptions = buildList {
-        add(EmojiFontChoice.SYSTEM to stringResource(R.string.langemoji_emoji_font_system_label))
-        // Noto comes from the Play services font provider, so it is a real
-        // choice only where that provider answers. This page exists to fix
-        // missing emoji; offering a set that cannot be fetched would fix none.
-        if (PlayServices.hasFontProvider(context)) {
-            add(EmojiFontChoice.NOTO to stringResource(R.string.langemoji_emoji_font_noto_label))
-        }
-        if (installedFonts.isNotEmpty()) {
-            add(
-                EmojiFontChoice.INSTALLED to
-                    stringResource(R.string.langemoji_emoji_font_installed_label),
-            )
-        }
-    }
-    val emojiFont = settings.watch { it.emojiFont }
-    val installedEmojiFont = settings.watch { it.emojiFontInstalled.installedId }
-    ChoiceControl(
-        options = fontOptions,
-        // A font imported and then deleted leaves the setting pointing at
-        // nothing; show that as the system set, which is what is drawn anyway.
-        selected = emojiFont.takeIf { choice ->
-            fontOptions.any { it.first == choice }
-        } ?: EmojiFontChoice.SYSTEM,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-    ) { choice -> scope.launch { repository.setEmojiFont(choice) } }
-    EmojiFontPreviewRow(
-        choice = emojiFont,
-        installedId = installedEmojiFont,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-    )
-    // The way out of the whole problem, on the one page where the problem has
-    // just been demonstrated: fetch a current emoji font and select it.
-    EmojiFontDownloadRow(
-        installedId = installedEmojiFont,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        onInstalled = { fontId -> scope.launch { repository.setInstalledEmojiFont(fontId) } },
-    )
-    if (missingCount > 0) {
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.onboarding_emoji_hide_title)) },
-            supportingContent = {
-                Text(stringResource(R.string.onboarding_emoji_hide_subtitle))
-            },
-            trailingContent = {
-                Switch(
-                    checked = settings.watch { it.emoji.hideUnrenderable },
-                    onCheckedChange = { scope.launch { repository.setHideUnrenderableEmoji(it) } },
-                )
-            },
-        )
-    }
-    Text(
-        stringResource(R.string.onboarding_emoji_font_info),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(16.dp),
-    )
-    // The wizard cannot open the add-on store — there is nowhere to come back
-    // to mid-setup — so this page says where the fonts are rather than
-    // offering to fetch one now.
-    Text(
-        stringResource(R.string.onboarding_emoji_font_download_info),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-    )
 }
 
 @Composable

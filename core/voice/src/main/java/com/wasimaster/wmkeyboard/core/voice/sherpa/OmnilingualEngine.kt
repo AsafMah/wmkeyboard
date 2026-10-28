@@ -5,14 +5,17 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.vad.PhraseEnd
+import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import java.io.File
 
 /**
  * Offline Omnilingual dictation: Meta's Omnilingual ASR, the 300M CTC model,
  * on ONNX Runtime (omnilingual_jni.cpp in libwmsherpa). One model for every
  * language it knows, with no language to pick; it is not a streaming model,
- * so Silero VAD cuts the microphone's audio at each short pause and the
- * phrase before the pause is decoded whole while the user goes on talking.
+ * so the phrase end detector ([VoiceVad]; Silero unless the user picked
+ * another) cuts the microphone's audio at each short pause and the phrase
+ * before the pause is decoded whole while the user goes on talking.
  * The words reach the field a phrase at a time rather than a word at a time.
  *
  * Left to itself the model spells in whichever script it thinks it hears, so
@@ -28,12 +31,6 @@ object OmnilingualEngine {
     /** Decoder threads. One phrase at a time, so four keep the wait after it short. */
     private const val THREADS = 4
 
-    /** Silero's speech threshold; its own default. */
-    private const val VAD_THRESHOLD = 0.5f
-
-    /** Shorter than this is a click or a cough, not speech. */
-    private const val VAD_MIN_SPEECH_SECONDS = 0.25f
-
     /**
      * The pause that closes a phrase for decoding: short, so the words show
      * soon after each breath. "Stop after a pause" still decides when the
@@ -43,7 +40,8 @@ object OmnilingualEngine {
 
     /**
      * The model reads at most 40 seconds at once; past this much talk without
-     * a pause Silero settles for a much shorter one, so no phrase gets there.
+     * a pause the detector settles for a much shorter one (Silero, TEN) or
+     * cuts there (FireRedVAD, Loudness), so no phrase gets there.
      */
     private const val MAX_PHRASE_SECONDS = 20f
 
@@ -71,29 +69,30 @@ object OmnilingualEngine {
     /**
      * A fresh dictation on [model] in [languageIds] (keyboard language ids),
      * whose scripts the text keeps to. [endpointMs] is the pause that ends it,
-     * or 0 for none (the user stops it). Throws when the model or its Silero
-     * file will not load.
+     * or 0 for none (the user stops it); the detector [vad] names cuts the
+     * phrases and hears that pause. Throws when the model will not load.
      */
-    fun newStream(filesDir: File, model: EtModel, endpointMs: Int, languageIds: List<String>): OmnilingualStream {
+    fun newStream(
+        filesDir: File,
+        model: EtModel,
+        endpointMs: Int,
+        languageIds: List<String>,
+        vad: VoiceVad.Setup = VoiceVad.Setup.DEFAULT,
+    ): OmnilingualStream {
         val rec = recognizerFor(filesDir, model)
         val allowed = maskFor(languageIds)
-        val vad = SherpaNative.nativeSegmenter(
-            EtStore.file(filesDir, model, "silero_vad.onnx").path,
-            VAD_THRESHOLD,
+        // The detector has already waited out the phrase pause when it says
+        // the speech stopped; the rest of the user's pause is counted on top.
+        val cutter = VoiceVad.phraseCutter(
+            filesDir,
+            vad,
+            EtStore.file(filesDir, model, "silero_vad.onnx"),
+            endpointMs,
             PHRASE_PAUSE_SECONDS,
-            VAD_MIN_SPEECH_SECONDS,
             MAX_PHRASE_SECONDS,
         )
-        check(vad != 0L) { "Silero VAD did not load" }
         liveStreams++
-        // Silero has already waited out the phrase pause when it says the
-        // speech stopped; the rest of the user's pause is counted here.
-        val quiet = if (endpointMs > 0) {
-            ((endpointMs / 1000f - PHRASE_PAUSE_SECONDS).coerceAtLeast(0f) * SAMPLE_RATE).toInt()
-        } else {
-            -1
-        }
-        return OmnilingualStream(rec, vad, quiet, allowed) { liveStreams-- }
+        return OmnilingualStream(rec, cutter, allowed) { liveStreams-- }
     }
 
     /**
@@ -146,71 +145,59 @@ object OmnilingualEngine {
         isOpen = true
         return handle
     }
-
-    internal const val SAMPLE_RATE = 16_000
 }
 
 /**
- * One dictation through the Omnilingual model: Silero cuts the audio into
- * phrases as it is fed, and each finished phrase is decoded on the spot, so
- * [text] grows a phrase at a time. The recognizer belongs to
- * [OmnilingualEngine]; the segmenter is this stream's own, freed by [close],
+ * One dictation through the Omnilingual model: the [cutter]'s detector cuts
+ * the audio into phrases as it is fed, and each finished phrase is decoded on
+ * the spot, so [text] grows a phrase at a time. The recognizer belongs to
+ * [OmnilingualEngine]; the cutter is this stream's own, freed by [close],
  * which [finish] calls.
  */
 class OmnilingualStream internal constructor(
     private val recognizer: Long,
-    private var vad: Long,
-    /** Samples of silence after Silero's own pause that end the dictation; below 0, never. */
-    private val quietToEnd: Int,
+    private var cutter: PhraseEnd?,
     /** The token ids a phrase may be written with ([OmnilingualScriptMask]); null for any. */
     private val allowed: BooleanArray?,
     private val onClose: () -> Unit,
 ) : VoiceStream, AutoCloseable {
 
     private val heard = StringBuilder()
-    private var heardSpeech = false
-    private var speaking = false
-    private var quiet = 0
 
     override fun feed(chunk: FloatArray, count: Int) {
-        if (vad == 0L || count <= 0) return
+        val cut = cutter ?: return
+        if (count <= 0) return
         // JNI copies the array whole; a slice keeps a short count from
         // dragging the rest of a large one across.
         val samples = if (count == chunk.size) chunk else chunk.copyOf(count)
-        speaking = SherpaNative.nativeVadFeed(vad, samples, count)
-        if (speaking) {
-            heardSpeech = true
-            quiet = 0
-        } else {
-            quiet += count
-        }
-        decodePhrases()
+        cut.feed(samples, count)
+        decodePhrases(cut)
     }
 
     override fun text(): String = heard.toString()
 
     override fun finish(): String {
-        if (vad == 0L) return text()
-        SherpaNative.nativeVadFlush(vad)
-        decodePhrases()
+        val cut = cutter ?: return text()
+        cut.detector.flush()
+        decodePhrases(cut)
         close()
         return text()
     }
 
-    /** Silero heard speech, then stayed quiet for the pause set in "Stop after a pause". */
+    /** The detector heard speech, then quiet for the pause set in "Stop after a pause". */
     override val endpoint: Boolean
-        get() = quietToEnd >= 0 && vad != 0L && heardSpeech && !speaking && quiet >= quietToEnd
+        get() = cutter?.ended == true
 
     override fun close() {
-        if (vad == 0L) return
-        SherpaNative.nativeVadFree(vad)
-        vad = 0L
+        val cut = cutter ?: return
+        cutter = null
+        cut.close()
         onClose()
     }
 
-    private fun decodePhrases() {
+    private fun decodePhrases(cut: PhraseEnd) {
         while (true) {
-            val phrase = SherpaNative.nativeVadSegment(vad) ?: return
+            val phrase = cut.detector.phrase() ?: return
             if (phrase.isEmpty()) continue
             val words = SherpaNative.nativeOmnilingualDecode(recognizer, phrase, phrase.size, allowed)
             append(String(words, Charsets.UTF_8).trim())

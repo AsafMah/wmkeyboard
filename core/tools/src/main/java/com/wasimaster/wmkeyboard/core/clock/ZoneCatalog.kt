@@ -8,13 +8,29 @@ import kotlin.math.abs
 /**
  * One zone the user can pick: its tz id, the city the system names for it in
  * the user's language, its country or region, and its current offset.
+ *
+ * An [extra] entry is one of [EXTRA_CITIES]: a city that shares another's zone
+ * (Beijing in Shanghai's), with coordinates of its own.
  */
 data class ZoneEntry(
     val id: String,
     val city: String,
     val region: String,
     val offsetMinutes: Int,
-)
+    val extra: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+) {
+    /** Unique across the catalog, where [id] is not: Beijing and Shanghai share one. */
+    val key: String get() = if (extra) "$id#$city" else id
+
+    /**
+     * The world clock card this entry adds. An extra city keeps its own name
+     * as the card's label, since the zone alone would read "Shanghai".
+     */
+    fun toWorldZone(): WorldZone =
+        if (extra) WorldZone(id, label = city, latitude = latitude, longitude = longitude) else WorldZone(id)
+}
 
 /**
  * The world clock's list of places, built from the tz database the phone
@@ -26,7 +42,7 @@ data class ZoneEntry(
  */
 class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMillis()) {
 
-    val entries: List<ZoneEntry> = TimeZone.getAvailableIDs()
+    private val zones: List<ZoneEntry> = TimeZone.getAvailableIDs()
         .asSequence()
         .filter(::isPlace)
         // "Asia/Calcutta" and "Asia/Kolkata" are one place. ICU's canonical id
@@ -46,11 +62,33 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
             )
         }
         .distinctBy { it.id }
-        .sortedWith(compareBy({ it.offsetMinutes }, { it.city }))
         .toList()
 
-    private val keys: Map<String, String> = entries.associate { e ->
-        e.id to fold("${e.city} ${e.region} ${e.id.replace('_', ' ').replace('/', ' ')} ${abbreviations(e.id)}")
+    /**
+     * [EXTRA_CITIES], each under the id its zone has in [zones]: the list may
+     * name a zone by a spelling this phone groups under another. A city whose
+     * zone the phone does not have is left out.
+     */
+    private val extras: List<Pair<ZoneEntry, String>> = run {
+        val byCanonical = zones.associateBy { names.canonical(it.id) }
+        val byId = zones.associateBy { it.id }
+        EXTRA_CITIES.mapNotNull { c ->
+            val zone = byId[c.zoneId] ?: byCanonical[names.canonical(c.zoneId)] ?: return@mapNotNull null
+            zone.copy(city = c.name, extra = true, latitude = c.latitude, longitude = c.longitude) to c.also
+        }
+    }
+
+    val entries: List<ZoneEntry> = (zones + extras.map { it.first })
+        .sortedWith(compareBy({ it.offsetMinutes }, { it.city }))
+
+    private val keys: Map<String, String> = run {
+        val also = extras.associate { (e, words) -> e.key to words }
+        entries.associate { e ->
+            // An extra city is not found by its zone's name: "shanghai" lists
+            // Shanghai, not every Chinese city after it.
+            val zoneWords = if (e.extra) "" else e.id.replace('_', ' ').replace('/', ' ')
+            e.key to fold("${e.city} ${also[e.key].orEmpty()} ${e.region} $zoneWords ${abbreviations(e.id)}")
+        }
     }
 
     /**
@@ -68,7 +106,7 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
         val words = fold(q).split(' ').filter { it.isNotEmpty() }
         return entries
             .mapNotNull { e ->
-                val key = keys[e.id] ?: return@mapNotNull null
+                val key = keys[e.key] ?: return@mapNotNull null
                 val tokens = key.split(' ')
                 if (!words.all { w -> tokens.any { it.startsWith(w) } }) return@mapNotNull null
                 val cityKey = fold(e.city)
@@ -85,7 +123,7 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
             .take(limit)
     }
 
-    fun byId(id: String): ZoneEntry? = entries.firstOrNull { it.id == id }
+    fun byId(id: String): ZoneEntry? = zones.firstOrNull { it.id == id }
 
     companion object {
         const val MAX_RESULTS = 60

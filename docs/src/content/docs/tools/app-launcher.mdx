@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Shot from '@components/Shot.astro';
 
-The app launcher puts your app drawer inside the keyboard: a searchable grid of every launchable app, with the ones you pinned and the ones you opened recently in a row on top. Tap an app to jump to it. Hold one for a menu that opens it in a floating window or in split screen instead, pairs it with a second app, or takes you inside it to open a specific screen, like a settings page or a compose view, without going through the app's own navigation first.
+The app launcher puts your app drawer inside the keyboard: a searchable grid of every launchable app, your work apps included, sorted into folders if you like, with the ones you pinned and the ones you opened recently in a row on top. Tap an app to jump to it. Hold one for a menu that opens it in a floating window or in split screen instead, pairs it with a second app, or takes you inside it to open a specific screen, like a settings page or a compose view, without going through the app's own navigation first.
 
 It's handy mid-conversation: someone asks for a booking reference, you hop to the airline app, copy it, and the keyboard is still where you left it when you come back.
 
@@ -26,6 +26,8 @@ Open **Apps** from the [toolbar, or the toolbox](/tools/overview/) if you haven'
 
 - **Search** sits in the header. Tap it and the keys come back under a shortened panel, filtering live over app names and package names as you type.
 - **Split screen pairs**, if you saved any, get their own row on top. See [split screen pairs](#split-screen-pairs) below.
+- **Folders** come first in the grid, before the apps that are in none. Tap one to open it. See [folders](#folders) below.
+- **Work apps** sit in the grid with a briefcase on their icon. See [work apps](#work-apps) below.
 - **Pinned and recent apps** lead the grid in their own row. Pin and unpin from the menu a hold opens, from the grid or from the shortcut row alike. Recents track the last apps you opened from this tool, ten by default and adjustable from 4 to 20, and they never leave your device.
 - **Tap** launches the app, the way **Open apps** in the options says: normally by default. The panel closes itself, since you are about to leave the app you were typing in anyway.
 - **Hold** opens the app's menu, described next.
@@ -40,9 +42,37 @@ Hold any app, in the grid or in the shortcut row, and a small menu opens over th
 - **Open in split screen**: puts the app beside the one you are typing in.
 - **Pair in split screen with…**: starts a [pair](#split-screen-pairs). A banner asks for the second app, and your next tap picks it. Tap **Cancel**, or the first app again, to back out.
 - **Pin app** or **Unpin app**.
+- **Add to folder**, or **Take out of folder** for an app that is in one. See [folders](#folders).
 - **Screens, hide and App info…**: the app's page, below. With **Open screens inside apps** off it reads **Hide and App info…**.
 
-The two split screen items only show on Android 12L (API 32) or later.
+The two split screen items only show on Android 12L (API 32) or later, and never for a work app.
+
+## Folders
+
+Folders group apps the way a home screen does: a "Banking" folder for the bank apps, a "Travel" one for the airline and the maps. The grid shows each folder as a tile with up to four of its apps' icons and its name under it, ahead of the loose apps. An app lives in one folder at most.
+
+- **Make one**: hold an app, pick **Add to folder**, then **New folder**. The folder opens with its name box up and the keys under it; type a name and press <KeyCap>Enter</KeyCap> or the check. Leave it empty and the folder keeps the name "Folder".
+- **Fill it**: hold another app, pick **Add to folder**, and tap the folder. An app already in a folder moves to the new one.
+- **Take an app out**: hold it, in the folder or in the grid, and pick **Take out of folder**. A folder left with no apps goes away.
+- **Rename, reorder or remove**: open the folder and use the bar above its apps. Tap the name to type a new one, the arrows move the folder one place earlier or later in the grid, and the bin removes it. Holding a folder's tile offers the same in a menu. Removing a folder puts its apps back in the grid; it never uninstalls or hides anything.
+
+Back, on the panel or the system's, leaves a name box, then the folder, then the panel. Search ignores folders: it finds an app wherever you filed it.
+
+### Folders from your home screen
+
+The folders on your home screen belong to the home screen app, and Android gives no other app a way to read them, so the keyboard can't copy them over. What it can read is the category each app declares for itself on the Play Store, such as Games, Social or Maps. **Add to folder** → **Sort all apps by category** makes a folder per category, named the way your phone names it in your language, for every app that is in no folder yet. Apps you filed by hand stay where they are, a category joins a folder of the same name if you have one, and a category with a single app gets no folder of its own. Many apps declare no category at all; those stay loose. Categories need Android 8 or later.
+
+Folders are kept on this device only. They name apps that are installed here, so they don't travel with [settings sync](/reference/settings/backup/) the way your other choices do; they do go into backups.
+
+## Work apps
+
+If your phone has a work profile, its apps show in the grid next to your personal ones, each with a small briefcase on its icon. An app installed in both profiles shows twice, once per profile, and each copy has its own pin, hidden state, folder and recent entry. Tapping a work app opens it in the work profile.
+
+When work apps are paused, from the quick settings tile or the work tab of your home screen, the work apps show dimmed. Tapping one asks Android to open it, and Android answers with its own "Turn on work apps?" prompt. Only the home screen app may switch the profile back on directly, so the keyboard leaves that decision to the system.
+
+A work app opens normally or in a floating window. Split screen and pairs aren't offered for work apps, because the system call that opens an app in another profile has no way to ask for split screen. A work app's page lists the screens the work profile shows to launchers, and **App info** opens the work profile's own settings page for it.
+
+The keyboard needs no extra permission for any of this. Android lets any app list and open the apps of the other profiles of the same person, through the same launcher list the home screen uses. Android 15's private space is the exception: only the default home screen app can see it, so its apps never show here. Turn **Work apps** off in the options to keep the grid to your personal apps.
 
 ## An app's page
 
@@ -94,9 +124,14 @@ Then the launcher's own group:
 - **Open screens inside apps**: on by default. Off leaves the app's page as its pin, hide and **App info** actions, without the screen list. The hold menu still reaches the page either way, since hiding an app has no other door.
 - **Show private screens**: off by default, and only shown while **Open screens inside apps** above is on. There's no screen list to add it to with that switch off. Lists the screens other apps may not open, dimmed. They're debugging fare, and a tap on one does nothing.
 - **Hidden apps**: says how many apps you hid. Tap it to bring all of them back to the grid at once. One at a time goes through the app's own page, which a search reaches even while the app is hidden.
+- **Work apps**: on by default. Lists the apps of your work profile too. Off keeps the grid to your personal profile. Without a work profile it changes nothing.
+- **App folders**: says how many folders you have. Tap it to remove all of them at once and put their apps back in the grid. Folders are made and changed in the panel itself.
 
 ## Privacy notes
 
 - The app list is read from the system on your device and never leaves it.
-- Recents, pins and split screen pairs are stored as plain package names in the keyboard's own settings, nowhere else.
+- Recents, pins, hidden apps, folders and split screen pairs are stored as plain package names in the keyboard's own settings, nowhere else. A work app's entry adds the work profile's number to its package name.
 - The tool is unavailable before the first unlock after a reboot, like every tool that starts other apps.
+
+The app launcher is the **App launcher** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool and the split-screen pairs screen leave the keyboard and the app until the bundle is switched back on.
+

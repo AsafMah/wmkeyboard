@@ -60,16 +60,21 @@ fn floats(env: &mut JNIEnv, array: &JFloatArray) -> Option<Vec<f32>> {
     Some(out)
 }
 
-/// `proximityOpen(rows)`: the key-adjacency model of a layout's rows.
+/// `proximityOpen(rows, carried)`: the key-adjacency model of a layout's
+/// rows, and the letters its keys carry besides the one they type (#970) as
+/// typed, carried pairs of units.
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_proximityOpen(
     mut env: JNIEnv,
     _class: JClass,
     rows: JObjectArray,
+    carried: JCharArray,
 ) -> jlong {
     guarded(&mut env, 0, |env| {
         let rows = strings(env, &rows)?;
-        Some(PROXIMITIES.insert(KeyProximity::of_rows_units(&rows)))
+        let carried = chars(env, &carried)?;
+        let pairs = carried.chunks_exact(2).map(|p| (p[0], p[1])).collect();
+        Some(PROXIMITIES.insert(KeyProximity::of_rows_units(&rows).with_carried(pairs)))
     })
 }
 

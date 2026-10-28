@@ -20,7 +20,8 @@
     <!-- Voice typing panel. -->
     <string name="ime_voice_secure_field_notice">Voice typing does not work in password fields.</string>
     <string name="ime_voice_permission_body">Voice typing needs permission to use the microphone. The app records audio only while you speak.</string>
-    <string name="ime_voice_unavailable_notice">Speech recognition is not available on your device.</string>
+    <string name="ime_voice_unavailable_notice">This phone has no speech recognition service, so the system engine can\'t run. An engine that runs on the keyboard, such as Whisper, works without one.</string>
+    <string name="ime_voice_unavailable_action">Choose a voice engine</string>
     <string name="ime_voice_permission_action">Allow microphone</string>
     <string name="ime_voice_undo_action">Undo</string>
     <!-- Screen reader labels for the big microphone button. -->
@@ -174,7 +175,7 @@
     <string name="ime_handwriting_stylus_hint">Write with your stylus over a text field</string>
     <!-- Shown in place of the writing area of a handwriting layout in a
          build without the recognizer (F-Droid's). -->
-    <string name="ime_handwriting_unsupported_info">This version of the app reads handwriting in Chinese and Japanese only. Add one of them in Languages to write here.</string>
+    <string name="ime_handwriting_unsupported_info">This version of the app cannot read handwriting in this language. It reads Chinese, Japanese, Korean, and the Latin, Cyrillic, Arabic, Devanagari, Tamil, Telugu, Thai and Greek scripts.</string>
 
     <!-- Camera panel. -->
     <string name="ime_camera_permission_body">The camera tool needs permission to use the camera. The app takes a photo only when you press the shutter.</string>

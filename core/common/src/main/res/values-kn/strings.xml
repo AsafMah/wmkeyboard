@@ -26,6 +26,7 @@
     <string name="common_default">ಡೀಫಾಲ್ಟ್</string>
     <string name="common_delete">ಅಳಿಸಿ</string>
     <string name="common_disable">ಆಫ್ ಮಾಡಿ</string>
+    <string name="common_disabled_open_setting">ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ತೆರೆಯಿರಿ</string>
     <string name="common_disclosure_blocked_body">ಆಂಡ್ರಾಯ್ಡ್ ಇನ್ನು ಮುಂದೆ ಈ ವಿನಂತಿಯನ್ನು ತೋರಿಸುವುದಿಲ್ಲ, ಏಕೆಂದರೆ ನೀವು ಈ ಹಿಂದೆ ಅನುಮತಿಯನ್ನು ನಿರಾಕರಿಸಿದ್ದೀರಿ. ನೀವು ಇನ್ನೂ ಆ್ಯಪ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಪರದೆಯಿಂದ ಅದನ್ನು ಆನ್ ಮಾಡಬಹುದು.</string>
     <string name="common_disclosure_not_now">ಈಗ ಬೇಡ</string>
     <string name="common_done">ಮುಗಿದಿದೆ</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ಸ್ಥಾಪಿಸಿ</string>
     <string name="common_installing">ಇನ್‌ಸ್ಟಾಲ್ ಆಗುತ್ತಿದೆ...</string>
     <string name="common_loading">ಲೋಡ್ ಆಗುತ್ತಿದೆ…</string>
+    <string name="common_more">ಇನ್ನಷ್ಟು</string>
     <string name="common_next">ಮುಂದೆ</string>
     <string name="common_none">ಯಾವುದೂ ಇಲ್ಲ</string>
     <string name="common_notify_channel_backup_body">ಸ್ವಯಂಚಾಲಿತ ಬ್ಯಾಕಪ್ ವಿಫಲವಾದಾಗ ಮಾತ್ರ. ಯಶಸ್ವಿ ಬ್ಯಾಕಪ್‌ಗಳು ಮೌನವಾಗಿರುತ್ತವೆ.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">ಅಧಿಸೂಚನೆಗಳನ್ನು ತೋರಿಸಿ</string>
     <string name="common_permission_storage_body">ಆಂಡ್ರಾಯ್ಡ್ 9 ಮತ್ತು ಅದಕ್ಕಿಂತ ಹಳೆಯ ಆವೃತ್ತಿಗಳಲ್ಲಿ, ನಿಮ್ಮ ಗ್ಯಾಲರಿಗೆ ಚಿತ್ರವನ್ನು ಉಳಿಸಲು ಕೀಬೋರ್ಡ್‌ಗೆ ಸ್ಟೋರೇಜ್ ಅನುಮತಿಯ ಅಗತ್ಯವಿದೆ. ಹಳೆಯ ಆಂಡ್ರಾಯ್ಡ್ ಅನುಮತಿಯು ನಿಮ್ಮ ಸ್ಟೋರೇಜ್ ಅನ್ನು ಓದುವುದನ್ನು ಸಹ ಒಳಗೊಂಡಿದೆ. ಕೀಬೋರ್ಡ್ ನೀವು ಉಳಿಸಲು ಕೇಳುವ ಚಿತ್ರವನ್ನು ಮಾತ್ರ ಬರೆಯುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಏನನ್ನೂ ಓದುವುದಿಲ್ಲ ಮತ್ತು ಏನನ್ನೂ ಅಪ್‌ಲೋಡ್ ಮಾಡುವುದಿಲ್ಲ. ಹೊಸ ಆಂಡ್ರಾಯ್ಡ್ ಆವೃತ್ತಿಗಳಿಗೆ ಈ ಅನುಮತಿಯ ಅಗತ್ಯವಿಲ್ಲ.</string>
     <string name="common_permission_storage_title">ನಿಮ್ಮ ಗ್ಯಾಲರಿಗೆ ಉಳಿಸಲು ಸ್ಟೋರೇಜ್ ಪ್ರವೇಶ</string>
+    <string name="common_permission_tasks_body">WM ಕೀಬೋರ್ಡ್ ತನ್ನ ಮಾಡಬೇಕಾದ ಕೆಲಸಗಳ ಪಟ್ಟಿ ಮತ್ತು ಟಾಸ್ಕ್ ಆಪ್‌ನಲ್ಲಿರುವ ಒಂದು ಕಾರ್ಯಗಳ ಪಟ್ಟಿಯನ್ನು ಒಂದೇ ರೀತಿ ಇರಿಸುತ್ತದೆ: ಕಾರ್ಯಗಳು, ಅವುಗಳ ಹಂತಗಳು, ಅವುಗಳ ಟಿಕ್‌ಗಳು ಮತ್ತು ಅವುಗಳ ಅಂತಿಮ ದಿನಾಂಕಗಳು, ಎರಡೂ ರೀತಿಯಲ್ಲಿ. ಈ ಅನುಮತಿಯು ಆಪ್‌ನಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ಕಾರ್ಯಗಳ ಪಟ್ಟಿಯನ್ನು ಒಳಗೊಳ್ಳುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಆಪ್‌ನ ಪಟ್ಟಿಗಳನ್ನು ನೀವು ಒಂದನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಮಾತ್ರ ಓದುತ್ತದೆ, ಮತ್ತು ಅದು ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಪಟ್ಟಿಯನ್ನು ಮಾತ್ರ ಓದುತ್ತದೆ ಮತ್ತು ಬರೆಯುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಯಾವುದನ್ನೂ ಎಲ್ಲಿಗೂ ಕಳುಹಿಸುವುದಿಲ್ಲ. DAVx5, ನೀವು ಅದನ್ನು ಬಳಸಿದರೆ, ಆ ಪಟ್ಟಿಯನ್ನು ನಿಮ್ಮ ಸ್ವಂತ CalDAV ಸರ್ವರ್‌ನೊಂದಿಗೆ ಸಿಂಕ್ ಮಾಡುತ್ತದೆ. ಈ ಅನುಮತಿಯಿಲ್ಲದೆ, ಮಾಡಬೇಕಾದ ಕೆಲಸಗಳ ಪಟ್ಟಿಯು ಈ ಫೋನ್‌ನಲ್ಲಿಯೇ ಉಳಿಯುತ್ತದೆ.</string>
+    <string name="common_permission_tasks_opentasks_title">ಟು-ಡೂ ಪಟ್ಟಿಗಾಗಿ OpenTasks ಪ್ರವೇಶ</string>
+    <string name="common_permission_tasks_tasks_org_title">ಟು-ಡೂ ಪಟ್ಟಿಗಾಗಿ Tasks.org ಪ್ರವೇಶ</string>
+    <string name="common_preview_scale_desc">ಪೂರ್ವವೀಕ್ಷಣೆ ಗಾತ್ರ</string>
+    <string name="common_preview_scale_larger">ಪೂರ್ವವೀಕ್ಷಣೆಯನ್ನು ದೊಡ್ಡದಾಗಿಸಿ</string>
+    <string name="common_preview_scale_smaller">ಮುನ್ನೋಟವನ್ನು ಚಿಕ್ಕದಾಗಿಸಿ</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">ತೆಗೆದುಹಾಕು</string>
     <string name="common_reset">ಮರುಹೊಂದಿಸಿ</string>
     <string name="common_reset_defaults">ಡೀಫಾಲ್ಟ್‌ಗಳಿಗೆ ಮರುಹೊಂದಿಸಿ</string>

@@ -114,6 +114,7 @@ function AddonDetail({ repo, entry }: { repo: LoadedRepo; entry: AddonEntry }) {
 					)}
 
 					{entry.description && <p class="st-detail-desc">{entry.description}</p>}
+					{entry.basedOn && <RemixCredit repo={repo} basedOn={entry.basedOn} />}
 					{entry.tags.length > 0 && (
 						<div class="st-tags">
 							{entry.tags.map((t) => <span class="st-tag" key={t}>#{t}</span>)}
@@ -264,6 +265,17 @@ function AddonDetail({ repo, entry }: { repo: LoadedRepo; entry: AddonEntry }) {
 			)}
 			{license && <LicenseDialog repo={repo} entry={entry} onClose={() => setLicense(false)} />}
 		</div>
+	);
+}
+
+/** The original this addon remixes: linked when it is in the same repository, named by its key otherwise. */
+function RemixCredit({ repo, basedOn }: { repo: LoadedRepo; basedOn: string }) {
+	const id = repo.manifest ? basedOn.slice(repo.manifest.repo.id.length + 1) : '';
+	const original = basedOn.startsWith(`${repo.manifest?.repo.id}/`) ? repo.manifest?.addons.find((a) => a.id === id) : undefined;
+	return (
+		<p class="st-small st-muted">
+			Remix of {original ? <a href={hrefOf(repo, original)}>{original.name}{original.author ? ` by ${original.author}` : ''}</a> : <code>{basedOn}</code>}
+		</p>
 	);
 }
 

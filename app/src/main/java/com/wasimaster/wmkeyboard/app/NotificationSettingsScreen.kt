@@ -107,7 +107,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 NotificationSwitches.set(context, NotificationKind.UPDATES, it)
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.notify_backup_title,
                 stringResource(R.string.notify_backup_subtitle),
@@ -132,7 +132,7 @@ internal fun NotificationSettingsScreen(settings: LiveSettings) {
                 if (it && !WmNotifications.canPost(context)) ask()
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.notify_controls_title,
                 stringResource(R.string.notify_controls_subtitle),

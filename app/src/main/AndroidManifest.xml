@@ -214,6 +214,16 @@
          PermissionDisclosures.ANKIDROID. -->
     <uses-permission android:name="com.ichi2.anki.permission.READ_WRITE_DATABASE" />
 
+    <!-- The task apps' own permissions (#920): the To-do list tool's optional
+         sync with one task list in OpenTasks or Tasks.org, which DAVx5 keeps
+         in step with a CalDAV server. Runtime permissions those apps define;
+         asked for only when the user turns the sync on, behind
+         PermissionDisclosures.TASKS_*. -->
+    <uses-permission android:name="org.dmfs.permission.READ_TASKS" />
+    <uses-permission android:name="org.dmfs.permission.WRITE_TASKS" />
+    <uses-permission android:name="org.tasks.permission.READ_TASKS" />
+    <uses-permission android:name="org.tasks.permission.WRITE_TASKS" />
+
     <!-- The keyboard-mode editor lists installed apps (launcher activities)
          so a mode can be bound to specific apps; Android 11+ hides the app
          list without this. -->
@@ -222,6 +232,11 @@
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />
         <provider android:authorities="com.ichi2.anki.flashcards" />
+        <!-- The task apps whose providers the To-do list syncs with (#920). -->
+        <package android:name="org.dmfs.tasks" />
+        <provider android:authorities="org.dmfs.tasks" />
+        <package android:name="org.tasks" />
+        <provider android:authorities="org.tasks.opentasks" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -234,6 +249,32 @@
              Wiktionary has no recording (or the network is not to be used). -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- Apps that look a word up, for the Dictionary and Wikipedia tools'
+             "Open in" chip (#970): Aard 2's own lookup, the ColorDict intent
+             most offline dictionaries answer, and the selection menu's
+             PROCESS_TEXT, which is how Kiwix and the rest offer themselves. -->
+        <intent>
+            <action android:name="aard2.lookup" />
+        </intent>
+        <intent>
+            <action android:name="colordict.intent.action.SEARCH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <!-- Apps that take a share, for the keyboard's own share sheet (#970).
+             Without these API 30+ hides every share target that has no
+             launcher entry, and the sheet would list fewer apps than
+             Android's chooser does. -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+            <data android:mimeType="*/*" />
         </intent>
         <!-- Mail apps, for the bug-report and "report this generation" rows. -->
         <intent>
@@ -1081,6 +1122,56 @@
             </intent-filter>
         </activity-alias>
 
+        <!--
+             The keyboard's actions on text selected in any app (#916): a sheet
+             of translate, the AI actions and the selection bar's rewrites,
+             which hands the result back to an editable field. Reached only
+             through the two aliases below, each of which the Selection actions
+             settings can switch off. It runs in the calling app's task, not a
+             task of its own: the selection menu starts it for a result, and a
+             new task would cancel that result before the sheet could send it.
+        -->
+        <!-- The keyboard's own share sheet in the settings app (#970); every
+             share the app makes opens it. Not exported: only the app asks. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.share.ShareSheetActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/share_sheet_title"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.TextActionsActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/text_actions_menu_label"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.TextActionsSelectionMenu"
+            android:exported="true"
+            android:label="@string/text_actions_menu_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.TextActionsActivity">
+            <intent-filter android:label="@string/text_actions_menu_label">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+        <!-- The same sheet, opened on the translation. Off as shipped. -->
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.TranslateSelectionMenu"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/text_actions_translate_menu_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.TextActionsActivity">
+            <intent-filter android:label="@string/text_actions_translate_menu_label">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <!-- Same trampoline pattern for the screenshot setting's
              android.permission.READ_MEDIA_IMAGES (or READ_EXTERNAL_STORAGE). -->
         <activity
@@ -1450,6 +1541,7 @@
                 <action android:name="com.wasimaster.wmkeyboard.action.SET_THEME" />
                 <action android:name="com.wasimaster.wmkeyboard.action.SHOW_KEYBOARD" />
                 <action android:name="com.wasimaster.wmkeyboard.action.SET_PINNED" />
+                <action android:name="com.wasimaster.wmkeyboard.action.SET_FLOATING_BUTTON" />
                 <action android:name="com.wasimaster.wmkeyboard.action.SET_KEY_SOUND" />
                 <action android:name="com.wasimaster.wmkeyboard.action.SET_HAPTICS" />
                 <action android:name="com.wasimaster.wmkeyboard.action.SET_POWER_SAVING" />
@@ -1460,6 +1552,10 @@
                 <action android:name="com.wasimaster.wmkeyboard.action.ADD_WORD" />
                 <action android:name="com.wasimaster.wmkeyboard.action.BLOCK_WORD" />
                 <action android:name="com.wasimaster.wmkeyboard.action.BACKUP_NOW" />
+                <action android:name="com.wasimaster.wmkeyboard.action.PAUSE_BACKUP" />
+                <action android:name="com.wasimaster.wmkeyboard.action.RESUME_BACKUP" />
+                <action android:name="com.wasimaster.wmkeyboard.action.PAUSE_SYNC" />
+                <action android:name="com.wasimaster.wmkeyboard.action.RESUME_SYNC" />
                 <action android:name="com.wasimaster.wmkeyboard.action.TYPE_TEXT" />
             </intent-filter>
         </receiver>
@@ -1477,6 +1573,43 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+
+        <!-- "Show keyboard" as a Quick Settings tile: the shade controls' Show
+             button, for anyone without the notification. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.ShowKeyboardTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_show_keyboard"
+            android:label="@string/qs_show_keyboard_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- The floating button on and off as a Quick Settings tile. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.FloatingButtonTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_floating_button"
+            android:label="@string/qs_floating_button_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Started by the Show keyboard tile only because a tile closes the
+             shade by starting an activity. It draws no window and finishes in
+             onCreate, so the app underneath keeps the focus; taskAffinity=""
+             for the reason the trampolines above carry it. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ShadeCollapseActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
 
         <!-- Notices that this app has just been updated, whichever channel did
              it, and says so in the shade. The quiet self-install (see

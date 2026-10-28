@@ -1522,6 +1522,11 @@ if (docShots) {
         systemProperty("wmkb.docShots.only", providers.gradleProperty("wmkb.docShots.only").getOrElse(""))
         // `-Pwmkb.docShots.modes=light` (or dark) renders one of the two, for a quick look.
         systemProperty("wmkb.docShots.modes", providers.gradleProperty("wmkb.docShots.modes").getOrElse(""))
+        // AddonShots, the community repository's render: `-Pwmkb.addonShots.in=<dir>`
+        // holds request.json and the submitted file, `-Pwmkb.addonShots.out=<dir>`
+        // gets the PNGs and the report.
+        systemProperty("wmkb.addonShots.in", providers.gradleProperty("wmkb.addonShots.in").getOrElse(""))
+        systemProperty("wmkb.addonShots.out", providers.gradleProperty("wmkb.addonShots.out").getOrElse(""))
         // Every shot is a separate test; the report shows which ones failed.
         outputs.upToDateWhen { false }
     }

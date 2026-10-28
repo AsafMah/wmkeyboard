@@ -4,8 +4,8 @@
 use std::ptr::null_mut;
 use std::sync::Arc;
 
-use jni::objects::{JBooleanArray, JClass, JIntArray, JLongArray, JObjectArray, JString};
-use jni::sys::{jintArray, jlong};
+use jni::objects::{JBooleanArray, JClass, JFloatArray, JIntArray, JLongArray, JObjectArray, JString};
+use jni::sys::{jdouble, jintArray, jlong};
 use jni::JNIEnv;
 use memmap2::Mmap;
 
@@ -33,11 +33,13 @@ fn optional_word(env: &mut JNIEnv, s: &JString) -> Option<Option<Word>> {
 }
 
 /// `rerank(lexicon, packs, prev, prev2, prev3, skip, candidates, seeds,
-/// recent)`: the candidates' new order as indices, or null when none had
+/// recent, lm)`: the candidates' new order as indices, or null when none had
 /// any evidence. Every word arrives as the key the stores file it under;
 /// `seeds[i]` is the bundled count of `prev candidates[i]`, `recent[i]`
 /// whether the conversation holds it; `skip` is the word two back when the
-/// previous word is one no store knows, else null.
+/// previous word is one no store knows, else null; `lm[i]` is the context
+/// model's ln P(candidate) (NaN where it has none), or null without one;
+/// `lmWeight` is the model's rerank weight (the shipped one when 0 or less).
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_rerank(
@@ -52,6 +54,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     candidates: JObjectArray,
     seeds: JIntArray,
     recent: JBooleanArray,
+    lm: JFloatArray,
+    lm_weight: jdouble,
 ) -> jintArray {
     guarded(&mut env, null_mut(), |env| {
         let store = object!(env, LEXICONS, lexicon);
@@ -70,17 +74,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         env.get_int_array_region(&seeds, 0, &mut seed_counts).ok()?;
         let mut recency = vec![0u8; count];
         env.get_boolean_array_region(&recent, 0, &mut recency).ok()?;
+        let mut lm_scores = vec![f32::NAN; count];
+        if !lm.is_null() {
+            env.get_float_array_region(&lm, 0, &mut lm_scores).ok()?;
+        }
         let mut list = Vec::with_capacity(count);
         for i in 0..count {
             let item = JString::from(env.get_object_array_element(&candidates, i as i32).ok()?);
             let w = word(env, &item)?;
             env.delete_local_ref(item).ok()?;
-            list.push(Candidate { word: w, seed: seed_counts[i], recent: recency[i] != 0 });
+            list.push(Candidate { word: w, seed: seed_counts[i], recent: recency[i] != 0, lm: lm_scores[i] });
         }
         let packs: Vec<&Pack<Mmap>> = held.iter().map(Arc::as_ref).collect();
         let context = Context { prev: &prev, prev2: prev2.as_ref(), prev3: prev3.as_ref(), skip: skip.as_ref() };
         let lexicon = store.lexicon.read().unwrap_or_else(|e| e.into_inner());
-        match rerank::rerank(&lexicon, &packs, &context, &list) {
+        let weight = if lm_weight > 0.0 { lm_weight } else { rerank::LM_WEIGHT };
+        match rerank::rerank_weighted(&lexicon, &packs, &context, &list, weight) {
             None => Some(null_mut()),
             Some(order) => {
                 let order: Vec<i32> = order.into_iter().map(|i| i as i32).collect();

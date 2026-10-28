@@ -16,6 +16,8 @@
 //!   `UserLexicon`.
 //! - [`rerank`]: `PredictionNative` again, the context reranker behind
 //!   `NgramReranker`.
+//! - [`lm`]: `PredictionNative` again, the neural context model behind
+//!   `ContextModel`.
 //! - [`corrections`]: `PredictionNative` again, the stores autocorrect
 //!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
 //! - [`words`]: `PredictionNative` again, the word key, the learnability
@@ -42,6 +44,7 @@ mod guard;
 mod handles;
 mod kernels;
 mod lexicon;
+mod lm;
 mod rerank;
 mod sources;
 mod transliteration;

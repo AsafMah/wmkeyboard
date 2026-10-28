@@ -2,8 +2,11 @@ package com.wasimaster.wmkeyboard.core.settings
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -69,11 +72,54 @@ class BackupCryptoTest {
         assertArrayEquals(expected, BackupCrypto.pbkdf2(unicode, salt, 16, 32))
     }
 
+    @Test
+    fun `pbkdf2 over sha-512 matches the platform implementation`() {
+        // What new files use. One SHA-512 block is 64 bytes, so the 32-byte
+        // key is a prefix of it, and 100 bytes takes the block loop twice.
+        for ((iterations, bytes) in listOf(1 to 32, 977 to 32, 64 to 100)) {
+            val expected = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
+                .generateSecret(PBEKeySpec(passphrase, salt, iterations, bytes * 8))
+                .encoded
+            assertArrayEquals(
+                "iterations=$iterations bytes=$bytes",
+                expected,
+                BackupCrypto.pbkdf2(passphrase, salt, iterations, bytes, "HmacSHA512"),
+            )
+        }
+    }
+
     // ---- round trip ----
 
     @Test
     fun `a sealed bundle comes back`() {
         assertEquals(BackupCrypto.DecryptResult.Ok(bundle), open(seal()))
+    }
+
+    @Test
+    fun `a new file says sha-512 in its header`() {
+        assertEquals(2.toByte(), seal()[KDF_OFFSET])
+    }
+
+    @Test
+    fun `a file from before sha-512 still opens`() {
+        // Backups already sitting in people's folders were keyed over
+        // HMAC-SHA256 under kdf id 1. They must restore after the switch.
+        val header = seal().copyOf(HEADER_SIZE).also { it[KDF_OFFSET] = 1 }
+        val nonce = header.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + 12)
+        val key = BackupCrypto.pbkdf2(passphrase, salt, rounds, 32, "HmacSHA256")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
+            init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"), GCMParameterSpec(128, nonce))
+            updateAAD(header)
+        }
+        val legacy = header + cipher.doFinal(bundle.toByteArray(Charsets.UTF_8))
+        assertEquals(BackupCrypto.DecryptResult.Ok(bundle), open(legacy))
+    }
+
+    @Test
+    fun `an unknown kdf is reported as newer rather than as corrupt`() {
+        val sealed = seal()
+        sealed[KDF_OFFSET] = 9
+        assertEquals(BackupCrypto.DecryptResult.UnsupportedVersion, open(sealed))
     }
 
     @Test
@@ -184,7 +230,9 @@ class BackupCryptoTest {
     private companion object {
         const val HEADER_SIZE = 44
         const val VERSION_OFFSET = 7
+        const val KDF_OFFSET = 8
         const val ITERATIONS_OFFSET = 10
         const val SALT_OFFSET = 15
+        const val NONCE_OFFSET = 32
     }
 }

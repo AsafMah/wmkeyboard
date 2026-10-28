@@ -178,6 +178,52 @@ data class PowerSavingSettings(
 }
 
 /**
+ * The named bundles the settings page offers over the individual `drop*`
+ * switches: twelve switches is the definition of settings bloat, so most
+ * people pick one of these and only the curious open the switches
+ * themselves. [CUSTOM] is what the switches read as once they match no
+ * bundle; picking it writes nothing.
+ */
+enum class PowerSavingPreset { LIGHT, BALANCED, AGGRESSIVE, CUSTOM }
+
+/**
+ * The switches set as [preset] stands for them, with everything that is not
+ * a drop switch left as it is. [PowerSavingPreset.CUSTOM] returns the
+ * receiver unchanged. The key popup and the typing statistics are never
+ * dropped by a bundle: the popup is cheap to draw and the counters are a few
+ * integer bumps per keystroke, so neither saves anything measurable.
+ */
+fun PowerSavingSettings.withPreset(preset: PowerSavingPreset): PowerSavingSettings {
+    if (preset == PowerSavingPreset.CUSTOM) return this
+    val light = copy(
+        dropHaptics = true,
+        dropKeySound = true,
+        dropAnimations = true,
+        dropGlideTrail = true,
+        dropOctopus = true,
+        dropGlassBlur = true,
+        dropScreenshotWatch = true,
+        dropMediaPin = true,
+        dropBackgroundNetwork = false,
+        dropOnDeviceModels = false,
+        dropGestureTyping = false,
+        dropEmojiPrediction = false,
+        dropSmartChips = false,
+        dropKeyPopup = false,
+        dropTypingStats = false,
+    )
+    if (preset == PowerSavingPreset.LIGHT) return light
+    val balanced = light.copy(dropBackgroundNetwork = true, dropOnDeviceModels = true)
+    if (preset == PowerSavingPreset.BALANCED) return balanced
+    return balanced.copy(dropGestureTyping = true, dropEmojiPrediction = true, dropSmartChips = true)
+}
+
+/** The bundle the drop switches currently match, or [PowerSavingPreset.CUSTOM]. */
+val PowerSavingSettings.preset: PowerSavingPreset
+    get() = PowerSavingPreset.entries.firstOrNull { it != PowerSavingPreset.CUSTOM && withPreset(it) == this }
+        ?: PowerSavingPreset.CUSTOM
+
+/**
  * The settings as they apply while power saving is in force.
  *
  * Written the same way as [restrictedToDirectBoot]: a view applied on the way

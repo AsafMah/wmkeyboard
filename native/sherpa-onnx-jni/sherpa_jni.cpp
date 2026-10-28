@@ -1,6 +1,6 @@
 // JNI surface for sherpa-onnx's C API: a streaming transducer recognizer
 // (greedy, or by modified beam search with hotwords),
-// Silero voice activity detection (as a speech flag, or cutting the audio into
+// Silero or TEN voice activity detection (as a speech flag, or cutting the audio into
 // phrases for the Omnilingual model in omnilingual_jni.cpp) and the online
 // punctuation model. Kotlin side:
 // com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.
@@ -46,8 +46,8 @@ private:
     const char* c_;
 };
 
-// Silero VAD reads fixed windows; the microphone delivers whatever it has.
-// A detector that [keeps] its segments hands them out one by one (the
+// Silero and TEN VAD read fixed windows; the microphone delivers whatever it
+// has. A detector that [keeps] its segments hands them out one by one (the
 // Omnilingual engine decodes each); one that does not drops them, since only
 // whether someone is speaking is wanted.
 struct Vad {
@@ -57,19 +57,40 @@ struct Vad {
     bool keep = false;
 };
 
-Vad* newVad(JNIEnv* env, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech,
+// Which model family a detector runs; the values SherpaNative.VAD_* name.
+constexpr jint kSilero = 0;
+constexpr jint kTen = 1;
+
+// Silero reads 32 ms windows at 16 kHz (v5 insists on exactly that), TEN 16 ms.
+constexpr int32_t kSileroWindow = 512;
+constexpr int32_t kTenWindow = 256;
+
+// sherpa-onnx exits the process on a model it does not recognise, so only a
+// file that is one of ours or has passed nativeVadProbe (vad_jni.cpp) gets
+// here.
+Vad* newVad(JNIEnv* env, jint kind, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech,
             jfloat maxSpeech, bool keep) {
     Chars path(env, model);
+    if (!path.get() || (kind != kSilero && kind != kTen)) return nullptr;
     SherpaOnnxVadModelConfig config;
     std::memset(&config, 0, sizeof(config));
-    config.silero_vad.model = path.get();
-    config.silero_vad.threshold = threshold;
-    config.silero_vad.min_silence_duration = minSilence;
-    config.silero_vad.min_speech_duration = minSpeech;
-    config.silero_vad.window_size = 512;
-    // Past this much speech without a pause, the detector takes a much
-    // shorter pause as the end, so no segment grows without limit.
-    config.silero_vad.max_speech_duration = maxSpeech;
+    // Past [maxSpeech] seconds of speech without a pause, the detector takes
+    // a much shorter pause as the end, so no segment grows without limit.
+    if (kind == kTen) {
+        config.ten_vad.model = path.get();
+        config.ten_vad.threshold = threshold;
+        config.ten_vad.min_silence_duration = minSilence;
+        config.ten_vad.min_speech_duration = minSpeech;
+        config.ten_vad.window_size = kTenWindow;
+        config.ten_vad.max_speech_duration = maxSpeech;
+    } else {
+        config.silero_vad.model = path.get();
+        config.silero_vad.threshold = threshold;
+        config.silero_vad.min_silence_duration = minSilence;
+        config.silero_vad.min_speech_duration = minSpeech;
+        config.silero_vad.window_size = kSileroWindow;
+        config.silero_vad.max_speech_duration = maxSpeech;
+    }
     config.sample_rate = 16000;
     config.num_threads = 1;
     config.provider = "cpu";
@@ -78,6 +99,7 @@ Vad* newVad(JNIEnv* env, jstring model, jfloat threshold, jfloat minSilence, jfl
     if (!detector) return nullptr;
     auto* vad = new Vad();
     vad->detector = detector;
+    vad->window = kind == kTen ? kTenWindow : kSileroWindow;
     vad->keep = keep;
     return vad;
 }
@@ -221,7 +243,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeEndpoint(JNI
 JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVad(
     JNIEnv* env, jclass, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech) {
-    return reinterpret_cast<jlong>(newVad(env, model, threshold, minSilence, minSpeech, 300.0f, false));
+    return reinterpret_cast<jlong>(newVad(env, kSilero, model, threshold, minSilence, minSpeech, 300.0f, false));
 }
 
 // A detector that keeps what it hears as segments, each a phrase between
@@ -229,7 +251,17 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVad(
 JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeSegmenter(
     JNIEnv* env, jclass, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech, jfloat maxSpeech) {
-    return reinterpret_cast<jlong>(newVad(env, model, threshold, minSilence, minSpeech, maxSpeech, true));
+    return reinterpret_cast<jlong>(newVad(env, kSilero, model, threshold, minSilence, minSpeech, maxSpeech, true));
+}
+
+// Either of the two above for a model of [kind] (kSilero, kTen): a detector
+// that keeps its segments when [keep] is true, one that only says whether
+// someone is speaking otherwise.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadOf(
+    JNIEnv* env, jclass, jint kind, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech,
+    jfloat maxSpeech, jboolean keep) {
+    return reinterpret_cast<jlong>(newVad(env, kind, model, threshold, minSilence, minSpeech, maxSpeech, keep == JNI_TRUE));
 }
 
 JNIEXPORT void JNICALL

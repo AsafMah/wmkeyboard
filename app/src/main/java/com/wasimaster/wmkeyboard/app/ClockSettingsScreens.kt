@@ -50,6 +50,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 route = ClockEngine.ROUTE,
             ) { onNavigate(ClockEngine.ROUTE) }
         }
+        item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_clock_label, ClockEngine.ROUTE) }
     }
 
     ClockGrantsGroup()
@@ -67,7 +68,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.hour24,
             ) { v -> set { it.copy(hour24 = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clock_show_seconds_title,
                 stringResource(R.string.clock_show_seconds_subtitle),
@@ -75,7 +76,23 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.showSeconds,
             ) { v -> set { it.copy(showSeconds = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_sort_zones_title,
+                stringResource(R.string.clock_sort_zones_subtitle),
+                config.sortZonesByTime,
+                default = defaults.sortZonesByTime,
+            ) { v -> set { it.copy(sortZonesByTime = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_zones_grid_title,
+                stringResource(R.string.clock_zones_grid_subtitle),
+                config.zonesGrid,
+                default = defaults.zonesGrid,
+            ) { v -> set { it.copy(zonesGrid = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clock_insert_format_title,
                 subtitle = stringResource(R.string.clock_insert_format_subtitle),
@@ -115,14 +132,14 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 uri = config.alarmSound,
             ) { v -> set { it.copy(alarmSound = v) } }
         }
-        item(visible = service) {
+        item(visible = service, level = SettingLevel.STANDARD) {
             SoundRow(
                 title = R.string.clock_timer_sound_title,
                 uri = config.timerSound,
                 followsAlarm = true,
             ) { v -> set { it.copy(timerSound = v) } }
         }
-        item(visible = service) {
+        item(visible = service, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clock_vibrate_title,
                 stringResource(R.string.clock_vibrate_subtitle),
@@ -130,7 +147,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.vibrate,
             ) { v -> set { it.copy(vibrate = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.clock_snooze_title,
                 value = config.snoozeMinutes.toFloat(),
@@ -139,7 +156,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.snoozeMinutes.toFloat(),
             ) { v -> set { it.copy(snoozeMinutes = v.roundToInt()) } }
         }
-        item(visible = service) {
+        item(visible = service, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.clock_fade_title,
                 stringResource(R.string.clock_fade_subtitle),
@@ -149,7 +166,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.fadeInSeconds.toFloat(),
             ) { v -> set { it.copy(fadeInSeconds = v.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.clock_auto_silence_title,
                 stringResource(R.string.clock_auto_silence_subtitle),
@@ -159,7 +176,47 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.autoSilenceMinutes.toFloat(),
             ) { v -> set { it.copy(autoSilenceMinutes = v.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.clock_auto_snooze_title,
+                stringResource(R.string.clock_auto_snooze_subtitle),
+                value = config.autoSnoozes.toFloat(),
+                range = 0f..5f,
+                display = { v ->
+                    val n = v.roundToInt()
+                    if (n == 0) context.getString(R.string.clock_fade_off) else context.resources.getQuantityString(R.plurals.clock_times_value, n, n)
+                },
+                default = defaults.autoSnoozes.toFloat(),
+            ) { v -> set { it.copy(autoSnoozes = v.roundToInt()) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.clock_upcoming_title,
+                subtitle = stringResource(R.string.clock_upcoming_subtitle),
+                options = listOf(0, 15, 30, 60, 120).map { m ->
+                    m to if (m == 0) stringResource(R.string.clock_fade_off) else minutes(m.toFloat())
+                },
+                selected = config.upcomingNoticeMinutes,
+                default = defaults.upcomingNoticeMinutes,
+            ) { v -> set { it.copy(upcomingNoticeMinutes = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_snoozed_notice_title,
+                stringResource(R.string.clock_snoozed_notice_subtitle),
+                config.snoozedNotice,
+                default = defaults.snoozedNotice,
+            ) { v -> set { it.copy(snoozedNotice = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_missed_notice_title,
+                stringResource(R.string.clock_missed_notice_subtitle),
+                config.missedNotice,
+                default = defaults.missedNotice,
+            ) { v -> set { it.copy(missedNotice = v) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clock_volume_keys_title,
                 stringResource(R.string.clock_volume_keys_subtitle),
@@ -169,7 +226,11 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
         }
     }
 
-    SettingsGroup(stringResource(R.string.clock_pomodoro_group), info = stringResource(R.string.clock_pomodoro_info)) {
+    SettingsGroup(
+        stringResource(R.string.clock_pomodoro_group),
+        info = stringResource(R.string.clock_pomodoro_info),
+        level = SettingLevel.STANDARD,
+    ) {
         item {
             SliderSetting(
                 R.string.clock_focus_title,
@@ -188,7 +249,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.shortBreakMinutes.toFloat(),
             ) { v -> set { it.copy(shortBreakMinutes = v.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.clock_long_break_title,
                 value = config.longBreakMinutes.toFloat(),
@@ -197,7 +258,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.longBreakMinutes.toFloat(),
             ) { v -> set { it.copy(longBreakMinutes = v.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.clock_long_every_title,
                 value = config.longBreakEvery.toFloat(),
@@ -209,7 +270,11 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
     }
 
     val clockText: (Float) -> String = { v -> halfHourText(context, v.roundToInt(), config.is24(android.text.format.DateFormat.is24HourFormat(context))) }
-    SettingsGroup(stringResource(R.string.clock_planner_group), info = stringResource(R.string.clock_planner_info)) {
+    SettingsGroup(
+        stringResource(R.string.clock_planner_group),
+        info = stringResource(R.string.clock_planner_info),
+        level = SettingLevel.ADVANCED,
+    ) {
         item {
             SliderSetting(
                 R.string.clock_work_start_title,
@@ -230,7 +295,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
         }
     }
 
-    SettingsGroup(stringResource(R.string.clock_history_group)) {
+    SettingsGroup(stringResource(R.string.clock_history_group), level = SettingLevel.ADVANCED) {
         item {
             ChoiceSetting(
                 title = R.string.clock_history_keep_title,

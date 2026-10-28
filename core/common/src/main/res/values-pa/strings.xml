@@ -26,6 +26,7 @@
     <string name="common_default">ਡਿਫੌਲਟ</string>
     <string name="common_delete">ਮਿਟਾਓ</string>
     <string name="common_disable">ਬੰਦ ਕਰੋ</string>
+    <string name="common_disabled_open_setting">ਸੈਟਿੰਗ ਖੋਲ੍ਹੋ</string>
     <string name="common_disclosure_blocked_body">Android ਹੁਣ ਇਹ ਬੇਨਤੀ ਨਹੀਂ ਦਿਖਾਉਂਦਾ, ਕਿਉਂਕਿ ਤੁਸੀਂ ਪਹਿਲਾਂ ਇਜਾਜ਼ਤ ਦੇਣ ਤੋਂ ਇਨਕਾਰ ਕਰ ਦਿੱਤਾ ਸੀ। ਤੁਸੀਂ ਅਜੇ ਵੀ ਐਪ ਸੈਟਿੰਗਾਂ ਸਕ੍ਰੀਨ ਤੋਂ ਇਸਨੂੰ ਚਾਲੂ ਕਰ ਸਕਦੇ ਹੋ।</string>
     <string name="common_disclosure_not_now">ਹੁਣੇ ਨਹੀਂ</string>
     <string name="common_done">ਹੋ ਗਿਆ</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ਇੰਸਟਾਲ ਕਰੋ</string>
     <string name="common_installing">ਇੰਸਟਾਲ ਹੋ ਰਿਹਾ ਹੈ...</string>
     <string name="common_loading">ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...</string>
+    <string name="common_more">ਹੋਰ</string>
     <string name="common_next">ਅੱਗੇ</string>
     <string name="common_none">ਕੋਈ ਨਹੀਂ</string>
     <string name="common_notify_channel_backup_body">ਸਿਰਫ਼ ਉਦੋਂ ਜਦੋਂ ਕੋਈ ਆਟੋਮੈਟਿਕ ਬੈਕਅੱਪ ਅਸਫਲ ਹੋ ਜਾਂਦਾ ਹੈ। ਸਫਲ ਬੈਕਅੱਪ ਚੁੱਪਚਾਪ ਹੁੰਦੇ ਹਨ।</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">ਸੂਚਨਾਵਾਂ ਦਿਖਾਓ</string>
     <string name="common_permission_storage_body">Android 9 ਅਤੇ ਪੁਰਾਣੇ ਵਰਜਨਾਂ \'ਤੇ, ਕੀਬੋਰਡ ਨੂੰ ਤੁਹਾਡੀ ਗੈਲਰੀ ਵਿੱਚ ਚਿੱਤਰ ਸੇਵ ਕਰਨ ਲਈ ਸਟੋਰੇਜ ਅਨੁਮਤੀ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ। ਪੁਰਾਣੀ Android ਅਨੁਮਤੀ ਤੁਹਾਡੀ ਸਟੋਰੇਜ ਨੂੰ ਪੜ੍ਹਨ ਨੂੰ ਵੀ ਕਵਰ ਕਰਦੀ ਹੈ। ਕੀਬੋਰਡ ਸਿਰਫ਼ ਉਹੀ ਚਿੱਤਰ ਲਿਖਦਾ ਹੈ ਜਿਸਨੂੰ ਤੁਸੀਂ ਸੇਵ ਕਰਨ ਲਈ ਕਹਿੰਦੇ ਹੋ। ਕੀਬੋਰਡ ਕੁਝ ਵੀ ਪੜ੍ਹਦਾ ਨਹੀਂ ਹੈ ਅਤੇ ਕੁਝ ਵੀ ਅਪਲੋਡ ਨਹੀਂ ਕਰਦਾ ਹੈ। ਨਵੇਂ Android ਵਰਜਨਾਂ ਨੂੰ ਇਸ ਅਨੁਮਤੀ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।</string>
     <string name="common_permission_storage_title">ਤੁਹਾਡੀ ਗੈਲਰੀ ਵਿੱਚ ਸੇਵ ਕਰਨ ਲਈ ਸਟੋਰੇਜ ਐਕਸੈਸ</string>
+    <string name="common_permission_tasks_body">WM ਕੀਬੋਰਡ ਆਪਣੀ ਟੂ-ਡੂ ਸੂਚੀ ਅਤੇ ਟਾਸਕ ਐਪ ਵਿੱਚ ਇੱਕ ਟਾਸਕ ਸੂਚੀ ਨੂੰ ਇੱਕੋ ਜਿਹਾ ਰੱਖਦਾ ਹੈ: ਕੰਮ, ਉਹਨਾਂ ਦੇ ਪੜਾਅ, ਉਹਨਾਂ ਦੇ ਟਿੱਕ ਅਤੇ ਉਹਨਾਂ ਦੀਆਂ ਨਿਯਤ ਮਿਤੀਆਂ, ਦੋਵੇਂ ਤਰੀਕਿਆਂ ਨਾਲ। ਇਜਾਜ਼ਤ ਐਪ ਵਿੱਚ ਹਰ ਟਾਸਕ ਸੂਚੀ ਨੂੰ ਕਵਰ ਕਰਦੀ ਹੈ। ਕੀਬੋਰਡ ਐਪ ਦੀਆਂ ਸੂਚੀਆਂ ਨੂੰ ਸਿਰਫ਼ ਇਸ ਲਈ ਪੜ੍ਹਦਾ ਹੈ ਤਾਂ ਜੋ ਤੁਸੀਂ ਇੱਕ ਚੁਣ ਸਕੋ, ਅਤੇ ਇਹ ਸਿਰਫ਼ ਤੁਹਾਡੇ ਦੁਆਰਾ ਚੁਣੀ ਗਈ ਸੂਚੀ ਨੂੰ ਪੜ੍ਹਦਾ ਅਤੇ ਲਿਖਦਾ ਹੈ। ਕੀਬੋਰਡ ਕਿਤੇ ਵੀ ਕੁਝ ਨਹੀਂ ਭੇਜਦਾ। DAVx5, ਜੇਕਰ ਤੁਸੀਂ ਇਸਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹੋ, ਤਾਂ ਉਸ ਸੂਚੀ ਨੂੰ ਤੁਹਾਡੇ ਆਪਣੇ CalDAV ਸਰਵਰ ਨਾਲ ਸਿੰਕ ਕਰਦਾ ਹੈ। ਇਸ ਇਜਾਜ਼ਤ ਤੋਂ ਬਿਨਾਂ, ਟੂ-ਡੂ ਸੂਚੀ ਇਸ ਫ਼ੋਨ \'ਤੇ ਹੀ ਰਹਿੰਦੀ ਹੈ।</string>
+    <string name="common_permission_tasks_opentasks_title">ਟੂ-ਡੂ ਲਿਸਟ ਲਈ OpenTasks ਐਕਸੈਸ</string>
+    <string name="common_permission_tasks_tasks_org_title">ਟੂ-ਡੂ ਲਿਸਟ ਲਈ Tasks.org ਪਹੁੰਚ</string>
+    <string name="common_preview_scale_desc">ਪ੍ਰੀਵਿਊ ਦਾ ਆਕਾਰ</string>
+    <string name="common_preview_scale_larger">ਪੂਰਵਦਰਸ਼ਨ ਵੱਡਾ ਕਰੋ</string>
+    <string name="common_preview_scale_smaller">ਪ੍ਰੀਵਿਊ ਨੂੰ ਛੋਟਾ ਕਰੋ</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">ਹਟਾਓ</string>
     <string name="common_reset">ਰੀਸੈਟ</string>
     <string name="common_reset_defaults">ਡਿਫੌਲਟ \'ਤੇ ਰੀਸੈਟ ਕਰੋ</string>

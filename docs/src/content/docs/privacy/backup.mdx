@@ -43,6 +43,7 @@ its own switch:
 | Swipe style | Off | Where your finger lands when you swipe, the readings you corrected, and the shape you draw each word in |
 | Notes | On | Your notes, their tags, and what is in the trash. Locked notes stay out unless API keys are included; see [Notes](/tools/notes/#backups) |
 | AI memory | Off | What the AI remembers about you, from <SettingsPath path="AI / Memory" />. See [AI memory](/tools/ai-memory/) |
+| To-do list | On | Your tasks and their steps, done or not. See [To-do list](/tools/todo/#backups) |
 
 Sticker packs and icon packs default off because their images make the file
 large, not because there's anything private about them. Turn them on and a
@@ -100,6 +101,7 @@ more than the in-app dialog's one-line summary suggests:
 | Swipe style | **Replaces.** All three files come from the bundle, and a keyboard already running picks them up rather than saving its own copies back over them. |
 | Notes | **Replaces,** keeping the locked notes already on the phone when the file was made without them. A keyboard already running reloads the file rather than saving its own list over it. |
 | AI memory | **Replaces.** The saved facts on the phone are swapped for the ones in the file, and the chats pick them up at once. |
+| To-do list | **Replaces.** The list comes from the file, and a keyboard already running reloads it rather than saving its own over it. A task-app sync that is set up keeps its own record on the phone. |
 
 If the file includes API keys, the dialog warns you before you confirm; see
 [Secrets stay out by default](#secrets-stay-out-by-default) below.
@@ -205,6 +207,10 @@ device, because a backup that runs while you're asleep has nobody to type it.
 So it protects the file where it lands, in a cloud folder for instance, and
 not against a person holding your unlocked device. Write it down. Without it,
 a backup cannot be restored. The same passphrase protects the sync files.
+The file is sealed with AES-256-GCM under a key derived from the passphrase
+by PBKDF2-HMAC-SHA512, 210,000 rounds over a random salt kept on this
+device. Backups made by older versions used PBKDF2-HMAC-SHA256 and still
+restore.
 
 **API keys are your call.** **What goes in a backup** has its own **Include
 API keys** switch. Without a passphrase, the switch strongly suggests turning
@@ -233,6 +239,15 @@ unlocked the device after a restart. A backup taken before then would be
 nearly empty, and rotating that in would push out a real one, so the app
 waits.
 
+**You can pause it without turning it off.** **Pause backups** on the
+Automatic backup screen stops the scheduled backups for 1 hour, 1 day, 1 week,
+or until you resume. Your locations, schedule, passphrase and the backups
+already kept all stay as they are, and the status card says the backup is
+paused. A timed pause ends by itself. On resume, a backup that came due during
+the pause runs at the next scheduled check. **Back up now** still works while
+paused. The pause belongs to this phone: it never goes into an export, a
+backup or a sync file.
+
 ### Restoring from a location
 
 Each location's menu has **Restore from** followed by its name. It lists every
@@ -244,6 +259,11 @@ asks for one when it doesn't. For a Google Drive location in the hidden
 app folder this is the only way back: that folder is hidden from every other
 app, the Drive app included. Choose **A folder you can see** instead and the
 backups are ordinary files in My Drive as well.
+
+Where several people share a location, each backup shows the
+[sync group](#several-people-one-location) of the phone that took it, next to
+the device name. When the list holds more than one group, chips above it narrow
+it to one, starting on your own group.
 
 ## Sync between devices
 
@@ -274,10 +294,15 @@ Syncing again replaces a device's counts; it never adds them a second time.
 - **First sync:** a device that joins takes the settings your other devices
   already agreed on, rather than pushing its own over them. Anything only it
   has goes to the others.
-- **Keep on this device:** tick **Toolbar and toolbox** or **Languages and
-  layouts** to keep that part different on this device. It isn't sent, and
-  your other devices' changes to it aren't taken.
+- **Keep on this device:** tick **Toolbar and toolbox**, **Languages and
+  layouts** or **Theme** to keep that part different on this device. It isn't
+  sent, and your other devices' changes to it aren't taken. Unticking
+  **Themes** under **What syncs** stops only your own themes from syncing;
+  which theme is in use is a setting, kept apart by **Theme** here.
 - **With a paired computer:** pair WM Keyboard on a computer over [KDE Connect](/tools/kde-connect/#pairing-with-wm-keyboard-on-a-computer) and it becomes a location of its own, **Nearby device**, ticked under **Sync through**, with sync turned on. The two hand each other their sync files directly while both are on the same network and the keyboard is open, so no cloud service is involved. **Sync with paired devices**, on by default, decides whether pairing does this.
+- **Pausing:** **Pause sync** holds the scheduled and automatic syncs back for
+  1 hour, 1 day, 1 week, or until you resume, and keeps everything else as it
+  is. **Sync now** still works. Resuming syncs straight away.
 - **Without a cloud account:** any location your devices can all reach works.
   On a Tailscale network, share a folder from a computer with Taildrive and add
   it on each device as a WebDAV location with the **Tailscale Taildrive**
@@ -292,8 +317,35 @@ off by default, and like the backup switch it strongly suggests a passphrase
 first without requiring one. Use the same passphrase on every device, or the
 others can't read this one's file, and the screen says so.
 
-Sync settings are never exported, backed up or synced themselves. A phone
-restored from a backup doesn't start syncing until you turn it on.
+Sync settings are never exported, backed up or synced themselves, the pause
+and the sync group included. A phone restored from a backup doesn't start
+syncing until you turn it on.
+
+### Several people, one location
+
+Two people can use one shared location, such as a family NAS or a shared
+Dropbox folder, for their backups and their sync without mixing their
+keyboards. Backups were already kept apart: each phone counts and deletes only
+its own. Sync needs one more step, because every device merges every other
+device's sync file at a location. Give each person a **Sync group** on the Sync
+devices screen, the same name on all of that person's devices and a different
+name from everyone else's. A device then reads and merges only the files of its
+own group, and the others never download them.
+
+Devices with no group sync with each other, as every device did before groups
+existed, so nothing changes for a location only you use. When you tick a
+location for sync that other devices already use in other groups, the app
+lists those groups and asks which one to join. The **Sync group** row shows the
+same list when you change it. A device that moves to another group joins it
+the way a new device joins: the group's settings win the first sync, and
+anything only this device has goes to the group.
+
+A group name is letters, digits and hyphens, up to 12 characters, and capitals
+become lowercase. It is a way to keep files apart, not a lock: anyone who can
+open the location can read the sync files of every group, unless they're
+protected with a passphrase. Give each person their own passphrase when that
+matters. A paired computer over KDE Connect is never in a group, because it
+belongs to one person already.
 
 ## Android's own backup
 

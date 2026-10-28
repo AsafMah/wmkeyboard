@@ -19,7 +19,7 @@ so it's worth keeping them apart.
   <Shot id="privacy/incognito-toolbar-badge" alt="The incognito badge next to the toolbar, and the toolbox tool that turns it on." />
 </PhoneFrame>
 
-The badge sits at the right end of the toolbar whenever incognito is on, from either source. Tap it to see why: a toast names the app when its field asked for incognito, which some apps do outside any private tab, or says the Incognito switch is on.
+The badge sits at the right end of the toolbar whenever incognito is on, from either source. It never pushes a tool off the bar: when the pinned tools fill it, they shrink a little together to make room. Tap it to see why: a toast names the app when its field asked for incognito, which some apps do outside any private tab, or says the Incognito switch is on.
 
 ## Turning incognito on
 
@@ -277,6 +277,12 @@ incognito or secure fields at all.
   capture until you turn it off again.
 - **Follow private browsing** (default **on**). Switches incognito on by
   itself for a field that asks for it, for as long as that field has focus.
+- **Incognito by app**. Decide for an app instead of going by its fields:
+  **Add an app** and every field in it is incognito; tap it to switch to
+  **Never incognito**, which keeps incognito off there even in a field that
+  asks for it. The bin takes the app off the list, and its fields go back to
+  Follow private browsing. A choice here holds whether Follow private browsing
+  is on or off.
 
 <SettingsPath path="Tools / Incognito" />
 

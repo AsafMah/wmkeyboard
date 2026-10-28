@@ -107,7 +107,7 @@ The features the keyboard has
 
 ### Languages
 
-- **955 languages, 1,999 layouts** from one data-driven registry: native scripts, InScript
+- **955 languages, 2,000 layouts** from one data-driven registry: native scripts, InScript
   variants, romanised entries, CJK, minority Cyrillic alphabets, and a dozen constructed ones. A
   fresh install starts in whatever your phone is already set to.
 - **Bangla, done properly.** Avro phonetic, Probhat with aspirates on shift, Jatiya, Khipro Classic and Dark,
@@ -124,7 +124,7 @@ The features the keyboard has
 
 - **Semantic emoji search** in 126 languages. `party` finds 🎉 🥳 🍾 🎂, and so does the word
   for party in other languages.
-- Emoji 17.0, per-person skin tones, kaomoji, and long-press to send Google's animated emoji.
+- Emoji 18.0, per-person skin tones, kaomoji, and long-press to send Google's animated emoji.
 - Sticker packs you make from your own photos, with a background cutout that runs on device.
   WhatsApp, Signal and Telegram packs import directly.
 - GIF search when you want it, off when you don't.
@@ -222,7 +222,7 @@ the optional feature libraries download the first time a feature needs them inst
 | | Standard | F-Droid | Offline |
 |---|:---:|:---:|:---:|
 | Where | Google Play, GitHub | F-Droid | GitHub |
-| Handwriting | ML Kit, 126 languages | zinnia, Chinese and Japanese | ML Kit, 126 languages |
+| Handwriting | ML Kit, 126 languages | zinnia for Chinese and Japanese, PaddleOCR for nine other scripts | ML Kit, 126 languages |
 | Text scan | ML Kit, Tesseract, PaddleOCR | PaddleOCR | ML Kit, Tesseract, PaddleOCR |
 | QR and barcode | ML Kit or zxing-cpp | zxing-cpp | ML Kit or zxing-cpp |
 | Document scanner | Google's or the built-in one | built-in | Google's or the built-in one |
@@ -472,7 +472,7 @@ the same files.
 - [llama.cpp](https://github.com/ggml-org/llama.cpp) for GGUF models on device.
 - [Bergamot](https://github.com/browsermt/bergamot-translator) (Firefox Translations) and [CTranslate2](https://github.com/OpenNMT/CTranslate2) with NLLB-200 for on-device translation.
 - [Tesseract](https://github.com/tesseract-ocr/tesseract) and Leptonica, and PaddleOCR on [MNN](https://github.com/alibaba/MNN), for OCR beyond the languages ML Kit covers. [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) for codes and [OpenCV](https://opencv.org/) for the built-in document scanner.
-- [zinnia](https://taku910.github.io/zinnia/) with Tegaki's models for Chinese and Japanese handwriting.
+- [zinnia](https://taku910.github.io/zinnia/) with Tegaki's models for Chinese and Japanese handwriting, and PaddleOCR's per-script recognisers for handwriting in other scripts without ML Kit.
 - [librime](https://github.com/rime/librime) and [Mozc](https://github.com/google/mozc) for the optional Chinese and Japanese engines.
 - [Hunspell](https://hunspell.github.io/), [divvunspell](https://github.com/divvun/divvunspell) and [Voikko](https://voikko.puimula.org/) for spell checking with imported dictionaries.
 - [Gemoji](https://github.com/github/gemoji), [KEmoji](https://invent.kde.org/libraries/kemoji) and Unicode CLDR for emoji names and keywords. [Noto](https://notofonts.github.io/) for fonts and animated emoji.

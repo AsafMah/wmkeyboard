@@ -287,7 +287,9 @@ object NetLog {
             ServiceGroup.WEATHER -> NetSource.WEATHER
             ServiceGroup.MAPS -> NetSource.LOCATION
             ServiceGroup.CURRENCY -> NetSource.CURRENCY
+            ServiceGroup.SPEED_TEST -> NetSource.SPEED_TEST
             ServiceGroup.AI -> NetSource.AI
+            ServiceGroup.MUSIC -> NetSource.MUSIC_METADATA
             ServiceGroup.DOWNLOADS -> NetSource.ADDONS
             ServiceGroup.UPDATES -> NetSource.UPDATES
         }

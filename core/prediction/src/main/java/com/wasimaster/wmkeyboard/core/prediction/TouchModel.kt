@@ -92,6 +92,18 @@ class KeyTouchModel(
         return dx * dx + dy * dy <= slipRadius * slipRadius
     }
 
+    /** How far [p] lies from the nearest key's centre, in key widths, or null off an empty model. */
+    fun nearestDistance(p: TouchPoint): Double? {
+        var best = Double.POSITIVE_INFINITY
+        for (center in centersArray) {
+            val dx = (p.x - center.x).toDouble()
+            val dy = (p.y - center.y).toDouble()
+            val d = dx * dx + dy * dy
+            if (d < best) best = d
+        }
+        return if (best.isFinite()) kotlin.math.sqrt(best) else null
+    }
+
     /** The most likely intended key for a tap, or null off-keyboard. */
     fun bestKey(p: TouchPoint): Char? {
         var best: Char? = null

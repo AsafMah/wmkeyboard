@@ -269,6 +269,7 @@ private fun RowScope.TypingHeader(entry: ClockTextEntry, act: (ClockAction) -> U
             -> R.string.ime_clock_label_hint
             ClockTextField.COUNTDOWN_TITLE -> R.string.ime_clock_countdown_title_hint
             ClockTextField.ZONE_LABEL -> R.string.ime_clock_zone_label_hint
+            ClockTextField.DATE -> R.string.ime_clock_date_hint
         },
     )
     Row(

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -157,6 +158,10 @@ internal fun BackupLocation.detail(context: Context): String? = when (type) {
 /** The destinations this build can reach, in the order the add sheet lists them. */
 internal fun availableDestinations(): List<BackupDestination> = buildList {
     add(BackupDestination.FOLDER)
+    // The offline build has no internet permission, so every other place is
+    // a socket it may not open. A folder still reaches whatever the phone's
+    // own storage providers sync.
+    if (!InternetPermission.granted) return@buildList
     if (driveAuthorizer().available) add(BackupDestination.DRIVE)
     if (BackupClients.dropboxAvailable) add(BackupDestination.DROPBOX)
     if (BackupClients.oneDriveAvailable) add(BackupDestination.ONEDRIVE)
@@ -342,6 +347,11 @@ private fun LocationRow(
     val title = location.title(context)
     val detail = location.detail(context)
     val (backupState, problem) = when {
+        // A location carried over from another build, in one that cannot go
+        // online: say why it never runs, rather than offering a sign-in that
+        // has nothing to sign in through.
+        !InternetPermission.granted && location.type != BackupDestination.FOLDER ->
+            stringResource(R.string.backup_location_no_internet) to true
         !location.enabled -> stringResource(R.string.backup_location_paused) to false
         !location.configured -> stringResource(needsSetupRes(location.type)) to true
         !location.backup -> stringResource(R.string.backup_location_not_backed_up) to false

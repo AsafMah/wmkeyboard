@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -137,6 +138,19 @@ import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdown
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdownColors
 import com.wasimaster.wmkeyboard.ime.ui.ChatChain
+import com.wasimaster.wmkeyboard.ime.ui.hintRes
+import com.wasimaster.wmkeyboard.ime.ui.icon
+import com.wasimaster.wmkeyboard.ime.ui.labelRes
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatExport
+import com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat
+import com.wasimaster.wmkeyboard.core.tools.AiChatMode
+import com.wasimaster.wmkeyboard.core.tools.AiFollowUps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SuggestionChip
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R as ImeR
 
@@ -479,6 +493,13 @@ internal fun AiChatScreen(
     }
 
     var draft by rememberSaveable { mutableStateOf("") }
+    // The message box's mode and answer format: kept from one message to the
+    // next, so a run of research questions stays research.
+    var modeId by rememberSaveable { mutableStateOf(AiChatMode.CHAT.id) }
+    var formatId by rememberSaveable { mutableStateOf(AiAnswerFormat.AUTO.id) }
+    val mode = AiChatMode.of(modeId)
+    val format = AiAnswerFormat.of(formatId)
+    val researchBlock = if (mode == AiChatMode.RESEARCH) AiChatController.researchBlock(settings.value, choice) else null
     // Text that came with a message from the keyboard's chat, where the field
     // being written in can be quoted (#280). This screen has no field to quote
     // from, but a message taken back for editing keeps what it carried.
@@ -645,6 +666,8 @@ internal fun AiChatScreen(
                     val edit: () -> Unit = {
                         AiChatController.editLast(context, activeId)?.let { taken ->
                             draft = taken.content
+                            modeId = taken.chatMode.id
+                            formatId = taken.answerFormat.id
                             draftAttachment = taken.attachment
                             draftImagesText = taken.images.joinToString("\n")
                             draftFilesJson = encodeFiles(taken.files)
@@ -669,6 +692,20 @@ internal fun AiChatScreen(
                             index = index,
                         ),
                         onUndoMemory = { use -> AiChatController.undoMemory(context, activeId, index, use) },
+                        onShare = { kind: AiChatExport.Kind ->
+                            val question = messages.take(index).lastOrNull { it.role == AiChatMessage.ROLE_USER }?.content.orEmpty()
+                            val shared = AiChatExport.share(
+                                context, kind, conversation?.title.orEmpty(), question, message.content,
+                                open = { AppShareSheet.start(context, it) },
+                            )
+                            if (!shared) {
+                                Toast.makeText(context, context.getString(ImeR.string.ime_ai_chat_share_failed), Toast.LENGTH_SHORT).show()
+                            }
+                        }.takeIf { message.role == AiChatMessage.ROLE_ASSISTANT && !message.failed && message.content.isNotBlank() },
+                        // Suggested next questions, under the newest answer only:
+                        // a tap puts one in the box, to send or change.
+                        followUps = if (idle && newest) message.followUps else emptyList(),
+                        onFollowUp = { draft = it },
                     )
                 }
                 if (messages.isEmpty() && run == null && draftAttachment.isNotEmpty()) {
@@ -748,11 +785,24 @@ internal fun AiChatScreen(
                     onRemove = { file -> draftFilesJson = encodeFiles(draftFiles - file) },
                 )
             }
+            researchBlock?.let { why ->
+                Text(
+                    stringResource(why),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                )
+            }
             Composer(
                 draft = draft,
                 onDraft = { draft = it },
                 generating = run != null,
-                canSend = choice != null && (draft.isNotBlank() || draftImages.isNotEmpty() || draftFiles.isNotEmpty()),
+                canSend = choice != null && researchBlock == null &&
+                    (draft.isNotBlank() || draftImages.isNotEmpty() || draftFiles.isNotEmpty()),
+                mode = mode,
+                format = format,
+                onMode = { modeId = it.id },
+                onFormat = { formatId = it.id },
                 onSend = {
                     val picked = choice ?: return@Composer
                     val id = activeId.takeIf { it >= 0 }
@@ -760,6 +810,7 @@ internal fun AiChatScreen(
                             .also { activeId = it }
                     AiChatController.send(
                         context, settings.value, id, picked, draft, draftAttachment, draftImages, files = draftFiles,
+                        mode = mode, format = format,
                     )
                     draft = ""
                     draftAttachment = ""
@@ -1068,6 +1119,10 @@ private fun MessageBubble(
     onEdit: (() -> Unit)? = null,
     onReport: (() -> Unit)? = null,
     onUndoMemory: ((Int) -> Unit)? = null,
+    /** Shares the answer as a file or text; null on anything that is not a finished answer. */
+    onShare: ((AiChatExport.Kind) -> Unit)? = null,
+    followUps: List<String> = emptyList(),
+    onFollowUp: (String) -> Unit = {},
 ) {
     val fromUser = message.role == AiChatMessage.ROLE_USER
     val context = LocalContext.current
@@ -1168,10 +1223,12 @@ private fun MessageBubble(
                         MessageAction(Icons.Outlined.ContentCopy, CommonR.string.common_copy) { copy(message.content) }
                         onRegenerate?.let { MessageAction(Icons.Outlined.Refresh, ImeR.string.ime_ai_chat_regenerate, it) }
                         onEdit?.let { MessageAction(Icons.Outlined.Edit, CommonR.string.common_edit, it) }
+                        onShare?.let { share -> ShareAction(share) }
                         // Only ever on an answer in a Play Store build;
                         // reportFor returns null for everything else.
                         onReport?.let { MessageAction(Icons.Outlined.OutlinedFlag, ImeR.string.ime_ai_chat_report_action, it) }
                     }
+                    if (followUps.isNotEmpty()) FollowUpChips(followUps, onFollowUp)
                 }
             }
         }
@@ -1251,9 +1308,10 @@ private fun StreamingBubble(run: AiChatController.ChatRun) {
             .padding(horizontal = 4.dp, vertical = 8.dp),
     ) {
         Chain(parts.reasoning, live = parts.thinking, run.tools, ink, { copyText(context, it) })
+        val shown = AiFollowUps.visible(parts.output)
         when {
-            parts.output.isNotBlank() -> ChatMarkdown(
-                parts.output,
+            shown.isNotBlank() -> ChatMarkdown(
+                shown,
                 ChatMarkdownColors(
                     text = ink,
                     dim = ink.copy(alpha = 0.65f),
@@ -1343,6 +1401,10 @@ private fun Composer(
     /** The Reasoning switch's state; null hides it, for a model it does nothing for. */
     reasoning: Boolean? = null,
     onReasoning: (Boolean) -> Unit = {},
+    mode: AiChatMode = AiChatMode.CHAT,
+    format: AiAnswerFormat = AiAnswerFormat.AUTO,
+    onMode: (AiChatMode) -> Unit = {},
+    onFormat: (AiAnswerFormat) -> Unit = {},
 ) {
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -1355,7 +1417,7 @@ private fun Composer(
             TextField(
                 value = draft,
                 onValueChange = onDraft,
-                placeholder = { Text(stringResource(ImeR.string.ime_ai_chat_composer_hint)) },
+                placeholder = { Text(stringResource(mode.hintRes)) },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 6,
                 colors = TextFieldDefaults.colors(
@@ -1373,17 +1435,40 @@ private fun Composer(
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (reasoning != null) {
-                    FilterChip(
-                        selected = reasoning,
-                        onClick = { onReasoning(!reasoning) },
-                        label = { Text(stringResource(ImeR.string.ime_ai_chat_reasoning)) },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Psychology, contentDescription = null, modifier = Modifier.size(18.dp))
-                        },
+                // The switches scroll sideways rather than squeeze the buttons
+                // at the end off a narrow screen.
+                Row(
+                    modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (reasoning != null) {
+                        FilterChip(
+                            selected = reasoning,
+                            onClick = { onReasoning(!reasoning) },
+                            label = { Text(stringResource(ImeR.string.ime_ai_chat_reasoning)) },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Psychology, contentDescription = null, modifier = Modifier.size(18.dp))
+                            },
+                        )
+                    }
+                    PickerChip(
+                        selected = mode != AiChatMode.CHAT,
+                        icon = mode.icon,
+                        label = stringResource(mode.labelRes),
+                        description = stringResource(ImeR.string.ime_ai_chat_mode_desc),
+                        options = AiChatMode.entries.map { Triple(it, it.icon, stringResource(it.labelRes)) },
+                        onPick = onMode,
+                    )
+                    PickerChip(
+                        selected = format != AiAnswerFormat.AUTO,
+                        icon = format.icon,
+                        label = stringResource(format.labelRes),
+                        description = stringResource(ImeR.string.ime_ai_chat_format_desc),
+                        options = AiAnswerFormat.entries.map { Triple(it, it.icon, stringResource(it.labelRes)) },
+                        onPick = onFormat,
                     )
                 }
-                Spacer(Modifier.weight(1f))
                 IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
                     Icon(Icons.Outlined.Add, contentDescription = stringResource(ImeR.string.ime_ai_chat_attach_menu_desc))
                 }
@@ -1403,6 +1488,85 @@ private fun Composer(
                     }
                 }
             }
+        }
+    }
+}
+
+/** A chip that opens a menu of [options] under it: the message box's mode and format. */
+@Composable
+private fun <T> PickerChip(
+    selected: Boolean,
+    icon: ImageVector,
+    label: String,
+    description: String,
+    options: List<Triple<T, ImageVector, String>>,
+    onPick: (T) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        FilterChip(
+            selected = selected,
+            onClick = { open = true },
+            label = { Text(label, maxLines = 1) },
+            leadingIcon = { Icon(icon, contentDescription = description, modifier = Modifier.size(18.dp)) },
+            trailingIcon = { Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(18.dp)) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEach { (value, mark, name) ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    leadingIcon = { Icon(mark, contentDescription = null) },
+                    onClick = {
+                        open = false
+                        onPick(value)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** The Share icon under an answer, with its menu: a Markdown file, a PDF, or the text. */
+@Composable
+private fun ShareAction(onShare: (AiChatExport.Kind) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        MessageAction(Icons.Outlined.Share, ImeR.string.ime_ai_chat_share) { open = true }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            listOf(
+                AiChatExport.Kind.MARKDOWN to ImeR.string.ime_ai_chat_share_markdown,
+                AiChatExport.Kind.PDF to ImeR.string.ime_ai_chat_share_pdf,
+                AiChatExport.Kind.TEXT to ImeR.string.ime_ai_chat_share_text,
+            ).forEach { (kind, label) ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(label)) },
+                    onClick = {
+                        open = false
+                        onShare(kind)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** The questions a model suggested asking next, one chip each; a tap puts one in the message box. */
+@Composable
+private fun FollowUpChips(questions: List<String>, onPick: (String) -> Unit) {
+    Column(
+        modifier = Modifier.padding(top = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            stringResource(ImeR.string.ime_ai_chat_follow_ups_desc),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        questions.forEach { question ->
+            SuggestionChip(
+                onClick = { onPick(question) },
+                label = { Text(question, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+            )
         }
     }
 }

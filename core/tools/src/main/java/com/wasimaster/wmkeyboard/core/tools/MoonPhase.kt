@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.tools.R
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.floor
 
 /**
  * Mean-cycle moon phase arithmetic. Accurate to a few hours — plenty for a
@@ -43,6 +44,42 @@ object MoonPhase {
         val toFull = if (fraction < 0.5) 0.5 - fraction else 1.5 - fraction
         val nextFull = timeMillis + (toFull * SYNODIC_DAYS * DAY_MILLIS).toLong()
         return Info(age, fraction, illumination, phaseIndex, nextNew, nextFull)
+    }
+
+    /** One of the four main phases, at the instant it falls. [phaseIndex] is 0, 2, 4 or 6. */
+    data class Quarter(val phaseIndex: Int, val atMillis: Long)
+
+    /**
+     * The main phases around [timeMillis] (#970): the [past] latest before it,
+     * then the [coming] next, oldest first. New moon, first quarter, full moon
+     * and last quarter fall a quarter of the mean month apart, on the same
+     * clock [at] reads its phase from.
+     */
+    fun quarters(timeMillis: Long, past: Int = 1, coming: Int = 3): List<Quarter> {
+        val cycles = (timeMillis - EPOCH_MILLIS) / DAY_MILLIS / SYNODIC_DAYS
+        val last = floor(cycles * 4).toLong()
+        return ((last - past + 1)..(last + coming)).map { q ->
+            Quarter(
+                phaseIndex = Math.floorMod(q, 4L).toInt() * 2,
+                atMillis = EPOCH_MILLIS + (q / 4.0 * SYNODIC_DAYS * DAY_MILLIS).toLong(),
+            )
+        }
+    }
+
+    /**
+     * The phase's name in Arabic (#970), for the panel to show under the name
+     * in the keyboard's language. Kept here rather than in a translation: it
+     * is wanted beside another language, not instead of it.
+     */
+    fun arabicName(index: Int): String = when (index) {
+        0 -> "محاق"
+        1 -> "هلال"
+        2 -> "تربيع أول"
+        3 -> "أحدب متزايد"
+        4 -> "بدر"
+        5 -> "أحدب متناقص"
+        6 -> "تربيع ثانٍ"
+        else -> "هلال متناقص"
     }
 
     /** The name of a phase, for the screen that draws it to resolve. */

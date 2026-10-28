@@ -1,10 +1,12 @@
 package com.wasimaster.wmkeyboard.ime.floating
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,8 +40,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -51,19 +56,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
+import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
+import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
+import com.wasimaster.wmkeyboard.core.settings.categoryById
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.toolLabelRes
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
  * What the floating button (#755) and its quick menu look like. Public because
@@ -115,12 +131,39 @@ fun floatingActionIcon(action: FloatingAction, keyboardUp: Boolean = false): Ima
     FloatingAction.Menu -> Icons.Outlined.Apps
     FloatingAction.Hide -> Icons.Outlined.VisibilityOff
     is FloatingAction.Tool -> IconDefaults.forTool(action.tool)
+    // Drawn with the app's own icon where it can be; this is for an app that is gone.
+    is FloatingAction.App -> Icons.Outlined.OpenInNew
+    is FloatingAction.Category -> Icons.Outlined.Folder
 }
 
-/** What an action is called, on the button, in its menu and on the settings page. */
+/**
+ * What an action is called, on the button, in its menu and on the settings
+ * page: an app by its own name (#922), a category by the one it was given
+ * (#923), the rest by their fixed ones.
+ */
 @Composable
-fun floatingActionLabel(action: FloatingAction, keyboardUp: Boolean = false): String =
-    stringResource(floatingActionLabelRes(action, keyboardUp))
+fun floatingActionLabel(
+    action: FloatingAction,
+    keyboardUp: Boolean = false,
+    categories: List<FloatingCategory> = emptyList(),
+): String {
+    val context = LocalContext.current
+    return remember(action, keyboardUp, categories, context) {
+        floatingActionName(context, action, keyboardUp, categories)
+    }
+}
+
+/** [floatingActionLabel] outside a composition. */
+fun floatingActionName(
+    context: Context,
+    action: FloatingAction,
+    keyboardUp: Boolean,
+    categories: List<FloatingCategory>,
+): String = when (action) {
+    is FloatingAction.App -> FloatingAppIcons.label(context, action.packageName)
+    is FloatingAction.Category -> categories.categoryById(action.id)?.name?.takeIf { it.isNotBlank() }
+    else -> null
+} ?: context.getString(floatingActionLabelRes(action, keyboardUp))
 
 internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean): Int = when (action) {
     FloatingAction.None -> R.string.ime_floating_none_label
@@ -130,12 +173,38 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     FloatingAction.Menu -> R.string.ime_floating_menu_label
     FloatingAction.Hide -> R.string.ime_floating_hide_label
     is FloatingAction.Tool -> toolLabelRes(action.tool)
+    is FloatingAction.App -> R.string.ime_floating_app_label
+    is FloatingAction.Category -> R.string.ime_floating_category_label
 }
+
+/**
+ * The glyph or the picture inside a disc: an app's own icon (#922), which
+ * fills most of the disc as a launcher's does, or a tinted glyph.
+ */
+@Composable
+private fun FloatingGlyph(icon: ImageVector, image: ImageBitmap?, tint: Color, sizeDp: Float) {
+    if (image != null) {
+        Image(
+            image,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size((sizeDp * APP_ICON_SCALE / ICON_SCALE).dp),
+        )
+    } else {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(sizeDp.dp))
+    }
+}
+
+/** A glyph is drawn at [ICON_SCALE] of a round disc; an app's icon a little larger, as on a launcher. */
+private const val ICON_SCALE = 0.46f
+private const val APP_ICON_SCALE = 0.66f
 
 /**
  * The button itself: a disc with a glyph, a soft shadow under it, and a press
  * that sinks it a little. [sizeDp] is the disc; the caller leaves room round it
- * for the shadow ([FLOATING_SHADOW_ROOM_DP] each side).
+ * for the shadow ([FLOATING_SHADOW_ROOM_DP] each side). [shape] is its outline
+ * (#933), fitted to the same square; [image], an app's icon in place of the
+ * glyph (#922).
  */
 @Composable
 fun FloatingButtonFace(
@@ -145,8 +214,11 @@ fun FloatingButtonFace(
     modifier: Modifier = Modifier,
     pressed: Boolean = false,
     contentDescription: String? = null,
+    shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
+    image: ImageBitmap? = null,
 ) {
     val palette = floatingPalette(style)
+    val outline = remember(shape) { floatingShape(shape) }
     val scale by animateFloatAsState(
         if (pressed) 0.9f else 1f,
         spring(dampingRatio = 0.55f, stiffness = 700f),
@@ -156,17 +228,13 @@ fun FloatingButtonFace(
         modifier
             .size(sizeDp.dp)
             .scale(scale)
-            .shadow(if (pressed) 2.dp else 6.dp, CircleShape)
-            .background(palette.container, CircleShape)
-            .border(1.dp, palette.outline, CircleShape),
+            .shadow(if (pressed) 2.dp else 6.dp, outline)
+            .background(palette.container, outline)
+            .border(1.dp, palette.outline, outline)
+            .semantics { if (contentDescription != null) this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            icon,
-            contentDescription = contentDescription,
-            tint = palette.content,
-            modifier = Modifier.size((sizeDp * 0.46f).dp),
-        )
+        FloatingGlyph(icon, image, palette.content, sizeDp * floatingIconScale(shape))
     }
 }
 
@@ -179,7 +247,11 @@ const val FLOATING_MENU_ITEM_DP = 52
 /** How wide a slot's name may run under it, in dp. */
 const val FLOATING_MENU_LABEL_DP = 84
 
-/** One quick menu slot: its disc, ringed while [hovered], and with [label] its name under it. */
+/**
+ * One quick menu slot: its disc, ringed while [hovered], and with [label] its
+ * name under it. In the button's [shape] (#933), with an app's [image] in
+ * place of the glyph (#922).
+ */
 @Composable
 fun FloatingMenuItem(
     icon: ImageVector,
@@ -188,8 +260,11 @@ fun FloatingMenuItem(
     showLabel: Boolean,
     modifier: Modifier = Modifier,
     hovered: Boolean = false,
+    shape: FloatingButtonShape = FloatingButtonShape.CIRCLE,
+    image: ImageBitmap? = null,
 ) {
     val palette = floatingPalette(style)
+    val outline: Shape = remember(shape) { floatingShape(shape) }
     val grow by animateFloatAsState(
         if (hovered) 1.16f else 1f,
         spring(dampingRatio = 0.5f, stiffness = 800f),
@@ -203,12 +278,12 @@ fun FloatingMenuItem(
             Modifier
                 .size(FLOATING_MENU_ITEM_DP.dp)
                 .scale(grow)
-                .shadow(4.dp, CircleShape)
-                .background(palette.container, CircleShape)
-                .border(if (hovered) 2.5.dp else 1.dp, if (hovered) palette.accent else palette.outline, CircleShape),
+                .shadow(4.dp, outline)
+                .background(palette.container, outline)
+                .border(if (hovered) 2.5.dp else 1.dp, if (hovered) palette.accent else palette.outline, outline),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = palette.content, modifier = Modifier.size(24.dp))
+            FloatingGlyph(icon, image, palette.content, FLOATING_MENU_ITEM_DP * floatingIconScale(shape))
         }
         if (showLabel) {
             Spacer(Modifier.height(4.dp))
@@ -230,16 +305,18 @@ fun FloatingMenuItem(
 }
 
 /**
- * The open quick menu, filling its window: a light scrim, the slots springing
- * out from the button one after another, and in the button's place a close
- * disc. [anchor] and the slots' [FloatingMenuState.centers] are in the window's
- * own pixels.
+ * The open quick menu, filling its window: a light scrim, the slots coming
+ * out of the button as [FloatingMenuState.animation] has them (#923), and in
+ * the button's place a close disc, or inside a category a back one.
+ * [anchor] and the slots' [FloatingMenuState.centers] are in the window's own
+ * pixels.
  */
 @Composable
 internal fun FloatingMenuContent(
     state: FloatingMenuState,
     onPick: (Int) -> Unit,
     onClose: () -> Unit,
+    onBack: () -> Unit,
     onClosed: () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -267,12 +344,26 @@ internal fun FloatingMenuContent(
     ) {
         val origin = state.windowOrigin
         val anchor = state.anchor - origin
+        val animation = state.animation
         state.items.forEachIndexed { index, item ->
             val travel = remember(item.key) { Animatable(0f) }
             LaunchedEffect(opening, item.key) {
                 if (opening) {
-                    kotlinx.coroutines.delay(index * 22L)
-                    travel.animateTo(1f, spring(dampingRatio = 0.62f, stiffness = 420f))
+                    when (animation) {
+                        FloatingMenuAnimation.NONE -> travel.snapTo(1f)
+                        FloatingMenuAnimation.FADE -> travel.animateTo(1f, tween(180))
+                        FloatingMenuAnimation.SWEEP -> travel.animateTo(1f, spring(dampingRatio = 0.8f, stiffness = 260f))
+                        FloatingMenuAnimation.POP -> {
+                            kotlinx.coroutines.delay(index * 34L)
+                            travel.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 520f))
+                        }
+                        FloatingMenuAnimation.SPRING -> {
+                            kotlinx.coroutines.delay(index * 22L)
+                            travel.animateTo(1f, spring(dampingRatio = 0.62f, stiffness = 420f))
+                        }
+                    }
+                } else if (animation == FloatingMenuAnimation.NONE) {
+                    travel.snapTo(0f)
                 } else {
                     travel.animateTo(0f, tween(120))
                 }
@@ -282,23 +373,23 @@ internal fun FloatingMenuContent(
             val itemHalf = with(density) { (FLOATING_MENU_ITEM_DP.dp / 2).toPx() }
             FloatingMenuItem(
                 icon = item.icon,
+                image = item.image,
                 label = item.label,
                 style = state.style,
+                shape = state.shape,
                 showLabel = state.labels,
                 hovered = state.hovered == index,
                 modifier = Modifier
                     .offset {
-                        val p = travel.value
-                        IntOffset(
-                            (anchor.x + (target.x - anchor.x) * p - labelHalf).roundToInt(),
-                            (anchor.y + (target.y - anchor.y) * p - itemHalf).roundToInt(),
-                        )
+                        val at = floatingSlotPosition(animation, anchor, target, travel.value)
+                        IntOffset((at.x - labelHalf).roundToInt(), (at.y - itemHalf).roundToInt())
                     }
                     .graphicsLayer {
                         val p = travel.value.coerceIn(0f, 1f)
                         alpha = p
-                        scaleX = 0.4f + 0.6f * p
-                        scaleY = 0.4f + 0.6f * p
+                        val s = floatingSlotScale(animation, travel.value)
+                        scaleX = s
+                        scaleY = s
                     }
                     .semantics { contentDescription = item.label }
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
@@ -327,21 +418,60 @@ internal fun FloatingMenuContent(
             )
         }
         val closeRotation by animateFloatAsState(if (opening) 0f else 90f, tween(160), label = "floating-close")
+        // Inside a category the disc goes back a ring; the scrim still closes them all.
+        val back = state.canGoBack
         FloatingButtonFace(
-            icon = Icons.Outlined.Close,
+            icon = if (back) Icons.AutoMirrored.Outlined.ArrowBack else Icons.Outlined.Close,
             style = state.style,
             sizeDp = state.buttonSizeDp,
-            contentDescription = stringResource(R.string.ime_floating_close_menu),
+            shape = state.shape,
+            contentDescription = stringResource(if (back) R.string.ime_floating_back_menu else R.string.ime_floating_close_menu),
             modifier = Modifier
                 .offset {
                     val half = with(density) { (state.buttonSizeDp.dp / 2).toPx() }
                     IntOffset((anchor.x - half).roundToInt(), (anchor.y - half).roundToInt())
                 }
-                .graphicsLayer { rotationZ = closeRotation }
-                .clickable(interactionSource = noRipple, indication = null, onClick = onClose),
+                .graphicsLayer { rotationZ = if (back) 0f else closeRotation }
+                .clickable(interactionSource = noRipple, indication = null, onClick = if (back) onBack else onClose),
         )
     }
 }
+
+/**
+ * Where a slot is drawn [progress] of the way out (#923), from the button's
+ * [anchor] to its [target]: along the straight line for [FloatingMenuAnimation.SPRING],
+ * round the button on a widening circle for [FloatingMenuAnimation.SWEEP],
+ * and at the target from the start for the rest, which grow or fade in place.
+ */
+internal fun floatingSlotPosition(
+    animation: FloatingMenuAnimation,
+    anchor: Offset,
+    target: Offset,
+    progress: Float,
+): Offset = when (animation) {
+    FloatingMenuAnimation.SPRING -> anchor + (target - anchor) * progress
+    FloatingMenuAnimation.SWEEP -> {
+        val radius = hypot(target.x - anchor.x, target.y - anchor.y)
+        val angle = atan2(target.y - anchor.y, target.x - anchor.x)
+        val left = 1f - progress
+        val r = radius * (0.55f + 0.45f * progress)
+        val a = angle - SWEEP_RADIANS * left
+        Offset(anchor.x + r * cos(a), anchor.y + r * sin(a))
+    }
+    FloatingMenuAnimation.POP, FloatingMenuAnimation.FADE, FloatingMenuAnimation.NONE -> target
+}
+
+/** How large a slot is drawn [progress] of the way out; see [floatingSlotPosition]. */
+internal fun floatingSlotScale(animation: FloatingMenuAnimation, progress: Float): Float = when (animation) {
+    FloatingMenuAnimation.SPRING, FloatingMenuAnimation.SWEEP -> 0.4f + 0.6f * progress.coerceIn(0f, 1f)
+    // Let the spring overshoot: the pop is the point.
+    FloatingMenuAnimation.POP -> progress.coerceAtLeast(0f)
+    FloatingMenuAnimation.FADE -> 0.92f + 0.08f * progress.coerceIn(0f, 1f)
+    FloatingMenuAnimation.NONE -> 1f
+}
+
+/** How far round the button a swept slot starts, behind where it lands: 70°. */
+private const val SWEEP_RADIANS = 1.22f
 
 /**
  * The drop target a drag shows at the bottom of the screen: let go of the
@@ -419,12 +549,23 @@ internal class FloatingMenuState {
     var windowOrigin by mutableStateOf(Offset.Zero)
     var hovered by mutableStateOf<Int?>(null)
     var style by mutableStateOf(FloatingButtonStyle.AUTO)
+    var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
+    var animation by mutableStateOf(FloatingMenuAnimation.SPRING)
     var labels by mutableStateOf(true)
     var buttonSizeDp by mutableStateOf(52)
+
+    /** A category opened from the quick menu (#923): the disc in the middle goes back to it. */
+    var canGoBack by mutableStateOf(false)
 }
 
 @Immutable
-internal class FloatingMenuSlot(val key: String, val action: FloatingAction, val icon: ImageVector, val label: String)
+internal class FloatingMenuSlot(
+    val key: String,
+    val action: FloatingAction,
+    val icon: ImageVector,
+    val label: String,
+    val image: ImageBitmap? = null,
+)
 
 internal class FloatingDismissState {
     var shown by mutableStateOf(false)
@@ -435,7 +576,9 @@ internal class FloatingDismissState {
 internal class FloatingFaceState {
     var icon by mutableStateOf<ImageVector>(Icons.Outlined.Keyboard)
     var label by mutableStateOf("")
+    var image by mutableStateOf<ImageBitmap?>(null)
     var style by mutableStateOf(FloatingButtonStyle.AUTO)
+    var shape by mutableStateOf(FloatingButtonShape.CIRCLE)
     var sizeDp by mutableStateOf(52)
     var pressed by mutableStateOf(false)
 }

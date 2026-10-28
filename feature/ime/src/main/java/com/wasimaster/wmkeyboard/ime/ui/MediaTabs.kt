@@ -70,13 +70,15 @@ import kotlin.math.abs
  */
 
 /** The panels the switch moves between, in the order it draws them. */
-internal val MediaTabPanels: List<PanelMode> = listOf(PanelMode.EMOJI, PanelMode.GIF, PanelMode.STICKER)
+internal val MediaTabPanels: List<PanelMode> =
+    listOf(PanelMode.EMOJI, PanelMode.EMOJI_MIX, PanelMode.GIF, PanelMode.STICKER)
 
 /** The tool behind each of [MediaTabPanels]: its icon, its name, and whether it is switched on. */
 private fun PanelMode.mediaTool(): ToolbarTool? = when (this) {
     PanelMode.EMOJI -> ToolbarTool.EMOJI
     PanelMode.GIF -> ToolbarTool.GIF
     PanelMode.STICKER -> ToolbarTool.STICKER
+    PanelMode.EMOJI_MIX -> ToolbarTool.EMOJI_MIX
     else -> null
 }
 

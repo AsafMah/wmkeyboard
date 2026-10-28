@@ -15,6 +15,8 @@ import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.NotificationKind
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.send.Ece
+import com.wasimaster.wmkeyboard.core.send.LanShare
+import com.wasimaster.wmkeyboard.core.send.LanTransfer
 import com.wasimaster.wmkeyboard.core.send.SendClient
 import com.wasimaster.wmkeyboard.core.send.SendDirectCode
 import com.wasimaster.wmkeyboard.core.send.SendError
@@ -41,6 +43,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -104,6 +108,9 @@ internal class SendController(
         fun openScanner()
         fun openGallery()
         fun startActivity(intent: Intent)
+
+        /** [send] on the keyboard's share sheet, or Android's when that is off (#970). True when one opened. */
+        fun share(send: Intent): Boolean
         fun beginText(entry: SendTextEntry)
         fun endText()
         fun currentText(): SendTextEntry?
@@ -166,6 +173,18 @@ internal class SendController(
     private var directHeld = false
     private var pendingDirectHost = false
 
+    /** The page a browser on this Wi-Fi opens (#927), while it is up. */
+    private var lanShare: LanShare? = null
+
+    /** Feeds the draft to [lanShare] and stops it once nobody has come for a while. */
+    private var lanJob: Job? = null
+    @Volatile private var lanSeenAt = 0L
+    @Volatile private var lanTickAt = 0L
+
+    /** The Wi-Fi the browser card opened itself, as opposed to one borrowed from a direct link. */
+    private var browserOwnsHotspot = false
+    private var pendingBrowserHotspot = false
+
     // ---- Lifecycle --------------------------------------------------------
 
     fun onPanelOpen() {
@@ -222,6 +241,10 @@ internal class SendController(
         if (pendingDirectHost && host.hasNearbyPermission()) {
             pendingDirectHost = false
             hostDirect()
+        }
+        if (pendingBrowserHotspot && host.hasNearbyPermission()) {
+            pendingBrowserHotspot = false
+            browserHotspot()
         }
         if (open) _state.update { it.copy(hasField = host.hasField(), fieldTakesImages = host.fieldAcceptsImages()) }
     }
@@ -331,6 +354,20 @@ internal class SendController(
             is SendAction.CancelTransfer -> KdeConnectHub.engine?.share?.cancel(action.transferId)
             is SendAction.ClearTransfers -> KdeConnectHub.engine?.share?.clearFinished(action.deviceId)
             SendAction.AskNearbyPermission -> host.askNearbyPermission()
+            SendAction.StartBrowser -> startBrowser()
+            SendAction.OpenBrowserHotspot -> browserHotspot()
+            SendAction.StopBrowser -> {
+                host.haptic()
+                stopBrowser()
+            }
+            is SendAction.BrowserUploads -> {
+                lanShare?.uploadsAllowed = action.on
+                updateServing { it.copy(uploads = action.on) }
+            }
+            SendAction.CopyBrowserLink -> (_state.value.nearby.browser as? BrowserUi.Serving)?.let {
+                host.copyText(it.url)
+                notice(SendNotice.Kind.COPIED)
+            }
             SendAction.OpenOffer -> host.openLinkOffer()
             SendAction.DismissOffer -> host.clearLinkOffer()
         }
@@ -831,8 +868,7 @@ internal class SendController(
 
     private fun shareLink(upload: SendUpload) {
         val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, upload.url)
-        runCatching { host.startActivity(Intent.createChooser(send, upload.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            .onSuccess { notice(SendNotice.Kind.SHARED) }
+        if (host.share(send)) notice(SendNotice.Kind.SHARED)
     }
 
     // ---- History ----------------------------------------------------------
@@ -1058,8 +1094,7 @@ internal class SendController(
             .setType(item.type.ifBlank { "*/*" })
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        runCatching { host.startActivity(Intent.createChooser(send, item.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            .onSuccess { notice(SendNotice.Kind.SHARED) }
+        if (host.share(send)) notice(SendNotice.Kind.SHARED)
     }
 
     // ---- Nearby -----------------------------------------------------------
@@ -1135,6 +1170,8 @@ internal class SendController(
     // ---- Direct link --------------------------------------------------------
 
     private fun hostDirect() {
+        // One Wi-Fi at a time: the direct link takes over the one the browser card opened.
+        if (browserOwnsHotspot) stopBrowser()
         if (!host.hasNearbyPermission()) {
             pendingDirectHost = true
             host.askNearbyPermission()
@@ -1207,6 +1244,7 @@ internal class SendController(
             host.askNearbyPermission()
             return
         }
+        if (browserOwnsHotspot) stopBrowser()
         host.haptic()
         directHeld = true
         _state.update { it.copy(mode = SendMode.NEARBY, nearby = it.nearby.copy(direct = DirectUi.Joining(code, JoinStep.WIFI)), sheet = null) }
@@ -1268,6 +1306,7 @@ internal class SendController(
         KdeConnectHub.engine?.socketBinder = null
         directHeld = false
         syncHub()
+        browserLostBorrowedWifi()
     }
 
     private fun directStopped() {
@@ -1276,6 +1315,7 @@ internal class SendController(
         directHeld = false
         _state.update { it.copy(nearby = it.nearby.copy(direct = DirectUi.Off), sheet = if (it.sheet == SendSheet.DIRECT_CODE) null else it.sheet) }
         syncHub()
+        browserLostBorrowedWifi()
     }
 
     private fun stopDirect() {
@@ -1283,6 +1323,202 @@ internal class SendController(
         host.directLink().stop()
         directStopped()
     }
+
+    // ---- In a browser (#927) -------------------------------------------------
+
+    /**
+     * Serves the draft to any browser that can reach [address]: this phone's
+     * Wi-Fi by default, or the [hotspot] it opened. Already serving, the page
+     * stays where it is and only the address and the code change.
+     */
+    private fun startBrowser(hotspot: BrowserHotspot? = null, address: String? = null) {
+        host.haptic()
+        scope.launch {
+            val at = address ?: withContext(Dispatchers.IO) { LanShare.lanAddress() }
+            if (at == null) {
+                browserFailed(BrowserFailure.NO_NETWORK)
+                return@launch
+            }
+            val share = lanShare ?: LanShare(SendFileSink(app), lanListener, deviceName()).also { fresh ->
+                val started = withContext(Dispatchers.IO) { runCatching { fresh.start() }.isSuccess }
+                if (!started) {
+                    browserFailed(BrowserFailure.SERVER)
+                    return@launch
+                }
+                lanShare = fresh
+                lanSeenAt = SystemClock.elapsedRealtime()
+                followDraft(fresh)
+            }
+            val uploads = (_state.value.nearby.browser as? BrowserUi.Serving)?.uploads ?: true
+            share.uploadsAllowed = uploads
+            _state.update { s ->
+                val transfers = (s.nearby.browser as? BrowserUi.Serving)?.transfers.orEmpty()
+                s.copy(
+                    nearby = s.nearby.copy(browser = BrowserUi.Serving(share.url(at), hotspot, uploads, transfers)),
+                    sheet = SendSheet.BROWSER_CODE,
+                )
+            }
+        }
+    }
+
+    /** Keeps the page's list the draft's, and puts the page away after [BROWSER_IDLE_MS] with nobody on it. */
+    private fun followDraft(share: LanShare) {
+        lanJob?.cancel()
+        lanJob = scope.launch {
+            launch {
+                state.map { it.draft.files }.distinctUntilChanged().collect { files ->
+                    share.files = files.map { f -> SendFile(f.name, f.size, f.type) { openDraft(f) } }
+                }
+            }
+            while (true) {
+                delay(BROWSER_IDLE_CHECK_MS)
+                val busy = (_state.value.nearby.browser as? BrowserUi.Serving)?.transfers.orEmpty().any { it.state == LanTransfer.State.RUNNING }
+                if (!busy && SystemClock.elapsedRealtime() - lanSeenAt > BROWSER_IDLE_MS) {
+                    stopBrowser()
+                    break
+                }
+            }
+        }
+    }
+
+    private val lanListener = object : LanShare.Listener {
+        override fun onVisit(peer: String) {
+            lanSeenAt = SystemClock.elapsedRealtime()
+        }
+
+        override fun onTransfer(transfer: LanTransfer) {
+            lanSeenAt = SystemClock.elapsedRealtime()
+            if (transfer.state == LanTransfer.State.RUNNING && transfer.done > 0) {
+                if (lanSeenAt - lanTickAt < PROGRESS_TICK_MS) return
+                lanTickAt = lanSeenAt
+            }
+            scope.launch { onBrowserTransfer(transfer) }
+        }
+    }
+
+    private fun onBrowserTransfer(t: LanTransfer) {
+        updateServing { b ->
+            val list = if (b.transfers.any { it.id == t.id }) b.transfers.map { if (it.id == t.id) t else it } else listOf(t) + b.transfers
+            b.copy(transfers = list.take(BROWSER_TRANSFERS))
+        }
+        val location = t.location
+        if (t.incoming && t.state == LanTransfer.State.DONE && location != null) {
+            val item = SendReceived(t.name, t.size, t.type, location, t.peer, System.currentTimeMillis())
+            if (host.settings.keepHistory && !host.incognito()) {
+                scope.launch(Dispatchers.IO) { store.addReceived(item) }
+                _state.update { it.copy(received = listOf(item) + it.received.filterNot { r -> r.location == item.location }) }
+            }
+            notice(SendNotice.Kind.SAVED, "1")
+        }
+    }
+
+    private fun updateServing(change: (BrowserUi.Serving) -> BrowserUi.Serving) {
+        _state.update { s -> (s.nearby.browser as? BrowserUi.Serving)?.let { s.copy(nearby = s.nearby.copy(browser = change(it))) } ?: s }
+    }
+
+    /**
+     * A Wi-Fi for a browser that is on no network with this phone: the direct
+     * link's when one is up, otherwise one opened the same way (a Wi-Fi Direct
+     * group, or a local-only hotspot), which an ordinary phone or laptop joins
+     * like any other Wi-Fi.
+     */
+    private fun browserHotspot() {
+        when (val direct = _state.value.nearby.direct) {
+            is DirectUi.Hosting -> {
+                startBrowser(BrowserHotspot(direct.code.ssid, direct.code.passphrase), direct.code.host)
+                return
+            }
+            DirectUi.Off, is DirectUi.Failed -> Unit
+            // Joining another phone's Wi-Fi: this phone has an address on it already.
+            else -> {
+                startBrowser()
+                return
+            }
+        }
+        if (!host.hasNearbyPermission()) {
+            pendingBrowserHotspot = true
+            host.askNearbyPermission()
+            return
+        }
+        val link = host.directLink()
+        if (!link.canHost()) {
+            browserFailed(BrowserFailure.HOTSPOT, DirectFailure.UNSUPPORTED)
+            return
+        }
+        host.haptic()
+        browserOwnsHotspot = true
+        _state.update { it.copy(nearby = it.nearby.copy(browser = BrowserUi.Starting, direct = DirectUi.Off), sheet = null) }
+        link.host(object : DirectLink.Listener {
+            override fun onHosting(ssid: String, passphrase: String, hostAddress: String, band: String) {
+                scope.launch { if (browserOwnsHotspot) startBrowser(BrowserHotspot(ssid, passphrase), hostAddress) }
+            }
+
+            override fun onJoined(network: Network?) = Unit
+
+            override fun onFailed(reason: DirectFailure) {
+                scope.launch {
+                    browserOwnsHotspot = false
+                    browserFailed(BrowserFailure.HOTSPOT, reason)
+                }
+            }
+
+            override fun onStopped() {
+                scope.launch {
+                    if (browserOwnsHotspot) {
+                        browserOwnsHotspot = false
+                        browserLostBorrowedWifi(force = true)
+                    }
+                }
+            }
+        })
+    }
+
+    /**
+     * The Wi-Fi under the page went away: carry on over this phone's own Wi-Fi
+     * if it has one, otherwise stop. [force] for the card's own hotspot; without
+     * it, only a page that borrowed the direct link's Wi-Fi is touched.
+     */
+    private fun browserLostBorrowedWifi(force: Boolean = false) {
+        val serving = _state.value.nearby.browser as? BrowserUi.Serving ?: return
+        if (serving.hotspot == null || (!force && browserOwnsHotspot)) return
+        val share = lanShare ?: return
+        scope.launch {
+            val at = withContext(Dispatchers.IO) { LanShare.lanAddress() }
+            if (at == null) {
+                stopBrowser()
+            } else {
+                updateServing { it.copy(url = share.url(at), hotspot = null) }
+            }
+        }
+    }
+
+    private fun browserFailed(reason: BrowserFailure, hotspot: DirectFailure? = null) {
+        stopBrowser()
+        _state.update { it.copy(nearby = it.nearby.copy(browser = BrowserUi.Failed(reason, hotspot))) }
+    }
+
+    private fun stopBrowser() {
+        lanJob?.cancel()
+        lanJob = null
+        val share = lanShare
+        lanShare = null
+        if (share != null) scope.launch(Dispatchers.IO) { share.stop() }
+        if (browserOwnsHotspot) {
+            browserOwnsHotspot = false
+            host.directLink().stop()
+        }
+        pendingBrowserHotspot = false
+        _state.update {
+            it.copy(
+                nearby = it.nearby.copy(browser = BrowserUi.Off),
+                sheet = if (it.sheet == SendSheet.BROWSER_CODE) null else it.sheet,
+            )
+        }
+    }
+
+    /** The name the page puts at its top: the one KDE Connect announces, or the phone's model. */
+    private fun deviceName(): String =
+        KdeConnectHub.state.value.selfName.ifBlank { android.os.Build.MODEL.orEmpty() }
 
     /** Called when the Nearby transfer list empties, so a direct link kept only for it can go. */
     fun onTransfersIdle() {
@@ -1385,5 +1621,8 @@ internal class SendController(
         private const val ENGINE_WAIT_TICKS = 40
         private const val ENGINE_WAIT_TICK_MS = 100L
         private const val DIRECT_PAIR_TIMEOUT_MS = 45_000L
+        private const val BROWSER_IDLE_MS = 10 * 60_000L
+        private const val BROWSER_IDLE_CHECK_MS = 30_000L
+        private const val BROWSER_TRANSFERS = 20
     }
 }

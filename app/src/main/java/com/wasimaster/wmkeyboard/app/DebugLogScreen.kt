@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -443,12 +444,5 @@ private fun shareReport(context: Context, includeSystemLog: Boolean, systemLog: 
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching {
-        context.startActivity(
-            Intent.createChooser(
-                intent,
-                context.getString(R.string.shell_debug_log_share_title),
-            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
+    AppShareSheet.start(context, intent, context.getString(R.string.shell_debug_log_share_title))
 }

@@ -1,11 +1,14 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
@@ -13,7 +16,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -65,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gavel
@@ -89,6 +96,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
@@ -120,13 +130,17 @@ import androidx.compose.animation.EnterExitState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -143,9 +157,19 @@ import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Abc
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shield
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Swipe
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lightbulb
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sort
@@ -156,8 +180,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatSize
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import androidx.compose.foundation.lazy.rememberLazyListState
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.RailBucket
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
@@ -332,6 +358,19 @@ internal fun HighlightableRow(
      * see [HighlightFrame].
      */
     coarse: Boolean = false,
+    /**
+     * Why the row is greyed out, or null while it is usable: the long press
+     * then opens with it (see [settingLinkHold]). The row's own `enabled` is
+     * what decides, so callers pass this only while it is off.
+     */
+    disabledReason: DisabledReason? = null,
+    /**
+     * The row's explanation, the one its "?" opens. At the Simple depth the
+     * "?" is not drawn ([RowExtras]), and the long press offers it as "What is
+     * this?" instead; at any other depth the button is on the row and this
+     * is not read.
+     */
+    info: String? = null,
     content: @Composable () -> Unit,
 ) {
     val target = SettingsHighlight.target
@@ -343,15 +382,30 @@ internal fun HighlightableRow(
     }
     // The same two names are what a row's link is made of (#646), so the row
     // publishes them for its link button, and a plain row takes the long
-    // press here. A group's heading takes its own, in [SettingsGroup]: the
-    // whole group would otherwise answer a hold on any row inside it.
+    // press here: its link and its place in favourites (#898). A group's
+    // heading takes its own, in [SettingsGroup]: the whole group would
+    // otherwise answer a hold on any row inside it.
     CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
+        val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
+        val whatIsThis = if (info != null && bare) remember(title, info) { RowInfo(title.orEmpty(), info) } else null
+        val hold = if (coarse) null else rememberRowHold(disabledReason, whatIsThis)
+        // A row an update brought wears a gold border until the user puts the
+        // new settings bar away (#970).
+        val isNew = !coarse && when {
+            highlightKey != 0 -> highlightKey in NewSettings.titles
+            title == null || NewSettings.titles.isEmpty() -> false
+            else -> NewSettings.entries.any { it.title == title }
+        }
         HighlightFrame(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
-            modifier = if (coarse) Modifier else Modifier.settingLinkHold(),
-            content = content,
-        )
+            modifier = Modifier
+                .settingLinkHold(hold, disabledReason, whatIsThis)
+                .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, RoundedCornerShape(12.dp)) else Modifier),
+        ) {
+            content()
+            RowHoldMenu(hold)
+        }
     }
 }
 
@@ -448,6 +502,15 @@ private fun HighlightFrame(
 ) {
     var flashing by remember { mutableStateOf(false) }
     val requester = remember { BringIntoViewRequester() }
+    val scroll = LocalScreenScroll.current
+    // Where the row sits, tracked only while it is being held in view. Its
+    // own effect, since the flash's ends when the request is consumed.
+    var holds by remember { mutableIntStateOf(0) }
+    var holding by remember { mutableStateOf(false) }
+    var top by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(holds) {
+        if (holds > 0) holdInView(requester, scroll, { holding = it }) { top }
+    }
     val color by animateColorAsState(
         targetValue = if (flashing && !SettingsHighlight.hold) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
         else Color.Transparent,
@@ -466,7 +529,10 @@ private fun HighlightFrame(
         // plus however long this rank owes the narrower ones.
         delay(rank.settleMillis)
         if (rank != HighlightRank.ITEM && SettingsHighlight.scrollTaken()) return@LaunchedEffect
-        if (SettingsHighlight.claimScroll()) requester.bringIntoView()
+        if (SettingsHighlight.claimScroll()) {
+            requester.bringIntoView()
+            holds++
+        }
         flashing = true
         if (SettingsHighlight.hold) return@LaunchedEffect
         delay(1400)
@@ -478,12 +544,50 @@ private fun HighlightFrame(
         modifier = modifier
             .fillMaxWidth()
             .bringIntoViewRequester(requester)
+            .then(if (holding) Modifier.onGloballyPositioned { top = it.positionInRoot().y } else Modifier)
             .then(if (flashing && SettingsHighlight.hold) Modifier.testTag(SettingsHighlight.HIGHLIGHT_TAG) else Modifier)
             .background(color),
     ) {
         content()
     }
 }
+
+/**
+ * Keeps a row the user was sent to on screen while the page settles under it
+ * (#904). The first scroll lands before the page is finished: groups above
+ * still waiting their turn to compose stand in as skeletons of a guessed
+ * height, and rows that appear once a setting has loaded push everything
+ * down, so a row scrolled to at once was carried off screen a moment later.
+ * For [HighlightHoldMs], every move of the row brings it back, until the user
+ * drags the page themselves. [setHolding] switches the position tracking on
+ * for exactly that long; [top] reads where it last saw the row.
+ */
+private suspend fun holdInView(
+    requester: BringIntoViewRequester,
+    scroll: ScrollState?,
+    setHolding: (Boolean) -> Unit,
+    top: () -> Float,
+) {
+    setHolding(true)
+    try {
+        withTimeoutOrNull(HighlightHoldMs) {
+            coroutineScope {
+                val follow = launch {
+                    snapshotFlow(top).drop(1).collect { requester.bringIntoView() }
+                }
+                // The user's own drag is where they want to be.
+                scroll?.interactionSource?.interactions?.first { it is DragInteraction.Start }
+                    ?: awaitCancellation()
+                follow.cancel()
+            }
+        }
+    } finally {
+        setHolding(false)
+    }
+}
+
+/** How long a row the user was sent to is held in view; see [holdInView]. */
+private const val HighlightHoldMs = 3_000L
 
 /**
  * Full-screen search over every setting. Results carry their breadcrumb, and
@@ -505,12 +609,17 @@ internal object SettingsRouteIcons {
     private val map: Map<String, () -> ImageVector> = mapOf(
         "typing" to { Icons.Outlined.Keyboard },
         "typing/corrections" to { Icons.Outlined.Spellcheck },
+        "typing/writing" to { Icons.Outlined.Abc },
         "typing/suggestions" to { Icons.Outlined.Lightbulb },
         "typing/autopilot" to { Icons.Outlined.AdsClick },
         "typing/octopus" to { Icons.Outlined.Keyboard },
         "typing/chips" to { Icons.Outlined.AutoAwesome },
         "typing/codes" to { Icons.Outlined.Password },
         "typing/gestures" to { Icons.Outlined.Gesture },
+        "typing/gestures/glide" to { Icons.Outlined.Gesture },
+        "typing/gestures/glide/checkup" to { Icons.Outlined.QueryStats },
+        "typing/gestures/spacebar" to { Icons.Outlined.SpaceBar },
+        "typing/gestures/flicks" to { Icons.Outlined.Swipe },
         "typing/hardware" to { SymbolIcons.KeyboardExternalInput },
         "keypress" to { Icons.Outlined.TouchApp },
         "keypress/haptics" to { Icons.Outlined.Vibration },
@@ -544,12 +653,17 @@ internal object SettingsRouteIcons {
         "modes" to { Icons.Outlined.Tune },
         "emoji" to { Icons.Outlined.EmojiEmotions },
         "emoji/panel" to { Icons.Outlined.GridView },
+        "emoji/mixes" to { Icons.Outlined.Interests },
         "kaomoji" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/faces" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/tags" to { Icons.Outlined.Label },
         "emojicategories" to { Icons.Outlined.Sort },
+        "emojiadded" to { Icons.Outlined.Add },
         "emojikeywords" to { Icons.Outlined.EmojiEmotions },
         "clipboard" to { Icons.Outlined.ContentPaste },
+        "clipboard/history" to { Icons.Outlined.History },
+        "clipboard/chips" to { Icons.Outlined.ContentPaste },
+        "clipboard/rules" to { Icons.Outlined.Shield },
         "voice" to { Icons.Outlined.Mic },
         "expander" to { Icons.AutoMirrored.Outlined.TextSnippet },
         "tools" to { Icons.Outlined.Widgets },
@@ -563,6 +677,7 @@ internal object SettingsRouteIcons {
         "notes" to { Icons.Outlined.StickyNote2 },
         "notes/tags" to { Icons.Outlined.Label },
         "notes/trash" to { Icons.Outlined.DeleteSweep },
+        "todo" to { Icons.Outlined.Checklist },
         "plugins" to { Icons.Outlined.Extension },
         "addons" to { Icons.Outlined.Extension },
         "accessibility" to { Icons.Outlined.Accessibility },
@@ -579,7 +694,11 @@ internal object SettingsRouteIcons {
         "selection_macros/ai" to { Icons.Outlined.AutoAwesome },
         "selection_macros/zones" to { Icons.Outlined.Public },
         "advanced" to { Icons.Outlined.Tune },
+        "extensions" to { Icons.Outlined.ExtensionIcon },
+        // One bundle's page wears the bundle's own glyph; see ExtensionsScreen.kt.
+        *Extension.entries.map { extensionRoute(it) to { extensionIcon(it) } }.toTypedArray(),
         FloatingButtonRoute to { Icons.Outlined.Adjust },
+        ShareSheetRoute to { Icons.Outlined.Share },
         "backup" to { Icons.Outlined.Save },
         "backup/auto" to { Icons.Outlined.Schedule },
         "backup/sync" to { Icons.Outlined.Sync },
@@ -724,9 +843,12 @@ internal fun SettingsSearchScreen(
     // With the Settings assistant turned off (#830), its result would lead
     // to a row that is not there, and its button to nothing.
     val assistant = settings.watch { SettingsAssistantGate.offered(it) }
-    val results = remember(query, corpus, searchIndex, history, assistant) {
+    // Likewise the screens and tools of a switched-off bundle (Extensions):
+    // a result for one would open the Extensions screen, not the row.
+    val extensions = settings.watch { it.extensionsResolved() }
+    val results = remember(query, corpus, searchIndex, history, assistant, extensions) {
         corpus?.let { c ->
-            val index = SettingsAssistantGate.searchable(searchIndex ?: c.index, assistant)
+            val index = SettingsAssistantGate.searchable(searchIndex ?: c.index, assistant).withExtensions(extensions)
             rankSettings(query, index, c.vocabulary, history)
         } ?: SearchResults.EMPTY
     }

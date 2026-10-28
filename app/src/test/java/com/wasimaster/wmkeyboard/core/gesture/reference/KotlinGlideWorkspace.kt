@@ -52,6 +52,19 @@ class KotlinGlideWorkspace {
     var bound = DoubleArray(INITIAL); private set
 
     /**
+     * Compounds (#966): the least frequency among the parts this state has
+     * already finished ([NO_PART] before any join), the length at which the
+     * current part began, and how many joins the chain has made. Copied
+     * from the parent on every [push]; the walk sets them where it joins.
+     */
+    var partFreq = IntArray(INITIAL); private set
+    var partFrom = IntArray(INITIAL); private set
+    var joins = IntArray(INITIAL); private set
+
+    /** The `joinPartPenalty` nats the parts this state joined past have earned; 0.0 before any join. */
+    var joinPenalty = DoubleArray(INITIAL); private set
+
+    /**
      * Samples the current stroke was resampled to: [SHORT_SAMPLES], or
      * [SAMPLE_POINTS] for a stroke of [LONG_STROKE] key widths or more. Every
      * per-sample array holds [SAMPLE_POINTS]; a decode reads the first
@@ -199,7 +212,7 @@ class KotlinGlideWorkspace {
     val idealX = FloatArray(MAX_IDEAL_POINTS)
     val idealY = FloatArray(MAX_IDEAL_POINTS)
 
-    private val sb = StringBuilder(24)
+    private val sb = StringBuilder(32)
 
     /** True once the state pool is full — the decode is running on a backstop. */
     var saturated = false; private set
@@ -263,8 +276,27 @@ class KotlinGlideWorkspace {
         this.extra[id] = extra
         this.floorCost[id] = floorCost
         this.bound[id] = bound
+        if (parent >= 0) {
+            partFreq[id] = partFreq[parent]
+            partFrom[id] = partFrom[parent]
+            joins[id] = joins[parent]
+            joinPenalty[id] = joinPenalty[parent]
+        } else {
+            partFreq[id] = NO_PART
+            partFrom[id] = 0
+            joins[id] = 0
+            joinPenalty[id] = 0.0
+        }
         heapPush(id)
         return id
+    }
+
+    /** Files state [id] as the start of a compound's next part: `wm-engine`'s walk writes the three fields in place. */
+    fun join(id: Int, partFreq: Int, partFrom: Int, joins: Int, joinPenalty: Double) {
+        this.partFreq[id] = partFreq
+        this.partFrom[id] = partFrom
+        this.joins[id] = joins
+        this.joinPenalty[id] = joinPenalty
     }
 
     /** Start of state [id]'s column within [cols]. */
@@ -328,6 +360,10 @@ class KotlinGlideWorkspace {
         extra = extra.copyOf(capacity)
         floorCost = floorCost.copyOf(capacity)
         bound = bound.copyOf(capacity)
+        partFreq = partFreq.copyOf(capacity)
+        partFrom = partFrom.copyOf(capacity)
+        joins = joins.copyOf(capacity)
+        joinPenalty = joinPenalty.copyOf(capacity)
         cols = cols.copyOf(capacity * SAMPLE_POINTS)
     }
 
@@ -374,14 +410,49 @@ class KotlinGlideWorkspace {
          * readings before a twenty-letter one fit. At 64 it decodes from 26.
          * 64 for everything also cost about 40% more CPU on every stroke,
          * so only a stroke of [LONG_STROKE] key widths or more gets it.
+         *
+         * 64 was also the most any stroke got, and a 26-letter compound
+         * crosses the board twice as far as a 13-letter one (issue #966):
+         * past [LONG_STROKE] a stroke now earns [SAMPLES_PER_LETTER] more
+         * samples for every [LETTER_ARC] it runs on, up to this. See
+         * [samplesFor].
          */
-        const val SAMPLE_POINTS = 64
+        const val SAMPLE_POINTS = 96
 
         /** Samples a stroke shorter than [LONG_STROKE] is resampled to. */
         const val SHORT_SAMPLES = 48
 
-        /** Stroke length, in key widths, from which a stroke gets [SAMPLE_POINTS] samples. */
+        /** Stroke length, in key widths, from which a stroke gets [LONG_SAMPLES] samples. */
         const val LONG_STROKE = 40f
+
+        /** Samples a stroke of exactly [LONG_STROKE] gets. */
+        const val LONG_SAMPLES = 64
+
+        /**
+         * A letter's worth of stroke, in key widths: the mean key-to-key
+         * step over the English list, drawn centre to centre, is 2.95.
+         */
+        const val LETTER_ARC = 3f
+
+        /** Samples each [LETTER_ARC] past [LONG_STROKE] adds. */
+        const val SAMPLES_PER_LETTER = 2
+
+        /**
+         * How many samples a stroke of [arc] key widths is resampled to:
+         * [SHORT_SAMPLES] under [LONG_STROKE], [LONG_SAMPLES] at it, and
+         * [SAMPLES_PER_LETTER] more for every [LETTER_ARC] beyond, up to
+         * [SAMPLE_POINTS] (issue #966 §5.3). The letter count is read off
+         * the arc because the stroke is resampled before any word is known.
+         * Every stroke under [LONG_STROKE] is sampled exactly as before.
+         * `wm-engine`'s `glide::workspace::samples_for`, to the bit.
+         */
+        fun samplesFor(arc: Float): Int =
+            if (arc < LONG_STROKE) {
+                SHORT_SAMPLES
+            } else {
+                val letters = ((arc - LONG_STROKE) / LETTER_ARC).toInt()
+                minOf(SAMPLE_POINTS, LONG_SAMPLES + SAMPLES_PER_LETTER * letters)
+            }
 
         /**
          * Samples a *shape* has, apart from the alignment's: the learned
@@ -393,7 +464,8 @@ class KotlinGlideWorkspace {
 
         /**
          * Frontier cap, worth ~2 MB of columns once the pool has grown into
-         * it (MAX_STATES × SAMPLE_POINTS × 4 bytes). Best-first order means the
+         * it on a long stroke (MAX_STATES × 64 samples × 4 bytes; 3 MB at
+         * [SAMPLE_POINTS], which only the longest strokes reach). Best-first order means the
          * states that matter are expanded first, so hitting this is a backstop
          * rather than a bound anyone should reach; [saturated] records when it
          * happened so the harness can see it rather than reading a quietly
@@ -407,8 +479,12 @@ class KotlinGlideWorkspace {
          */
         const val MAX_STATES = 8192
 
-        /** Longest key sequence a candidate's ideal path can have. */
-        const val MAX_IDEAL_POINTS = 32
+        /**
+         * Longest key sequence a candidate's ideal path can have: a word of
+         * `KotlinGlideBeam.MAX_WORD_LENGTH` letters visits at most that many
+         * keys, plus the two anchor leads the shape channel adds.
+         */
+        const val MAX_IDEAL_POINTS = 34
 
         private const val INITIAL = 256
         private const val INITIAL_KEYS = 48
@@ -418,5 +494,8 @@ class KotlinGlideWorkspace {
 
         /** Sentinel for the root, which consumed no trie edge. */
         val NO_LABEL: Char = 0.toChar()
+
+        /** [partFreq] of a state that has joined nothing: no cap on the frequency. */
+        const val NO_PART = Int.MAX_VALUE
     }
 }

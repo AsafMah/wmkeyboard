@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Υπολογίστηκε από υπότιτλους και κείμενο ιστού. Πολύ περισσότερες λέξεις, με περισσότερα ονόματα, αργκό και τυπογραφικά λάθη.</string>
     <string name="core_pred_wordlist_source_frequency_label">Συχνότητα</string>
+    <string name="core_pred_wordlist_variant_australia_label">Αυστραλία</string>
     <string name="core_pred_wordlist_variant_brazil_label">Βραζιλία</string>
+    <string name="core_pred_wordlist_variant_canada_label">Καναδάς</string>
     <string name="core_pred_wordlist_variant_europe_label">Ευρώπη</string>
     <string name="core_pred_wordlist_variant_uk_label">Ηνωμένο Βασίλειο</string>
     <string name="core_pred_wordlist_variant_us_label">Ηνωμένες Πολιτείες</string>

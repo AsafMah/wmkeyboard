@@ -24,6 +24,13 @@ object JapaneseComposer : Composer {
     override val keepsUnconvertedReading: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingJapanese
     override val readsLatinLetters: Boolean get() = true
+    override val glidesKanaReadings: Boolean get() = true
+
+    /**
+     * The ゛ and ゜ keys of the JIS kana board: a swipe may pass through them
+     * after a kana to draw its mark (#958, [KanaGlide.drawn]).
+     */
+    override val glideKeys: Set<Int> = setOf(KanaGlide.DAKUTEN.code, KanaGlide.HANDAKUTEN.code)
 
     /** Reading space for learned picks: kana readings. */
     private const val NAMESPACE = "ja_kana"
@@ -59,14 +66,50 @@ object JapaneseComposer : Composer {
     override fun composeBuffer(buffer: String): String = Kana.toHiragana(buffer)
 
     /**
-     * A hyphen typed inside a word is the long-vowel mark, as in every romaji
-     * IME: `ka-do` is かーど and converts to カード (#596). Without this the
-     * hyphen is punctuation, committing `ka` as か and typing a literal `-`.
-     * Between words it stays a hyphen. The kana layouts type ー itself, which
-     * is a letter and joins the word already.
+     * Read off the transduction of the whole buffer rather than of the keys
+     * before the caret: `kan` alone is かん, but in `kana` its `n` starts な.
+     * A caret inside a kana's keys counts that kana as after it.
+     */
+    override fun previewOffset(buffer: String, index: Int): Int {
+        var keys = 0
+        var kana = 0
+        for (span in Kana.transduce(buffer)) {
+            if (keys + span.romajiLen > index) break
+            keys += span.romajiLen
+            kana += span.kana.length
+        }
+        return kana
+    }
+
+    /** A caret inside a kana goes in front of it: its keys stay together. */
+    override fun bufferIndex(buffer: String, offset: Int): Int {
+        var keys = 0
+        var kana = 0
+        for (span in Kana.transduce(buffer)) {
+            if (kana + span.kana.length > offset) break
+            keys += span.romajiLen
+            kana += span.kana.length
+        }
+        return keys
+    }
+
+    /**
+     * Japanese punctuation typed inside a reading joins it (#960), the way a
+     * kana IME keeps 、 and 。 in the composition: the conversion stays open
+     * over the whole sentence instead of ending at the first mark, and the
+     * mark goes in with whatever the reading becomes. Between readings it is
+     * ordinary punctuation. The hyphen is the long-vowel mark, as in every
+     * romaji IME: `ka-do` is かーど and converts to カード (#596).
      */
     override fun buffersChar(c: Char, composing: CharSequence): Boolean =
-        c == '-' && composing.isNotEmpty()
+        composing.isNotEmpty() && (c == '-' || c in READING_PUNCTUATION)
+
+    /**
+     * Marks that join a reading: the full-width ones the Japanese layouts
+     * type. Not brackets, which open and close pairs of their own.
+     */
+    private const val READING_PUNCTUATION = "、。，．！？・…ー〜"
+
 
     override fun candidates(buffer: String): List<String> = candidates(buffer, LIMIT)
 

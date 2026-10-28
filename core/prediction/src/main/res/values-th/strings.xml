@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">นับจากคำบรรยายและข้อความบนเว็บ มีคำศัพท์อีกมากมาย รวมถึงชื่อ สแลง และคำที่พิมพ์ผิด</string>
     <string name="core_pred_wordlist_source_frequency_label">ความถี่</string>
+    <string name="core_pred_wordlist_variant_australia_label">ออสเตรเลีย</string>
     <string name="core_pred_wordlist_variant_brazil_label">บราซิล</string>
+    <string name="core_pred_wordlist_variant_canada_label">แคนาดา</string>
     <string name="core_pred_wordlist_variant_europe_label">ยุโรป</string>
     <string name="core_pred_wordlist_variant_uk_label">สหราชอาณาจักร</string>
     <string name="core_pred_wordlist_variant_us_label">สหรัฐอเมริกา</string>

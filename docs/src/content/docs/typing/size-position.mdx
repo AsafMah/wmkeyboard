@@ -18,6 +18,10 @@ Every height, width and gap on WM Keyboard is a slider rather than a fixed numbe
 
 ## Sizing the keys
 
+<SettingsPath path="Layout & size / Size and position / Resize by dragging" />
+
+**Resize by dragging**, the first row of the group, skips the sliders altogether. Its **Resize** button opens the test field with the keyboard under it already in [resize mode](/tools/resize/): drag the top edge for height, the middle to raise it off the bottom, the sides for margins, and press **Done**. It needs the keyboard test button, so the row is hidden while that button is switched off.
+
 <SettingsPath path="Layout & size / Size and position / Key height" />
 
 **Key height** sets the height of every key row and, with it, the overall input height. It's a slider from 32dp to 100dp, default 48dp. The emoji, clipboard and snippet panels scale with this value too, so a taller keyboard means taller panels.
@@ -95,6 +99,8 @@ The toolbar is scaled rather than replaced, because it has no per-screen overrid
 
 A tablet in landscape isn't affected by any of this. "Unfolded" is decided by the screen's smallest dimension, so a tablet on its side is still at least 600dp tall and has the height to spare.
 
+The tools can also leave the top of the keyboard while it's sideways, a tablet's included. **Tools in landscape** under [Toolbar](/reference/settings/appearance/#toolbar) stands them in a column down the left or right edge, beside the suggestions and the keys. Tools that had a row of their own give that row's height back to the keys.
+
 ## On a tablet
 
 A tablet gets a wider keyboard automatically, with nothing to set up. The screen's smallest dimension decides which one you get, the same measurement per-screen sizing uses:
@@ -150,7 +156,7 @@ Pin the **One-handed** tool to your toolbar and tapping it toggles one-handed on
 
 <SettingsPath path="Layout & size / One-handed, split and floating / Split keyboard" />
 
-**Split keyboard** divides every row down the middle with a gap between the halves, so your thumbs travel less on a wide screen. It's most useful on tablets, foldables, and phones turned to landscape. It's off by default, and turning it on reveals two more controls. **Split gap** runs from 5% to 40% of the keyboard's width, default 12%; a bigger gap pushes the halves further toward the edges but narrows each key. By default the spacebar splits between the two halves along with everything else. Turn off **Split the spacebar** to keep it as one key that runs across the gap, so both thumbs land on it where they meet; the rest of the bottom row stays in its halves. Like one-handed mode, split is global rather than tied to a screen shape.
+**Split keyboard** divides every row down the middle with a gap between the halves, so your thumbs travel less on a wide screen. It's most useful on tablets, foldables, and phones turned to landscape. It's off by default, and turning it on reveals two more controls. **Split gap** runs from 5% to 60% of the keyboard's width, default 12%; a bigger gap pushes the halves further toward the edges but narrows each key. By default the spacebar splits between the two halves along with everything else. Turn off **Split the spacebar** to keep it as one key that runs across the gap, so both thumbs land on it where they meet; the rest of the bottom row stays in its halves. Like one-handed mode, split is global rather than tied to a screen shape.
 
 **Split only on wide screens** is the second one, off by default. Split is a single global switch, so turning it on in landscape leaves the keyboard split after you rotate back, where half a phone-width keyboard is close to unusable. Turn this on and the split only happens in landscape or on an unfolded screen. Portrait on an ordinary phone stays whole.
 
@@ -181,6 +187,8 @@ With either one on, two sliders appear: **Floating keyboard width**, 240dp to 50
 - **Dock button**, a fullscreen icon that returns the keyboard to its normal, docked position.
 - **Drag pill**. Dragging anywhere across the middle of the handle bar moves the panel, not just the small pill drawn there. Its position is saved as a fraction of the free space around it rather than as a pixel coordinate, so it survives rotation. By default that's centered horizontally and pinned to the bottom of the available space. The panel stays where you let go of it.
 - **Resize grip**, drawn as two short diagonal lines rather than a diagonal-arrows icon, deliberately, so it doesn't read as another fullscreen button. Dragging it resizes width and height together, and width tracks your finger directly. With the bar under the keys, drag down to make the panel taller and up to shrink it. With the bar above the keys it runs the other way: drag up to grow the panel and down to shrink it. The panel's top-left corner stays put while you resize, so the panel grows and shrinks from there instead of wandering across the screen.
+
+Making the panel narrower than its default 320dp, or shorter than 100%, shrinks everything in it, not only the keys: the letters and symbols on them, their corner hints and flick hints, key icons such as the arrows, the toolbar's tools and the toolbox. It follows whichever of the two you squeezed more, down to 60%. A panel wider or taller than the default keeps them at their normal size.
 
 Floating mode replaces the normal layout logic rather than combining with it. While it's on:
 
@@ -221,6 +229,8 @@ The same button can do more than open the keyboard. Its tap, double tap and pres
 The button needs Android's **Display over other apps** permission, and it reads nothing from the screen. See [Permissions](/privacy/permissions/).
 
 The **Keyboard controls** notification (Settings › Notifications) does the same job from the notification shade, without the permission: tap it, or its **Show** button, and the keyboard opens over the app you were in once the shade closes. On Android 14 and later, where a swipe can clear even a permanent notification, the controls come straight back; turn them off in Settings › Notifications instead. The floating button is the more dependable of the two, because pulling the shade down briefly takes the screen's focus away from the app, and a few apps answer that by closing the keyboard again.
+
+Two Quick Settings tiles cover the same ground with no notification and no permission. Add them from the edit (pencil) view of your Quick Settings panel. **Show keyboard** opens the keyboard over the app you were in, field or not, exactly like the shade's **Show** button: the panel closes and the keyboard comes up behind it. On the lock screen it asks you to unlock first, and while another keyboard is the one in use it shows as unavailable. **Keep keyboard on screen** switches [Keep the keyboard on screen](#keeping-the-keyboard-on-screen) on or off, and lights up while it's on.
 
 ## Options
 

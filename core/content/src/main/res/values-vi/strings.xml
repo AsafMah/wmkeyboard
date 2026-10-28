@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Sao chép</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Chữ số</string>
+    <string name="core_content_selection_macro_edit_word">Chỉnh sửa từ</string>
     <string name="core_content_selection_macro_email">Email</string>
     <string name="core_content_selection_macro_fancy">Đẹp mắt</string>
     <string name="core_content_selection_macro_find">Tìm kiếm</string>

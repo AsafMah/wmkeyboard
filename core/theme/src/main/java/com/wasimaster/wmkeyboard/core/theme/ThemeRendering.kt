@@ -271,15 +271,17 @@ private val HexagonKeyShape: Shape = GenericShape { size, _ ->
  * bunched its waves up at the corners, where the radius changes fastest.
  */
 private val ScallopKeyShape: Shape = GenericShape { size, _ ->
-    // A seventh of the short side: fewer, chunkier bumps than that read as a
-    // cloud, and more of them disappear at the size a key is on screen.
+    val bumps = scallopBumps(size.width, size.height)
+    if (bumps == null) {
+        addRect(Rect(Offset.Zero, size))
+        return@GenericShape
+    }
+    val (across, down) = bumps
     val depth = min(size.width, size.height) / 7f
     val left = depth
     val top = depth
     val right = size.width - depth
     val bottom = size.height - depth
-    val across = max(2, ((right - left) / (2f * depth)).roundToInt())
-    val down = max(1, ((bottom - top) / (2f * depth)).roundToInt())
     val stepX = (right - left) / across
     val stepY = (bottom - top) / down
     // Angles run clockwise from three o'clock, so each half-oval starts at the
@@ -302,6 +304,26 @@ private val ScallopKeyShape: Shape = GenericShape { size, _ ->
         arcTo(Rect(left - depth, y, left + depth, y + stepY), 90f, 180f, false)
     }
     close()
+}
+
+/**
+ * How many bumps [ScallopKeyShape] puts across the top and down each side of a
+ * [width] by [height] box, or null when the box has nothing to put them on.
+ *
+ * The depth is a seventh of the short side: fewer, chunkier bumps than that
+ * read as a cloud, and more of them disappear at the size a key is on screen.
+ * A box laid out at zero on either side (#963: a long press in a tool panel,
+ * under a scalloped theme) has no depth to count by. Zero over zero rounds as
+ * NaN, which throws mid-draw, and a width over zero rounds to Int.MAX_VALUE
+ * bumps, which would hang the keyboard instead. Such a box takes a plain
+ * rectangle.
+ */
+internal fun scallopBumps(width: Float, height: Float): Pair<Int, Int>? {
+    val depth = min(width, height) / 7f
+    if (!(depth > 0f) || !width.isFinite() || !height.isFinite()) return null
+    val across = max(2, ((width - 2f * depth) / (2f * depth)).roundToInt())
+    val down = max(1, ((height - 2f * depth) / (2f * depth)).roundToInt())
+    return across to down
 }
 
 /**

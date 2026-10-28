@@ -34,7 +34,7 @@ if (process.env.CHECK_LINKS) {
 				if (/^\/open(?:[/?#]|$)/.test(link)) return true;
 				// The machine-facing routes (reference/ai-access.mdx links them):
 				// endpoints, the Markdown copies and the Functions, none of them pages.
-				if (/^\/(?:llms(?:-full)?\.txt|openapi\.json|api\/|mcp\b|\.well-known\/)|\.md(?:[?#]|$)/.test(link)) return true;
+				if (/^\/(?:llms(?:-full)?\.txt|wm-keyboard-docs\.zip|openapi\.json|api\/|mcp\b|\.well-known\/)|\.md(?:[?#]|$)/.test(link)) return true;
 				const match = /^\/addons(?:\/([^/?#]*)|(?=[?#]|$))/.exec(link);
 				return match !== null && !addonGuides.has(match[1] ?? '');
 			},
@@ -127,6 +127,7 @@ export default defineConfig({
 				// delegates back to the theme everywhere else, 404 included.
 				Head: './src/components/Head.astro',
 				Hero: './src/components/Hero.astro',
+				LastUpdated: './src/components/LastUpdated.astro',
 				PageTitle: './src/components/PageTitle.astro',
 				Sidebar: './src/components/Sidebar.astro',
 			},

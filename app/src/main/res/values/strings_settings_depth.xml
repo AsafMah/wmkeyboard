@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings depth: how much of the settings app is shown. Both rows sit under About › App. -->
+    <string name="settings_depth_title">How many settings to show</string>
+    <string name="settings_depth_subtitle">Simple, Standard or Everything</string>
+    <string name="settings_depth_info">Simple shows the basics, like other keyboards. Standard adds the common extras. Everything shows every setting. A setting that is not shown keeps its value, and search still finds it.</string>
+    <string name="settings_depth_simple">Simple</string>
+    <string name="settings_depth_simple_desc">The basics, like other keyboards</string>
+    <string name="settings_depth_standard">Standard</string>
+    <string name="settings_depth_standard_desc">The basics and the common extras</string>
+    <string name="settings_depth_everything">Everything</string>
+    <string name="settings_depth_everything_desc">Every setting on every page</string>
+    <string name="settings_hidden_rows_title">Show where settings are hidden</string>
+    <string name="settings_hidden_rows_subtitle">A row at the end of each group that opens what the depth left out</string>
+    <!-- The row at the end of a group that opens the rows above the current depth. -->
+    <plurals name="settings_depth_more_rows">
+        <item quantity="one">%1$d more setting</item>
+        <item quantity="other">%1$d more settings</item>
+    </plurals>
+    <!-- The closed group at the end of Home holding the rows above the current depth. -->
+    <string name="home_group_more_title">More</string>
+</resources>

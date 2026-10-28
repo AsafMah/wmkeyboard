@@ -71,7 +71,7 @@
 
     <!-- Key press settings screen, "Key popup" group. -->
     <string name="keypress_popup_group_title">Key popup</string>
-    <string name="keypress_popup_group_subtitle">The bubble over a pressed key</string>
+    <string name="keypress_popup_group_subtitle">Bubble over a pressed key</string>
 
     <string name="keypress_popup_title">Key popup</string>
     <string name="keypress_popup_subtitle">Show a character bubble above the pressed key</string>
@@ -200,6 +200,8 @@
     <string name="keypress_custom_repeat_title">Repeating key interval</string>
     <string name="keypress_custom_repeat_subtitle">How fast a key you set to repeat fires while you hold it</string>
     <string name="keypress_custom_repeat_info">This is the speed of the keys you turned Repeat while held on for in the key layout editor, such as a row of arrow keys. Delete and space keep their own speeds above. Lower values repeat faster.</string>
+    <string name="keypress_flicks_repeat_title">Hold a flick to repeat it</string>
+    <string name="keypress_flicks_repeat_subtitle">A letter flicked out and held there types again and again until you lift, at the repeating key interval</string>
 
     <string name="keypress_caps_lock_title">Caps lock double press</string>
     <string name="keypress_caps_lock_subtitle">How fast a second press of shift turns on caps lock</string>
@@ -207,7 +209,7 @@
 
     <!-- Key press settings screen, "Press and hold shortcuts" group. -->
     <string name="keypress_shortcuts_group_title">Press and hold shortcuts</string>
-    <string name="keypress_shortcuts_group_subtitle">What a long press on a key does</string>
+    <string name="keypress_shortcuts_group_subtitle">What a long press does</string>
 
     <string name="keypress_long_press_hints_title">Press and hold hints</string>
     <string name="keypress_long_press_hints_subtitle">Show the alternate character of each key in its corner</string>
@@ -223,6 +225,11 @@
     <string name="keypress_top_row_holds_subtitle">What a hold on q to p types</string>
     <string name="keypress_top_row_holds_info" formatted="false">The letters q to p hold the digits 1 to 0. This picks what those holds type, whether or not the number row is on.\n\nAuto keeps the digits while the number row is off and drops them while it is on, since the row already has them. Digits keeps them with the row on too. Symbols puts the symbols above each digit on a number row in their place: ! @ # $ % ^ &amp; * ( ). None drops them either way, so those keys open with their accents or have no popup.\n\nIt applies to every layout that puts digits on its letters. To give one key a different character, edit its alternates in the layout editor. Auto is the default.</string>
     <string name="keypress_top_row_holds_auto">Auto</string>
+    <string name="keypress_hold_symbols_title">Your hold symbols</string>
+    <string name="keypress_hold_symbols_subtitle">Pick the symbol each letter holds, on every layout</string>
+    <string name="keypress_hold_symbols_info">Type a symbol under a letter and a press and hold on that letter offers it first, on every layout, in place of the symbol or digit the layout puts there; the corner hint shows it too. Leave a box empty to keep the layout\'s own. SwiftKey fills in the set SwiftKey uses.</string>
+    <string name="keypress_hold_symbols_swiftkey">SwiftKey</string>
+    <string name="keypress_hold_symbols_clear">Clear all</string>
     <string name="keypress_top_row_holds_digits">Digits</string>
     <string name="keypress_top_row_holds_symbols">Symbols</string>
     <string name="keypress_top_row_holds_none">None</string>

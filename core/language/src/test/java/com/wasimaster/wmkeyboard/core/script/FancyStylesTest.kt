@@ -15,7 +15,7 @@ class FancyStylesTest {
 
     @Test
     fun `normal plus the 31 styles are present, in the shipped order, with a default`() {
-        assertEquals(32, FancyStyles.all.size)
+        assertEquals(33, FancyStyles.all.size)
         assertEquals(FancyStyles.NORMAL_ID, FancyStyles.all.first().id)
         assertEquals("bold", FancyStyles.all[1].id)
         // The tail of the original 22, then the tail of the whole table: the
@@ -136,6 +136,32 @@ class FancyStylesTest {
         assertEquals("a\u200B1\u200B!", FancyStyles.transform("a1!", bypass))
         assertEquals("a", FancyStyles.transform("a", bypass))
         assertEquals("", FancyStyles.transform("", bypass))
+    }
+
+    /**
+     * Fancy Text styles everything committed to the field (#950), emoji and
+     * text that is styled already included, so neither may change on a
+     * second pass.
+     */
+    @Test
+    fun `bypass keeps an emoji whole and leaves styled text alone`() {
+        val bypass = FancyStyles.byId("bypass")!!
+        assertEquals("👍🏽", FancyStyles.transform("👍🏽", bypass))
+        assertEquals("❤️", FancyStyles.transform("❤️", bypass))
+        val once = FancyStyles.transform("ab cd", bypass)
+        assertEquals(once, FancyStyles.transform(once, bypass))
+    }
+
+    @Test
+    fun `unstyle reads every style but upside down back to plain`() {
+        for (style in FancyStyles.all) {
+            if (style.assembly == FancyAssembly.REVERSED) continue
+            val plain = FancyStyles.unstyle(FancyStyles.transform("hello world 42", style))
+            // Small caps and superscript have no capitals to read back.
+            assertEquals(style.id, "hello world 42", plain.lowercase())
+        }
+        // Plain text, including letters other styles borrow, is left alone.
+        assertEquals("unusual café", FancyStyles.unstyle("unusual café"))
     }
 
     @Test

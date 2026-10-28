@@ -60,6 +60,7 @@ internal object StorageNames {
 
         "learning/user_lexicon.json" to R.string.storage_file_lexicon_label,
         "learning/pending_learn.json" to R.string.storage_file_pending_learn_label,
+        "learning/context_adapter.json" to R.string.storage_file_context_adapter_label,
         "learning/correction_stats.json" to R.string.storage_file_corrections_label,
         "learning/emoji_usage.json" to R.string.storage_file_emoji_usage_label,
         "learning/cjk_history.json" to R.string.storage_file_cjk_history_label,
@@ -72,6 +73,7 @@ internal object StorageNames {
         "learning/typed_emails.json" to R.string.storage_file_typed_emails_label,
         "learning/typed_numbers.json" to R.string.storage_file_typed_numbers_label,
         "learning/phonetic_script_choices.json" to R.string.storage_file_phonetic_script_choices_label,
+        "learning/phonetic_picks.tsv" to R.string.storage_file_phonetic_picks_label,
         "learning/glide_outcomes.json" to R.string.storage_file_glide_outcomes_label,
         "learning/glide_shapes.json" to R.string.storage_file_glide_shapes_label,
 
@@ -136,6 +138,7 @@ internal object StorageNames {
         "gallery_sent.txt" to R.string.storage_file_gallery_sent_label,
         "bergamot" to R.string.storage_file_bergamot_label,
         "xlit" to R.string.storage_file_xlit_label,
+        "xlit-latin" to R.string.storage_file_xlit_latin_label,
         "backup_install_id" to R.string.storage_file_backup_id_label,
         "otp_capture.xml" to R.string.storage_file_otp_capture_label,
         "androidx.work.workdb" to R.string.storage_file_work_db_label,

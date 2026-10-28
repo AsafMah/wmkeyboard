@@ -122,6 +122,38 @@ class ClockLogicTest {
     }
 
     @Test
+    fun anUnansweredAlarmSnoozesItselfUntilItsSnoozesRunOut() {
+        val fire = at(utc, 2026, 10, 14, 7, 0)
+        val (alarm, d0) = ClockActions.addAlarm(ClockData(), Alarm(id = 0, hour = 7, minute = 0))
+        val (d1, rang) = ClockActions.fireAlarms(d0, fire, utc)
+        val d2 = ClockActions.unanswered(d1, rang.single(), fire + 600_000, autoSnoozes = 1, snoozeMinutes = 10)
+        assertEquals(HistoryOutcome.SNOOZED, d2.history.first().outcome)
+        assertEquals(1, d2.alarm(alarm.id)!!.snoozeCount)
+        // The snooze has been spent: the next one nobody answers is missed.
+        val again = Ringing(RingKind.ALARM, alarm.id, fire + 1_200_000, "")
+        val d3 = ClockActions.unanswered(d2.copy(ringing = listOf(again)), again, fire + 1_800_000, autoSnoozes = 1, snoozeMinutes = 10)
+        assertEquals(HistoryOutcome.MISSED, d3.history.first().outcome)
+        assertFalse(d3.alarm(alarm.id)!!.enabled)
+    }
+
+    @Test
+    fun endingASnoozeSettlesTheAlarmAndSkippingTheComingRingKeepsTheRest() {
+        val fire = at(utc, 2026, 10, 14, 7, 0)
+        val (alarm, d0) = ClockActions.addAlarm(ClockData(), Alarm(id = 0, hour = 7, minute = 0, days = Weekdays.ALL))
+        val (d1, rang) = ClockActions.fireAlarms(d0, fire, utc)
+        val snoozed = ClockActions.snooze(d1, rang.single(), fire, 10)
+        val ended = ClockActions.endSnooze(snoozed, alarm.id).alarm(alarm.id)!!
+        assertEquals(0L, ended.snoozedUntil)
+        assertTrue(ended.enabled)
+        // Skipped, tomorrow's 7:00 is passed over for the day after.
+        val skipped = ClockActions.skipComing(ClockActions.endSnooze(snoozed, alarm.id), alarm.id, fire + 3_600_000, utc)
+        assertEquals(fire + 2 * 86_400_000L, AlarmMath.nextFire(skipped.alarm(alarm.id)!!, fire + 3_600_000, utc))
+        // A one-shot is turned off instead.
+        val (once, o0) = ClockActions.addAlarm(ClockData(), Alarm(id = 0, hour = 9, minute = 0))
+        assertFalse(ClockActions.skipComing(o0, once.id, fire, utc).alarm(once.id)!!.enabled)
+    }
+
+    @Test
     fun timerPauseResumeKeepsTheRemainder() {
         val (t, d0) = ClockActions.startTimer(ClockData(), "", 60_000, now = 1_000)
         val d1 = ClockActions.pauseTimer(d0, t.id, now = 21_000)
@@ -239,6 +271,24 @@ class ClockLogicTest {
         assertTrue(catalog.search("+5:30").any { it.id == "Asia/Kolkata" })
         assertFalse(ZoneCatalog.isPlace("Etc/GMT+6"))
         assertFalse(ZoneCatalog.isPlace("US/Pacific"))
+    }
+
+    @Test
+    fun citiesWithoutAZoneOfTheirOwnAreFoundByName() {
+        val catalog = ZoneCatalog(object : ZoneNames {
+            override fun city(id: String): String? = null
+            override fun region(id: String): String? = null
+        })
+        val beijing = catalog.search("beijing").first()
+        assertEquals("Asia/Shanghai", beijing.id)
+        assertEquals("Beijing", beijing.toWorldZone().label)
+        assertEquals("Bengaluru", catalog.search("bangalore").first().city)
+        // The zone's own city still leads its own name, and keeps no label.
+        val shanghai = catalog.search("shanghai").first()
+        assertEquals("Shanghai", shanghai.city)
+        assertEquals("", shanghai.toWorldZone().label)
+        assertTrue(catalog.search("shanghai").none { it.extra })
+        assertEquals(catalog.entries.size, catalog.entries.map { it.key }.toSet().size)
     }
 
     // ---- Planner and dates ----------------------------------------------

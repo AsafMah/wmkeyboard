@@ -26,6 +26,7 @@
     <string name="common_default">Domyślne</string>
     <string name="common_delete">Usuń</string>
     <string name="common_disable">Wyłącz</string>
+    <string name="common_disabled_open_setting">Otwórz ustawienie</string>
     <string name="common_disclosure_blocked_body">Android nie wyświetla już tego żądania, ponieważ wcześniej odmówiono uprawnień. Nadal możesz je włączyć w ustawieniach aplikacji.</string>
     <string name="common_disclosure_not_now">Nie teraz</string>
     <string name="common_done">Gotowe</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Zainstaluj</string>
     <string name="common_installing">Instalowanie…</string>
     <string name="common_loading">Ładowanie…</string>
+    <string name="common_more">Więcej</string>
     <string name="common_next">Dalej</string>
     <string name="common_none">Brak</string>
     <string name="common_notify_channel_backup_body">Tylko gdy automatyczna kopia zapasowa nie powiedzie się. Udane kopie zapasowe są ciche.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Pokaż powiadomienia</string>
     <string name="common_permission_storage_body">W systemie Android 9 i starszych klawiatura potrzebuje uprawnień do pamięci, aby zapisać obraz w galerii. Stare uprawnienia Androida obejmują również odczyt pamięci. Klawiatura zapisuje tylko obraz, którego zapisanie zlecisz. Klawiatura niczego nie odczytuje ani nie przesyła. Nowsze wersje Androida nie wymagają tego uprawnienia.</string>
     <string name="common_permission_storage_title">Dostęp do pamięci w celu zapisywania w galerii</string>
+    <string name="common_permission_tasks_body">Klawiatura WM synchronizuje swoją listę zadań z listą zadań w aplikacji: zadania, ich kroki, zaznaczenia i terminy są zsynchronizowane w obie strony. Uprawnienie obejmuje każdą listę zadań w aplikacji. Klawiatura odczytuje listy aplikacji tylko po to, aby umożliwić wybór jednej z nich, i odczytuje oraz zapisuje tylko wybraną listę. Klawiatura nie wysyła nigdzie żadnych danych. DAVx5, jeśli go używasz, synchronizuje tę listę z Twoim własnym serwerem CalDAV. Bez tego uprawnienia lista zadań pozostaje tylko na tym telefonie.</string>
+    <string name="common_permission_tasks_opentasks_title">Dostęp OpenTasks do listy zadań</string>
+    <string name="common_permission_tasks_tasks_org_title">Dostęp Tasks.org do listy zadań</string>
+    <string name="common_preview_scale_desc">Rozmiar podglądu</string>
+    <string name="common_preview_scale_larger">Powiększ podgląd</string>
+    <string name="common_preview_scale_smaller">Pomniejsz podgląd</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Usuń</string>
     <string name="common_reset">Resetuj</string>
     <string name="common_reset_defaults">Przywróć ustawienia domyślne</string>

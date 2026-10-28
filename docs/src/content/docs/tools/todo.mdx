@@ -1,0 +1,82 @@
+---
+title: "To-do list"
+description: "A to-do list inside the keyboard: add and tick tasks, open a task to its steps, edit with a long press, and sync with a CalDAV task list through DAVx5 if you want to."
+sidebar:
+  order: 17.75
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+The **To-do list** tool keeps your tasks in the keyboard, a tap away from whatever app you are writing in. Each task has a box to tick and can hold steps under it: "Plan the trip" with "Book the train" and "Pack" below, each ticked on its own. The same list is in the settings app, where there is room to set a due date. Both write one file, so a task added on the keyboard is in the app when you get there, and the other way round.
+
+If you already keep your tasks on a CalDAV server, such as Nextcloud, the list can sync with one of its task lists through DAVx5. That is off until you set it up; see [Sync with a task app](#sync-with-a-task-app).
+
+## Opening it
+
+Tap **To-do list** on the toolbar, or in the toolbox if it isn't pinned (see [the toolbar](/tools/overview/)). Tap it again to close it. Typing `todo` or `tasks` into a text field offers the tool as a chip on the suggestion strip, like every other tool keyword.
+
+In the settings app the list is one tap from the tool's own page:
+
+<SettingsPath path="Tools / To-do list / Your tasks" />
+
+**Add to home screen**, under it, puts an icon for the list on your home screen, which opens it straight away.
+
+## Adding, ticking and deleting
+
+**Add a task** in the panel's header opens a box at the top, and the key rows come back underneath so you can type into it. <KeyCap>Enter</KeyCap> adds the task and leaves the box open and empty for the next one, so a whole shopping list goes in without a tap between items. **Done** adds what is in the box and gives the keys back to the app.
+
+Tap a task's box to tick it. A ticked task is struck through and sinks below the open ones. Ticking a task ticks the steps still open under it, and clearing a step's tick clears its task's tick too, since the task isn't finished after all.
+
+Press and hold a task to edit it. Its words go into the box, and **Delete**, **Type it** (which types the task into the field behind the keyboard), **Add a step** and **Cancel** sit under it. A delete shows an Undo bar for a few seconds. **Clear done** in the header deletes every ticked task and step at once, with the same Undo.
+
+The header counts what is left. **Hide done** leaves the ticked tasks out for this visit; <SettingsPath path="Tools / To-do list / Hide finished tasks in the keyboard" /> makes the panel always open that way.
+
+## Steps
+
+Tap a task's words to open it. Its steps appear under it, each with its own box, and **Add a step** at the end opens the box for a new one, which Enter adds like a task. A task with steps shows how many are ticked, `2/5`, and an arrow. Tap the words again to fold it shut. Steps go one level deep: a step can't hold steps of its own.
+
+## The list order
+
+Open tasks come first, the soonest due at the top and the ones with no date after them, newest first. Ticked tasks follow, the one ticked last at the top. Steps stay in the order they were added.
+
+## In the settings app
+
+The list in the app works the same way with a phone-sized touch. The field at the top adds a task. Tap a task to open its steps and the **Add a step** row; tap its box to tick it. Hold a task, or a step, to edit its words, give it a due date or take the date off, or delete it. Swipe a row to the left to delete it; a long swipe deletes it at once, with an Undo. **Clear finished tasks** under the list does what the panel's Clear done does.
+
+A due date is a day. The keyboard shows it under the task, and an overdue one in the accent colour. A task synced from a task app can also have a due time, which the list shows as well. The to-do list has no reminders of its own.
+
+## Sync with a task app
+
+<SettingsPath path="Tools / To-do list / Sync with a task app" />
+
+Off by default. On, the list stays the same as one task list in **OpenTasks** or **Tasks.org** on the phone, and DAVx5 syncs that task list with your CalDAV server. WM Keyboard never connects to the server itself. It reads and writes the task app's list on the phone, and DAVx5 carries the changes on its own schedule.
+
+To set it up:
+
+1. Install DAVx5 and either OpenTasks or Tasks.org, and add your CalDAV account in DAVx5 with its task lists ticked.
+2. Turn on **Sync with a task app**. A dialog lists the task apps on the phone.
+3. Tap **Allow access** for the app you use. The keyboard says what the permission covers before Android asks: the permission reaches every task list in that app, and the keyboard opens only the one you pick.
+4. Pick the task list.
+
+The first sync runs straight away. After that the keyboard syncs when the panel opens and a moment after each change you make, and the sync button in the panel's header runs one on demand. **Task list** on the tool's page changes the list, and **Sync now** runs a sync and says how many tasks came in, went out and were removed.
+
+What travels, both ways: each task's words, its tick, its due date, and which task a step belongs to. A delete on either side deletes on the other. When the same task changed on both sides since the last sync, the later change wins. A reminder set in the task app stays in the task app. Turning the sync off leaves both lists as they are. **Delete all tasks** on the tool's page empties only the keyboard's list: the task app keeps its tasks, and the next sync brings them back.
+
+jtx Board, the third task app DAVx5 works with, isn't supported. Its provider only answers apps that say they are a sync adapter, and a change written that way is marked as already synced, so DAVx5 would never send it to the server.
+
+## Coming from the Todo List plugin
+
+The tool replaces the Todo List plugin from the add-on repository. If the plugin is installed and holds tasks, the tool's page shows:
+
+<SettingsPath path="Tools / To-do list / Import from the Todo List plugin" />
+
+It copies the plugin's tasks, their ticks and their due dates into the list, and skips any task already there with the same words, so running it twice doesn't double anything. The plugin keeps its own copy and its reminders, and keeps working until you remove it.
+
+## Backups
+
+The to-do list is a section of the [backup file](/privacy/backup/), on by default for the automatic backup and for sync between your phones. Every task and step travels in it, ticked or not. A restore replaces the list, and a keyboard already running reloads it rather than saving its own copy back over it. The task-app sync keeps a small record of its own on the phone, which never goes into a backup: it names rows of this phone's task app, which mean nothing on another one.
+
+## Privacy
+
+The list stays on the phone unless you back it up or turn on the task-app sync, and then it goes only where those send it. The keyboard never learns from a task: what you type into the box does not reach your personal dictionary, your word pairs or your typing statistics. The tool is not available before the first unlock after a restart, when the keyboard has no access to its files.

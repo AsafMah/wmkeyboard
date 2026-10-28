@@ -165,6 +165,19 @@
     <string name="toolai_ai_diff_first_title">Open a result on the changes</string>
     <string name="toolai_ai_diff_first_subtitle">The panel starts on the changes instead of the plain result</string>
 
+    <!-- The AI continuation chip in the suggestion strip (#944). -->
+    <string name="toolai_strip_suggest_group_title">Suggestion strip</string>
+    <string name="toolai_strip_suggest_title">AI suggestions</string>
+    <!-- %1$s is a number of characters. -->
+    <string name="toolai_strip_suggest_subtitle_cloud">Suggests how to continue your text, beside the word suggestions. When you pause after a word, the app sends the last %1$s characters before the cursor to the selected provider.</string>
+    <string name="toolai_strip_suggest_subtitle_word">Suggests how to continue your text, beside the word suggestions. When you pause after a word, the app sends only that word to the selected provider.</string>
+    <string name="toolai_strip_suggest_subtitle_on_device">Suggests how to continue your text, beside the word suggestions. The on-device model makes the suggestion, so your text stays on your device.</string>
+    <string name="toolai_strip_suggest_info">The app never asks in a password field, in a field that turns off suggestions, or in incognito. Each pause after a word is one request, and a new key press cancels it. Tap the suggestion to insert it. Hold it to hide AI suggestions until you go to a different field.</string>
+    <string name="toolai_strip_suggest_word_only_title">Send only the last word</string>
+    <string name="toolai_strip_suggest_word_only_subtitle">Sends less of your text. The suggestions are less accurate.</string>
+    <string name="toolai_strip_suggest_chars_title">Text to send</string>
+    <string name="toolai_strip_suggest_chars_subtitle">How many characters before the cursor each request sends</string>
+
     <!--
       Tool calling (#470): letting the model search the web, or read one page,
       before it answers.
@@ -505,6 +518,15 @@
 
     <string name="toolai_chats_group_title">Chats</string>
     <string name="toolai_chat_enter_sends_title">Enter sends the message</string>
+    <string name="toolai_chat_follow_ups_title">Suggest follow-up questions</string>
+    <string name="toolai_chat_follow_ups_subtitle">A chat answer from a cloud or server model ends with up to three questions you might ask next, as chips a tap puts in the message box. On-device models are never asked.</string>
+    <string name="toolai_research_depth_title">Deep research depth</string>
+    <string name="toolai_research_depth_subtitle">How far a Deep research report goes. Quick plans 3 sub-questions and reads 4 pages; Standard plans 4, looks again once for what is missing, and reads 8; Deep plans 6, looks again twice, and reads 14. Deeper takes longer and sends more text to the model.</string>
+    <string name="toolai_research_depth_quick">Quick</string>
+    <string name="toolai_research_depth_standard">Standard</string>
+    <string name="toolai_research_depth_deep">Deep</string>
+    <string name="toolai_research_review_plan_title">Review the research plan first</string>
+    <string name="toolai_research_review_plan_subtitle">Deep research shows its sub-questions and waits for Start before it searches anything. Off, the plan is shown as it runs, and Stop ends it.</string>
     <string name="toolai_chat_auto_rename_title">Auto-rename chats</string>
     <string name="toolai_ai_selection_menu_title">Ask AI in the selection menu</string>
     <string name="toolai_ai_selection_menu_subtitle">Ask AI shows in other apps\' menu for selected text. Turning the AI tool off takes it out too.</string>
@@ -517,7 +539,7 @@
     <string name="toolai_delete_chats_subtitle">Remove every saved conversation from this device</string>
     <string name="toolai_delete_chats_confirm">Every saved conversation is deleted from this device. This cannot be undone.</string>
 
-    <string name="toolai_models_group_title">Downloading models</string>
+    <string name="toolai_continue_group_title">Carry-on actions</string>
     <string name="toolai_continue_context_title">How much the AI reads back</string>
     <string name="toolai_continue_context_subtitle">Characters before the cursor sent by a carry-on action</string>
     <string name="toolai_continue_context_info">Actions that carry on from what you wrote send the text before your cursor. More characters give the model more of your writing to follow, which helps in a long piece. It also costs more of your tokens and takes longer on every run. This only applies when you have not selected anything: a selection is always sent as it is.</string>

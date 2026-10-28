@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Kopiuj</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Cyfry</string>
+    <string name="core_content_selection_macro_edit_word">Edytuj słowo</string>
     <string name="core_content_selection_macro_email">E-mail</string>
     <string name="core_content_selection_macro_fancy">Ozdobne</string>
     <string name="core_content_selection_macro_find">Znajdź</string>

@@ -26,6 +26,7 @@
     <string name="common_default">Per defecte</string>
     <string name="common_delete">Suprimeix</string>
     <string name="common_disable">Desactiva</string>
+    <string name="common_disabled_open_setting">Obre la configuració</string>
     <string name="common_disclosure_blocked_body">Android ja no mostra aquesta sol·licitud perquè vas rebutjar el permís anteriorment. Encara pots activar-lo des de la pantalla de configuració de l\'aplicació.</string>
     <string name="common_disclosure_not_now">Ara no</string>
     <string name="common_done">Fet</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instal·lar</string>
     <string name="common_installing">S\'està instal·lant...</string>
     <string name="common_loading">S\'està carregant...</string>
+    <string name="common_more">Més</string>
     <string name="common_next">Següent</string>
     <string name="common_none">Cap</string>
     <string name="common_notify_channel_backup_body">Només quan una còpia de seguretat automàtica falla. Les còpies de seguretat reeixides són silencioses.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Mostra les notificacions</string>
     <string name="common_permission_storage_body">A l\'Android 9 i versions anteriors, el teclat necessita permís d\'emmagatzematge per desar una imatge a la vostra galeria. L\'antic permís d\'Android també cobreix la lectura del vostre emmagatzematge. El teclat només escriu la imatge que li demaneu que desi. El teclat no llegeix res ni penja res. Les versions d\'Android més recents no necessiten aquest permís.</string>
     <string name="common_permission_storage_title">Accés a l\'emmagatzematge per desar a la galeria</string>
+    <string name="common_permission_tasks_body">El teclat WM manté la seva llista de tasques pendents i una llista de tasques a l\'aplicació de tasques sincronitzades: les tasques, els seus passos, les marques i les dates de venciment, en ambdues direccions. El permís cobreix totes les llistes de tasques de l\'aplicació. El teclat només llegeix les llistes de l\'aplicació perquè puguis triar-ne una, i només llegeix i escriu la llista que has triat. El teclat no envia res enlloc. DAVx5, si l\'utilitzes, sincronitza aquesta llista amb el teu propi servidor CalDAV. Sense aquest permís, la llista de tasques pendents es queda en aquest telèfon.</string>
+    <string name="common_permission_tasks_opentasks_title">Accés a OpenTasks per a la llista de tasques pendents</string>
+    <string name="common_permission_tasks_tasks_org_title">Accés de Tasks.org per a la llista de tasques</string>
+    <string name="common_preview_scale_desc">Mida de la vista prèvia</string>
+    <string name="common_preview_scale_larger">Augmenta la vista prèvia</string>
+    <string name="common_preview_scale_smaller">Fes la vista prèvia més petita</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Elimina</string>
     <string name="common_reset">Restableix</string>
     <string name="common_reset_defaults">Restableix els valors predeterminats</string>

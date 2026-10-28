@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,6 +49,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.tools.WikipediaClient
 import com.wasimaster.wmkeyboard.ime.WikiUi
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
 
@@ -158,7 +158,8 @@ private fun WikipediaPanel(
             }
             is WikiUi.SearchResults -> {
                 if (wiki.results.isEmpty()) {
-                    WikiMessage(stringResource(R.string.ime_wiki_no_results_empty, wiki.query))
+                    // An offline Wikipedia such as Kiwix may have it (#970).
+                    WikiMessage(stringResource(R.string.ime_wiki_no_results_empty, wiki.query), lookupWord = wiki.query)
                 } else {
                     // Published from inside this branch, so the panel-local tab
                     // state never has to be hoisted to say what is on screen.
@@ -364,8 +365,13 @@ private fun WikiArticle(
             Spacer(Modifier.width(8.dp))
             AskAiChip(askLabel) { AskAiContext.wikipedia(wiki.summary, wiki.fullText) }
             CopyTextChip {
-                (wiki.fullText?.takeIf { it.isNotBlank() } ?: wiki.summary.extract).trim() + "\n\n" + wiki.summary.url
+                // Formulas written out in Unicode: a text field cannot typeset TeX (#937).
+                WikipediaClient.plainMath(
+                    (wiki.fullText?.takeIf { it.isNotBlank() } ?: wiki.summary.extract).trim(),
+                ) + "\n\n" + wiki.summary.url
             }
+            // The article in an offline reader such as Kiwix or Aard 2 (#970).
+            LookupAppChip { wiki.summary.title }
         }
         when (tab) {
             WikiTab.SUMMARY -> LazyColumn(
@@ -482,6 +488,23 @@ private fun WikiArticle(
                     val paragraphs = wiki.fullText.split("\n\n").filter { it.isNotBlank() }
                     items(paragraphs.size) { index ->
                         val paragraph = paragraphs[index]
+                        // A paragraph with a formula in it is typeset, the
+                        // way a chat answer's maths is (#937); what it
+                        // inserts has the formula written out in Unicode.
+                        if (WikipediaClient.hasMath(paragraph)) {
+                            ChatMarkdown(
+                                paragraph,
+                                ChatMarkdownColors(text = kb.modifierKeyText, dim = kb.secondaryText, codeBackground = kb.chip),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                fontSize = 13.sp,
+                                onBlockTap = { onInsert(WikipediaClient.plainMath(paragraph)) },
+                                selectable = true,
+                                ask = ask,
+                            )
+                            return@items
+                        }
                         SelectableText(
                             paragraph,
                             color = if (paragraph.startsWith("==")) kb.accent else kb.modifierKeyText,
@@ -502,8 +525,12 @@ private fun WikiArticle(
 }
 
 @Composable
-private fun WikiMessage(text: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+private fun WikiMessage(text: String, lookupWord: String? = null) {
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text,
             color = LocalKbTheme.current.secondaryText,
@@ -511,5 +538,6 @@ private fun WikiMessage(text: String) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
+        if (lookupWord != null) LookupAppChip(Modifier.padding(top = 8.dp)) { lookupWord }
     }
 }

@@ -43,6 +43,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataObject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
@@ -118,6 +119,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.WordCardAction
 import java.util.TimeZone
 
 /**
@@ -137,6 +139,8 @@ data class SelectionMacroCallbacks(
     val onPick: (SelectionMacro, String, String) -> Unit = { _, _, _ -> },
     /** One of the AI buttons drawn after the AI chip: the action's id. */
     val onAiAction: (String) -> Unit = {},
+    /** Something on the word card Edit word opened was pressed, as on the strip's own card. */
+    val onWordCard: (WordCardAction) -> Unit = {},
 )
 
 /** Which sub-row has replaced the bar, if any. */
@@ -177,6 +181,14 @@ internal fun SelectionMacroBar(
     modifier: Modifier = Modifier,
 ) {
     val offer = state.selectionMacros ?: return
+    // The card Edit word opens. The strip hosts the card it opens itself, but
+    // with text selected the strip may not be on screen at all (the strip
+    // placement draws this bar in its place), so the bar hosts its own. The
+    // service closes it once the selection moves off the word.
+    WordCardPopup(
+        card = state.wordCard?.takeIf { it.fromSelection && state.wordSpell == null },
+        onAction = callbacks.onWordCard,
+    )
     // A door chip (Format on prose, Fancy, Colour, Zones) opens a ladder in
     // place of the row, so which face the bar shows is composition state.
     //
@@ -274,6 +286,7 @@ internal fun SelectionMacroBar(
                                 reduceMotion = !motion,
                                 app = if (macro == SelectionMacro.OPEN) linkApp else null,
                                 iconOnly = macro in state.settings.selectionMacros.iconOnly,
+                                customLabel = state.settings.selectionMacros.labels[macro],
                                 onClick = {
                                     feedback()
                                     // The doors the service never sees: on prose
@@ -313,12 +326,20 @@ private fun barItems(macros: List<SelectionMacro>, aiDirect: List<AiActionSpec>)
 private fun colourChoices(colour: Colour): List<Pair<String, String>> =
     ColourCodes.ladder(colour).map { form -> form.name to ColourCodes.render(colour, form) }
 
-/** The moment in each of the user's zones, minus the one it was read in. */
+/**
+ * The moment in each of the user's zones, minus the one it was read in: in
+ * their order, or earliest there first when they asked for that (#970).
+ */
 private fun zoneChoices(hit: DateTimeHit, settings: KeyboardSettings, hour24: Boolean): List<Pair<String, String>> {
     val now = System.currentTimeMillis()
-    return settings.selectionMacros.effectiveTimeZones(TimeZone.getDefault().id)
+    val zones = settings.selectionMacros.effectiveTimeZones(TimeZone.getDefault().id)
         .filter { it != hit.zoneId }
-        .map { id -> id to DateTimes.renderInZone(hit.startMillis, id, hit.zoneId, hit.hasDate, hour24, now) }
+    val ordered = if (settings.selectionMacros.sortZonesByTime) {
+        zones.sortedBy { TimeZone.getTimeZone(it).getOffset(hit.startMillis) }
+    } else {
+        zones
+    }
+    return ordered.map { id -> id to DateTimes.renderInZone(hit.startMillis, id, hit.zoneId, hit.hasDate, hour24, now) }
 }
 
 /**
@@ -459,11 +480,17 @@ private fun MacroChip(
     reduceMotion: Boolean,
     app: MacroLinkApp? = null,
     iconOnly: Boolean = false,
+    /** The user's own name for it (#970), or null for the shipped word. */
+    customLabel: String? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.chipShape()
-    val label = if (speaking) stringResource(R.string.ime_selection_macro_stop_label) else stringResource(macro.labelRes)
+    val label = if (speaking) {
+        stringResource(R.string.ime_selection_macro_stop_label)
+    } else {
+        customLabel ?: stringResource(macro.labelRes)
+    }
     val icon = if (speaking) Icons.Outlined.StopCircle else selectionMacroIcon(macro)
     // Its icon alone when asked for (#679), so long as it has something to
     // show in place of the word; the description still names it.
@@ -473,66 +500,70 @@ private fun MacroChip(
         app != null -> stringResource(R.string.ime_selection_macro_open_in_desc, app.name)
         else -> label
     }
-    Row(
-        modifier = Modifier
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(kb.chipActive)
-            .chipBorder(kb, shape)
-            .clickable(enabled = !busy, onClick = onClick)
-            // A bare icon stands as tall as a worded chip beside it.
-            .padding(horizontal = 10.dp, vertical = if (bare) 8.dp else 6.dp)
-            .semantics { contentDescription = description },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when {
-            busy && reduceMotion -> Icon(
-                Icons.Outlined.HourglassEmpty,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = kb.chipActiveText,
-            )
-            busy -> CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-                color = kb.chipActiveText,
-            )
-            swatch != null -> Spacer(
-                Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(swatch)
-                    .border(1.dp, kb.chipActiveText.copy(alpha = 0.4f), CircleShape),
-            )
-            app != null -> Image(
-                bitmap = app.icon,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-            icon != null -> Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = kb.chipActiveText,
-            )
-        }
-        if (!bare) {
-            if (busy || swatch != null || app != null || icon != null) Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                color = kb.chipActiveText,
-                maxLines = 1,
-            )
-        }
-        if (app != null && !busy) {
-            Spacer(Modifier.width(3.dp))
-            Icon(
-                Icons.Outlined.ArrowOutward,
-                contentDescription = null,
-                modifier = Modifier.size(12.dp),
-                tint = kb.chipActiveText.copy(alpha = 0.7f),
-            )
+    // A bare icon is named by a hold, the way the toolbar's are (#970); a chip
+    // that wears its word has nothing to add.
+    IconHint(description.takeIf { bare }) {
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background(kb.chipActive)
+                .chipBorder(kb, shape)
+                .clickable(enabled = !busy, onClick = onClick)
+                // A bare icon stands as tall as a worded chip beside it.
+                .padding(horizontal = 10.dp, vertical = if (bare) 8.dp else 6.dp)
+                .semantics { contentDescription = description },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            when {
+                busy && reduceMotion -> Icon(
+                    Icons.Outlined.HourglassEmpty,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.chipActiveText,
+                )
+                busy -> CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = kb.chipActiveText,
+                )
+                swatch != null -> Spacer(
+                    Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(swatch)
+                        .border(1.dp, kb.chipActiveText.copy(alpha = 0.4f), CircleShape),
+                )
+                app != null -> Image(
+                    bitmap = app.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                icon != null -> Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.chipActiveText,
+                )
+            }
+            if (!bare) {
+                if (busy || swatch != null || app != null || icon != null) Spacer(Modifier.width(6.dp))
+                Text(
+                    text = label,
+                    fontSize = 14.sp,
+                    color = kb.chipActiveText,
+                    maxLines = 1,
+                )
+            }
+            if (app != null && !busy) {
+                Spacer(Modifier.width(3.dp))
+                Icon(
+                    Icons.Outlined.ArrowOutward,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                    tint = kb.chipActiveText.copy(alpha = 0.7f),
+                )
+            }
         }
     }
 }
@@ -639,6 +670,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.GRAMMAR_FIX -> Icons.Outlined.Spellcheck
     SelectionMacro.DEEPL_WRITE -> Icons.Outlined.EditNote
     SelectionMacro.AI -> Icons.Outlined.AutoFixHigh
+    SelectionMacro.EDIT_WORD -> Icons.Outlined.Edit
     SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
     SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
     -> Icons.Outlined.Language

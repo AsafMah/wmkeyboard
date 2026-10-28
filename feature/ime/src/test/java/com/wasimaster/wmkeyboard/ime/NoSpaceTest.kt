@@ -17,8 +17,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 
 /**
- * No space (#851): the keyboard's own space after a word comes back out, the
- * next glided word joins on, and a space the user typed is never touched.
+ * No space (#851): the keyboard's own space after a word comes back out, and
+ * the next glided word joins on. So does a space the user typed after a word
+ * (#939).
  */
 @RunWith(RobolectricTestRunner::class)
 class NoSpaceTest {
@@ -59,13 +60,47 @@ class NoSpaceTest {
     }
 
     @Test
-    fun `a space the user typed stays`() {
+    fun `a space the user typed after a word comes back out too`() {
         val (service, editor) = keyboard()
         "foo".forEach { service.onText(it.toString()) }
         service.onKey(space)
-        val typed = editor.text.toString()
+        assertEquals("foo ", editor.text.toString())
         service.noSpace()
-        assertEquals(typed, editor.text.toString())
+        assertEquals("foo", editor.text.toString())
+        service.glide("ball")
+        assertEquals("fooball ", editor.text.toString())
+    }
+
+    @Test
+    fun `a space after a mark stays`() {
+        val (service, editor) = keyboard(initial = "foo. ")
+        service.noSpace()
+        assertEquals("foo. ", editor.text.toString())
+    }
+
+    // ---- Pressed as a key, through the same path a tap or flick takes (#939) ----
+
+    private fun GlideKeyboard.noSpaceKey() = onKey(Key("", action = KeyAction.Edit(TextEditAction.NO_SPACE)))
+
+    private fun GlideKeyboard.noSpaceNextKey() = onKey(Key("", action = KeyAction.Edit(TextEditAction.NO_SPACE_NEXT)))
+
+    @Test
+    fun `the key takes the glide's space back out, and the next glide joins on`() {
+        val (service, editor) = keyboard()
+        service.glide("foot")
+        service.noSpaceKey()
+        assertEquals("foot", editor.text.toString())
+        service.glide("ball")
+        assertEquals("football ", editor.text.toString())
+    }
+
+    @Test
+    fun `the hold's key joins the next glide on`() {
+        val (service, editor) = keyboard()
+        service.glide("foot")
+        service.noSpaceNextKey()
+        service.glide("ball")
+        assertEquals("football ", editor.text.toString())
     }
 
     @Test

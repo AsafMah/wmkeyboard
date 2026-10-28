@@ -38,6 +38,7 @@ internal fun DictionaryTranslationsGroup(repository: SettingsRepository, setting
     SettingsGroup(
         stringResource(R.string.tooldetail_dictionary_translations_group),
         info = stringResource(R.string.tooldetail_dictionary_translations_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ToggleSetting(

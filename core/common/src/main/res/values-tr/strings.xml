@@ -26,6 +26,7 @@
     <string name="common_default">Varsayılan</string>
     <string name="common_delete">Sil</string>
     <string name="common_disable">Kapat</string>
+    <string name="common_disabled_open_setting">Ayarı aç</string>
     <string name="common_disclosure_blocked_body">Android, izni daha önce reddettiğiniz için bu isteği artık göstermiyor. Yine de uygulama ayarları ekranından açabilirsiniz.</string>
     <string name="common_disclosure_not_now">Şimdi değil</string>
     <string name="common_done">Bitti</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Yükle</string>
     <string name="common_installing">Yükleniyor…</string>
     <string name="common_loading">Yükleniyor…</string>
+    <string name="common_more">Daha fazla</string>
     <string name="common_next">İleri</string>
     <string name="common_none">Hiçbiri</string>
     <string name="common_notify_channel_backup_body">Sadece otomatik yedekleme başarısız olduğunda. Başarılı yedeklemeler sessizdir.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Bildirimleri göster</string>
     <string name="common_permission_storage_body">Android 9 ve daha eski sürümlerde, klavyenin galerinize bir resim kaydetmesi için depolama iznine ihtiyacı vardır. Eski Android izni, depolama alanınızı okumayı da kapsar. Klavye yalnızca kaydetmesini istediğiniz resmi yazar. Klavye hiçbir şey okumaz ve hiçbir şey yüklemez. Daha yeni Android sürümleri bu izne ihtiyaç duymaz.</string>
     <string name="common_permission_storage_title">Galerinize kaydetmek için depolama erişimi</string>
+    <string name="common_permission_tasks_body">WM Klavye, yapılacaklar listesini ve görev uygulamasındaki bir görev listesini aynı tutar: görevler, adımları, işaretleri ve son tarihleri her iki yönde de senkronize edilir. İzin, uygulamadaki her görev listesini kapsar. Klavye, yalnızca bir liste seçebilmeniz için uygulamanın listelerini okur ve yalnızca seçtiğiniz listeyi okuyup yazar. Klavye hiçbir yere hiçbir şey göndermez. Eğer kullanıyorsanız, DAVx5 bu listeyi kendi CalDAV sunucunuzla senkronize eder. Bu izin olmadan, yapılacaklar listesi bu telefonda kalır.</string>
+    <string name="common_permission_tasks_opentasks_title">Yapılacaklar listesi için OpenTasks erişimi</string>
+    <string name="common_permission_tasks_tasks_org_title">Yapılacaklar listesi için Tasks.org erişimi</string>
+    <string name="common_preview_scale_desc">Önizleme boyutu</string>
+    <string name="common_preview_scale_larger">Önizlemeyi büyüt</string>
+    <string name="common_preview_scale_smaller">Önizlemeyi küçült</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Kaldır</string>
     <string name="common_reset">Sıfırla</string>
     <string name="common_reset_defaults">Varsayılanlara sıfırla</string>

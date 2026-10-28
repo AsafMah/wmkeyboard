@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">కాపీ చేయి</string>
     <string name="core_content_selection_macro_deepl_write">DeepL రైట్</string>
     <string name="core_content_selection_macro_digits_latin">అంకెలు</string>
+    <string name="core_content_selection_macro_edit_word">పదాన్ని సవరించు</string>
     <string name="core_content_selection_macro_email">ఈమెయిల్</string>
     <string name="core_content_selection_macro_fancy">ఫ్యాన్సీ</string>
     <string name="core_content_selection_macro_find">కనుగొను</string>

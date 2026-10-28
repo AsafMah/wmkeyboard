@@ -8,6 +8,8 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackAdoption
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+import com.wasimaster.wmkeyboard.core.stickers.StagedStickerPack
+import com.wasimaster.wmkeyboard.core.stickers.StickerStageResult
 import java.io.InputStream
 import java.util.zip.ZipInputStream
 
@@ -117,9 +119,10 @@ object WaStickersFile {
 
     /**
      * Reads a pack out of [input] and registers it with [store] under a fresh
-     * id. [defaultName] names a pack whose `title.txt` is missing or blank;
-     * the caller resolves it, because this runs with no context of its own.
-     * [normalize] is [StickerImage] unless a test says otherwise.
+     * id, every sticker in it kept: [stage] with nobody to ask. [defaultName]
+     * names a pack whose `title.txt` is missing or blank; the caller resolves
+     * it, because this runs with no context of its own. [normalize] is
+     * [StickerImage] unless a test says otherwise.
      */
     fun import(
         input: InputStream,
@@ -129,32 +132,53 @@ object WaStickersFile {
         normalize: (ByteArray) -> ProcessedSticker? = { bytes ->
             (StickerImage.process(bytes) as? StickerImage.Result.Ok)?.sticker
         },
-    ): StickerImportResult {
-        val staging = store.stagingDir() ?: return StickerImportResult.Failed
+    ): StickerImportResult = when (val staged = stage(input, store, defaultName, now)) {
+        is StickerStageResult.Ready -> staged.pack.adopt(store, staged.pack.everything(), now, normalize)
+        is StickerStageResult.Done -> staged.result
+    }
+
+    /**
+     * Reads a pack out of [input] as far as its pictures, for the user to pick
+     * from before anything is converted (#965). Blocking.
+     */
+    fun stage(
+        input: InputStream,
+        store: StickerPackStore,
+        defaultName: String,
+        now: Long = System.currentTimeMillis(),
+    ): StickerStageResult {
+        val staging = store.stagingDir() ?: return StickerStageResult.Done(StickerImportResult.Failed)
+        var handedOver = false
         try {
             val unpacked = StickerArchive.unpack(input, staging, texts = TEXT_ENTRIES)
             if (!unpacked.read && unpacked.files.isEmpty() && unpacked.texts.isEmpty()) {
-                return StickerImportResult.Failed
+                return StickerStageResult.Done(StickerImportResult.Failed)
             }
             if (!looksLikeWaStickers(unpacked.files.keys + unpacked.texts.keys)) {
-                return StickerImportResult.NotAStickerPack
+                return StickerStageResult.Done(StickerImportResult.NotAStickerPack)
             }
-            val incoming = stickerEntries(unpacked.files.keys).map { name ->
-                StickerPackAdoption.Incoming(
-                    label = StickerArchive.tailOf(name).substringBeforeLast('.'),
-                    read = { unpacked.files[name]?.readBytes() },
+            val stickers = stickerEntries(unpacked.files.keys).map { name ->
+                val file = unpacked.files[name]
+                StagedStickerPack.Sticker(
+                    incoming = StickerPackAdoption.Incoming(
+                        label = StickerArchive.tailOf(name).substringBeforeLast('.'),
+                        read = { file?.readBytes() },
+                    ),
+                    file = file,
                 )
             }
-            return StickerPackAdoption.adopt(
-                store = store,
+            val pack = StagedStickerPack(
                 name = titleOf(unpacked.texts[TITLE_ENTRY]).ifBlank { defaultName },
-                incoming = incoming,
-                now = now,
+                author = titleOf(unpacked.texts[AUTHOR_ENTRY]),
                 source = StickerPack.whatsappSource(),
-                normalize = normalize,
+                stickers = stickers,
+                staging = staging,
             )
+            handedOver = true
+            if (pack.pickable.isEmpty()) return StickerStageResult.Done(pack.adopt(store, emptySet(), now))
+            return StickerStageResult.Ready(pack)
         } finally {
-            staging.deleteRecursively()
+            if (!handedOver) staging.deleteRecursively()
         }
     }
 

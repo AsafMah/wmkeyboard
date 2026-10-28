@@ -49,8 +49,27 @@ sealed interface FloatingAction {
         override val token get() = "$TOOL_PREFIX${tool.name}"
     }
 
+    /**
+     * Opens an app (#922), by its package: whatever its launcher entry is
+     * when pressed, so an update that renames the entry keeps working.
+     */
+    data class App(val packageName: String) : FloatingAction {
+        override val token get() = "$APP_PREFIX$packageName"
+    }
+
+    /**
+     * Opens one of the button's categories (#923): a ring of its own, in
+     * place of the one it sits in, that a hold can slide on into. Its name
+     * and slots live in [SummonButtonSettings.categories], under [id].
+     */
+    data class Category(val id: String) : FloatingAction {
+        override val token get() = "$CATEGORY_PREFIX$id"
+    }
+
     companion object {
         private const val TOOL_PREFIX = "tool:"
+        private const val APP_PREFIX = "app:"
+        private const val CATEGORY_PREFIX = "category:"
 
         /** The token's action, or null for one this build does not know. */
         fun parse(token: String): FloatingAction? = when (token) {
@@ -60,11 +79,23 @@ sealed interface FloatingAction {
             LookUp.token -> LookUp
             Menu.token -> Menu
             Hide.token -> Hide
-            else -> token.removePrefix(TOOL_PREFIX)
-                .takeIf { token.startsWith(TOOL_PREFIX) }
-                ?.let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
-                ?.let(::Tool)
+            else -> when {
+                token.startsWith(TOOL_PREFIX) -> token.removePrefix(TOOL_PREFIX)
+                    .let { name -> ToolbarTool.entries.firstOrNull { it.name == name } }
+                    ?.let(::Tool)
+                token.startsWith(APP_PREFIX) -> token.removePrefix(APP_PREFIX)
+                    .takeIf { it.isPackageName() }
+                    ?.let(::App)
+                token.startsWith(CATEGORY_PREFIX) -> token.removePrefix(CATEGORY_PREFIX)
+                    .takeIf { it.isNotEmpty() && it.none { c -> c == ',' || c.isWhitespace() } }
+                    ?.let(::Category)
+                else -> null
+            }
         }
+
+        /** Letters, digits, `_` and dots, as Android allows a package's name; nothing a menu token splits on. */
+        private fun String.isPackageName(): Boolean =
+            isNotEmpty() && '.' in this && all { it.isLetterOrDigit() || it == '_' || it == '.' }
 
         /** A stored quick menu: the slots this build still knows, in order, each once. */
         fun parseMenu(stored: String): List<FloatingAction> =
@@ -81,6 +112,9 @@ sealed interface FloatingAction {
 
 /** A quick menu slot cannot open the menu it sits in, nor do nothing. */
 fun FloatingAction.fitsMenu(): Boolean = this != FloatingAction.None && this != FloatingAction.Menu
+
+/** A category's slot is anything a menu slot can be but another category: one level deep (#923). */
+fun FloatingAction.fitsCategory(): Boolean = fitsMenu() && this !is FloatingAction.Category
 
 /** How many slots the quick menu fans out; past this the ring stops reading as a ring. */
 const val MAX_FLOATING_MENU_ITEMS = 8
@@ -105,8 +139,46 @@ enum class FloatingButtonStyle {
     ACCENT,
 }
 
+/**
+ * The button's outline (#933). Its quick menu's slots take the same one, so
+ * the ring reads as the button's. [CIRCLE] is the button as it always was.
+ */
+enum class FloatingButtonShape {
+    CIRCLE,
+    SQUIRCLE,
+    ROUNDED_SQUARE,
+    OVAL,
+    DIAMOND,
+    PENTAGON,
+    HEXAGON,
+    OCTAGON,
+    STAR,
+    HEART,
+}
+
+/** How the quick menu's slots, and a category's, come out of the button (#923). */
+enum class FloatingMenuAnimation {
+    /** Each slot springs out from the button a moment after the one before: the menu as it always was. */
+    SPRING,
+
+    /** Each slot grows where it sits, one after another. */
+    POP,
+
+    /** The ring swings round into place from the button's side. */
+    SWEEP,
+
+    /** The whole ring fades in where it sits. */
+    FADE,
+
+    /** There at once. */
+    NONE,
+}
+
 /** The size slider's range, in dp. */
 val FloatingButtonSizeRange = 40..72
+
+/** How far a ring's slots stand off the button's edge, in dp (#923). */
+val FloatingMenuGapRange = 8..96
 
 /** How long the button waits before fading, in seconds; 0 never fades. */
 val FloatingButtonIdleRange = 0..10

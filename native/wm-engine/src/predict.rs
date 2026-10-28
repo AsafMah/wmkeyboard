@@ -13,10 +13,12 @@
 //! taught ([`CorrectionMemory`]) are held in memory here; storing them is
 //! the caller's business.
 
+pub use crate::confidence::{self, Case, Confidence};
 pub use crate::correction_memory::{CorrectionMemory, LearnedHabits};
 pub use crate::correction_stats::{CorrectionStats, Penalty, UndoMemory};
 use crate::freq_codec;
-use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, WalkSource, Workspace};
+use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
+pub use crate::lm::{Prefix as LmPrefix, Session as LmSession};
 pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 use crate::proximity::KeyProximity;
 use crate::wmdict::{self, Dict, PackedTrie};
@@ -38,6 +40,10 @@ pub fn is_sentinel(word: &str) -> bool {
 const USER_WORD_WEIGHT: f64 = 500.0;
 const CUSTOM_WORD_WEIGHT: f64 = 100.0;
 const SECONDARY_WORD_WEIGHT: f64 = 40.0;
+/// How many one-edit words a known word keeps on the strip (`known_word_slips`).
+const KNOWN_WORD_SLIPS: usize = 2;
+/// Nats a known word's slip stays under it at best: ln 2, half as likely.
+const KNOWN_WORD_SLIP_GAP: f64 = std::f64::consts::LN_2;
 const SECONDARY_SCALE_SHARE: f64 = 0.5;
 const REFERENCE_TOP_FREQUENCY: f64 = 10_000.0;
 const SCALE_TOLERANCE: f64 = 1.01;
@@ -104,6 +110,25 @@ const MIN_USER_COUNT: i32 = 3;
 const MIN_CORPUS_COUNT: i32 = 25;
 /// Share lead a mix language needs to be the field's language.
 const DETECTED_MARGIN: f64 = 0.34;
+
+/// How autocorrect treats a word read with several slips: the phone's
+/// `SlipFixes`. Off reads no slips, Careful never applies a reading that
+/// mixes slips with a real edit, Eager does.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SlipFixes {
+    Off,
+    #[default]
+    Careful,
+    Eager,
+}
+
+/// A tap per typed character, in key widths, `None` where unknown.
+pub type Taps = Vec<Option<(f32, f32)>>;
+
+pub use crate::rerank::{lm_blend_for, LM_BLEND, LM_BLEND_CAP, LM_BLEND_SLOPE, LM_CAP, LM_WEIGHT};
+/// The least likely a next word may be, in log-probability, for the model
+/// to offer it on an empty buffer.
+pub const LM_NEXT_WORD_FLOOR: f32 = -8.0;
 
 /// The register of the field being typed into: chat-speak rises in a
 /// messaging app and sinks in email. Neutral changes nothing.
@@ -647,6 +672,34 @@ pub struct Predictor {
     /// How far that detection may shift the mix; 0 is off. See
     /// [`crate::language_mix::FIELD_SHIFT_BALANCED`].
     pub field_detection_shift: f64,
+    /// The layout's key centres, for the taps a word was typed with
+    /// ([`Self::suggest_touch`], [`Self::decide_touch`]); none reads the
+    /// typed letters alone.
+    pub touch: Option<TouchModel>,
+    pub slip_fixes: SlipFixes,
+    /// The neural context model (`lm`), reading the words set by
+    /// [`Self::set_lm_context`]; none leaves the n-gram stores alone in charge.
+    pub lm: Option<RefCell<LmSession>>,
+    pub lm_prefix: LmPrefix,
+    pub lm_weight: f64,
+    pub lm_cap: f64,
+    /// Whether the model's likeliest next words join the empty-buffer strip.
+    pub lm_next_words: bool,
+    /// The model's say on the typed word's candidates in score space, before
+    /// ranking: `lm_blend` engine nats per nat of its preference over the
+    /// engine's own first choice, within `lm_blend_cap`. The engine's unit is
+    /// the compressed frequency scale (`ln(1 + f)` of a log-scaled count), so
+    /// one of its nats is worth several of the model's; 0 is off.
+    pub lm_blend: f64,
+    pub lm_blend_cap: f64,
+    /// How the blend grows with the taps' spread; see [`lm_blend_for`].
+    pub lm_blend_slope: f64,
+    /// The learned autocorrect gate; none keeps the margin gate.
+    pub confidence: Option<Confidence>,
+    /// What the gate saw on the last decision with a candidate, and that
+    /// candidate: the typing harness reads them to fit the gate.
+    pub last_case: RefCell<Option<(Case, String)>>,
+    taps: RefCell<Taps>,
     ws: RefCell<Workspace>,
 }
 
@@ -683,6 +736,24 @@ impl Default for Predictor {
             apostrophe_fixes: true,
             field_mix: FieldLanguageMix::default(),
             field_detection_shift: 0.0,
+            touch: None,
+            slip_fixes: SlipFixes::Careful,
+            lm: None,
+            lm_prefix: LmPrefix::default(),
+            // The rank-unit term is off: measured 2026-10-26 (typing harness,
+            // 1,200 careful/fast/sloppy words), the score-space blend below at
+            // 0.2 / 1.0 beat it on every profile (+0.8, +0.4, +1.8 points of
+            // strip top-1 over the rank term at 0.25 / 1.5) and the two
+            // together lost to the blend alone.
+            lm_weight: 0.0,
+            lm_cap: LM_CAP,
+            lm_next_words: true,
+            lm_blend: LM_BLEND,
+            lm_blend_cap: LM_BLEND_CAP,
+            lm_blend_slope: LM_BLEND_SLOPE,
+            confidence: None,
+            last_case: RefCell::new(None),
+            taps: RefCell::new(Vec::new()),
             ws: RefCell::new(Workspace::new()),
         }
     }
@@ -975,16 +1046,102 @@ impl Predictor {
     ) -> Vec<ScoredCandidate> {
         let k = (limit * 2).max(WALK_K);
         let sources = self.walk_sources();
-        let walked = fuzzy::search(
+        let typed: Vec<u16> = lower.encode_utf16().collect();
+        let taps = self.taps.borrow();
+        let scoring = match &self.touch {
+            Some(model) if taps.len() == typed.len() && taps.iter().any(Option::is_some) => {
+                Some(TouchScoring::new(model, taps.clone()))
+            }
+            _ => None,
+        };
+        let walked = fuzzy::search_units(
             &sources,
-            lower,
+            &typed,
             &self.proximity,
             k / 2,
             &mut self.ws.borrow_mut(),
-            None,
+            fuzzy::default_max_edits(typed.len()),
+            scoring.as_ref(),
             habits,
-        );
+            None,
+        )
+        .into_iter()
+        .map(|c| ScoredCandidate {
+            word: String::from_utf16_lossy(&c.word),
+            score: c.score,
+            edit_cost: c.edit_cost,
+            edits: c.edits,
+            completed_chars: c.completed_chars,
+            tier: c.tier,
+            dict_score: c.dict_score,
+            user_score: c.user_score,
+            accents: c.accents,
+            slips: c.slips,
+        })
+        .collect();
         self.damp_mismatched_languages(walked)
+    }
+
+    /// [`Self::suggest`] for a word typed with `taps`, one per character.
+    pub fn suggest_touch(&mut self, composing: &str, previous: &[&str], limit: usize, taps: &[Option<(f32, f32)>]) -> Vec<String> {
+        *self.taps.borrow_mut() = taps.to_vec();
+        let out = self.suggest(composing, previous, limit);
+        self.taps.borrow_mut().clear();
+        out
+    }
+
+    /// [`Self::decide_after`] for a word typed with `taps`, one per character.
+    pub fn decide_touch(&mut self, word: &str, timing: f64, previous: Option<&str>, taps: &[Option<(f32, f32)>]) -> Decision {
+        *self.taps.borrow_mut() = taps.to_vec();
+        let out = self.decide_after(word, timing, previous);
+        self.taps.borrow_mut().clear();
+        out
+    }
+
+    /// The words before the caret, oldest first, for the context model: the
+    /// sentence so far (the caller starts a new list at each sentence end).
+    pub fn set_lm_context(&self, words: &[&str]) {
+        if let Some(lm) = &self.lm {
+            lm.borrow_mut().set_context(self.lm_prefix, words);
+        }
+    }
+
+    /// The mean distance of the current word's taps to the nearest key
+    /// centre, in key widths: how little the keys say. `None` without taps.
+    fn tap_spread(&self) -> Option<f64> {
+        let model = self.touch.as_ref()?;
+        let taps = self.taps.borrow();
+        let distances: Vec<f64> = taps.iter().filter_map(|t| t.and_then(|p| model.nearest_distance(p))).collect();
+        if distances.is_empty() {
+            None
+        } else {
+            Some(distances.iter().sum::<f64>() / distances.len() as f64)
+        }
+    }
+
+    /// ln P(`word` next) from the context model, when it has one.
+    /// ln P(`word` next) for a word the model lists, `None` otherwise: the
+    /// per-keystroke question (blend, rerank, the gate's candidates).
+    fn lm_logprob(&self, word: &str) -> Option<f32> {
+        self.lm.as_ref().and_then(|lm| lm.borrow_mut().logprob_listed(word))
+    }
+
+    /// ln P(`word` next) with unknown words spelled in pieces: once per
+    /// commit, for the typed word the gate judges.
+    fn lm_logprob_pieces(&self, word: &str) -> Option<f32> {
+        self.lm.as_ref().and_then(|lm| lm.borrow_mut().logprob(word))
+    }
+
+    /// The context model's rank for `word` here and the entropy of its
+    /// next-word distribution; `None`s without a model.
+    fn lm_gate_view(&self, word: &str) -> (Option<u32>, Option<f32>) {
+        match &self.lm {
+            Some(lm) => {
+                let mut s = lm.borrow_mut();
+                (s.rank_of(word), Some(s.entropy()))
+            }
+            None => (None, None),
+        }
     }
 
     /// Learned-only words tagged with another language yield to this one's.
@@ -1077,6 +1234,29 @@ impl Predictor {
 
     // ---- the strip ----
 
+    /// A known word's nearest slips, below it on the strip (#979): up to
+    /// `KNOWN_WORD_SLIPS` one-edit words, best first, each at its own score
+    /// but never above `KNOWN_WORD_SLIP_GAP` under the word typed. The phone's
+    /// `SuggestionEngine.knownWordSlips`; autocorrect still leaves the word alone.
+    fn known_word_slips(&self, lower: &str, walked: &[ScoredCandidate]) -> Vec<(String, f64)> {
+        let Some(typed) = walked
+            .iter()
+            .find(|c| c.edits == 0 && c.completed_chars == 0 && c.word.to_lowercase() == lower)
+            .map(|c| c.score)
+        else {
+            return Vec::new();
+        };
+        let ceiling = typed - KNOWN_WORD_SLIP_GAP;
+        let key = key_of(lower);
+        walked
+            .iter()
+            .filter(|c| c.edits == 1 && c.completed_chars == 0 && key_of(&c.word) != key)
+            .filter(|c| !self.suppressed(&c.word))
+            .take(KNOWN_WORD_SLIPS)
+            .map(|c| (c.word.clone(), c.score.min(ceiling)))
+            .collect()
+    }
+
     /// The strip for `composing`, `previous` nearest first. Next words when
     /// nothing is being typed.
     pub fn suggest(&mut self, composing: &str, previous: &[&str], limit: usize) -> Vec<String> {
@@ -1093,7 +1273,13 @@ impl Predictor {
             let e = merged.entry(w).or_insert(f64::NEG_INFINITY);
             *e = e.max(s);
         };
-        for c in self.ranked(&lower, limit) {
+        let walked = self.ranked(&lower, limit);
+        if known {
+            for (word, score) in self.known_word_slips(&lower, &walked) {
+                put(&mut merged, word, score);
+            }
+        }
+        for c in walked {
             if c.edits > 0 && known {
                 continue;
             }
@@ -1106,6 +1292,26 @@ impl Predictor {
         }
         if let Some((spelling, score, _)) = self.apostrophe_reading(&lower) {
             put(&mut merged, spelling, score);
+        }
+        // The context model in score space: each candidate the model knows
+        // moves by its preference over the engine's current leader, so a
+        // "by" the keys explain as well as "buy" gives way after "want to"
+        // while a far-fetched candidate the model likes cannot climb over the
+        // keys' evidence. Bounded, and silent when the leader is unknown.
+        if self.lm_blend > 0.0 && self.lm.is_some() && merged.len() > 1 {
+            let leader = merged.iter().max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(Ordering::Equal)).map(|(w, _)| w.clone());
+            if let Some(reference) = leader.and_then(|w| self.lm_logprob(&w)) {
+                let weight = lm_blend_for(self.lm_blend, self.lm_blend_slope, self.tap_spread());
+                let shifts: Vec<(String, f64)> = merged
+                    .keys()
+                    .filter_map(|w| self.lm_logprob(w).map(|lp| (w.clone(), (weight * (lp - reference) as f64).clamp(-self.lm_blend_cap, self.lm_blend_cap))))
+                    .collect();
+                for (w, shift) in shifts {
+                    if let Some(score) = merged.get_mut(&w) {
+                        *score += shift;
+                    }
+                }
+            }
         }
         if let Some(prev) = previous.first().map(|p| p.to_lowercase()) {
             let prev2 = previous.get(1).map(|p| p.to_lowercase());
@@ -1219,7 +1425,24 @@ impl Predictor {
         let term = |weight: f64, count: i32, cap: f64| {
             (weight * (1.0 + count.max(0) as f64).ln()).min(cap)
         };
-        let mut any = false;
+        // The context model's say: how much more (or less) it expects each
+        // candidate than the engine's own first choice, in ranks, capped.
+        // A word it does not know moves nothing, and neither does anything
+        // when it does not know the leader.
+        let lm_terms: Option<Vec<f64>> = self.lm.as_ref().and_then(|_| {
+            let scores: Vec<Option<f32>> = candidates.iter().map(|w| self.lm_logprob(w)).collect();
+            let reference = scores.first().copied().flatten()?;
+            Some(
+                scores
+                    .iter()
+                    .map(|s| match s {
+                        Some(lp) => (self.lm_weight * (*lp - reference) as f64).clamp(-self.lm_cap, self.lm_cap),
+                        None => 0.0,
+                    })
+                    .collect(),
+            )
+        });
+        let mut any = lm_terms.as_ref().is_some_and(|t| t.iter().any(|v| *v != 0.0));
         let mut scored: Vec<(usize, &String, f64)> = candidates
             .iter()
             .enumerate()
@@ -1249,7 +1472,8 @@ impl Predictor {
                 if evidence > 0.0 {
                     any = true;
                 }
-                (i, word, -(i as f64) + evidence)
+                let lm = lm_terms.as_ref().map_or(0.0, |t| t[i]);
+                (i, word, -(i as f64) + evidence + lm)
             })
             .collect();
         if !any {
@@ -1318,6 +1542,14 @@ impl Predictor {
         }
         if let Some(p3) = &prev3 {
             add(self.lexicon.skip2_followers(p3, limit));
+        }
+        // The context model's likeliest next words: after the user's own
+        // habits, which know this user, before the corpus pack, which it
+        // reads the same text as and reads further back.
+        if self.lm_next_words {
+            if let Some(lm) = &self.lm {
+                add(lm.borrow_mut().top(limit, LM_NEXT_WORD_FLOOR).into_iter().map(|(w, _)| w).collect());
+            }
         }
         if let Some(pack) = &self.ngrams {
             if let Some(p2) = &prev2 {
@@ -1717,16 +1949,27 @@ impl Predictor {
             return Decision::default();
         }
         let insert = fuzzy::cost_insert_adjacent();
+        let shadowed = known;
+        let mixes = |c: &ScoredCandidate| c.slips > 0 && c.edits > c.slips;
         let mut shaped: Vec<ScoredCandidate> = self
             .ranked(lower, fuzzy::AUTOCORRECT_K / 2)
             .into_iter()
             .take(fuzzy::AUTOCORRECT_K)
             .filter(|c| {
-                let shape = match c.edits {
-                    0 if c.accents > 0 => c.completed_chars == 0,
-                    0 => c.completed_chars == 1 && c.word != lower,
-                    1 => c.completed_chars == 0,
-                    _ => false,
+                // Slips are the exception to one edit: any number of them
+                // plus at most one real edit is a fix in place, and a mix of
+                // the two applies only when eager (the phone's `SlipFixes`).
+                let shape = if c.slips > 0 {
+                    c.completed_chars == 0
+                        && c.edits - c.slips <= 1
+                        && (self.slip_fixes == SlipFixes::Eager || !mixes(c))
+                } else {
+                    match c.edits {
+                        0 if c.accents > 0 => c.completed_chars == 0,
+                        0 => c.completed_chars == 1 && c.word != lower,
+                        1 => c.completed_chars == 0,
+                        _ => false,
+                    }
                 };
                 shape
                     && !self.suppressed(&c.word)
@@ -1783,14 +2026,17 @@ impl Predictor {
                 best_user = Some(c);
             }
         }
-        if let (Some(d), Some(u)) = (best_dict, best_user) {
-            if d.word == u.word {
-                return Decision {
-                    apply: Some(match_case(word, &d.word)),
-                    certainty: 1.0,
-                    complexity: complexity_of(lower, d.edit_cost),
-                    ..Decision::default()
-                };
+        let two_sources = matches!((best_dict, best_user), (Some(d), Some(u)) if d.word == u.word);
+        if self.confidence.is_none() {
+            if let (Some(d), Some(u)) = (best_dict, best_user) {
+                if d.word == u.word {
+                    return Decision {
+                        apply: Some(match_case(word, &d.word)),
+                        certainty: 1.0,
+                        complexity: complexity_of_candidate(lower, d),
+                        ..Decision::default()
+                    };
+                }
             }
         }
 
@@ -1803,25 +2049,86 @@ impl Predictor {
             .clamp(MIN_AUTOCORRECT_CONFIDENCE, MAX_AUTOCORRECT_CONFIDENCE);
         let gate = effective.ln();
         let top = candidates.first();
+        // An eager mixed reading never stands as the runner-up that blocks a
+        // cleaner fix: it is the speculative one of the two.
+        let runner_up = match top {
+            Some(t) if !mixes(t) => candidates.iter().skip(1).find(|c| !mixes(c)),
+            _ => candidates.get(1),
+        };
         let margin = match top {
             None => f64::NEG_INFINITY,
-            Some(t) => t.score - candidates.get(1).map_or(SOLO_RUNNER_UP_SCORE, |c| c.score),
+            Some(t) => t.score - runner_up.map_or(SOLO_RUNNER_UP_SCORE, |c| c.score),
         };
         let top_penalty = top.map_or(Penalty::None, |t| self.stats.penalty(lower, &t.word));
         let penalized = top_penalty != Penalty::None;
         let probation = top_penalty == Penalty::Probation;
+        // The learned gate, when there is one: one probability over
+        // everything the margin gate and its shapes used to weigh one by one.
+        *self.last_case.borrow_mut() = None;
+        let probability = match (&self.confidence, top) {
+            (model, Some(t)) => {
+                let lm_scores: Vec<Option<f32>> = if self.lm.is_some() {
+                    candidates.iter().map(|c| self.lm_logprob(&c.word)).collect()
+                } else {
+                    Vec::new()
+                };
+                let mut lm_sorted: Vec<f32> = lm_scores.iter().filter_map(|s| *s).collect();
+                lm_sorted.sort_by(|a, b| b.total_cmp(a));
+                let (lm_typed_rank, lm_entropy) = self.lm_gate_view(lower);
+                let lm_typed = if self.lm.is_some() { self.lm_logprob(lower) } else { None };
+                let lm_typed_pieces = if self.lm.is_some() && lm_typed.is_none() { self.lm_logprob_pieces(lower) } else { None };
+                let case = Case {
+                    margin,
+                    top_score: t.score,
+                    top_edit_cost: t.edit_cost,
+                    top_edits: t.edits,
+                    top_slips: t.slips,
+                    top_accents: t.accents,
+                    top_completed: t.completed_chars,
+                    top_in_dictionary: t.dict_score.is_finite(),
+                    top_in_lexicon: t.user_score.is_finite(),
+                    two_sources,
+                    mixes_slips: mixes(t),
+                    typed_len: lower.chars().count(),
+                    has_runner: runner_up.is_some(),
+                    runner_edit_cost: runner_up.map_or(0.0, |c| c.edit_cost),
+                    candidates: candidates.len(),
+                    lm_top: lm_scores.first().copied().flatten(),
+                    lm_best: lm_scores.iter().filter_map(|s| *s).fold(None, |m: Option<f32>, v| Some(m.map_or(v, |m| m.max(v)))),
+                    timing: timing.max(1e-6).ln(),
+                    typed_shadowed: shadowed,
+                    lm_typed,
+                    lm_typed_rank,
+                    lm_entropy,
+                    lm_second: lm_sorted.get(1).copied(),
+                    lm_typed_pieces,
+                };
+                *self.last_case.borrow_mut() = Some((case, t.word.clone()));
+                model.as_ref().map(|m| m.probability(&case))
+            }
+            _ => None,
+        };
         let single = match top {
             None => None,
             Some(_) if probation => None,
             Some(_) if candidates.len() == 1 && penalized => None,
-            Some(_) if margin < gate => None,
-            Some(t) => Some(t),
+            Some(t) => match probability {
+                Some(p) => (p >= confidence::apply_threshold(effective)).then_some(t),
+                None => (margin >= gate).then_some(t),
+            },
         };
         if let Some(t) = single {
+            let certainty = match probability {
+                Some(p) => {
+                    let threshold = confidence::apply_threshold(effective);
+                    ((p - threshold) / (1.0 - threshold)).clamp(0.0, 1.0)
+                }
+                None => certainty_of(margin, gate),
+            };
             return Decision {
                 apply: Some(match_case(word, &t.word)),
-                certainty: certainty_of(margin, gate),
-                complexity: complexity_of(lower, t.edit_cost),
+                certainty,
+                complexity: complexity_of_candidate(lower, t),
                 ..Decision::default()
             };
         }
@@ -1834,8 +2141,12 @@ impl Predictor {
             };
         }
         let may_offer = probation || !penalized;
+        let clears_offer = match probability {
+            Some(p) => p >= confidence::offer_threshold(effective),
+            None => margin >= gate * OFFER_MARGIN_FRACTION,
+        };
         let offer = top
-            .filter(|_| may_offer && margin >= gate * OFFER_MARGIN_FRACTION)
+            .filter(|_| may_offer && clears_offer)
             .map(|t| match_case(word, &t.word));
         Decision {
             offer,
@@ -1921,6 +2232,12 @@ fn context_boost(count: i32) -> f64 {
 fn certainty_of(margin: f64, gate: f64) -> f64 {
     let surplus = (margin - gate).max(0.0);
     surplus / (surplus + gate)
+}
+
+/// [`complexity_of`] with a candidate's slips counted: each is half a far
+/// substitution, since the edit cost never sees them.
+fn complexity_of_candidate(lower: &str, c: &ScoredCandidate) -> f64 {
+    complexity_of(lower, c.edit_cost + c.slips as f64 * fuzzy::cost_sub_far() / 2.0)
 }
 
 fn complexity_of(lower: &str, edit_cost: f64) -> f64 {

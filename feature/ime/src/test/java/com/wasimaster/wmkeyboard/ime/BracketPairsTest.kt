@@ -46,11 +46,22 @@ class BracketPairsTest {
     }
 
     @Test
+    fun `a bracket typed in front of any other text stands down too`() {
+        assertNull(autoCloseCloserFor('(', "@name"))
+        assertNull(autoCloseCloserFor('(', "#tag"))
+        assertNull(autoCloseCloserFor('(', "\$5"))
+        assertNull(autoCloseCloserFor('(', "\"quote\""))
+        assertNull(autoCloseCloserFor('(', "\uD83D\uDE00"))
+    }
+
+    @Test
     fun `anything that is not a word leaves room for the pair`() {
         assertEquals(")", autoCloseCloserFor('(', " world"))
         assertEquals(")", autoCloseCloserFor('(', "."))
         assertEquals(")", autoCloseCloserFor('(', ")"))
         assertEquals(")", autoCloseCloserFor('(', "\n"))
+        assertEquals(")", autoCloseCloserFor('(', ", and"))
+        assertEquals("」", autoCloseCloserFor('「', "。"))
     }
 
     @Test

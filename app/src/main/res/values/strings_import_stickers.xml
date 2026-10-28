@@ -313,6 +313,24 @@
          the download screens' own Import button does. -->
     <string name="import_offline_title">Install language files?</string>
     <string name="import_offline_body"><xliff:g id="file_name" example="wmkb-lang-de.zip">%1$s</xliff:g> holds files the keyboard normally downloads, such as word lists, word pairs or emoji names. Import installs them.</string>
+    <!-- The same question for the other files the download and import screens
+         install, each worded for what the file is. %1$s is the file name. -->
+    <string name="import_offline_gesture_title">Import the gesture library?</string>
+    <string name="import_offline_gesture_body"><xliff:g id="file_name" example="libjni_latinimegoogle.so">%1$s</xliff:g> is Google\'s gesture typing library. Import keeps it only if it is a build this keyboard knows, for this phone. To use it, pick it under Typing › Gestures › Glide engine.</string>
+    <string name="import_offline_native_title">Install a feature library?</string>
+    <string name="import_offline_native_body"><xliff:g id="file_name" example="libwmsherpa.so">%1$s</xliff:g> is a library that one of the keyboard\'s features runs on. Import installs it only if it is the exact build this app expects.</string>
+    <string name="import_offline_model_title">Install this model?</string>
+    <string name="import_offline_model_body"><xliff:g id="file_name" example="ggml-base.bin">%1$s</xliff:g> is a model for an on-device feature, such as voice typing, text scanning, handwriting or AI. Import puts it where its download would go.</string>
+    <string name="import_offline_dictionary_title">Install this dictionary?</string>
+    <string name="import_offline_dictionary_body"><xliff:g id="file_name" example="jmdict.zip">%1$s</xliff:g> is a dictionary of word meanings. Import adds it to the Dictionary tool.</string>
+    <string name="import_offline_gif_title">Install this GIF pack?</string>
+    <string name="import_offline_gif_body"><xliff:g id="file_name" example="reactions.zip">%1$s</xliff:g> is a GIF pack from CleverKeys. Import adds its GIFs to the GIF panel, for use with no internet.</string>
+    <string name="import_offline_rime_title">Install RIME schemas?</string>
+    <string name="import_offline_rime_body"><xliff:g id="file_name" example="my-schemas.zip">%1$s</xliff:g> holds RIME input schemas. Import adds them, and the RIME engine compiles them the next time the RIME screen is open.</string>
+    <string name="import_offline_app_language_title">Install an interface language?</string>
+    <string name="import_offline_app_language_body"><xliff:g id="file_name" example="wmkeyboard-1.0-vc100-lang-de.apk">%1$s</xliff:g> holds the app\'s text in another language. Import installs it, so the app can show that language.</string>
+    <string name="import_offline_mixed_title">Install these files?</string>
+    <string name="import_offline_mixed_body"><xliff:g id="file_name" example="files.zip">%1$s</xliff:g> holds files of more than one kind that the keyboard can install. Import installs each one it knows and reports on all of them.</string>
     <!-- Files of other kinds opened from a file manager or a chat app, each
          recognised by its contents rather than its name. -->
     <string name="import_font_body">The app adds this font to your fonts. Pick where it draws text under Fonts.</string>
@@ -515,6 +533,36 @@
     <string name="import_sticker_editor_recrop_body">A new crop removes the parts that you erased.</string>
     <string name="import_sticker_editor_save_error">The app cannot save this sticker.</string>
     <string name="import_sticker_editor_edit_action">Edit the image</string>
+
+    <!-- ==== Choosing which stickers of a pack to import (#965), and
+         selecting stickers in a pack to delete them together. ==== -->
+    <string name="import_stickers_select_none">Select none</string>
+    <!-- %1$d is how many stickers are ticked. %2$d is how many there are. -->
+    <plurals name="import_stickers_chosen">
+        <item quantity="one">%1$d of %2$d chosen</item>
+        <item quantity="other">%1$d of %2$d chosen</item>
+    </plurals>
+    <!-- The button that imports the ticked stickers. %1$d is how many. -->
+    <plurals name="import_stickers_add_chosen">
+        <item quantity="one">Add %1$d sticker</item>
+        <item quantity="other">Add %1$d stickers</item>
+    </plurals>
+    <string name="import_stickers_pick_caption">Untick the stickers you do not want. The app converts only the ticked ones, so leaving out animated stickers makes the import faster.</string>
+    <string name="import_stickers_reading">Reading the pack…</string>
+    <string name="import_stickers_adding_progress" tools:ignore="PluralsCandidate">Adding %1$d of %2$d</string>
+    <!-- %1$d is how many stickers are selected. -->
+    <plurals name="import_stickers_selected">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="import_stickers_delete_selected">Delete the selected stickers</string>
+    <!-- %1$d is how many stickers are selected. -->
+    <plurals name="import_stickers_delete_selected_title">
+        <item quantity="one">Delete %1$d sticker?</item>
+        <item quantity="other">Delete %1$d stickers?</item>
+    </plurals>
+    <string name="import_stickers_delete_selected_body">The app deletes them from this pack and from your device. To keep a copy, export the pack first.</string>
+    <string name="import_stickers_select_hint">Press and hold a sticker to select several and delete them together.</string>
 
     <!-- Opening a .wmvocab.json vocabulary pack from a file manager. -->
     <plurals name="import_vocab_title">

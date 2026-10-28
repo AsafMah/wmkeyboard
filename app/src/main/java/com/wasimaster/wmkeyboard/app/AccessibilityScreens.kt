@@ -91,13 +91,14 @@ internal fun AccessibilitySettings(
             // The active theme's "Layout for this theme" group may carry its
             // own answer; the row then says so instead of flipping a switch
             // the board no longer reads (#88).
-            val pinned = themePinSubtitle(settings) { it.boldKeyLabels }
+            val pin = themePin(settings) { it.boldKeyLabels }
             ToggleSetting(
                 R.string.accessibility_bold_labels_title,
-                pinned ?: stringResource(R.string.accessibility_bold_labels_subtitle),
+                pin?.text ?: stringResource(R.string.accessibility_bold_labels_subtitle),
                 settings.watch { it.accessibility.boldLabels },
                 info = stringResource(R.string.accessibility_bold_labels_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.accessibility.boldLabels,
             ) { scope.launch { repository.setBoldKeyLabels(it) } }
         }
@@ -122,7 +123,7 @@ internal fun AccessibilitySettings(
                 onClick = onOpenAppearance,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.accessibility_keyboard_font_title,
                 stringResource(R.string.accessibility_keyboard_font_subtitle),
@@ -146,7 +147,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.reduceMotion,
             ) { scope.launch { repository.setReduceMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.accessibility_classic_popup_title,
                 stringResource(R.string.accessibility_classic_popup_subtitle),
@@ -155,7 +156,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.popup.alternatesClassic,
             ) { scope.launch { repository.setAlternatesClassic(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.accessibility_panel_motion_title,
                 stringResource(R.string.accessibility_panel_motion_subtitle),
@@ -164,7 +165,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.panelMotion,
             ) { scope.launch { repository.setPanelMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_selection_motion_title,
                 stringResource(R.string.accessibility_selection_motion_subtitle),
@@ -173,7 +174,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.selectionMotion,
             ) { scope.launch { repository.setSelectionMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_language_switch_motion_title,
                 stringResource(R.string.accessibility_language_switch_motion_subtitle),
@@ -182,7 +183,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.languageSwitchMotion,
             ) { scope.launch { repository.setLanguageSwitchMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_tool_result_motion_title,
                 stringResource(R.string.accessibility_tool_result_motion_subtitle),
@@ -220,6 +221,15 @@ internal fun AccessibilitySettings(
                 info = stringResource(R.string.accessibility_keyboard_preview_info),
                 default = SettingsDefaults.appUi.keyboardPreviewButton,
             ) { scope.launch { repository.setKeyboardPreviewButton(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.favourites_button_title,
+                stringResource(R.string.favourites_button_subtitle),
+                settings.watch { it.appUi.favouritesButton },
+                info = stringResource(R.string.favourites_button_info),
+                default = SettingsDefaults.appUi.favouritesButton,
+            ) { scope.launch { repository.setFavouritesButton(it) } }
         }
     }
 

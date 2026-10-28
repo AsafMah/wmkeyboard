@@ -26,6 +26,7 @@
     <string name="common_default">افتراضي</string>
     <string name="common_delete">حذف</string>
     <string name="common_disable">إيقاف التشغيل</string>
+    <string name="common_disabled_open_setting">افتح الإعداد</string>
     <string name="common_disclosure_blocked_body">لم يعد نظام أندرويد يعرض هذا الطلب، لأنك رفضت الإذن من قبل. لا يزال بإمكانك تشغيله من شاشة إعدادات التطبيق.</string>
     <string name="common_disclosure_not_now">ليس الآن</string>
     <string name="common_done">تم</string>
@@ -44,6 +45,7 @@
     <string name="common_install">تثبيت</string>
     <string name="common_installing">جاري التثبيت...</string>
     <string name="common_loading">جاري التحميل...</string>
+    <string name="common_more">المزيد</string>
     <string name="common_next">التالي</string>
     <string name="common_none">لا شيء</string>
     <string name="common_notify_channel_backup_body">فقط عند فشل النسخ الاحتياطي التلقائي. النسخ الاحتياطية الناجحة تتم بصمت.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">إظهار الإشعارات</string>
     <string name="common_permission_storage_body">على نظام أندرويد 9 والإصدارات الأقدم، تحتاج لوحة المفاتيح إلى إذن التخزين لحفظ صورة في معرض الصور الخاص بك. يغطي إذن أندرويد القديم أيضاً قراءة وحدة التخزين الخاصة بك. لا تكتب لوحة المفاتيح سوى الصورة التي تطلب منها حفظها. لا تقرأ لوحة المفاتيح شيئاً ولا ترفع أي شيء. لا تحتاج إصدارات أندرويد الأحدث إلى هذا الإذن.</string>
     <string name="common_permission_storage_title">الوصول إلى وحدة التخزين للحفظ في معرض الصور</string>
+    <string name="common_permission_tasks_body">تحافظ لوحة مفاتيح WM على مزامنة قائمة المهام الخاصة بها مع قائمة مهام واحدة في تطبيق المهام: المهام، وخطواتها، وعلامات الاختيار، وتواريخ الاستحقاق، في كلا الاتجاهين. يغطي الإذن كل قائمة مهام في التطبيق. تقرأ لوحة المفاتيح قوائم التطبيق فقط لتتمكن من اختيار واحدة، وتقرأ وتكتب فقط القائمة التي اخترتها. لا ترسل لوحة المفاتيح أي شيء إلى أي مكان. يقوم DAVx5، إذا كنت تستخدمه، بمزامنة تلك القائمة مع خادم CalDAV الخاص بك. بدون هذا الإذن، ستبقى قائمة المهام على هذا الهاتف فقط.</string>
+    <string name="common_permission_tasks_opentasks_title">وصول OpenTasks لقائمة المهام</string>
+    <string name="common_permission_tasks_tasks_org_title">وصول Tasks.org لقائمة المهام</string>
+    <string name="common_preview_scale_desc">حجم المعاينة</string>
+    <string name="common_preview_scale_larger">تكبير المعاينة</string>
+    <string name="common_preview_scale_smaller">تصغير المعاينة</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">إزالة</string>
     <string name="common_reset">إعادة تعيين</string>
     <string name="common_reset_defaults">إعادة التعيين إلى الإعدادات الافتراضية</string>

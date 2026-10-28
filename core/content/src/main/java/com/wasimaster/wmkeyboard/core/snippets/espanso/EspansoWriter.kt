@@ -192,9 +192,14 @@ object EspansoWriter {
             out.append("    replace: ").append(block(converted.text, indent = 4)).append('\n')
         }
         if (spellings.isNotEmpty() && pattern == null) {
-            // Espanso defaults to firing inside a word; this app never does, so
-            // the exported file has to say so or it behaves differently there.
-            out.append("    word: true\n")
+            // Espanso's default is this app's "expand immediately, inside words
+            // too", so only the other two shapes need saying: waiting for the
+            // space is `word`, and firing at once at a word start is `left_word`.
+            val early = snippet.immediate && !snippet.confirm
+            when {
+                !early -> out.append("    word: true\n")
+                !snippet.insideWords -> out.append("    left_word: true\n")
+            }
         }
         if (snippet.propagateCase) {
             out.append("    propagate_case: true\n")

@@ -109,7 +109,6 @@
     <string name="customdict_emoji_auto_download_title">Download automatically</string>
     <string name="customdict_emoji_auto_download_subtitle">Download keywords for the languages that you type</string>
     <!-- Subtitle of the same row while the app-wide "Download data automatically" switch is off, which stops this one from ever running. -->
-    <string name="customdict_emoji_auto_download_blocked">Turned off, because “Download data automatically” is off under Languages</string>
     <string name="customdict_emoji_auto_download_info">When you turn a language on, the app downloads its emoji keywords in the background. This is about 100 KB, one time. If you turn this off, the Download buttons below are the only way to get the keywords.</string>
 
     <!-- Subtitle of one emoji pack row. %1$d is how many emoji the pack names. -->

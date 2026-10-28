@@ -38,6 +38,9 @@
     <string name="common_back">Back</string>
     <string name="common_next">Next</string>
     <string name="common_skip">Skip</string>
+    <!-- Under the reason a greyed-out control gives on a long press: opens the
+         settings screen holding the switch that unblocks it. -->
+    <string name="common_disabled_open_setting">Open the setting</string>
     <string name="common_continue">Continue</string>
     <string name="common_search">Search</string>
     <string name="common_clear">Clear</string>
@@ -45,6 +48,7 @@
     <string name="common_enable">Turn on</string>
     <string name="common_disable">Turn off</string>
     <string name="common_download">Download</string>
+    <string name="common_more">More</string>
     <string name="common_install">Install</string>
     <string name="common_uninstall">Uninstall</string>
     <string name="common_update">Update</string>

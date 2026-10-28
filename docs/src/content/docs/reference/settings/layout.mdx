@@ -22,7 +22,7 @@ You can reach this screen from the home screen's **Layout & size** tile, from Ac
 
 <SettingsPath path="Layout & size" />
 
-Size and position (with the per-screen overrides) and One-handed, split and floating are pages of their own; Your layouts, Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys stay on the hub.
+Size and position (with the per-screen overrides) and One-handed, split and floating are pages of their own; Your layouts, Number row, Arrow keys row, Symbols layer, Numerals and Bottom-row keys stay on the hub. Key height, key spacing and side padding here apply to every layout. A layout can carry its own, set in its [layout editor](/languages/custom-layouts/), and those win on that layout.
 
 ### Your layouts
 
@@ -99,6 +99,7 @@ Only single-character keys count, so a `.com` key or an emoticon key never trigg
 
 | Setting | Control | Range | Default |
 |---|---|---|---|
+| Resize by dragging *(hidden while the keyboard test button is off)* | Button | Opens the keyboard in [resize mode](/tools/resize/) | |
 | Key height | Slider | 32–100 dp | 48 dp (**46** small tablet / **44** large) |
 | Bottom row height | Slider | 0–96 dp | 0 dp ("Follow keys") |
 | Left padding | Slider | 0–30% | 0% |
@@ -168,7 +169,7 @@ Landscape is also the one shape that doesn't fall back to portrait for the three
 | Landscape · side | Choice | Left / Right | Right |
 | Split keyboard | Toggle | On / Off | Off |
 | Split only on wide screens *(shown only when Split keyboard is on)* | Toggle | On / Off | Off |
-| Split gap *(shown only when Split keyboard is on)* | Slider | 5–40% | 12% |
+| Split gap *(shown only when Split keyboard is on)* | Slider | 5–60% | 12% |
 | Split the spacebar *(shown only when Split keyboard is on)* | Toggle | On / Off | On |
 | Floating keyboard | Toggle | On / Off | Off |
 | Floating keyboard width *(shown only when Floating keyboard is on)* | Slider | 240–500 dp | 320 dp |
@@ -210,11 +211,11 @@ Full detail on all three (plus the floating panel's drag pill and resize grip) i
 
 **Keep the 🌐 key in one place** is on by default. Layouts don't all agree on where the 🌐 key goes: many imported ones, most of the converted Keyman layouts among them, put it at the far left, straight after `?123`, or after the spacebar. With this on, the key moves to the slot the built-in layouts use, so it sits under the same spot on the screen in every language you switch between. That slot is measured as a share of the row, not counted in keys: the key starts a quarter of the way along the row and is a tenth of it wide, or, with **Swap the comma and 🌐 keys** on, it starts at 15% with the comma after it. The keys before it get wider or narrower to fill the space up to it, the spacebar grows or shrinks to fit, and every other key keeps its width and its order. When nothing sits before the key, the key itself widens to reach its slot, so a thumb aimed at the usual place still lands on it. A row where the move would squeeze keys to under half their width, stretch them past two and a half times it, or leave the spacebar under a fifth of the row is left as it is, and so is a row with a key that spans two rows. The built-in layouts already have the key in its slot, so nothing about them changes. A second layout you open from a key is always drawn as its author made it, and so is the expanded tablet grid.
 
-**Show the 🌐 key** is on by default. Turn it off and the key is gone from the bottom row of every layout, on the symbol layers too, and so is the emoji key that **Emoji key instead of 🌐** puts in its place. The spacebar takes its width, so the row stays the same length. While the key is hidden, **Emoji key instead of 🌐**, **Swap the comma and 🌐 keys** and **Keep the 🌐 key in one place** have nothing to change and are greyed out. Language switching stays on the spacebar: a quick swipe does it by default. See [Switching languages](/languages/switching/).
+**Show the 🌐 key** is on by default. Turn it off and the key is gone from the bottom row of every layout, on the symbol layers too, and so is the emoji key that **Emoji key instead of 🌐** puts in its place. The spacebar takes its width, so the row stays the same length. While the key is hidden, **Emoji key instead of 🌐**, **Swap the comma and 🌐 keys** and **Keep the 🌐 key in one place** have nothing to change and are hidden. They come back with the key. Language switching stays on the spacebar: a quick swipe does it by default. See [Switching languages](/languages/switching/).
 
 None of these five settings touches a layer you've laid out by hand in the layout editor. Moving or changing a key there that one of them had moved or changed turns on that layer's **Keep this bottom row as it is here** switch, and from then on the keyboard draws that row exactly as the editor shows it. See [The bottom row and its settings](/languages/custom-layouts/#the-bottom-row-and-its-settings).
 
-**Ignore 🌐 right after typing** is off by default. Set a time and a tap on 🌐 that comes sooner than that after a typed key (a letter, space, backspace or enter) does nothing, so a thumb that misses the comma or the spacebar mid-word no longer changes the language. Holding 🌐 still opens the picker. Greyed out while the key is hidden. See [Switching languages](/languages/switching/#ignoring-a--tap-right-after-typing).
+**Ignore 🌐 right after typing** is off by default. Set a time and a tap on 🌐 that comes sooner than that after a typed key (a letter, space, backspace or enter) does nothing, so a thumb that misses the comma or the spacebar mid-word no longer changes the language. Holding 🌐 still opens the picker. Hidden while the key is hidden. See [Switching languages](/languages/switching/#ignoring-a--tap-right-after-typing).
 
 See [Switching languages](/languages/switching/#using-the-globe-key) and [Opening the emoji panel](/emoji/picker/) for what each toggle changes in daily use.
 

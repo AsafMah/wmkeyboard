@@ -121,6 +121,10 @@ import com.wasimaster.wmkeyboard.core.tools.SearchBackend
 import com.wasimaster.wmkeyboard.core.tools.MediaProviders
 import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
+import com.wasimaster.wmkeyboard.core.tools.SearchProviders
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import com.wasimaster.wmkeyboard.ime.ProviderPicks
+import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.WebResult
@@ -658,6 +662,8 @@ private fun MediaSearchBar(
     // Drawn after the box and its credit: the switch to the emoji and the
     // other media panel, when it sits up here (issue #366).
     trailing: (@Composable () -> Unit)? = null,
+    // The ✕ that empties the query, while there is one (#907).
+    onClear: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     Row(
@@ -699,6 +705,19 @@ private fun MediaSearchBar(
                 fontSize = 14.sp,
                 modifier = Modifier.weight(1f),
             )
+            if (onClear != null && state.mediaQuery.isNotEmpty()) {
+                IconHint(stringResource(R.string.ime_clipboard_search_clear_desc)) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .size(18.dp)
+                            .clickable { onClear() },
+                        tint = kb.toolbarIcon,
+                    )
+                }
+            }
         }
         if (attribution != null) {
             Text(
@@ -947,6 +966,7 @@ internal fun RowScope.GifHeaderSearchBar(
     state: KeyboardUiState,
     stickers: Boolean,
     onQueryTap: () -> Unit,
+    onClear: (() -> Unit)? = null,
 ) {
     MediaHeaderSearchBar(
         state = state,
@@ -954,6 +974,7 @@ internal fun RowScope.GifHeaderSearchBar(
         onQueryTap = onQueryTap,
         attribution = gifAttribution(state, stickers),
         logo = gifBrand(state, stickers),
+        onClear = onClear,
     )
 }
 
@@ -982,6 +1003,7 @@ internal fun RowScope.GifHeaderSearchBar(
  *   header is the host's to fill.
  * @param inGrid the panel is the browser cell of its layout (#538), which
  *   owns the height, so the body fills the cell it is given.
+ * @param onQueryClear the ✕ in the search box was tapped (#907).
  */
 @Composable
 internal fun GifPanel(
@@ -1004,6 +1026,7 @@ internal fun GifPanel(
     onOpenRoute: (String) -> Unit = {},
     switcher: (@Composable () -> Unit)? = null,
     inGrid: Boolean = false,
+    onQueryClear: (() -> Unit)? = null,
 ) {
     val ui = if (stickers) state.sticker else state.gif
     val tool = if (stickers) ToolbarTool.STICKER else ToolbarTool.GIF
@@ -1084,6 +1107,7 @@ internal fun GifPanel(
                         logo = gifBrand(state, stickers),
                         focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
                         trailing = trailing,
+                        onClear = onQueryClear,
                     )
                 }
                 if (chips.isNotEmpty() && !state.mediaSearchActive) {
@@ -1974,9 +1998,10 @@ internal fun WebSearchPanel(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
+                SearchTabChips(state, actions, Modifier.weight(1f))
                 // Pick mode (#727): which search provider answers, over the results.
                 ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
+                SearchInBrowserButton(state)
             }
             when (state.searchTab) {
                 SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onImageResult, onMenu, onOpenToolSettings)
@@ -2068,38 +2093,61 @@ private fun SearchResultMenu(
 /** The host of an address, for a result with no title of its own. */
 private fun hostOf(url: String): String = url.substringAfter("://").substringBefore('/')
 
-/** All and Images, over the search panel's results (#879). */
+/**
+ * All and Images, over the search panel's results (#879), and between them
+ * the SearXNG categories the user chose (#934), while an instance is the
+ * one asked. They scroll sideways when there are more than fit.
+ */
 @Composable
-private fun SearchTabChips(tab: SearchTab, onSelect: (SearchTab) -> Unit, modifier: Modifier = Modifier) {
-    val kb = LocalKbTheme.current
-    val shape = kb.chipShape()
+private fun SearchTabChips(state: KeyboardUiState, actions: SearchActions, modifier: Modifier = Modifier) {
+    val picks by ProviderPicks.picks.collectAsState()
+    val settings = state.settings
+    val chosen = settings.webSearch.searxCategories
+    val pick = picks[ProviderTool.SEARCH].orEmpty()
+    val categories = remember(settings, pick) {
+        if (chosen.isNotEmpty() && SearchProviders.searxFirst(settings, pick)) chosen else emptyList()
+    }
+    // A chip turned off in settings, or a provider that has none, is All again.
+    val category = state.searchCategory?.takeIf { it in categories }
+    val tab = state.searchTab
     Row(
-        modifier = modifier.padding(horizontal = 8.dp),
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        for (entry in SearchTab.entries) {
-            val active = entry == tab
-            Text(
-                stringResource(
-                    when (entry) {
-                        SearchTab.ALL -> R.string.ime_search_tab_all
-                        SearchTab.IMAGES -> R.string.ime_search_tab_images
-                    },
-                ),
-                color = if (active) kb.chipActiveText else kb.chipText,
-                fontSize = 12.sp,
-                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                maxLines = 1,
-                modifier = Modifier
-                    .clip(shape)
-                    .frostGlass(kb, shape, FrostSurface.CHIPS)
-                    .background(if (active) kb.chipActive else kb.chip)
-                    .chipBorder(kb, shape)
-                    .clickable { onSelect(entry) }
-                    .padding(horizontal = 14.dp, vertical = 4.dp),
-            )
+        SearchChip(stringResource(R.string.ime_search_tab_all), tab == SearchTab.ALL && category == null) {
+            actions.onCategory(null)
+        }
+        for (name in categories) {
+            SearchChip(SearxClient.categoryLabel(name), tab == SearchTab.ALL && category == name) {
+                actions.onCategory(name)
+            }
+        }
+        SearchChip(stringResource(R.string.ime_search_tab_images), tab == SearchTab.IMAGES) {
+            actions.onTab(SearchTab.IMAGES)
         }
     }
+}
+
+@Composable
+private fun SearchChip(label: String, active: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    Text(
+        label,
+        color = if (active) kb.chipActiveText else kb.chipText,
+        fontSize = 12.sp,
+        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(if (active) kb.chipActive else kb.chip)
+            .chipBorder(kb, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 4.dp),
+    )
 }
 
 /** The All tab: the engine's answer, then the web results. */
@@ -2115,6 +2163,7 @@ private fun WebResults(
 ) {
     val openLink = LocalSearchActions.current.onOpen
     val kb = LocalKbTheme.current
+    val thumbLoader = rememberMediaImageLoader()
     Column(modifier = Modifier.fillMaxSize()) {
         when (val ui = state.webSearch) {
             WebSearchUi.NeedKey -> PanelNotice(
@@ -2188,6 +2237,20 @@ private fun WebResults(
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                // A video's still, on a SearXNG Videos search (#934).
+                                result.thumbnail?.let { thumb ->
+                                    AsyncImage(
+                                        model = thumb,
+                                        contentDescription = null,
+                                        imageLoader = thumbLoader,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .padding(end = 8.dp)
+                                            .size(width = 80.dp, height = 45.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(kb.chip),
+                                    )
+                                }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         result.title,
@@ -2198,7 +2261,12 @@ private fun WebResults(
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     Text(
-                                        result.displayUrl,
+                                        // Which engines a SearXNG instance found it with (#932).
+                                        if (result.engines.isEmpty()) {
+                                            result.displayUrl
+                                        } else {
+                                            result.displayUrl + " · " + result.engines.joinToString(", ")
+                                        },
                                         color = kb.secondaryText,
                                         fontSize = 11.sp,
                                         maxLines = 1,
@@ -2416,6 +2484,31 @@ private fun imageTap(
 private val WebAnswerFoldedHeight = 76.dp
 
 // ---- image search panel ----
+
+/**
+ * The typed query as a search page in the browser (#915), beside the tabs,
+ * for when the browser's own results are what is wanted. Nothing is fetched
+ * here: the browser does the searching.
+ */
+@Composable
+private fun SearchInBrowserButton(state: KeyboardUiState) {
+    val onOpen = LocalSearchActions.current.onOpen
+    val query = state.mediaQuery.trim()
+    if (query.isEmpty()) return
+    val kb = LocalKbTheme.current
+    val label = stringResource(R.string.ime_search_in_browser_desc)
+    IconHint(label) {
+        Icon(
+            Icons.AutoMirrored.Outlined.OpenInNew,
+            contentDescription = label,
+            modifier = Modifier
+                .padding(start = 4.dp, end = 8.dp)
+                .size(20.dp)
+                .clickable { onOpen(SearchProviders.browserUrl(state.settings, query)) },
+            tint = kb.toolbarIcon,
+        )
+    }
+}
 
 /**
  * Camera button beside the search box (#349, #879): opens the camera tool

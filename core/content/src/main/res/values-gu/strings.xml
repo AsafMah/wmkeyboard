@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">કોપી કરો</string>
     <string name="core_content_selection_macro_deepl_write">DeepL રાઈટ</string>
     <string name="core_content_selection_macro_digits_latin">અંકો</string>
+    <string name="core_content_selection_macro_edit_word">શબ્દ સંપાદિત કરો</string>
     <string name="core_content_selection_macro_email">ઈમેલ</string>
     <string name="core_content_selection_macro_fancy">ફેન્સી</string>
     <string name="core_content_selection_macro_find">શોધો</string>

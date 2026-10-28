@@ -183,6 +183,7 @@ class ImageGenService : Service() {
         internal const val BLOCKED = 13
         internal const val FAILED = 14
         internal const val DONE = 15
+        internal const val WAITING = 17
 
         /** The model stays loaded this long after the last picture: people try a few prompts in a row. */
         private const val IDLE_MS = 3 * 60_000L
@@ -250,6 +251,11 @@ class ImageGenService : Service() {
                 putLong("seed", e.seed)
             }
             is ImageGenEvent.Failed -> FAILED to Bundle().apply { putString("message", e.message) }
+            // Only the online engines wait in a queue, and they run outside this service; kept for completeness.
+            is ImageGenEvent.Waiting -> WAITING to Bundle().apply {
+                putInt("position", e.position)
+                putInt("seconds", e.seconds)
+            }
         }
 
         internal fun decode(what: Int, b: Bundle): ImageGenEvent? = when (what) {
@@ -259,6 +265,7 @@ class ImageGenService : Service() {
             IMAGE -> ImageGenEvent.Image(b.getInt("variant"), File(b.getString("file").orEmpty()), b.getLong("seed"), b.getLong("millis"))
             BLOCKED -> ImageGenEvent.Blocked(b.getInt("variant"), b.getLong("seed"))
             FAILED -> ImageGenEvent.Failed(b.getString("message").orEmpty())
+            WAITING -> ImageGenEvent.Waiting(b.getInt("position"), b.getInt("seconds"))
             else -> null
         }
     }

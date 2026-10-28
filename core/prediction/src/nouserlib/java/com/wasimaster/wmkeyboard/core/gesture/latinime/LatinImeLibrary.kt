@@ -19,6 +19,7 @@ object LatinImeLibrary {
         data object Missing : Status
         data object Imported : Status
         data object Loaded : Status
+        data object Removed : Status
         data class Failed(val reason: Failure, val detail: String = "") : Status
     }
 

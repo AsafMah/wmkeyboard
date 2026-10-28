@@ -100,6 +100,22 @@ Off by default, because these tools are for getting text out fast. Reduce motion
     <string name="keyboard_preview_clear">Clear</string>
     <string name="keyboard_preview_switch">Switch to this keyboard</string>
 
+    <!-- Favourite settings (#898): screens and rows the user pins, listed by
+         the star button in every settings screen's top bar. -->
+    <string name="favourites_button_title">Favourites button</string>
+    <string name="favourites_button_subtitle">A star at the top of every settings screen that lists your favourite settings</string>
+    <string name="favourites_button_info">Tap the star at the top of any settings screen to see your favourites, and tap one to go there. In the list, Add this screen pins the screen you are on. To pin one setting, touch and hold it and choose Add to favourites.\n\nThe star is filled on a screen that is already a favourite. Turn this off if you don\'t want the button. Your favourites are kept and come back when you turn it on again.</string>
+    <string name="favourites_title">Favourites</string>
+    <string name="favourites_empty">Nothing here yet. Add the screen you are on, or touch and hold a setting and choose Add to favourites.</string>
+    <string name="favourites_edit">Edit</string>
+    <string name="favourites_done">Done</string>
+    <string name="favourites_open_desc">Open favourites</string>
+    <string name="favourites_add">Add to favourites</string>
+    <string name="favourites_remove">Remove from favourites</string>
+    <string name="favourites_copy_link">Copy link</string>
+    <string name="favourites_screen_add">Add this screen</string>
+    <string name="favourites_screen_remove">Remove this screen</string>
+
     <!-- Accessibility settings screen, "Screen reader" group. TalkBack is the
          name of the Android screen reader and is not translated. -->
     <string name="accessibility_screen_reader_title">Screen reader</string>

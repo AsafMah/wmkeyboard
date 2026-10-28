@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Kopier</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Siffer</string>
+    <string name="core_content_selection_macro_edit_word">Rediger ord</string>
     <string name="core_content_selection_macro_email">E-post</string>
     <string name="core_content_selection_macro_fancy">Fancy</string>
     <string name="core_content_selection_macro_find">Finn</string>

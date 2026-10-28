@@ -1,0 +1,72 @@
+---
+title: "Emoji mixes"
+description: "Put two emoji together as one sticker, from a source you add: over the emoji panel, on the suggestion strip, and in the Mixes panel."
+sidebar:
+  order: 6
+---
+
+import KeyCap from '@components/KeyCap.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+
+An emoji mix is two emoji drawn as one picture, sent as a sticker. WM Keyboard doesn't come with any mixes and doesn't fetch any on its own. It shows mixes from a source you add yourself, and until you add one, nothing about mixes appears on the keyboard.
+
+<SettingsPath path="Emoji / Emoji mixes" />
+
+## Adding a source
+
+Tap **Add a source** and paste an address, or use **Import a file** or **Import a folder**. The keyboard works out what kind of source it is from its shape:
+
+- **List of mixes.** A file that names each pair and the address of its picture. It can be JSON, where each entry has an image address and the two emoji, a plain list of image addresses, or plain text with two emoji and an address on each line. The keyboard downloads it once, packs it into an index of under a megabyte on the phone, and from then on knows every mix the list has. This is the kind that lets the keyboard list all the mixes of one emoji.
+- **Image address.** One working address of a mix picture. The keyboard reads the pattern that every other picture follows from the folders and names in it. It needs a list of mixes beside it to know which pairs exist, and it points that list's pictures at the host you named.
+- **Mixer.** An address that answers any two emoji with their mix. Paste one example, or write a pattern with `{left}` and `{right}` where the emoji go (`{left_hex}` and `{right_hex}` take code points such as `1f603`, and `{size}` takes a size in pixels). When you add it, the keyboard asks it once for a pair that has no mix, to learn the picture it sends when there is none. A mixer alone works in the Mixes panel. To get mixes on the suggestion strip, add a list of mixes too.
+- **Imported images.** A zip file or a folder of pictures named for their two emoji, such as `1f603_1f601.png`, `u1f603_u1f601.webp` or `😃_😁.png`, or kept in dated folders. They are copied onto the phone and work with no connection.
+
+Each source has a switch. Sources answer in list order: tap one to fetch its list again, move it up, or remove it along with its files.
+
+## Where mixes show
+
+**Over the emoji panel.** Pick an emoji in the emoji panel and a row of its mixes rises over the grid, the mix of it and the emoji you picked just before it first. The button at the end of the row opens the Mixes panel on that emoji.
+
+**On the suggestion strip.** When the text before the cursor ends in one or two emoji written together, their mixes show on the strip, the mix of the two first. **How the strip shows them** picks thumbnails, one chip that opens a row, or the row on its own. With **Replace the emoji** on, sending a mix takes the emoji it was made from back out of the text. That happens only after the mix has arrived, so a mix that can't be fetched leaves the text alone.
+
+**The Mixes panel.** A tab beside emoji, GIFs and stickers on the [panel switch](/emoji/picker/#switching-to-gifs-and-stickers), and a tool you can pin to the toolbar. Two slots sit at the top with their mix beside them. Pick an emoji from the bottom rows and it goes into the slot that is lit; the grid in the middle lists every mix of the first emoji. The emoji in the bottom rows come in the emoji panel's order, one category at a time: the category tabs sit in the panel's header, where the GIF and sticker panels have their search box, or above the bottom rows when the GIF and sticker tools' **Full-screen picker** is off. Your recent emoji get the first tab when any of them have mixes.
+
+The lit slot shows a small cross while it holds an emoji. Tap it, or long-press either slot, to take that emoji out; with only the second slot filled, the grid lists that emoji's mixes instead. The swap button trades the two emoji, and the shuffle button picks a random emoji and one of its mixes. Long-press the shuffle button to choose which categories it picks from, with one column of ticks for the first emoji and one for the second, so a shuffle can always put an animal with a food, say. A column always keeps at least one tick, and **Every category** ticks them all again.
+
+Some sources include the magic wand 🪄, which mixes with every emoji: its mix draws the other emoji again in an older, rounder style.
+
+With motion on, the mix lands with a small burst and the grid of mixes rises in, one cell after the other. With motion off under [Appearance](/reference/settings/appearance/), all of that is still.
+
+Your own [stickers](/emoji/stickers/) come before mixes: if the text asks for one of your stickers, that offer shows instead.
+
+## Saving a mix
+
+Long-press any mix for its menu:
+
+- **Star** puts it in a row at the top of the Mixes panel.
+- **Add to my stickers** copies it into a sticker pack named Emoji mixes, tagged with both emoji, so it is offered as you type with no connection.
+- **Save to photos** puts it in Pictures/WM Keyboard.
+
+## Privacy and data use
+
+The keyboard only talks to the hosts of sources you added. A mix's address names its two emoji, which is all the request carries, and every request shows in the [network activity log](/privacy/network-activity/) as Emoji mixes. Pictures fetched to send are kept in the cache, up to 400 of them, and **Clear fetched mixes** empties it. Lists and imported images stay until you remove their source.
+
+While [data saver](/privacy/data-saver/) holds media on the connection you're on, the strip and the panel show only mixes from imported images. **Fetch lists again each month** downloads each list again once it is a month old, only on a connection that is not metered. It is off by default.
+
+## Settings
+
+Emoji mixes are part of the **Stickers, GIFs and emoji mixes** bundle on [Extensions](/reference/settings/extensions/). With the bundle off, this screen and the mixes panel are gone, and the sources you added wait for it to come back.
+
+| Setting | Default | What it does |
+|---|---|---|
+| Sources | none | The sources you added, in the order they answer. |
+| Over the emoji panel | On | A row of mixes when you pick an emoji in the panel. |
+| On the suggestion strip | On | Mixes when the text ends in one or two emoji. |
+| How the strip shows them | Thumbnails | Thumbnails, One chip, or A row above. |
+| Replace the emoji | On | Sending a mix takes its emoji back out of the text. |
+| Mixes panel | On after the first source | The tab on the panel switch and the toolbar tool. |
+| Order | Your emoji first | Your recent and most used emoji first, or the source's own order. |
+| Send as | Sticker | Sticker where the app takes one, otherwise a picture. |
+| Size in the Mixes panel | 72 dp | How big each mix is in the panel's grid. |
+| Fetch lists again each month | Off | The monthly download described above. |
+| Clear fetched mixes | n/a | Empties the cache of fetched pictures. |

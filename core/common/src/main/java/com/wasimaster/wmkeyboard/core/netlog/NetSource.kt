@@ -33,6 +33,12 @@ enum class NetSource(
     LANGUAGETOOL("languagetool", ToolbarTool.GRAMMAR),
     GIF("gif", ToolbarTool.GIF),
     STICKER("sticker", ToolbarTool.STICKER),
+
+    /** The sticker generator's prompt sent to an image service on its list, and the pictures fetched back. */
+    IMAGE_GEN("image_gen", ToolbarTool.STICKER),
+
+    /** An emoji mix: its image, or a source's index of them. Only ever a host the user added. */
+    EMOJI_MIX("emoji_mix", ToolbarTool.EMOJI_MIX),
     WEB_SEARCH("web_search", ToolbarTool.WEB_SEARCH),
     IMAGE_SEARCH("image_search", ToolbarTool.IMAGE_SEARCH),
 
@@ -57,6 +63,18 @@ enum class NetSource(
      */
     AI_MCP("ai_mcp", ToolbarTool.AI),
     TRANSCRIPTION("transcription", ToolbarTool.VOICE),
+
+    /** A Music ID clip sent to one of the recognition services on its list, each its own row. */
+    MUSIC_AUDD("music_audd", ToolbarTool.MUSIC_ID),
+    MUSIC_ACRCLOUD("music_acrcloud", ToolbarTool.MUSIC_ID),
+    MUSIC_AUDIOTAG("music_audiotag", ToolbarTool.MUSIC_ID),
+    MUSIC_RAPIDAPI("music_rapidapi", ToolbarTool.MUSIC_ID),
+
+    /** A Music ID clip sent to the user's own recognition server. */
+    MUSIC_SERVER("music_server", ToolbarTool.MUSIC_ID),
+
+    /** Cover art and a store link for a song named without them: the iTunes Search API, then Deezer. */
+    MUSIC_METADATA("music_metadata", ToolbarTool.MUSIC_ID),
     WIKIPEDIA("wikipedia", ToolbarTool.WIKIPEDIA),
     DICTIONARY("dictionary", ToolbarTool.DICTIONARY),
     VOCABULARY("vocabulary", ToolbarTool.VOCABULARY),
@@ -71,6 +89,13 @@ enum class NetSource(
      */
     LOCATION("location", ToolbarTool.LOCATION),
     CURRENCY("currency", ToolbarTool.CURRENCY),
+
+    /**
+     * The speed test's traffic: the random bytes it pulls and pushes, its
+     * latency probes, and the one request that names the connection's
+     * network. Only ever while a run the user started is going.
+     */
+    SPEED_TEST("speed_test", ToolbarTool.SPEED_TEST),
     /** Searching photos is asked for; refilling the rotation pool passes `background` itself. */
     PHOTOS("photos"),
     LINK_PREVIEW("link_preview", ToolbarTool.CLIPBOARD, background = true),
@@ -104,6 +129,9 @@ enum class NetSource(
 
     /** Tesseract language data for the scan text tool. */
     DOWNLOAD_OCR("download_ocr", ToolbarTool.OCR),
+
+    /** A PaddleOCR handwriting model (data repository), where ML Kit has none for the language. */
+    DOWNLOAD_HANDWRITING("download_handwriting", ToolbarTool.HANDWRITING),
 
     /** EmbeddingGemma 2, the model behind search by meaning. */
     DOWNLOAD_SEMANTIC("download_semantic"),

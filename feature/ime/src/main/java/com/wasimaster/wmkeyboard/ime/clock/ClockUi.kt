@@ -66,12 +66,13 @@ data class ClockUi(
 data class InsertWhen(val dayOffset: Int, val hour: Int, val minute: Int)
 
 /** What the keyboard's own text box in the panel is for. */
-enum class ClockTextField { SEARCH, ALARM_LABEL, TIMER_LABEL, COUNTDOWN_TITLE, ZONE_LABEL }
+enum class ClockTextField { SEARCH, ALARM_LABEL, TIMER_LABEL, COUNTDOWN_TITLE, ZONE_LABEL, DATE }
 
 /**
  * The text box the panel is typing into: lives in `KeyboardUiState` so the
  * shared capture path can type into it. [ref] says which zone a
- * [ClockTextField.ZONE_LABEL] renames.
+ * [ClockTextField.ZONE_LABEL] renames, and which [DateField] a
+ * [ClockTextField.DATE] sets.
  */
 data class ClockTextEntry(val field: ClockTextField, val text: String = "", val ref: String = "")
 
@@ -133,7 +134,7 @@ sealed interface ClockAction {
     // Clocks
     data object SearchOpen : ClockAction
     data object SearchClose : ClockAction
-    data class AddZone(val zoneId: String) : ClockAction
+    data class AddZone(val zone: ZoneEntry) : ClockAction
     data class RemoveZone(val zoneId: String) : ClockAction
     data class MoveZone(val zoneId: String, val by: Int) : ClockAction
     data class RenameZone(val zoneId: String) : ClockAction
@@ -199,6 +200,9 @@ sealed interface ClockAction {
     data class DatesModeSet(val mode: DatesMode) : ClockAction
     data class DateStep(val field: DateField, val days: Long, val months: Long = 0) : ClockAction
     data class DateToday(val field: DateField) : ClockAction
+
+    /** A date typed into the panel's box instead of stepped to. */
+    data class DateType(val field: DateField) : ClockAction
     data object DatesSwap : ClockAction
     data class AddAmount(val by: Int) : ClockAction
     data class AddUnit(val unit: DateMath.Unit) : ClockAction

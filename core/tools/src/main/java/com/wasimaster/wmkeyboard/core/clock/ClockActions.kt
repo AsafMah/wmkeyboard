@@ -124,6 +124,39 @@ object ClockActions {
         return d
     }
 
+    /**
+     * Ends the snooze of alarm [id] from the shade (#970): the alarm settles the
+     * way a dismissed one does, a one-shot off, a repeating one on its days.
+     */
+    fun endSnooze(data: ClockData, id: Long): ClockData {
+        val alarm = data.alarm(id) ?: return data
+        if (alarm.snoozedUntil == 0L) return data
+        return putAlarm(data, AlarmMath.afterDismiss(alarm))
+    }
+
+    /**
+     * Skips the coming ring of alarm [id], from the notice that warns of it
+     * (#970): a repeating alarm skips that one ring, a one-shot turns off.
+     */
+    fun skipComing(data: ClockData, id: Long, now: Long, zone: TimeZone = TimeZone.getDefault()): ClockData {
+        val alarm = data.alarm(id) ?: return data
+        return if (alarm.repeats) putAlarm(data, AlarmMath.skipNext(alarm, now, zone)) else setAlarmEnabled(data, id, false)
+    }
+
+    /**
+     * A ring nobody answered, for the time it was let ring: an alarm with
+     * [autoSnoozes] left to spend snoozes for [snoozeMinutes] (#970), and
+     * anything else is [missed].
+     */
+    fun unanswered(data: ClockData, ring: Ringing, now: Long, autoSnoozes: Int, snoozeMinutes: Int): ClockData {
+        val alarm = if (ring.kind == RingKind.ALARM) data.alarm(ring.ref) else null
+        return if (alarm != null && alarm.snoozeCount < autoSnoozes) {
+            snooze(data, ring, now, snoozeMinutes)
+        } else {
+            missed(data, ring, now)
+        }
+    }
+
     /** A ring nobody answered. */
     fun missed(data: ClockData, ring: Ringing, now: Long): ClockData {
         var d = data.copy(ringing = data.ringing.filterNot { it.kind == ring.kind && it.ref == ring.ref })

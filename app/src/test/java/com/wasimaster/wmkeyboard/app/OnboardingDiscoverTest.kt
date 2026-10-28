@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
-import com.wasimaster.wmkeyboard.core.settings.PersonaPrivacy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,18 +11,17 @@ class OnboardingDiscoverTest {
 
     private fun features(
         depth: PersonaDepth = PersonaDepth.UNSET,
-        privacy: PersonaPrivacy = PersonaPrivacy.UNSET,
         whisper: Boolean = true,
         supported: Boolean = true,
     ) = discoverFeatures(
-        OnboardingSettings(personaDepth = depth, personaPrivacy = privacy),
+        OnboardingSettings(personaDepth = depth),
         whisperAvailable = whisper,
         isToolSupported = { supported },
     )
 
     @Test
     fun `ids are unique`() {
-        val ids = features(depth = PersonaDepth.POWER, privacy = PersonaPrivacy.STRICT).map { it.id }
+        val ids = features(depth = PersonaDepth.POWER).map { it.id }
         assertEquals(ids.toSet().size, ids.size)
     }
 
@@ -67,13 +65,6 @@ class OnboardingDiscoverTest {
         val ids = features(depth = PersonaDepth.POWER, whisper = false).map { it.id }
         assertFalse("whisper" in ids)
         assertTrue("modes" in ids)
-    }
-
-    @Test
-    fun `strict privacy pins the keyboard toggles first and pushes ai last`() {
-        val ids = features(depth = PersonaDepth.POWER, privacy = PersonaPrivacy.STRICT).map { it.id }
-        assertEquals("quick_toggles", ids.first())
-        assertEquals("ai", ids.last())
     }
 
     @Test

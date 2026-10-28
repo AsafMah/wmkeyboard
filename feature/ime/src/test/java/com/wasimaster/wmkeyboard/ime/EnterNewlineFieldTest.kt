@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime
 
+import android.os.Bundle
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -51,9 +52,14 @@ class EnterNewlineFieldTest {
     /**
      * Taps the on-screen Enter key against a field shaped by [info]; with
      * [heldShift], with a finger held on shift, which reaches the service as
-     * the Shift+Enter chord the grid builds for it.
+     * the Shift+Enter chord the grid builds for it. [appAction] is an action
+     * the app named in its IME_ACTION private command first (#908).
      */
-    private fun pressEnter(info: EditorInfo, heldShift: Boolean = false): RecordingEditor {
+    private fun pressEnter(
+        info: EditorInfo,
+        heldShift: Boolean = false,
+        appAction: Int? = null,
+    ): RecordingEditor {
         val editor = RecordingEditor()
         val service = EnterKeyboard(editor, info)
         plantPersonalStores(service)
@@ -66,6 +72,9 @@ class EnterNewlineFieldTest {
                 ),
             ),
         )
+        appAction?.let { id ->
+            service.onAppPrivateCommand("IME_ACTION", Bundle().apply { putInt("IME_ACTION", id) })
+        }
         val shiftMeta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
         val action = if (heldShift) KeyAction.SendKey(KeyEvent.KEYCODE_ENTER, shiftMeta) else KeyAction.Enter
         service.onKey(Key(label = "\n", action = action))
@@ -192,5 +201,41 @@ class EnterNewlineFieldTest {
 
         assertEquals(listOf("\n"), editor.commits)
         assertFalse(KeyEvent.KEYCODE_ENTER in editor.keys)
+    }
+
+    /**
+     * The Pixel Launcher's app-drawer search (#908): a multi-line EditText
+     * declaring actionSearch, which TextView then flags NO_ENTER_ACTION.
+     */
+    private val launcherSearch = editorInfo(
+        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE,
+        imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION or
+            EditorInfo.IME_FLAG_NO_FULLSCREEN or
+            EditorInfo.IME_ACTION_SEARCH,
+    )
+
+    @Test
+    fun `an action the app sent over its private command is fired`() {
+        val editor = pressEnter(launcherSearch, appAction = EditorInfo.IME_ACTION_SEARCH)
+
+        assertEquals(listOf(EditorInfo.IME_ACTION_SEARCH), editor.editorActions)
+        assertEquals(emptyList<String>(), editor.commits)
+        assertFalse(KeyEvent.KEYCODE_ENTER in editor.keys)
+    }
+
+    @Test
+    fun `the launcher box without the command still breaks the line`() {
+        val editor = pressEnter(launcherSearch)
+
+        assertEquals(listOf("\n"), editor.commits)
+        assertEquals(emptyList<Int>(), editor.editorActions)
+    }
+
+    @Test
+    fun `a private command naming no standard action is ignored`() {
+        val editor = pressEnter(launcherSearch, appAction = EditorInfo.IME_ACTION_NONE)
+
+        assertEquals(listOf("\n"), editor.commits)
+        assertEquals(emptyList<Int>(), editor.editorActions)
     }
 }

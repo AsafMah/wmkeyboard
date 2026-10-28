@@ -127,6 +127,58 @@ object SherpaNative {
     /** The clip is over: speech still going on becomes a last phrase. */
     @JvmStatic external fun nativeVadFlush(vad: Long)
 
+    // A detector handle, Silero, TEN or FireRedVAD, is a live dictation's own
+    // and belongs to the one thread feeding it, which for Asr4All is not
+    // [dispatcher]; it shares nothing with the recognizer.
+
+    /** Model families [nativeVadOf] runs and [nativeVadProbe] names. */
+    const val VAD_SILERO = 0
+    const val VAD_TEN = 1
+
+    /**
+     * [nativeVad] ([keep] false) or [nativeSegmenter] ([keep] true) for a
+     * model of [kind], [VAD_SILERO] or [VAD_TEN]. sherpa-onnx exits the
+     * process on a model it does not recognise, so [model] is one this app
+     * pinned or one [nativeVadProbe] passed. Not in a bridge built before it:
+     * that one throws [UnsatisfiedLinkError].
+     */
+    @JvmStatic external fun nativeVadOf(
+        kind: Int,
+        model: String,
+        threshold: Float,
+        minSilence: Float,
+        minSpeech: Float,
+        maxSpeech: Float,
+        keep: Boolean,
+    ): Long
+
+    /**
+     * Which family the ONNX file at [model] is: [VAD_SILERO], [VAD_TEN], or -1
+     * for neither. Opens it with plain ONNX Runtime and makes the checks
+     * sherpa-onnx would exit on, so it is safe on any file.
+     */
+    @JvmStatic external fun nativeVadProbe(model: String): Int
+
+    // FireRedVAD's streaming DFSMN (vad_jni.cpp): Kaldi filterbanks with the
+    // CMVN statistics of its cmvn.ark ([mean], and [scale] the inverse
+    // standard deviation, 80 each), one speech probability per 10 ms frame.
+    @JvmStatic external fun nativeFireRed(model: String, mean: FloatArray, scale: FloatArray, threads: Int): Long
+
+    @JvmStatic external fun nativeFireRedFree(vad: Long)
+
+    /** [count] samples in; the probability of each 10 ms frame they complete, oldest first. */
+    @JvmStatic external fun nativeFireRedFeed(vad: Long, samples: FloatArray, count: Int): FloatArray
+
+    @JvmStatic external fun nativeFireRedReset(vad: Long)
+
+    // Smart Turn v3 (smart_turn_jni.cpp): whether a speaker has finished.
+    @JvmStatic external fun nativeSmartTurn(model: String, threads: Int): Long
+
+    @JvmStatic external fun nativeSmartTurnFree(turn: Long)
+
+    /** The chance, 0 to 1, that the speaker of the last 8 s of the first [count] [samples] has finished; below 0 on failure. */
+    @JvmStatic external fun nativeSmartTurnRun(turn: Long, samples: FloatArray, count: Int): Float
+
     // Meta's Omnilingual ASR CTC model on ONNX Runtime, a whole phrase at a time.
     @JvmStatic external fun nativeOmnilingual(model: String, tokens: String, threads: Int): Long
 

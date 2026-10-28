@@ -9,7 +9,8 @@
 //! `GlideGuessGate.admit` gates them at `MARGIN`, default 1) and `shapes`
 //! (each session's earlier swipes as learned shapes); none is the bare
 //! decoder. `LW`, `LAC` and `SW` override the loop, look-ahead and shape
-//! weights; `THREADS` and `LIMIT` the run. Prints top-1 and top-4, the
+//! weights, `FW`, `LN` and `LB` the frequency weight and length terms (for
+//! emissions from another model); `THREADS` and `LIMIT` the run. Prints top-1 and top-4, the
 //! doubled-letter and looped subsets, the misses by kind, the guesses that
 //! led, the words drawn before in their session, and the decode time.
 
@@ -164,6 +165,9 @@ fn main() {
         trie.insert(&word, frequency);
     }
     let mut scoring = Scoring::default();
+    scoring.freq_weight = env_f("FW", scoring.freq_weight);
+    scoring.length_norm = env_f("LN", scoring.length_norm);
+    scoring.length_bonus = env_f("LB", scoring.length_bonus);
     scoring.loop_weight = env_f("LW", scoring.loop_weight);
     scoring.look_ahead_cost = env_f("LAC", scoring.look_ahead_cost);
     let marks_on = mode.contains("marks");

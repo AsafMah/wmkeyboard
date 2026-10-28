@@ -1,6 +1,6 @@
 ---
 title: "Statistics"
-description: "The typing counts screen: your level and achievements, streaks, the tap heatmap, where your words come from, voice typing, personal bests, the charts, when counting pauses, and how to delete the lot."
+description: "The typing counts screen: your level and achievements, streaks, your typos and the slips behind them, the tap heatmap, who you are when you type, punctuation, the record book, languages, voice typing, personal bests, the charts, when counting pauses, and how to delete the lot."
 sidebar:
   order: 21
 ---
@@ -11,13 +11,15 @@ import Shot from '@components/Shot.astro';
 
 <SettingsPath path="About / Statistics" />
 
-**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, a streak calendar, a heatmap of where your thumbs land, and a count of the words you say with voice typing. It's counted on the device and stored on the device. Nothing you typed is kept, only the totals.
+**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, a streak calendar, your typos and the slips your hand makes, a heatmap of where your thumbs land, a few badges for the kind of typist you are, your punctuation, a record book, the languages you type in, and a count of the words you say with voice typing. It's counted on the device and stored on the device. Nothing you typed is kept, only the totals.
 
 <PhoneFrame caption="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart.">
   <Shot id="reference/settings/statistics-screen" alt="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart." />
 </PhoneFrame>
 
 There are two other ways in. The **Statistics** tool opens this screen straight from the keyboard: add it to the toolbar or leave it in the toolbox like any other tool (see [The toolbar](/tools/overview/)). And <SettingsPath path="About / Storage / Typing statistics" /> is the storage row that owns these files, where **Open the settings for this** at the bottom lands you on the same screen.
+
+Statistics is also a bundle on [Extensions](/reference/settings/extensions/), as **Statistics**. Off there, the counting stops, the tool leaves the toolbar and the toolbox, and this screen leaves About and search; what was already counted is kept. The bundle's switch moves **Count typing statistics** with it.
 
 ## What counts as typing
 
@@ -27,7 +29,9 @@ Voice typing has a count of its own, kept beside the typing and never inside it:
 
 Time is measured in bursts. The gap between two keystrokes joins your typing time only when it's 5 seconds or shorter. Anything longer is you thinking, switching apps, or putting the phone down, and it adds nothing. Speed is then the usual arithmetic: characters ÷ 5, over the minutes of typing time.
 
-What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, the same count split by day of the week, your fastest typing speed, and for each layout a count of taps per quarter-key cell. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. Day buckets are kept for 370 days, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
+What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, the same count split by day of the week, your fastest typing speed, and for each layout a count of taps per quarter-key cell. Since the typo pass the file also holds the typo counts (autocorrects fired, kept and undone, offers taken, words you fixed by hand, your best clean run), a count per punctuation mark, words typed in capitals, the record book's numbers, and a word count per language id. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. The longest word is stored as a number of letters, never the word. Day buckets are kept for 370 days, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
+
+The one thing on the screen that *is* text, the slips and the words you fix most, isn't in this file at all. It's read off [Learned corrections](/smart/autocorrect/#learning-from-your-own-fixes), which already lists the same pairs, and goes when you delete those.
 
 ## Your level
 
@@ -56,7 +60,7 @@ Nothing about the level is stored. It's worked out from the counts every time th
 
 ## Achievements
 
-Under the level are eight achievements, one row each. A row says what it counts, which step you're on ("Step 2 of 9"), your count against the next target ("43/200"), and a ring that fills towards it. Once every step is done the row says so and the ring stays full, and the count keeps climbing.
+Under the level are ten achievements, one row each. A row says what it counts, which step you're on ("Step 2 of 9"), your count against the next target ("43/200"), and a ring that fills towards it. Once every step is done the row says so and the ring stays full, and the count keeps climbing.
 
 | Achievement | What it counts | Steps |
 |---|---|---|
@@ -68,6 +72,8 @@ Under the level are eight achievements, one row each. A row says what it counts,
 | Glide distance | How far your finger has travelled gliding, in metres | 20, 100, 500, 1,000, 5,000, 10,000, 42,195 (a marathon) |
 | Two-thumb typing | Words made from taps and swipes together | 100, 500, 2,000, 10,000, 50,000 |
 | Voice typing | Words you said instead of typed | 200, 1,000, 5,000, 20,000, 50,000, 100,000 |
+| Saved by autocorrect | Corrections that stood once you typed on | 50, 200, 1,000, 5,000, 20,000, 50,000 |
+| Clean run | Your best run of words with no backspace, autocorrect or hand fix | 10, 25, 50, 100, 250, 500 |
 
 How the keyboard decides what each pick was:
 
@@ -84,6 +90,19 @@ The rings are hidden from screen readers. The count beside each one already says
 **Streaks** shows three numbers over a calendar. **Current streak** is the days in a row, up to today, that you typed or said something. A day you haven't typed on yet doesn't break it: the streak counts back from yesterday until a whole day passes with nothing. **Longest streak** is the best run in the history the keyboard keeps (370 days), and **Days typed** is how many days in that history have anything on them.
 
 The calendar is the last 26 weeks, one square per day, a column per week with Monday at the top and today in the last column. A darker square is a busier day, counting typed and spoken words together. The calendar is hidden from screen readers. The three numbers and the line under it ("Days with typing in the last 26 weeks") say what it shows.
+
+## Typos
+
+**Typos** is four tiles and up to two rows, shown once you have typed a word.
+
+- **Autocorrects** is every time the keyboard replaced the word you had just typed, whether it decided alone or you tapped the near-miss chip. An apostrophe put back or a script flipped isn't one.
+- **Fixed by hand** is every word you went back and repaired yourself, a slip's worth of edits (the same bar [Learned corrections](/smart/autocorrect/#learning-from-your-own-fixes) uses: three letters or more, no more than two edits, or three in a long word). It counts whether or not the keyboard is allowed to learn from the fix.
+- **Typos per 100 words** is those two together, for every hundred words typed.
+- **Autocorrect trust** is how often a correction stood once the text around it settled, as a share of the corrections that were judged at all. It shows a dash until 20 have been judged. A correction you backspace away, undo from the chip, or overwrite with your own spelling later is an undone one; one you type straight past is a kept one; one whose fate the keyboard can't read off the field is neither.
+- **Best clean run** is the most words in a row with no backspace, no autocorrect and no hand fix among them. A hand fix is only known once the text settles, so it ends the run late: the words you typed between the slip and the repair stay in the run.
+- **Fixes you accepted** counts the near-miss chips you tapped. Each is also an autocorrect.
+
+**Your signature slips** follows when the keyboard has learned anything from your own fixes: up to three slips your hand makes most (a letter typed instead of its neighbour, a letter left out, two swapped), and up to three words you fix most, as "teh → the" with how many times. These are read off Learned corrections rather than counted here, so they only fill while **Learn from my fixes** is on and go when you delete that list. The row at the bottom opens the whole list.
 
 ## Where you tap
 
@@ -102,6 +121,35 @@ After the level, the achievements, the streaks and the heatmap, the screen shows
 
 **Where your words come from** splits every word by how it went in, one row each with its count, its share and a bar: **Typed letter by letter**, **Predicted**, **Completed**, **Glided**, **Two-thumb** and **Spoken**. Each word is in one row only. A way you have never used doesn't get a row.
 
+### Who you are when you type
+
+Up to four badges, each read off the counts above and nothing else, so they come and go as your habits do. One for the hours, one for the week, one for the backspaces and one for the punctuation, and a badge only once there's enough behind it: 2,000 keystrokes for the time ones, 500 words for a shouter, 100 sentence endings for the marks.
+
+| Badge | When |
+|---|---|
+| Night owl | At least 35 % of your keystrokes fall between 22:00 and 04:00 |
+| Early bird | At least 30 % fall between 05:00 and 09:00 |
+| Lunch typist | At least 30 % fall between 12:00 and 14:00 |
+| Weekend typist | Saturday and Sunday hold at least 40 % of your keystrokes |
+| Weekday typist | They hold 10 % or less |
+| Careful | Fewer than 5 backspaces per 100 characters |
+| Fearless | More than 15 |
+| Shouter | At least 5 of every 100 typed words are in capitals |
+| Exclaimer, Questioner, Trailing off | The mark that ends most of your sentences is !, ? or … |
+| Full stop | The full stop ends at least 90 % of them |
+
+### Punctuation
+
+**Punctuation** is one bar split by mark, biggest share first and a lighter shade for each rarer one, with a row per mark under it giving its count and share. The marks counted are ! ? . , ; : … ' and ". Three full stops in a row count as one ellipsis, so "..." and "…" come to the same thing. Only marks typed as a key of their own count; the full stop at the end of a double-space sentence, or one a snippet or a panel put in, isn't a keystroke. **Words shouted** is the words you typed in capitals, two letters or more, letter by letter (a glided or picked word isn't judged).
+
+### Record book
+
+The longest of everything, each row waiting until it has a number: **Longest word** (letters in the longest word you typed, picked or glided, kept as a number only), **Longest glide**, **Longest stretch** (the longest run of typing with no pause over 5 seconds), **Longest backspace run**, **Words deleted whole** (words a delete swipe took in one go) and **Emoji sent**, with the emoji per 100 words under it. Emoji count wherever they came from: the panel, the suggestion strip, a shortcut. Which emoji is the emoji panel's own business and never here.
+
+### Languages
+
+**Languages** says how many languages you have typed in, then one row per language with its words, its share and a bar, most first, up to eight. Each counted word goes to the language the keyboard was on when it ended; the file holds the language id and a count, nothing about the layout. A keyboard cycling through more than 64 languages keeps the 64 with the most words.
+
 ### Voice typing
 
 **Voice typing** appears once you have dictated something. Its four tiles are **Words spoken**, **Phrases**, **Time speaking** and **Speaking speed**. A phrase is one stretch of speech the keyboard put in the field, and its time runs from when the microphone started listening to when the words went in, so it includes the moment Whisper or a server took to transcribe. A phrase that took more than 10 minutes is left out of the time, because that's a microphone left open rather than talking. Speaking speed is spoken words per minute of that time, and shows a dash until there's a full minute.
@@ -113,7 +161,7 @@ Words in a language written without spaces (Chinese, Japanese, Thai, Lao, Khmer 
 - **Fastest stretch** is your best speed over any run of typing at least 15 seconds and 50 characters long, with no pause longer than 5 seconds inside it. Shorter runs would let two quick words post a silly number.
 - **Best day** is the day with the most typed and spoken words, with its date.
 - **Average word length** is the letters in each word you typed, picked or glided.
-- **Corrections** is backspaces for each 100 characters you typed.
+- **Taken back** is backspaces for each 100 characters you typed. (It was called Corrections before the Typos section existed; the typo figures are up there now.)
 
 A row only appears once it has a number.
 
@@ -121,7 +169,7 @@ A row only appears once it has a number.
 
 The same counts turned into things you can picture. **Novels** is your typed and spoken words divided by 80,000, a round figure for an adult novel. **Time saved** is how long the keystrokes saved would take you to type at your own average speed, or at 40 wpm before you have one. **Running track laps** is your glide distance on a 400 m track. **Key presses** is every letter, space, mark and backspace. Time saved and the laps wait until there's at least a minute or a tenth of a lap to show.
 
-**History** is a chart with two rows of chips. The first picks the window: **Days** for the last 14, **Weeks** for the last 12, **Months** for the last 12. The second picks what's plotted: **Words**, **Characters**, **Speed** or **Spoken** (words from voice typing). Words and Characters draw bars. Speed draws a line over a light grid. Quiet buckets still get a tick, so the axis reads as a run of days rather than a chart full of holes. Under the chart is one row per bucket that has something in it, newest first: the date, "N words · N characters" (with "· N spoken" added on a day you dictated), and the bucket's speed on the right whenever the bucket recorded any typing time at all. The 30-second floor applies to the all-time tile only, so a row can show a speed the tile still refuses to.
+**History** is a chart with two rows of chips. The first picks the window: **Days** for the last 14, **Weeks** for the last 12, **Months** for the last 12. The second picks what's plotted: **Words**, **Characters**, **Speed**, **Spoken** (words from voice typing) or **Typos** (autocorrects and hand fixes together, counting from the version that added them). Words, Characters, Spoken and Typos draw bars. Speed draws a line over a light grid. Quiet buckets still get a tick, so the axis reads as a run of days rather than a chart full of holes. Under the chart is one row per bucket that has something in it, newest first: the date, "N words · N characters" (with "· N spoken" added on a day you dictated), and the bucket's speed on the right whenever the bucket recorded any typing time at all. The 30-second floor applies to the all-time tile only, so a row can show a speed the tile still refuses to.
 
 **When you type** is the 24-hour histogram, with your busiest hour named underneath in your own time format. It only appears once at least one hour has something in it.
 

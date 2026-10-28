@@ -159,6 +159,8 @@
     <!-- Menu item that looks up synonyms for the held word, to put one in its
          place (#321). %1$s is the word the user held. -->
     <string name="ime_word_menu_synonyms">Synonyms for \"<xliff:g id="word" example="happy">%1$s</xliff:g>\"</string>
+    <string name="ime_word_menu_rank_up">Suggest \"<xliff:g id="word" example="form">%1$s</xliff:g>\" higher</string>
+    <string name="ime_word_menu_rank_down">Suggest \"<xliff:g id="word" example="form">%1$s</xliff:g>\" lower</string>
 
     <!-- The synonyms sheet: a panel over the keyboard that lists synonyms for
          a held word. Tapping one puts it in place of the word. -->
@@ -268,6 +270,7 @@
     <string name="ime_undo_correction_desc">Put back the word you typed</string>
     <string name="ime_capture_undo_desc">Undo the last change</string>
     <string name="ime_capture_redo_desc">Redo the change you undid</string>
+    <string name="ime_capture_keys_lower_desc">Put the keys down</string>
     <!-- Screen reader names of the focus switch on a tool's own field (#665),
          which sends the keys to the app's field or back. Each says what a
          press does. -->
@@ -438,6 +441,9 @@
     <!-- The strip button on Burmese layouts. Zawgyi is the name of the encoding, not a word to translate. -->
     <string name="ime_zawgyi_button" translatable="false">Zawgyi</string>
     <string name="ime_zawgyi_output">Zawgyi output</string>
+    <!-- The strip button on Chinese and Cantonese layouts: 繁 is the first character of 繁體, Traditional. Not translated. -->
+    <string name="ime_traditional_button" translatable="false">繁</string>
+    <string name="ime_traditional_output">Traditional characters</string>
     <!-- Strip chip after a paste the keyboard found to be in Zawgyi, the old Burmese font encoding. Tapping it replaces the paste with Unicode. -->
     <string name="ime_zawgyi_paste_offer">Pasted Zawgyi. Convert to Unicode</string>
     <!-- Strip chip on a Burmese layout when the text box already holds Zawgyi. Tapping it makes the keyboard write Zawgyi in this text box. -->
@@ -452,8 +458,10 @@
     <string name="ime_tool_learn_from_text">Learn from text</string>
     <string name="ime_tool_find_replace">Find &amp; replace</string>
     <string name="ime_tool_notes">Notes</string>
+    <string name="ime_tool_todo">To-do list</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
+    <string name="ime_tool_music_id">Music ID</string>
     <string name="ime_tool_home_assistant">Smart home</string>
     <string name="ime_tool_send_files">Send files</string>
     <string name="ime_tool_gallery">Gallery</string>
@@ -505,6 +513,32 @@
     <string name="ime_tool_translate">Translate</string>
     <string name="ime_tool_gif">GIFs</string>
     <string name="ime_tool_sticker">Stickers</string>
+    <string name="ime_tool_emoji_mix">Emoji mixes</string>
+    <string name="ime_emoji_mix_no_source">No source is on. Add one under Settings › Emoji › Emoji mixes.</string>
+    <string name="ime_emoji_mix_first_desc">First emoji</string>
+    <string name="ime_emoji_mix_second_desc">Second emoji</string>
+    <string name="ime_emoji_mix_none">No mix</string>
+    <string name="ime_emoji_mix_swap_desc">Swap the two emoji</string>
+    <string name="ime_emoji_mix_shuffle_desc">A random mix</string>
+    <string name="ime_emoji_mix_shuffle_hold_desc">Choose what the shuffle picks from</string>
+    <string name="ime_emoji_mix_shuffle_title">Shuffle from</string>
+    <string name="ime_emoji_mix_shuffle_first">First</string>
+    <string name="ime_emoji_mix_shuffle_second">Second</string>
+    <string name="ime_emoji_mix_shuffle_all">Every category</string>
+    <string name="ime_emoji_mix_clear_desc">Take this emoji out</string>
+    <string name="ime_emoji_mix_previews_held">Data saver holds the pictures on this connection.</string>
+    <string name="ime_emoji_mix_pick_first">Pick an emoji below.</string>
+    <string name="ime_emoji_mix_pick_second">Pick a second emoji to try them together.</string>
+    <string name="ime_emoji_mix_more_desc">More for this mix</string>
+    <string name="ime_emoji_mix_item_desc">Mix of %1$s and %2$s</string>
+    <string name="ime_emoji_mix_star">Star</string>
+    <string name="ime_emoji_mix_unstar">Remove the star</string>
+    <string name="ime_emoji_mix_add_to_stickers">Add to my stickers</string>
+    <string name="ime_emoji_mix_save_to_gallery">Save to photos</string>
+    <string name="ime_emoji_mix_open_desc">All mixes of this emoji</string>
+    <string name="ime_emoji_mix_field_refuses_toast">This field does not take pictures</string>
+    <string name="ime_emoji_mix_fetch_failed_toast">Could not get that mix</string>
+    <string name="ime_emoji_mix_pack_name">Emoji mixes</string>
     <string name="ime_tool_web_search">Search</string>
     <string name="ime_tool_image_search">Images</string>
     <string name="ime_tool_ocr">Scan text</string>
@@ -589,12 +623,16 @@
     <string name="ime_image_search_hint">Search images</string>
     <!-- Camera button beside the image search box: opens the camera to search with a photo (#349). -->
     <string name="ime_image_search_by_photo_desc">Search with a photo</string>
+    <!-- Web search panel: open the typed query as a search page in the browser. -->
+    <string name="ime_search_in_browser_desc">Search in the browser</string>
     <!-- Names the search service. Brave is a brand name: keep it as it is. -->
     <string name="ime_search_attribution_brave">via Brave</string>
     <!-- Names the search service. Tavily is a brand name: keep it as it is. -->
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <string name="ime_unit_convert_title">Unit converter</string>
     <string name="ime_password_tab_passphrase">Passphrase</string>
+    <!-- Tab in the password generator: a code made of digits only. -->
+    <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_typing_test_restart">Restart</string>
     <string name="ime_ai_replace">Replace</string>
     <string name="ime_ai_insert">Insert</string>
@@ -649,6 +687,26 @@
     <string name="ime_launcher_combo_label">%1$s + %2$s</string>
     <string name="ime_launcher_combo_open_action">Open both in split screen</string>
     <string name="ime_launcher_combo_remove_action">Remove this pair</string>
+    <string name="ime_launcher_folder_default_name">Folder</string>
+    <string name="ime_launcher_folder_add_action">Add to folder</string>
+    <string name="ime_launcher_folder_take_out_action">Take out of folder</string>
+    <string name="ime_launcher_folder_pick_title">Add %1$s to</string>
+    <string name="ime_launcher_folder_new_action">New folder</string>
+    <string name="ime_launcher_group_action">Sort all apps by category</string>
+    <string name="ime_launcher_group_note">A folder per Play category for every app not in a folder yet</string>
+    <string name="ime_launcher_group_none_toast">None of these apps names a category</string>
+    <string name="ime_launcher_folder_open_action">Open folder</string>
+    <string name="ime_launcher_folder_rename_action">Rename folder</string>
+    <string name="ime_launcher_folder_rename_done_desc">Keep this name</string>
+    <string name="ime_launcher_folder_name_hint">Folder name</string>
+    <string name="ime_launcher_folder_move_earlier_action">Move folder earlier</string>
+    <string name="ime_launcher_folder_move_later_action">Move folder later</string>
+    <string name="ime_launcher_folder_delete_action">Remove folder</string>
+    <string name="ime_launcher_folder_delete_note">Its apps go back to the grid</string>
+    <string name="ime_launcher_folder_back_desc">Back to all apps</string>
+    <string name="ime_launcher_work_desc">Work app</string>
+    <string name="ime_launcher_work_paused_desc">Work app, paused</string>
+    <string name="ime_launcher_work_package">%1$s · work profile</string>
 
     <!-- The Snippets panel. Keep the words inside the braces as they are: the
          keyboard looks for them and puts a value in their place. -->
@@ -770,6 +828,9 @@
     <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
     <!-- The hold popup's action and the clip shortcut button that open the QR code tool on a text clip (#766). -->
     <string name="ime_clip_qr">QR code</string>
+    <!-- Clipboard hold menu: search for the clip's text with the web search tool, or on Wikipedia. -->
+    <string name="ime_clip_search_web">Search the web</string>
+    <string name="ime_clip_search_wikipedia">Search Wikipedia</string>
     <!-- A folder of pinned clips (#768), named after a tag. %1$s is the tag, %2$d how many clips it holds. -->
     <plurals name="ime_clip_folder_open_desc">
         <item quantity="one">Open folder %1$s, %2$d clip</item>
@@ -966,6 +1027,8 @@
     <string name="ime_language_picker_language_settings">Language settings</string>
 
     <!-- The chip the suggestion strip shows for a tool. %1$s is a tool name. -->
+    <!-- Spoken by TalkBack for the AI continuation chip in the suggestion strip (#944). %1$s is the continuation. -->
+    <string name="ime_ai_suggest_desc">AI suggestion: %1$s. Double-tap to insert, hold to hide in this field.</string>
     <string name="ime_smart_send_link">Receive the file</string>
     <string name="ime_smart_open_tool">Open %1$s</string>
     <!-- Where a currency chip's converted amount would be, while the exchange

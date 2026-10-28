@@ -26,6 +26,7 @@
     <string name="common_default">Standard</string>
     <string name="common_delete">Ta bort</string>
     <string name="common_disable">Stäng av</string>
+    <string name="common_disabled_open_setting">Öppna inställningen</string>
     <string name="common_disclosure_blocked_body">Android visar inte denna förfrågan längre, eftersom du nekade behörigheten tidigare. Du kan fortfarande aktivera den från appinställningsskärmen.</string>
     <string name="common_disclosure_not_now">Inte nu</string>
     <string name="common_done">Klar</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installera</string>
     <string name="common_installing">Installerar…</string>
     <string name="common_loading">Läser in…</string>
+    <string name="common_more">Mer</string>
     <string name="common_next">Nästa</string>
     <string name="common_none">Ingen</string>
     <string name="common_notify_channel_backup_body">Endast när en automatisk säkerhetskopiering misslyckas. Lyckade säkerhetskopieringar är tysta.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Visa aviseringar</string>
     <string name="common_permission_storage_body">På Android 9 och äldre behöver tangentbordet lagringsbehörighet för att spara en bild i ditt galleri. Den gamla Android-behörigheten omfattar även läsning av din lagring. Tangentbordet skriver endast den bild som du ber det att spara. Tangentbordet läser ingenting och laddar inte upp någonting. Nyare Android-versioner behöver inte denna behörighet.</string>
     <string name="common_permission_storage_title">Lagringsåtkomst för att spara till ditt galleri</string>
+    <string name="common_permission_tasks_body">WM Keyboard håller sin att-göra-lista och en uppgiftslista i uppgiftsappen synkroniserade: uppgifterna, deras steg, deras bockmarkeringar och deras förfallodatum, åt båda hållen. Behörigheten täcker varje uppgiftslista i appen. Tangentbordet läser appens listor endast så att du kan välja en, och det läser och skriver endast den lista du valt. Tangentbordet skickar ingenting någonstans. DAVx5, om du använder det, synkroniserar den listan med din egen CalDAV-server. Utan denna behörighet stannar att-göra-listan på den här telefonen.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-åtkomst för att göra-listan</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-åtkomst för att-göra-listan</string>
+    <string name="common_preview_scale_desc">Förhandsgranskningsstorlek</string>
+    <string name="common_preview_scale_larger">Gör förhandsgranskningen större</string>
+    <string name="common_preview_scale_smaller">Gör förhandsgranskningen mindre</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Ta bort</string>
     <string name="common_reset">Återställ</string>
     <string name="common_reset_defaults">Återställ till standardvärden</string>

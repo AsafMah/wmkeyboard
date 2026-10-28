@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The keyboard's own share sheet (#970), in the keyboard and in the settings app -->
+    <string name="ime_share_title">Share</string>
+    <string name="ime_share_search_hint">Search apps to share to</string>
+    <string name="ime_share_loading">Finding apps…</string>
+    <string name="ime_share_empty">No app takes this share</string>
+    <string name="ime_share_no_match">No apps match</string>
+    <string name="ime_share_shortcuts_label">Pinned and recent</string>
+    <string name="ime_share_all_label">All apps</string>
+    <string name="ime_share_copy">Copy</string>
+    <string name="ime_share_open">Open</string>
+    <string name="ime_share_insert">Insert</string>
+    <string name="ime_share_system">More options</string>
+    <string name="ime_share_system_desc">Android\'s share sheet, with its contacts and everything else it offers</string>
+    <string name="ime_share_pin">Pin</string>
+    <string name="ime_share_unpin">Unpin</string>
+    <string name="ime_share_forget">Remove from recent</string>
+    <string name="ime_share_pinned_desc">Pinned</string>
+    <string name="ime_share_cancel">Cancel</string>
+    <string name="ime_share_copied_toast">Copied</string>
+    <string name="ime_share_failed_toast">That app could not take the share</string>
+    <string name="ime_share_preview_text">Text</string>
+    <plurals name="ime_share_preview_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+</resources>

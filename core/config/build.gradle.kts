@@ -106,9 +106,11 @@ android {
         // The NPU as a Compute choice for on-device AI: see npuRuntime above.
         buildConfigField("Boolean", "ENABLE_NPU", "$npuRuntime")
         // The Google Home APIs: their SDK is left out of F-Droid's build, and
-        // the grant only works for a signing certificate that has an OAuth
-        // client, so each channel says whether it carries one.
-        buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${googleSdks && flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME") && googleHomeSdk}")
+        // on in every other build that has it unpacked under
+        // feature/ime/libs/googlehome. The grant only works for a signing
+        // certificate that has an OAuth client, which is a property of the
+        // channel, not of a flag.
+        buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${googleSdks && googleHomeSdk}")
     }
 
     buildFeatures { buildConfig = true }

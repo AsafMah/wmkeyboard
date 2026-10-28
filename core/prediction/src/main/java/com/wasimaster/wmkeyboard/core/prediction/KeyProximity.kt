@@ -2,9 +2,11 @@ package com.wasimaster.wmkeyboard.core.prediction
 
 import com.wasimaster.wmkeyboard.core.engine.NativeHandles
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.numberRowFor
 
 /**
  * Physical adjacency on a keyboard layout, used to weight typo corrections:
@@ -15,15 +17,22 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
  * the same row, plus the three keys straddling the same column in the rows above
  * and below (the phone grid is only half-key staggered, so i-1..i+1 covers every
  * touching key).
+ *
+ * It also knows the letters each key carries besides the one a tap types
+ * ([carries]): what its Shift, its corner hint and its hold reach (#970).
  */
-class KeyProximity private constructor(private val rows: List<String>) {
+class KeyProximity private constructor(
+    private val rows: List<String>,
+    /** Per typed character, the other letters its key carries; see [carries]. */
+    private val carried: Map<Char, String> = emptyMap(),
+) {
 
     /**
      * The same model in Rust, for the native correction walk, made on first
      * use and released with this object ([NativeFuzzySearch]).
      */
     internal val nativeHandle: Long by lazy {
-        PredictionNative.proximityOpen(rows.toTypedArray()).also {
+        PredictionNative.proximityOpen(rows.toTypedArray(), carriedPairs()).also {
             NativeHandles.track(this, it, PredictionNative::proximityClose)
         }
     }
@@ -125,15 +134,36 @@ class KeyProximity private constructor(private val rows: List<String>) {
     }
 
     /**
+     * Whether the key that types [typed] also carries [label]: on Shift, in its
+     * corner, or behind a hold (#970). Arabic's ة rides on ه's Shift and أ
+     * behind ا's hold, so a word typed without the Shift or the hold is one
+     * tap per letter all the same; the correction walk reads it the way it
+     * reads a Latin letter typed without its accent, as no edit at all.
+     *
+     * One way only. Typing the carried letter is a choice someone made on
+     * purpose, and reading it back as the plain one is not a slip.
+     */
+    fun carries(typed: Char, label: Char): Boolean = carried[typed]?.contains(label) == true
+
+    /** [carried] as typed, carried pairs, for the Rust twin. */
+    private fun carriedPairs(): CharArray {
+        val out = StringBuilder()
+        for ((typed, letters) in carried) {
+            for (letter in letters) out.append(typed).append(letter)
+        }
+        return out.toString().toCharArray()
+    }
+
+    /**
      * Structural equality: two proximities derived from the same rows are the
      * same proximity. The IME rebuilds this object on every settings emission,
      * so identity comparisons silently treat every emission as a layout change
      * — value equality is what cache invalidation must key on.
      */
     override fun equals(other: Any?): Boolean =
-        other is KeyProximity && other.neighbors == neighbors
+        other is KeyProximity && other.neighbors == neighbors && other.carried == carried
 
-    override fun hashCode(): Int = neighbors.hashCode()
+    override fun hashCode(): Int = 31 * neighbors.hashCode() + carried.hashCode()
 
     companion object {
 
@@ -161,8 +191,13 @@ class KeyProximity private constructor(private val rows: List<String>) {
             // part of any LayoutSpec), so it is stitched on here the same way:
             // digits become neighbours of the top letter row, which is what
             // prices a number-row slip ("as3" for "ase") as an adjacent
-            // substitution instead of a distant one.
-            return KeyProximity(if (numberRow) listOf(NUMBER_ROW) + rows else rows)
+            // substitution instead of a distant one. The layout's own number
+            // row when it authored one (#970): Eastern Arabic digits, or a row
+            // that is not digits at all, sit over the letters just the same.
+            val authored = if (numberRow) spec.numberRowFor(LayoutLayer.LETTERS) else null
+            val top = authored?.let(::rowString)?.takeIf { it.length > 1 } ?: NUMBER_ROW
+            val keys = spec.layer(LayoutLayer.LETTERS)?.rows.orEmpty().flatten() + authored.orEmpty()
+            return KeyProximity(if (numberRow) listOf(top) + rows else rows, carriedLetters(keys))
         }
 
         private const val NUMBER_ROW = "1234567890"
@@ -207,16 +242,46 @@ class KeyProximity private constructor(private val rows: List<String>) {
             val rows = spec.layer(LayoutLayer.LETTERS)?.rows ?: return emptyList()
             return rows
                 .filterNot { row -> row.any { it.action == KeyAction.Space } }
-                .map { row ->
-                    buildString {
-                        for (key in row) {
-                            if (key.action != KeyAction.Text) continue
-                            val text = key.output ?: key.label
-                            text.singleOrNull()?.let(::append)
-                        }
+                .map(::rowString)
+                .filter { it.length > 1 }
+        }
+
+        private fun rowString(row: List<Key>): String = buildString {
+            for (key in row) {
+                if (key.action != KeyAction.Text) continue
+                val text = key.output ?: key.label
+                text.singleOrNull()?.let(::append)
+            }
+        }
+
+        /**
+         * For each character a tap types, the other letters its key carries:
+         * its shifted label, its corner hint and its long presses, where each
+         * is one letter and not just the tapped one in another case (Latin's
+         * Shift is a capital, which the walk never needs told). A digit on the
+         * number row with a letter behind its hold counts like any other key.
+         * Accented Latin alternates are left to [Accents], which the walk asks
+         * first, so the table stays short on a Latin board, where the walk
+         * consults it at every node. Letters only: Arabic puts its harakat on
+         * Shift, and a mark is never what a tap on a letter stood in for.
+         */
+        private fun carriedLetters(keys: List<Key>): Map<Char, String> {
+            val out = LinkedHashMap<Char, StringBuilder>()
+            for (key in keys) {
+                if (key.action != KeyAction.Text) continue
+                val typed = (key.output ?: key.label).singleOrNull() ?: continue
+                for (other in listOfNotNull(key.shiftLabel, key.hint) + key.longPress) {
+                    val letter = other.singleOrNull() ?: continue
+                    if (!Character.isLetter(letter) || letter.lowercaseChar() == typed.lowercaseChar()) continue
+                    val folded = letter.lowercaseChar()
+                    for (base in setOf(typed, typed.lowercaseChar())) {
+                        if (Accents.isAccentOf(folded, base)) continue
+                        val letters = out.getOrPut(base) { StringBuilder() }
+                        if (folded !in letters) letters.append(folded)
                     }
                 }
-                .filter { it.length > 1 }
+            }
+            return out.mapValues { it.value.toString() }
         }
     }
 }

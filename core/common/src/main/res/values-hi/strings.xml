@@ -26,6 +26,7 @@
     <string name="common_default">डिफ़ॉल्ट</string>
     <string name="common_delete">हटाएं</string>
     <string name="common_disable">बंद करें</string>
+    <string name="common_disabled_open_setting">सेटिंग खोलें</string>
     <string name="common_disclosure_blocked_body">Android अब यह अनुरोध नहीं दिखाता है, क्योंकि आपने पहले अनुमति देने से इनकार कर दिया था। आप इसे अभी भी ऐप सेटिंग स्क्रीन से चालू कर सकते हैं।</string>
     <string name="common_disclosure_not_now">अभी नहीं</string>
     <string name="common_done">हो गया</string>
@@ -44,6 +45,7 @@
     <string name="common_install">इंस्टॉल करें</string>
     <string name="common_installing">इंस्टॉल हो रहा है…</string>
     <string name="common_loading">लोड हो रहा है…</string>
+    <string name="common_more">अधिक</string>
     <string name="common_next">अगला</string>
     <string name="common_none">कोई नहीं</string>
     <string name="common_notify_channel_backup_body">केवल तब जब स्वचालित बैकअप विफल हो जाता है। सफल बैकअप शांत रहते हैं।</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">सूचनाएं दिखाएं</string>
     <string name="common_permission_storage_body">Android 9 और पुराने वर्ज़न पर, कीबोर्ड को आपकी गैलरी में इमेज सहेजने के लिए स्टोरेज अनुमति की आवश्यकता होती है। पुरानी Android अनुमति में आपके स्टोरेज को पढ़ना भी शामिल है। कीबोर्ड केवल वही इमेज लिखता है जिसे आप सहेजने के लिए कहते हैं। कीबोर्ड कुछ भी पढ़ता नहीं है और कुछ भी अपलोड नहीं करता है। नए Android वर्ज़न को इस अनुमति की आवश्यकता नहीं है।</string>
     <string name="common_permission_storage_title">आपकी गैलरी में सहेजने के लिए स्टोरेज एक्सेस</string>
+    <string name="common_permission_tasks_body">WM कीबोर्ड अपनी टू-डू सूची और टास्क ऐप की एक टास्क सूची को एक समान रखता है: कार्य, उनके चरण, उनके टिक और उनकी देय तिथियां, दोनों तरफ। यह अनुमति ऐप की हर टास्क सूची को कवर करती है। कीबोर्ड ऐप की सूचियों को केवल इसलिए पढ़ता है ताकि आप एक चुन सकें, और यह केवल आपके द्वारा चुनी गई सूची को पढ़ता और लिखता है। कीबोर्ड कहीं भी कुछ भी नहीं भेजता है। DAVx5, यदि आप इसका उपयोग करते हैं, तो उस सूची को आपके अपने CalDAV सर्वर के साथ सिंक करता है। इस अनुमति के बिना, टू-डू सूची इस फोन पर ही रहती है।</string>
+    <string name="common_permission_tasks_opentasks_title">टू-डू लिस्ट के लिए OpenTasks का ऐक्सेस</string>
+    <string name="common_permission_tasks_tasks_org_title">टू-डू लिस्ट के लिए Tasks.org का ऐक्सेस</string>
+    <string name="common_preview_scale_desc">पूर्वावलोकन आकार</string>
+    <string name="common_preview_scale_larger">पूर्वावलोकन को बड़ा करें</string>
+    <string name="common_preview_scale_smaller">पूर्वावलोकन (प्रिव्यू) छोटा करें</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">हटाएं</string>
     <string name="common_reset">रीसेट करें</string>
     <string name="common_reset_defaults">डिफ़ॉल्ट पर रीसेट करें</string>

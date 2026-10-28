@@ -202,7 +202,7 @@ internal fun LanguageSettings(
     // on its own. Here rather than under Emoji because it covers prediction
     // data too, and this is the screen where languages arrive.
     SettingsGroup(stringResource(R.string.langemoji_lang_data_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_lang_auto_download_title,
                 stringResource(R.string.langemoji_lang_auto_download_subtitle),
@@ -211,7 +211,7 @@ internal fun LanguageSettings(
                 default = SettingsDefaults.autoDownloadLanguageData,
             ) { scope.launch { repository.setAutoDownloadLanguageData(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The metered-download confirmation moved to the data-saver
             // screen, where it is one answer among three rather than a switch,
             // and where it now covers the model downloads too. This row stays
@@ -222,7 +222,7 @@ internal fun LanguageSettings(
                 onClick = { onNavigate("datasaver") },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_lang_autopair_title,
                 stringResource(R.string.langemoji_lang_autopair_subtitle),
@@ -233,7 +233,7 @@ internal fun LanguageSettings(
         }
         serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.KEYMAN_API, ServiceEndpoint.KEYMAN_DOWNLOADS), repos = listOf(ServiceRepo.DATA))
         if (appLayoutsSaved) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val savedCount = settings.watch { it.perAppLanguage.layoutByPackage.size }
                 ActionRow(
                     title = R.string.langemoji_lang_forget_apps_title,
@@ -250,7 +250,7 @@ internal fun LanguageSettings(
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_lang_switching_title)) {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_lang_carry_word_title,
                 stringResource(R.string.langemoji_lang_carry_word_subtitle),
@@ -259,7 +259,7 @@ internal fun LanguageSettings(
                 default = SettingsDefaults.carryWordOnLanguageSwitch,
             ) { scope.launch { repository.setCarryWordOnLanguageSwitch(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // A way out of the spacebar's switcher to where its stops are
             // changed, or to the other keyboards on the phone.
             ChoiceSetting(
@@ -279,7 +279,7 @@ internal fun LanguageSettings(
             ) { scope.launch { repository.setSwitcherExtraStop(it) } }
         }
     }
-    SettingsGroup(stringResource(R.string.langemoji_lang_per_app_title)) {
+    SettingsGroup(stringResource(R.string.langemoji_lang_per_app_title), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(
                 R.string.langemoji_lang_per_app_toggle_title,
@@ -290,7 +290,7 @@ internal fun LanguageSettings(
             ) { scope.launch { repository.setRememberLayoutPerApp(it) } }
         }
     }
-    SettingsGroup(stringResource(R.string.langemoji_lang_system_switcher_title)) {
+    SettingsGroup(stringResource(R.string.langemoji_lang_system_switcher_title), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(
                 R.string.langemoji_lang_os_switcher_title,

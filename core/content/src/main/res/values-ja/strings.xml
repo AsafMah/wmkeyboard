@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">コピー</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">数字</string>
+    <string name="core_content_selection_macro_edit_word">単語を編集</string>
     <string name="core_content_selection_macro_email">メール</string>
     <string name="core_content_selection_macro_fancy">装飾</string>
     <string name="core_content_selection_macro_find">検索</string>

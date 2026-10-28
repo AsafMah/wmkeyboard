@@ -1,7 +1,7 @@
 # sherpa-onnx-jni: Offline Sherpa on ONNX Runtime
 
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) runs Offline Sherpa's
-streaming Zipformer transducers, Silero VAD and the English online
+streaming Zipformer transducers, Silero and TEN VAD and the English online
 punctuation model. Kotlin entry points: `SherpaNative`, `SherpaEngine` and
 `OmnilingualEngine` in
 `core/voice/src/main/java/com/wasimaster/wmkeyboard/core/voice/sherpa/`.
@@ -84,7 +84,16 @@ The models are not bundled. `EtCatalog` in `:core:voice` pins each one to a
 Hugging Face revision and every file to its SHA-256, the same store and
 downloader as the ExecuTorch engines. The denoiser's model is sherpa-onnx's own
 conversion (`speech-enhancement-models` release, `dpdfnet_baseline.onnx`,
-8,791,035 bytes), pinned by size and SHA-256 in `StrongDenoise`.
+8,791,035 bytes), pinned by size and SHA-256 in `StrongDenoise`. The phrase
+end detectors' models are pinned in `core.voice.vad.VadModels`: FireRedVAD's
+streaming export and `cmvn.ark` from FireRedTeam/FireRedVAD's own repository
+(commit `c30ec49e8cc69642b0ee65362eba11b9d11c6e54`, Apache-2.0), Smart Turn
+v3.2 (`smart-turn-v3.2-cpu.onnx`, pipecat-ai/smart-turn-v3 revision
+`f766f81d3cfdf7737ac64aad813d91bbfd56bf93`, BSD-2-Clause) and a Silero copy
+of its own for engines whose models carry none. TEN VAD is not offered as a
+download: its licence adds conditions to Apache-2.0 (no use that competes
+with Agora's offerings), so a user who wants it imports sherpa-onnx's release
+of it themselves.
 
 ## ABIs
 
@@ -119,6 +128,37 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
 - `nativeVad(model, threshold, minSilence, minSpeech)`, `nativeVadFeed`
   (returns whether speech is going on; feeds Silero whole 512-sample windows
   and drops finished segments), `nativeVadReset`, `nativeVadFree`.
+- `nativeVadOf(kind, model, threshold, minSilence, minSpeech, maxSpeech,
+  keep)`: the same for `kind` 0 (Silero, 512-sample windows) or 1 (TEN, 256),
+  keeping its segments for `nativeVadSegment` when `keep` is true. Built after
+  the bridge above, so Kotlin falls back to `nativeVad` / `nativeSegmenter`
+  when an older library throws `UnsatisfiedLinkError`.
+- `nativeVadProbe(model)`: 0 when the file is a Silero model sherpa-onnx will
+  take (k2-fsa's v4 export, v4 as published, v5), 1 for TEN with sherpa-onnx's
+  metadata (`model_type` `ten-vad`, `mean` and `inv_stddev` of 41, `window` of
+  768), -1 otherwise. It makes exactly the checks after which sherpa-onnx
+  v1.13.8 would exit the process, on a plain ONNX Runtime session, so an
+  imported file is tried here first and never reaches sherpa-onnx unless it
+  passes.
+- `nativeFireRed(model, mean, scale, threads)`: FireRedVAD's streaming model
+  (upstream's `fireredvad_stream_vad_with_cache.onnx`: `feat` (1, T, 80) and
+  `caches_in` (8, 1, 128, 19) in, `probs` and `caches_out` out), with the
+  CMVN means and inverse standard deviations Kotlin reads from `cmvn.ark`.
+  `nativeFireRedFeed(handle, samples, count)` scales to 16 bits, computes
+  kaldi-native-fbank filterbanks (80 bands, 25 ms every 10 ms, no dither,
+  edges snipped, as upstream's `AudioFeat`), runs every frame the samples
+  complete with the caches carried, and returns one speech probability per
+  10 ms frame. Fed in pieces it gives the probabilities of the whole clip at
+  once to the bit. `nativeFireRedReset`, `nativeFireRedFree`.
+- `nativeSmartTurn(model, threads)`: Smart Turn v3, 0 on failure or when the
+  input is not (n, 80, 800). `nativeSmartTurnRun(handle, samples, count)`:
+  the chance, 0 to 1, that the speaker of the last 8 s of `samples` has
+  finished, -1 on failure. The features are computed here, following
+  pipecat's `_whisper_features.py` (zeros in front of less than 8 s, waveform
+  normalised, centred STFT with a periodic Hann of 400, hop 160, 80 Slaney
+  mel filters, log10 clamped 8 decades below the peak, (x + 4) / 4); on
+  synthetic and spoken clips they match it within 7e-6, and the model's
+  answer to five decimals. `nativeSmartTurnFree`.
 - `nativePunctuation(model, vocab)`, `nativePunctuate`, `nativePunctuationFree`.
 - `nativeVits(model, threads)`, `nativeVitsMeta(handle, key)` (a custom
   metadata entry such as `sample_rate` or `add_blank`, empty when absent),

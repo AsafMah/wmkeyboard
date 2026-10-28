@@ -3,8 +3,10 @@ Khipro
 
 The Khipro layout (ক্ষিপ্র) is typed by running the Khipro team's own
 definition of it: the files bn-khipro.mim (from rank-coder/khipro-m17n) and
-its touchscreen adaptation (from KhiproTeam/khipro-mim-touchscreen), release
-v36.5.0, bundled unchanged. The interpreter that runs them follows the engine
+its touchscreen adaptation (from KhiproTeam/khipro-mim-touchscreen), as of
+khipro-m17n 2368712563b1 (2026-10-11) and khipro-mim-touchscreen 01318c040255
+(2026-10-20), bundled unchanged. A newer set the app downloads from its data
+repository later is the same files from the same repositories, also unchanged. The interpreter that runs them follows the engine
 of KhiproTeam/khipro-library. All three are published under the MIT licence
 below.
 

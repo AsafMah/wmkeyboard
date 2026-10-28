@@ -60,6 +60,15 @@ class VoicePunctuationTest {
     }
 
     @Test
+    fun `Portuguese and Spanish have their own names`() {
+        assertEquals("Oi, tudo bem?", VoicePunctuation.apply("Oi vírgula tudo bem ponto de interrogação", "pt-BR"))
+        assertEquals("sim; não.", VoicePunctuation.apply("sim ponto e vírgula não ponto final", "pt-BR"))
+        // A bare "ponto" is a word.
+        assertEquals("ponto de ônibus", VoicePunctuation.apply("ponto de ônibus", "pt-BR"))
+        assertEquals("Hola, amigo!", VoicePunctuation.apply("Hola coma amigo signo de exclamación", "es-ES"))
+    }
+
+    @Test
     fun `a language without a table is left exactly as heard`() {
         assertEquals("hallo comma  welt", VoicePunctuation.apply("hallo comma  welt", "de-DE"))
     }

@@ -7,7 +7,6 @@ import com.wasimaster.wmkeyboard.core.settings.MinimalTools
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
-import com.wasimaster.wmkeyboard.core.settings.PersonaPrivacy
 import com.wasimaster.wmkeyboard.core.settings.PowerTools
 import com.wasimaster.wmkeyboard.core.settings.RecommendedTools
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
@@ -51,17 +50,6 @@ class OnboardingPresetsTest {
     }
 
     @Test
-    fun `strict privacy adds incognito to whichever set it is`() {
-        for (depth in listOf(PersonaDepth.MINIMAL, PersonaDepth.BALANCED, PersonaDepth.POWER)) {
-            assertTrue(
-                ToolbarTool.INCOGNITO in
-                    tools(depth, privacy = PersonaPrivacy.STRICT).orEmpty(),
-            )
-            assertTrue(ToolbarTool.INCOGNITO !in tools(depth).orEmpty())
-        }
-    }
-
-    @Test
     fun `a set short of an unsupported tool is topped back up`() {
         val short = tools(PersonaDepth.BALANCED) { it != ToolbarTool.HANDWRITING }.orEmpty()
         assertTrue(ToolbarTool.HANDWRITING !in short)
@@ -86,30 +74,15 @@ class OnboardingPresetsTest {
 
     private fun tools(
         depth: PersonaDepth,
-        privacy: PersonaPrivacy = PersonaPrivacy.UNSET,
         isSupported: (ToolbarTool) -> Boolean = { true },
     ): Set<ToolbarTool>? = starterTools(
-        OnboardingSettings(personaDepth = depth, personaPrivacy = privacy),
+        OnboardingSettings(personaDepth = depth),
         playServices = true,
         isSupported = isSupported,
     )
 
     @Test
-    fun `strict privacy turns off learning history and statistics`() {
-        assertEquals(
-            listOf(
-                PresetWrite.LearnFromTyping(false),
-                PresetWrite.ClipboardHistory(false),
-                PresetWrite.TypingStats(false),
-            ),
-            presetsFor(PersonaPrivacy.STRICT),
-        )
-    }
-
-    @Test
-    fun `standard and unset answers write nothing`() {
-        assertTrue(presetsFor(PersonaPrivacy.STANDARD).isEmpty())
-        assertTrue(presetsFor(PersonaPrivacy.UNSET).isEmpty())
+    fun `an unset language answer writes nothing`() {
         assertTrue(presetsFor(PersonaLanguages.UNSET).isEmpty())
     }
 

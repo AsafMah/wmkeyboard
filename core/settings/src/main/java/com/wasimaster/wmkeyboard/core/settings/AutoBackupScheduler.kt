@@ -26,6 +26,12 @@ object AutoBackupScheduler {
     /** The one-off run [runNow] asks for; its own id so it never replaces the periodic job. */
     private const val JOB_ID_NOW = 20260923
 
+    /** The frequent schedule's periodic job (#970), beside the main one. */
+    private const val JOB_ID_FREQUENT = 20261027
+
+    /** The job extra that makes a run the frequent schedule's. Read by the job service. */
+    const val EXTRA_FREQUENT = "frequent"
+
     /**
      * The job extra that makes a run ignore the interval, as the Back up now
      * button does. Read by the job service in `:app`.
@@ -88,17 +94,40 @@ object AutoBackupScheduler {
      * `onCreate` would mean a keyboard used more often than once a day never
      * reaches the end of a single period, and the backup never runs at all.
      * So an already-correct job is left exactly where it is.
+     *
+     * A pause is deliberately not part of this. Cancelling the job for a pause
+     * and scheduling it again at the end would restart the period both times;
+     * the job keeps its place and the run skips itself instead (see
+     * [BackupPause]).
      */
     fun sync(context: Context, settings: AutoBackupSettings) {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
-        val pending = runCatching { scheduler.getPendingJob(JOB_ID) }.getOrNull()
+        val on = settings.enabled && settings.backupTargets.isNotEmpty()
+        syncJob(context, scheduler, settings, JOB_ID, on, settings.intervalHours, frequent = false)
+        syncJob(
+            context, scheduler, settings, JOB_ID_FREQUENT,
+            on && settings.frequent.enabled, settings.frequent.intervalHours, frequent = true,
+        )
+    }
 
-        if (!settings.enabled || settings.backupTargets.isEmpty()) {
-            if (pending != null) runCatching { scheduler.cancel(JOB_ID) }
+    /** One schedule's job, kept as [sync] describes. */
+    private fun syncJob(
+        context: Context,
+        scheduler: JobScheduler,
+        settings: AutoBackupSettings,
+        id: Int,
+        wanted: Boolean,
+        intervalHours: Int,
+        frequent: Boolean,
+    ) {
+        val pending = runCatching { scheduler.getPendingJob(id) }.getOrNull()
+
+        if (!wanted) {
+            if (pending != null) runCatching { scheduler.cancel(id) }
             return
         }
 
-        val intervalMs = settings.intervalHours.coerceAtLeast(1) * HOUR_MS
+        val intervalMs = intervalHours.coerceAtLeast(1) * HOUR_MS
         val networkType = networkTypeFor(settings)
         // The constraints belong in this comparison as much as the period does.
         // Left out, turning the charging requirement off would write the
@@ -112,7 +141,7 @@ object AutoBackupScheduler {
             return
         }
 
-        val job = JobInfo.Builder(JOB_ID, ComponentName(context.packageName, SERVICE_CLASS))
+        val job = JobInfo.Builder(id, ComponentName(context.packageName, SERVICE_CLASS))
             .setPeriodic(intervalMs)
             // Deliberately without `setRequiresDeviceIdle`. Idle plus charging
             // is what makes the platform's own backups so hard to predict, and
@@ -120,6 +149,9 @@ object AutoBackupScheduler {
             .setRequiresCharging(settings.requireCharging)
             .setRequiredNetworkType(networkType)
             .setBackoffCriteria(BACKOFF_MS, JobInfo.BACKOFF_POLICY_LINEAR)
+            .apply {
+                if (frequent) setExtras(android.os.PersistableBundle().apply { putBoolean(EXTRA_FREQUENT, true) })
+            }
             .build()
         runCatching { scheduler.schedule(job) }
     }

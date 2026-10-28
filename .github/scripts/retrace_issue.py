@@ -101,9 +101,16 @@ LOOSE_VERSION_RE = re.compile(
 
 # Mapping asset suffixes, in the order they are tried when the record does not
 # say which build it is. Play first: it is the only one most installs can be.
-# `full` and `lite` at the end are the names releases up to 0.5.9 used, before
+# `full` and `lite` are the names releases up to 0.5.9 used, before
 # `languages` became a flavour dimension and split each of them in two.
-ALL_SUFFIXES = ("play", "full-intl", "full-en", "lite-intl", "lite-en", "full", "lite")
+# `fdroid` last: a record without its channel can still be from F-Droid.
+ALL_SUFFIXES = ("play", "full-intl", "full-en", "lite-intl", "lite-en", "full", "lite", "fdroid")
+
+# The first release that carries the F-Droid build's own mappings, one per ABI
+# (`-vc<full code>-fdroid-mapping.txt.gz`). F-Droid's build has been ours byte
+# for byte since it went reproducible, so its R8 run is the release workflow's,
+# but the mapping was thrown away until #963.
+FDROID_MAPPINGS_FROM = "0.6.4"
 
 # What the record calls the build -> the asset suffixes that could carry its
 # mapping, best first. Every entry ends in the legacy name, because a record
@@ -229,6 +236,10 @@ def candidate_suffixes(build: Build) -> list[str]:
         # Only the bundle's own mapping fits a Play install, and a release
         # without one cannot be retraced rather than retraced wrongly.
         return ["play"]
+    if build.channel == "F-Droid":
+        # F-Droid serves the release workflow's own F-Droid build, so its
+        # mapping is one of that build's, one per ABI.
+        return ["fdroid"]
     mapped = FLAVOR_TO_SUFFIX.get(build.flavor or "")
     if mapped:
         return list(mapped)
@@ -498,18 +509,6 @@ def main() -> int:
         )
         return 0
 
-    if build.channel == "F-Droid":
-        post(
-            args.repo,
-            args.issue,
-            f"{mark}\nThis is an F-Droid build, and F-Droid compiles it on their own machines — "
-            "their R8 run produced a mapping we never see, so this trace cannot be retraced here. "
-            "A build of the same version from the "
-            "[releases page](https://github.com/wasi-master/wmkeyboard/releases/latest) can be.",
-            args.dry_run,
-        )
-        return 0
-
     tag = f"v{build.version}"
     assets = release_assets(args.repo, tag)
     if not assets:
@@ -517,14 +516,27 @@ def main() -> int:
         return 0
 
     # Asset names carry the version code, which an old record may not have, so
-    # match on the suffix and read the code back off the name.
-    by_suffix = {}
+    # match on the suffix and read the code back off the name. The F-Droid
+    # suffix matches one mapping per ABI, and the record does not say which
+    # ABI it is: all of them go in, and the fit check picks.
+    names: list[str] = []
     for suffix in candidate_suffixes(build):
         wanted = f"-{suffix}-mapping.txt.gz"
-        for name in assets:
-            if name.endswith(wanted):
-                by_suffix[suffix] = name
-    if not by_suffix:
+        names += sorted(n for n in assets if n.endswith(wanted) and n not in names)
+    if not names and build.channel == "F-Droid":
+        post(
+            args.repo,
+            args.issue,
+            f"{mark}\nNo mapping of the F-Droid build was published for {tag}, so this trace "
+            "cannot be retraced. F-Droid serves the same APK this project's release workflow "
+            "builds, byte for byte, and that build's R8 mapping is attached to every release "
+            f"from {FDROID_MAPPINGS_FROM} on. On an older version, a crash from a build on the "
+            "[releases page](https://github.com/wasi-master/wmkeyboard/releases/latest) can be "
+            "retraced.",
+            args.dry_run,
+        )
+        return 0
+    if not names:
         post(
             args.repo,
             args.issue,
@@ -543,7 +555,7 @@ def main() -> int:
     # check is cheap next to being wrong, and a mapping that does not fit is
     # not a worse answer than another one — it is not an answer.
     best: tuple[float, str, Path] | None = None
-    for name in by_suffix.values():
+    for name in names:
         archive = download_asset(args.repo, tag, name, workdir)
         if archive is None:
             continue
@@ -557,13 +569,18 @@ def main() -> int:
 
     if best is None or best[0] < MIN_FIT:
         best_line = f" The closest, `{best[1]}`, accounts for {best[0]:.0%} of it." if best else ""
-        fdroid = (
-            " The report says this came from F-Droid, which would explain it: F-Droid compiles "
-            "the app on their own machines, so its mapping never existed here."
-            if FDROID_PROSE_RE.search(body)
-            else " That usually means the build did not come from this release — an F-Droid build, "
-            "a different version, or a build made locally."
-        )
+        if build.channel != "F-Droid" and FDROID_PROSE_RE.search(body):
+            fdroid = (
+                " The report says this came from F-Droid, which would explain it if this release "
+                f"is older than {FDROID_MAPPINGS_FROM}: the F-Droid build's mapping was only "
+                "published from then on."
+            )
+        else:
+            fdroid = (
+                " That usually means the build did not come from this release — a different "
+                f"version, an F-Droid build from before {FDROID_MAPPINGS_FROM}, or a build made "
+                "locally."
+            )
         post(
             args.repo,
             args.issue,

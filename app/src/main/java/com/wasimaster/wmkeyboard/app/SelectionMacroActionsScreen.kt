@@ -13,12 +13,14 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +39,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.selection.MacroCategory
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
@@ -84,15 +87,29 @@ internal fun SelectionMacroActionsScreen(
         if (tokens.isEmpty()) emptyList() else index.keys.filter { macro -> tokens.all { index.getValue(macro).contains(it) } }
     }
     val optionsDesc = stringResource(R.string.selection_macros_options_desc)
+    // The action whose name on the bar is being changed (#970).
+    var renaming by rememberSaveable { mutableStateOf<SelectionMacro?>(null) }
     @Composable
     fun row(macro: SelectionMacro) = MacroRow(
         macro = macro,
         on = settings.watch { macro in it.selectionMacros.macros },
+        label = settings.watch { it.selectionMacros.labels[macro] },
         optionsRoute = macroOptionsRoute(macro),
         optionsDesc = optionsDesc,
         onToggle = { on -> scope.launch { repository.setSelectionMacroEnabled(macro, on) } },
         onOpen = onNavigate,
+        onRename = { renaming = macro },
     )
+    renaming?.let { macro ->
+        MacroRenameDialog(
+            macro = macro,
+            current = settings.value.selectionMacros.labels[macro],
+            onDismiss = { renaming = null },
+        ) { label ->
+            renaming = null
+            scope.launch { repository.setSelectionMacroLabel(macro, label) }
+        }
+    }
 
     OutlinedTextField(
         value = query,
@@ -177,18 +194,21 @@ internal fun SelectionMacroActionsScreen(
     }
 }
 
-/** One action: its chip word, what it does, the arrow to its options and the switch. */
+/** One action: its chip word, what it does, the pencil that renames it, the arrow to its options and the switch. */
 @Composable
 private fun MacroRow(
     macro: SelectionMacro,
     on: Boolean,
+    /** The user's own name for it (#970), or null. */
+    label: String?,
     optionsRoute: String?,
     optionsDesc: String,
     onToggle: (Boolean) -> Unit,
     onOpen: (String) -> Unit,
+    onRename: () -> Unit,
 ) {
     WmRow(
-        title = stringResource(macro.labelRes),
+        title = label ?: stringResource(macro.labelRes),
         subtitle = stringResource(macroDescription(macro)),
         // The chip's own glyph, so the list reads as the bar it configures. The
         // case options have none on the bar (their names are written in the case
@@ -196,6 +216,9 @@ private fun MacroRow(
         icon = selectionMacroIcon(macro) ?: Icons.Outlined.Abc,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = onRename) {
+                    Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.selection_macros_rename_desc))
+                }
                 if (optionsRoute != null) {
                     IconButton(onClick = { onOpen(optionsRoute) }) {
                         Icon(Icons.Outlined.Tune, contentDescription = optionsDesc)
@@ -207,6 +230,49 @@ private fun MacroRow(
         onClick = { onToggle(!on) },
     )
 }
+
+/**
+ * Asks for an action's name on the bar (#970). Empty, or Reset, goes back to
+ * the shipped word.
+ */
+@Composable
+private fun MacroRenameDialog(
+    macro: SelectionMacro,
+    current: String?,
+    onDismiss: () -> Unit,
+    onSave: (String?) -> Unit,
+) {
+    val shipped = stringResource(macro.labelRes)
+    var name by rememberSaveable { mutableStateOf(current ?: shipped) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.selection_macros_rename_title, shipped)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it.take(MacroLabelMax) },
+                singleLine = true,
+                label = { Text(stringResource(R.string.selection_macros_rename_label)) },
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(name.trim().takeIf { it.isNotEmpty() && it != shipped }) }) {
+                Text(stringResource(CommonR.string.common_save))
+            }
+        },
+        dismissButton = {
+            Row {
+                if (current != null) {
+                    TextButton(onClick = { onSave(null) }) { Text(stringResource(CommonR.string.common_reset)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+            }
+        },
+    )
+}
+
+/** Long enough for a word or two, short enough to stay a chip. */
+private const val MacroLabelMax = 24
 
 private fun macroOptionsRoute(macro: SelectionMacro): String? = when (macro) {
     SelectionMacro.AI -> SelectionMacroAiRoute
@@ -280,6 +346,7 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.CHAT_STRIKE -> R.string.selection_macros_desc_chat_strike
     SelectionMacro.CHAT_MONO -> R.string.selection_macros_desc_chat_mono
     SelectionMacro.READ_ALOUD -> R.string.selection_macros_desc_read_aloud
+    SelectionMacro.EDIT_WORD -> R.string.selection_macros_desc_edit_word
     SelectionMacro.TIME_ZONES -> R.string.selection_macros_desc_time_zones
     SelectionMacro.CALL -> R.string.selection_macros_desc_call
     SelectionMacro.SMS -> R.string.selection_macros_desc_sms
@@ -423,6 +490,14 @@ internal fun SelectionMacroZonesScreen(
         }
         if (defaultZones) {
             item { CaptionText(stringResource(R.string.selection_macros_zones_default_caption)) }
+        }
+        item {
+            ToggleSetting(
+                R.string.selection_macros_zones_sort_title,
+                stringResource(R.string.selection_macros_zones_sort_subtitle),
+                settings.watch { it.selectionMacros.sortZonesByTime },
+                default = SettingsDefaults.selectionMacros.sortZonesByTime,
+            ) { scope.launch { repository.setSelectionMacroSortZones(it) } }
         }
     }
 

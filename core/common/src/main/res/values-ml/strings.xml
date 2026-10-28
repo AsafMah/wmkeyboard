@@ -26,6 +26,7 @@
     <string name="common_default">ഡിഫോൾട്ട്</string>
     <string name="common_delete">നീക്കം ചെയ്യുക</string>
     <string name="common_disable">ഓഫ് ചെയ്യുക</string>
+    <string name="common_disabled_open_setting">ക്രമീകരണം തുറക്കുക</string>
     <string name="common_disclosure_blocked_body">നിങ്ങൾ മുമ്പ് അനുമതി നിഷേധിച്ചതിനാൽ ആൻഡ്രോയിഡ് ഈ അഭ്യർത്ഥന ഇനി കാണിക്കില്ല. ആപ്പ് ക്രമീകരണ സ്ക്രീനിൽ നിന്ന് നിങ്ങൾക്ക് ഇപ്പോഴും ഇത് ഓണാക്കാം.</string>
     <string name="common_disclosure_not_now">ഇപ്പോൾ വേണ്ട</string>
     <string name="common_done">പൂർത്തിയായി</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ഇൻസ്റ്റാൾ ചെയ്യുക</string>
     <string name="common_installing">ഇൻസ്റ്റാൾ ചെയ്യുന്നു...</string>
     <string name="common_loading">ലോഡ് ചെയ്യുന്നു...</string>
+    <string name="common_more">കൂടുതൽ</string>
     <string name="common_next">അടുത്തത്</string>
     <string name="common_none">ഒന്നുമില്ല</string>
     <string name="common_notify_channel_backup_body">ഓട്ടോമാറ്റിക് ബാക്കപ്പ് പരാജയപ്പെടുമ്പോൾ മാത്രം. വിജയകരമായ ബാക്കപ്പുകൾ നിശബ്ദമായിരിക്കും.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">അറിയിപ്പുകൾ കാണിക്കുക</string>
     <string name="common_permission_storage_body">ആൻഡ്രോയിഡ് 9-ലും അതിനു താഴെയും, ഒരു ചിത്രം നിങ്ങളുടെ ഗാലറിയിൽ സംരക്ഷിക്കാൻ കീബോർഡിന് സ്റ്റോറേജ് അനുമതി ആവശ്യമാണ്. പഴയ ആൻഡ്രോയിഡ് അനുമതി നിങ്ങളുടെ സ്റ്റോറേജ് വായിക്കുന്നതിനെയും ഉൾക്കൊള്ളുന്നു. നിങ്ങൾ സംരക്ഷിക്കാൻ ആവശ്യപ്പെടുന്ന ചിത്രം മാത്രമേ കീബോർഡ് എഴുതുന്നുള്ളൂ. കീബോർഡ് ഒന്നും വായിക്കുന്നില്ല, ഒന്നും അപ്‌ലോഡ് ചെയ്യുന്നില്ല. പുതിയ ആൻഡ്രോയിഡ് പതിപ്പുകൾക്ക് ഈ അനുമതി ആവശ്യമില്ല.</string>
     <string name="common_permission_storage_title">നിങ്ങളുടെ ഗാലറിയിൽ സേവ് ചെയ്യാൻ സ്റ്റോറേജ് ആക്സസ്</string>
+    <string name="common_permission_tasks_body">WM കീബോർഡ് അതിന്റെ ചെയ്യേണ്ട കാര്യങ്ങളുടെ പട്ടികയും ടാസ്‌ക് ആപ്പിലെ ഒരു ടാസ്‌ക് ലിസ്റ്റും ഒരേപോലെ നിലനിർത്തുന്നു: ടാസ്‌ക്കുകൾ, അവയുടെ ഘട്ടങ്ങൾ, അവയുടെ ടിക്കുകൾ, അവയുടെ അവസാന തീയതികൾ എന്നിവ ഇരുവശത്തും. ഈ അനുമതി ആപ്പിലെ എല്ലാ ടാസ്‌ക് ലിസ്റ്റുകളെയും ഉൾക്കൊള്ളുന്നു. കീബോർഡ് ആപ്പിന്റെ ലിസ്റ്റുകൾ വായിക്കുന്നത് നിങ്ങൾക്ക് ഒന്ന് തിരഞ്ഞെടുക്കാൻ വേണ്ടി മാത്രമാണ്, കൂടാതെ നിങ്ങൾ തിരഞ്ഞെടുത്ത ലിസ്റ്റ് മാത്രമേ അത് വായിക്കുകയും എഴുതുകയും ചെയ്യുന്നുള്ളൂ. കീബോർഡ് ഒരിടത്തേക്കും ഒന്നും അയക്കുന്നില്ല. നിങ്ങൾ DAVx5 ഉപയോഗിക്കുകയാണെങ്കിൽ, അത് ആ ലിസ്റ്റ് നിങ്ങളുടെ സ്വന്തം CalDAV സെർവറുമായി സമന്വയിപ്പിക്കുന്നു. ഈ അനുമതിയില്ലാതെ, ചെയ്യേണ്ട കാര്യങ്ങളുടെ പട്ടിക ഈ ഫോണിൽ തന്നെ തുടരും.</string>
+    <string name="common_permission_tasks_opentasks_title">ടു-ഡൂ ലിസ്റ്റിനായുള്ള OpenTasks ആക്സസ്</string>
+    <string name="common_permission_tasks_tasks_org_title">ടു-ഡൂ ലിസ്റ്റിനായുള്ള Tasks.org ആക്സസ്</string>
+    <string name="common_preview_scale_desc">പ്രിവ്യൂ വലുപ്പം</string>
+    <string name="common_preview_scale_larger">പ്രിവ്യൂ വലുതാക്കുക</string>
+    <string name="common_preview_scale_smaller">പ്രിവ്യൂ ചെറുതാക്കുക</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">നീക്കം ചെയ്യുക</string>
     <string name="common_reset">റീസെറ്റ് ചെയ്യുക</string>
     <string name="common_reset_defaults">ഡിഫോൾട്ടുകളിലേക്ക് പുനഃസജ്ജമാക്കുക</string>

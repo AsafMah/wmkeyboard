@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.settings.NumberGrouping
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -407,6 +408,20 @@ class SmartSuggestTest {
             assertEquals(typed, SmartSuggest.Kind.UNIT, h!!.kind)
             assertEquals(typed, "0.3048 m", h.result)
         }
+    }
+
+    @Test
+    fun aUnitToAnswerInCanBeNamed() {
+        for (typed in listOf("1 mile in cm", "1 mile to cm", "1 mi into centimetres", "1 Mile In CM")) {
+            val h = hit(typed)
+            assertEquals(typed, SmartSuggest.Kind.UNIT, h?.kind)
+            assertEquals(typed, "160934.4 cm", h?.result)
+            // The whole phrase is what the chip replaces.
+            assertEquals(typed, typed.length, h?.replaceSpan)
+        }
+        assertEquals("86 °F", hit("30c to f")?.result)
+        // A second unit that measures something else is no answer.
+        assertNotEquals(SmartSuggest.Kind.UNIT, hit("1 mile in kg")?.kind)
     }
 
     @Test

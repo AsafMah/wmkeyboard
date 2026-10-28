@@ -236,6 +236,7 @@ private fun CalendarModeRows(repository: SettingsRepository, settings: LiveSetti
     val writable = canWrite || granted
     WmRow(
         title = stringResource(R.string.toolai_ai_builtin_calendar_mode_title),
+        icon = SettingsRowIcons[R.string.toolai_ai_builtin_calendar_mode_title],
         highlightKey = R.string.toolai_ai_builtin_calendar_mode_title,
         supporting = {
             Column {

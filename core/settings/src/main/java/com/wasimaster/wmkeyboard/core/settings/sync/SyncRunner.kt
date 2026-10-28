@@ -1,11 +1,13 @@
 package com.wasimaster.wmkeyboard.core.settings.sync
 
+import com.wasimaster.wmkeyboard.core.settings.needsNetwork
 import android.content.Context
 import android.util.Base64
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.net.BackupTraffic
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupRunner
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
+import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.BackupCrypto
 import com.wasimaster.wmkeyboard.core.settings.BackupGate
 import com.wasimaster.wmkeyboard.core.settings.BackupInstall
@@ -13,6 +15,7 @@ import com.wasimaster.wmkeyboard.core.settings.BackupLocation
 import com.wasimaster.wmkeyboard.core.settings.ConfigBackup
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.keepLocalGroups
+import com.wasimaster.wmkeyboard.core.settings.paused
 import com.wasimaster.wmkeyboard.core.settings.sectionSet
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupSink
@@ -51,6 +54,12 @@ object SyncRunner {
     const val ERROR_PASSPHRASE = "SYNC_PASSPHRASE"
 
 
+    /** Whether the active network costs data; true with none, which is no Wi-Fi either. */
+    private fun onMeteredNetwork(context: Context): Boolean {
+        val cm = context.getSystemService(android.net.ConnectivityManager::class.java) ?: return true
+        return cm.isActiveNetworkMetered || cm.activeNetwork == null
+    }
+
     sealed interface Outcome {
         /** [applied] entries changed here; [devices] other devices were read. */
         data class Done(val applied: Int, val devices: Int, val failed: Map<String, String>) : Outcome
@@ -88,10 +97,18 @@ object SyncRunner {
         val auto = repository.settings.first().autoBackup
         val sync = auto.sync
         if (!force && !sync.enabled) return Outcome.Skipped
+        // A pause keeps the jobs in place (see BackupPause); each firing ends here.
+        if (!force && sync.paused(nowMs)) return Outcome.Skipped
         val targets = sync.targets(auto.locations)
         val sections = sync.sectionSet
         if (targets.isEmpty() || sections.isEmpty()) return Outcome.Skipped
         if (!DirectBoot.isUserUnlocked(context)) return Outcome.Locked
+        // Wi-Fi only (#928). The job already waits for an unmetered network,
+        // but a "soon" pass runs at its deadline whatever the network, and
+        // a pass can be asked for from elsewhere: on mobile data it waits.
+        if (!force && sync.wifiOnly && targets.any { it.type.needsNetwork } && onMeteredNetwork(context)) {
+            return Outcome.Skipped
+        }
 
         val encrypt = auto.encrypt && auto.passphrase.isNotEmpty()
         val filter = SyncFilter(sync.includeSecrets, sync.keepLocalGroups)
@@ -109,9 +126,10 @@ object SyncRunner {
         val failed = LinkedHashMap<String, String>()
         val readable = ArrayList<Pair<BackupLocation, BackupSink>>()
         // Locations that already hold this device's file under exactly the
-        // name it would write now. A changed passphrase or device name changes
-        // the name, and then the file has to be written again.
-        val name = SyncNaming.name(me, BackupInstall.deviceLabel(context), encrypt)
+        // name it would write now. A changed passphrase, device name or group
+        // changes the name, and then the file has to be written again.
+        val device = BackupInstall.deviceLabel(context)
+        val names = HashMap<String, String>()
         val hasMine = HashSet<String>()
         for (location in targets) {
             val sink = AutoBackupRunner.sinkFor(context, location)
@@ -119,7 +137,9 @@ object SyncRunner {
                 failed[location.id] = SinkError.NOT_CONFIGURED.name
                 continue
             }
-            val read = runCancellable { readRemotes(sink, me, auto) }
+            val group = groupAt(location, sync.group)
+            val name = SyncNaming.name(me, device, encrypt, group).also { names[location.id] = it }
+            val read = runCancellable { readRemotes(sink, me, auto, group) }
             read.onSuccess { (files, passphraseMiss, mine) ->
                 readable += location to sink
                 if (name in mine) hasMine += location.id
@@ -196,11 +216,11 @@ object SyncRunner {
         // the common pass, the one a synced change sets off on the phone that
         // just received it, and it should cost a listing, not an upload.
         val unchanged = remembered != null && nextState == rememberedHere
-        val file = SyncFile(me, BackupInstall.deviceLabel(context), nowMs, result.merged)
+        val file = SyncFile(me, device, nowMs, result.merged)
         val bytes = encodeFile(file, auto, encrypt)
         for ((location, sink) in readable) {
             if (unchanged && location.id in hasMine) continue
-            writeOwn(sink, name, bytes, me)
+            writeOwn(sink, names.getValue(location.id), bytes, me)
                 .onFailure { failure ->
                     failed[location.id] = ((failure as? BackupSinkException)?.reason ?: SinkError.IO).name
                 }
@@ -305,25 +325,47 @@ object SyncRunner {
         return count
     }
 
+    /**
+     * The group this device syncs in at [location]. Never one at a Nearby
+     * device: a paired computer belongs to one person, and the KDE Connect
+     * share that carries the file there takes ungrouped names only.
+     */
+    fun groupAt(location: BackupLocation, group: String): String =
+        if (location.type == BackupDestination.NEARBY) "" else group
+
+    /**
+     * The sync groups other devices use at [location], sorted, with "" for
+     * devices in none; empty when nothing else syncs there. For the screen
+     * that picks a group, so joining a shared folder starts from the names
+     * already in it rather than a guess at their spelling.
+     */
+    suspend fun groupsAt(context: Context, location: BackupLocation): Result<List<String>> {
+        val sink = AutoBackupRunner.sinkFor(context, location)
+            ?: return Result.failure(BackupSinkException(SinkError.NOT_CONFIGURED))
+        return runCancellable {
+            sink.readiness().getOrThrow()
+            SyncNaming.groups(sink.list().getOrThrow().map { it.name }, except = BackupInstall.id(context))
+        }
+    }
+
     private data class Remote(val files: List<SyncFile>, val passphraseMiss: Boolean, val mine: Set<String>)
 
     /**
-     * The other devices' newest files at one location, whether any would not
-     * open, and whether this device's own file is there.
+     * The other devices' newest files in [group] at one location, whether any
+     * would not open, and every name this device's own files have there, in
+     * any group. Another group's files are not even downloaded: they are other
+     * people's, and merged here they would become this person's settings.
      */
     private suspend fun readRemotes(
         sink: BackupSink,
         me: String,
         auto: AutoBackupSettings,
+        group: String,
     ): Remote {
         sink.readiness().getOrThrow()
         val all = sink.list().getOrThrow().filter { SyncNaming.isOurs(it.name) }
         val mine = all.filter { SyncNaming.installId(it.name) == me }.mapTo(HashSet()) { it.name }
-        val newest = all
-            .groupBy { SyncNaming.installId(it.name) }
-            .filterKeys { it != null && it != me }
-            .mapValues { (_, entries) -> entries.maxBy { it.modifiedAtMs } }
-            .values
+        val newest = SyncNaming.newestOfOthers(all, me, group)
         var passphraseMiss = false
         val files = newest.mapNotNull { entry ->
             val bytes = sink.read(entry).getOrNull()?.use { it.readBytes() } ?: return@mapNotNull null
@@ -356,7 +398,8 @@ object SyncRunner {
 
     /**
      * Writes this device's file, then removes its older copies, in that order:
-     * a failed write leaves the old file in place.
+     * a failed write leaves the old file in place. Older copies in another
+     * group go too: a device that changed group has left the old one.
      *
      * Most sinks replace a file of the same name, and then the copies left are
      * ones under another name: a folder's `… (1)` rename of a clash, or the
@@ -393,6 +436,19 @@ object SyncRunner {
             }
         }
     }
+
+    /**
+     * Moves this device to the sync group [raw] names (see [SyncNaming]); true
+     * when that changed the group. The device then joins it as a new device
+     * would: what it agreed on in the old group is forgotten, so the new
+     * group's settings win the first pass instead of losing to stamps from
+     * people this device no longer syncs with. Under the gate, so a pass that
+     * is running finishes in the old group first.
+     */
+    suspend fun joinGroup(context: Context, repository: SettingsRepository, raw: String): Boolean =
+        BackupGate.mutex.withLock {
+            repository.setSyncGroup(raw).also { changed -> if (changed) reset(context) }
+        }
 
     /** Forgets what this phone agreed on, so the next pass is a first one again. */
     suspend fun reset(context: Context) = withContext(Dispatchers.IO) {

@@ -62,6 +62,15 @@ class EngineNativeTest {
         assertEquals(listOf("ekhn", "ekhon"), KhiproRomanizer.spellings("এখন"))
         assertEquals("ekhn", KhiproRomanizer.romanize("এখন"))
         assertTrue(KhiproRomanizer.spellings("চাঁদ").all { '/' in it })
+        // Run-time specs (#909): the bundled copy's revision, a check that
+        // refuses what is not a spec, and an install and a reset.
+        assertTrue(Regex("""\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ""").matches(EngineNative.khiproBundledRevision()))
+        assertTrue(EngineNative.khiproCheck("<html>404</html>", "input\texpected\n", "").isNotEmpty())
+        val dark = java.io.File("../../native/wm-engine/data/khipro/bn-khipro-dark.mim").readText()
+        assertEquals("", EngineNative.khiproInstall(Khipro.Variant.DARK_DESKTOP.ordinal, dark))
+        assertEquals("আমি", Khipro.convert("ami", Khipro.Variant.DARK_DESKTOP))
+        EngineNative.khiproReset(Khipro.Variant.DARK_DESKTOP.ordinal)
+        assertTrue(EngineNative.khiproInstall(Khipro.Variant.DARK_DESKTOP.ordinal, "(map)").isNotEmpty())
     }
 
     @Test fun bijoyAnsi() {

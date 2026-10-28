@@ -121,6 +121,7 @@ internal fun VoikkoRow(langId: String, settings: LiveSettings) {
     Column {
         WmRow(
             title = stringResource(R.string.languages_voikko_title),
+            icon = SettingsRowIcons[R.string.languages_voikko_title],
             supporting = {
                 Text(
                     supporting,

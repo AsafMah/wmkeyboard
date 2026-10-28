@@ -26,6 +26,7 @@
     <string name="common_default">По подразбиране</string>
     <string name="common_delete">Изтриване</string>
     <string name="common_disable">Изключване</string>
+    <string name="common_disabled_open_setting">Отворете настройката</string>
     <string name="common_disclosure_blocked_body">Android вече не показва тази заявка, тъй като сте отказали разрешението преди това. Все още можете да го включите от екрана с настройки на приложението.</string>
     <string name="common_disclosure_not_now">Не сега</string>
     <string name="common_done">Готово</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Инсталиране</string>
     <string name="common_installing">Инсталиране…</string>
     <string name="common_loading">Зареждане…</string>
+    <string name="common_more">Още</string>
     <string name="common_next">Напред</string>
     <string name="common_none">Няма</string>
     <string name="common_notify_channel_backup_body">Само когато автоматичното архивиране е неуспешно. Успешните архивирания са тихи.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Показване на известия</string>
     <string name="common_permission_storage_body">В Android 9 и по-стари версии клавиатурата се нуждае от разрешение за достъп до хранилището, за да запише изображение във вашата галерия. Старото разрешение за Android обхваща и четенето на хранилището ви. Клавиатурата записва само изображението, което поискате да бъде запазено. Клавиатурата не чете и не качва нищо. По-новите версии на Android не се нуждаят от това разрешение.</string>
     <string name="common_permission_storage_title">Достъп до хранилището за запис в галерията</string>
+    <string name="common_permission_tasks_body">WM Keyboard поддържа своя списък със задачи и един списък със задачи в приложението за задачи идентични: задачите, техните стъпки, техните отметки и техните крайни срокове, и в двете посоки. Разрешението обхваща всеки списък със задачи в приложението. Клавиатурата чете списъците на приложението само за да можете да изберете един, и чете и пише само в списъка, който сте избрали. Клавиатурата не изпраща нищо никъде. DAVx5, ако го използвате, синхронизира този списък с вашия собствен CalDAV сървър. Без това разрешение списъкът със задачи остава на този телефон.</string>
+    <string name="common_permission_tasks_opentasks_title">Достъп до OpenTasks за списъка със задачи</string>
+    <string name="common_permission_tasks_tasks_org_title">Достъп на Tasks.org до списъка със задачи</string>
+    <string name="common_preview_scale_desc">Размер на визуализацията</string>
+    <string name="common_preview_scale_larger">Увеличаване на прегледа</string>
+    <string name="common_preview_scale_smaller">Намаляване на визуализацията</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Премахване</string>
     <string name="common_reset">Нулиране</string>
     <string name="common_reset_defaults">Връщане към настройките по подразбиране</string>

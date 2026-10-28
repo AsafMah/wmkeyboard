@@ -138,15 +138,23 @@ internal fun PasswordPanel(
         excludeAmbiguous = settings.passwordGenerator.pwExcludeAmbiguous,
         symbolPool = settings.toolLimits.passwordSymbols,
     )
-    val passphraseMode = settings.passwordGenerator.pwPassphraseMode
-    val generated = remember(passphraseMode, passwordSpec, passphraseSpec, wordlist, regenerateKey) {
-        if (passphraseMode) PasswordGen.passphrase(wordlist, passphraseSpec, random)
-        else PasswordGen.password(passwordSpec, random)
+    val pinMode = settings.passwordGenerator.pinMode
+    val passphraseMode = !pinMode && settings.passwordGenerator.pwPassphraseMode
+    val pinLength = settings.passwordGenerator.pinLength
+    val pinAvoidWeak = settings.passwordGenerator.pinAvoidWeak
+    val generated = remember(
+        pinMode, passphraseMode, passwordSpec, passphraseSpec, pinLength, pinAvoidWeak, wordlist, regenerateKey,
+    ) {
+        when {
+            pinMode -> PasswordGen.pin(pinLength, pinAvoidWeak, random)
+            passphraseMode -> PasswordGen.passphrase(wordlist, passphraseSpec, random)
+            else -> PasswordGen.password(passwordSpec, random)
+        }
     }
-    val entropy = if (passphraseMode) {
-        PasswordGen.passphraseEntropyBits(passphraseSpec, wordlist.size)
-    } else {
-        PasswordGen.passwordEntropyBits(passwordSpec)
+    val entropy = when {
+        pinMode -> PasswordGen.pinEntropyBits(pinLength)
+        passphraseMode -> PasswordGen.passphraseEntropyBits(passphraseSpec, wordlist.size)
+        else -> PasswordGen.passwordEntropyBits(passwordSpec)
     }
 
     // Read here rather than in the Copy chip's click handler: that lambda is
@@ -175,7 +183,13 @@ internal fun PasswordPanel(
         }
     }
     val pg = settings.passwordGenerator
-    val optionEntries: List<() -> Unit> = if (!passphraseMode) {
+    val optionEntries: List<() -> Unit> = if (pinMode) {
+        listOf(
+            { onSetting(PwSettingAction.PinLength(pg.pinLength - 1)) },
+            { onSetting(PwSettingAction.PinLength(pg.pinLength + 1)) },
+            { onSetting(PwSettingAction.PinAvoidWeak(!pg.pinAvoidWeak)) },
+        )
+    } else if (!passphraseMode) {
         listOf(
             { onSetting(PwSettingAction.Length(pg.pwLength - 1)) },
             { onSetting(PwSettingAction.Length(pg.pwLength + 1)) },
@@ -302,7 +316,22 @@ internal fun PasswordPanel(
         ) {
             // Ring indices mirror [optionEntries]: the stepper's − and + are
             // slots 0 and 1, then the chips in drawing order.
-            if (!passphraseMode) {
+            if (pinMode) {
+                StepperRow(
+                    label = stringResource(R.string.ime_password_length_label),
+                    value = pinLength,
+                    focusedMinus = focusedOption == 0,
+                    focusedPlus = focusedOption == 1,
+                    onChange = { onSetting(PwSettingAction.PinLength(it)) },
+                )
+                ToolPanelChip(
+                    stringResource(R.string.ime_password_pin_avoid_weak_label),
+                    selected = pinAvoidWeak,
+                    modifier = Modifier.focusRing(focusedOption == 2),
+                ) {
+                    onSetting(PwSettingAction.PinAvoidWeak(!pinAvoidWeak))
+                }
+            } else if (!passphraseMode) {
                 StepperRow(
                     label = stringResource(R.string.ime_password_length_label),
                     value = settings.passwordGenerator.pwLength,

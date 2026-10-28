@@ -8,7 +8,9 @@ package com.wasimaster.wmkeyboard.core.transliteration
  * The method is defined as an m17n input method, and the interpreter that
  * runs the official specs lives in the Rust engine
  * (`native/wm-engine/src/khipro.rs`, with the specs under
- * `native/wm-engine/data/khipro/`); this is the call into it.
+ * `native/wm-engine/data/khipro/`); this is the call into it. A newer set of
+ * specs downloaded since ([KhiproSpecs]) is loaded into the engine the first
+ * time either call runs.
  */
 object Khipro {
 
@@ -36,11 +38,15 @@ object Khipro {
     }
 
     /** The Bengali [roman] spells under [variant]. Empty in, empty out. */
-    fun convert(roman: String, variant: Variant = Variant.TOUCHSCREEN): String =
-        if (roman.isEmpty()) "" else EngineNative.khipro(roman, variant.ordinal)
+    fun convert(roman: String, variant: Variant = Variant.TOUCHSCREEN): String {
+        if (roman.isEmpty()) return ""
+        KhiproSpecs.ensureLoaded()
+        return EngineNative.khipro(roman, variant.ordinal)
+    }
 
     /** Parses [variant]'s spec now rather than on the first keystroke. */
     fun warm(variant: Variant) {
+        KhiproSpecs.ensureLoaded()
         EngineNative.khiproWarm(variant.ordinal)
     }
 }

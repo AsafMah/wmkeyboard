@@ -29,12 +29,15 @@ object Accents {
     private const val LATIN_EXTENDED_END = 0x1EFF
 
     /**
-     * Letters with a stroke or slash rather than a combining mark. Unicode
-     * gives them no decomposition, but they are accents in the sense that
-     * matters here: `ł` sits on the `l` key.
+     * Letters with a stroke or slash rather than a combining mark, and
+     * Turkish's dotless `ı`. Unicode gives them no decomposition, but they are
+     * accents in the sense that matters here: `ł` sits on the `l` key, and a
+     * Turkish typist who skips the long press writes `haklisin` for
+     * `haklısın`.
      */
     private val STROKED = mapOf(
         'ł' to 'l', 'Ł' to 'L',
+        'ı' to 'i',
         'ø' to 'o', 'Ø' to 'O',
         'đ' to 'd', 'Đ' to 'D',
         'ħ' to 'h', 'Ħ' to 'H',

@@ -88,6 +88,28 @@ class AutoBackupNamingTest {
     }
 
     @Test
+    fun `staggered rotation spares the newest backup of each day, week and month`() {
+        val day = 24L * 60 * 60 * 1000
+        val now = 400 * day
+        // Hourly backups for two days, then one a day back over a year and a half.
+        val hourly = (0 until 48).map { h -> now - h * (day / 24) }
+        val daily = (2 until 540).map { d -> now - d * day }
+        val entries = (hourly + daily).map { t -> entry("t$t", t) }
+        val doomed = AutoBackupNaming.rotation(entries, keep = 3, staggered = true).toSet()
+        val kept = entries.filterNot { it in doomed }.map { it.modifiedAtMs }.toSet()
+        // The three newest, whatever else happens.
+        assertTrue(hourly.take(3).all { it in kept })
+        // One for each of the last seven days, one for each of five weeks, one for each of twelve months.
+        assertTrue(kept.size <= 3 + 7 + 5 + 12)
+        assertTrue((1 until 7).all { d -> kept.any { now - it in d * day until (d + 1) * day } })
+        assertTrue(kept.any { now - it in 300 * day until 330 * day })
+        // Nothing a year old or more.
+        assertTrue(kept.none { now - it >= 365 * day })
+        // Off, it is the plain count.
+        assertEquals(3, entries.size - AutoBackupNaming.rotation(entries, keep = 3).size)
+    }
+
+    @Test
     fun `rotation is a no-op while there is room`() {
         val entries = listOf(entry("a", 100), entry("b", 200))
         assertTrue(AutoBackupNaming.rotation(entries, keep = 2).isEmpty())

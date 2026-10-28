@@ -139,6 +139,27 @@ class ReleaseAssetsTest {
     }
 
     @Test
+    fun `all-languages installs stay on the all-languages build when the release has one`() {
+        val release = release(
+            names = listOf(
+                "wmkeyboard-0.6.4-vc39-full-en-arm64-v8a.apk",
+                "wmkeyboard-0.6.4-vc39-full-intl-arm64-v8a.apk",
+                "wmkeyboard-0.6.4-vc39-lang-fr.apk",
+            ),
+        )
+        for (flavor in listOf("full", "lite")) {
+            assertEquals(
+                "wmkeyboard-0.6.4-vc39-full-intl-arm64-v8a.apk",
+                ReleaseAssets.pickAsset(release, flavor, listOf("arm64-v8a"), "intl")?.name,
+            )
+        }
+        assertEquals(
+            "wmkeyboard-0.6.4-vc39-full-en-arm64-v8a.apk",
+            ReleaseAssets.pickAsset(release, "lite", listOf("arm64-v8a"), "en")?.name,
+        )
+    }
+
+    @Test
     fun `picks the newest release that has a file for this device`() {
         val candidate = ReleaseAssets.chooseCandidate(
             releases = listOf(

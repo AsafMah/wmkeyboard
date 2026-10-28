@@ -26,6 +26,7 @@
     <string name="common_default">Alapértelmezett</string>
     <string name="common_delete">Törlés</string>
     <string name="common_disable">Kikapcsolás</string>
+    <string name="common_disabled_open_setting">Beállítás megnyitása</string>
     <string name="common_disclosure_blocked_body">Az Android már nem jeleníti meg ezt a kérést, mert korábban elutasította az engedélyt. Az alkalmazás beállításai képernyőn továbbra is bekapcsolhatja.</string>
     <string name="common_disclosure_not_now">Nem most</string>
     <string name="common_done">Kész</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Telepítés</string>
     <string name="common_installing">Telepítés…</string>
     <string name="common_loading">Betöltés…</string>
+    <string name="common_more">Több</string>
     <string name="common_next">Következő</string>
     <string name="common_none">Nincs</string>
     <string name="common_notify_channel_backup_body">Csak akkor, ha az automatikus biztonsági mentés sikertelen. A sikeres mentések csendesek.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Értesítések megjelenítése</string>
     <string name="common_permission_storage_body">Android 9-es és régebbi verziókon a billentyűzetnek tárhely-hozzáférési engedélyre van szüksége ahhoz, hogy képet menthessen a galériába. A régi Android-engedély a tárhely olvasására is kiterjed. A billentyűzet csak azt a képet írja, amelyet menteni kérsz. A billentyűzet semmit nem olvas és semmit nem tölt fel. Az újabb Android-verzióknak nincs szükségük erre az engedélyre.</string>
     <string name="common_permission_storage_title">Tárhely-hozzáférés a galériába mentéshez</string>
+    <string name="common_permission_tasks_body">A WM Keyboard szinkronban tartja a teendőlistáját és egy feladatlistát a feladatkezelő alkalmazásban: a feladatokat, azok lépéseit, a pipákat és a határidőket, mindkét irányban. Az engedély az alkalmazás összes feladatlistájára kiterjed. A billentyűzet csak azért olvassa az alkalmazás listáit, hogy kiválaszthasson egyet, és csak a kiválasztott listát olvassa és írja. A billentyűzet semmit nem küld sehova. A DAVx5, ha használja, szinkronizálja ezt a listát a saját CalDAV-szerverével. Ezen engedély nélkül a teendőlista ezen a telefonon marad.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-hozzáférés a teendőlistához</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org hozzáférés a teendőlistához</string>
+    <string name="common_preview_scale_desc">Előnézet mérete</string>
+    <string name="common_preview_scale_larger">Előnézet nagyítása</string>
+    <string name="common_preview_scale_smaller">Előnézet kicsinyítése</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Eltávolítás</string>
     <string name="common_reset">Visszaállítás</string>
     <string name="common_reset_defaults">Visszaállítás alapértelmezettre</string>

@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">کپی</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">ارقام</string>
+    <string name="core_content_selection_macro_edit_word">ویرایش کلمه</string>
     <string name="core_content_selection_macro_email">ایمیل</string>
     <string name="core_content_selection_macro_fancy">فانتزی</string>
     <string name="core_content_selection_macro_find">یافتن</string>

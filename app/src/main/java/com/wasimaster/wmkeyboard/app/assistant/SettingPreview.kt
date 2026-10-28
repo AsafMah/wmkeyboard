@@ -345,6 +345,7 @@ internal fun shown(setting: AssistantSetting, value: String): String = when (set
     is AssistantSetting.Switch ->
         stringResource(if (value == "true") CommonR.string.common_on else CommonR.string.common_off)
     is AssistantSetting.Number -> setting.withUnit(value)
+    is AssistantSetting.Choice -> setting.labelOf(value).let { if (it == 0) value else stringResource(it) }
 }
 
 internal val CardShape = RoundedCornerShape(20.dp)

@@ -99,6 +99,8 @@ class TabletExpansionCorpusTest {
                 // its neighbours on flick arms, and the transform declines any
                 // key with flicks.
                 "en_flick",
+                // Its Khipro and Avro twins (Telegram group), the same grid.
+                "bn_khipro_flick", "bn_avro_flick",
                 "ipa", "music", "nqo_nko",
                 "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_zhuyin",
                 // Pinyin's shift slot is the '词 syllable separator (#580,

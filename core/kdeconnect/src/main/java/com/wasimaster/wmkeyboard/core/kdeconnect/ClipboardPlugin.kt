@@ -23,6 +23,8 @@ import kotlinx.serialization.json.put
  * Nothing on the wire marks a clip as sensitive. That is decided here, locally:
  * a sensitive clip is remembered (so a later duplicate is still recognised)
  * but never sent on its own — only [push], the user's explicit "send this".
+ * A device whose sharing is paused ([KdeClipboardPause]) is skipped the same
+ * way, both directions, and [push] still reaches it.
  */
 class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host) {
     override val incoming = setOf(KdeTypes.CLIPBOARD, KdeTypes.CLIPBOARD_CONNECT)
@@ -49,7 +51,7 @@ class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host
             timestampMs = nextTimestamp()
         }
         if (text.isEmpty() || isSensitive || !host.config.clipboardSend) return 0
-        return broadcast(text)
+        return broadcast(text, honourPause = true)
     }
 
     /** The user asked for [text] to be sent now, sensitive or not. */
@@ -63,7 +65,7 @@ class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host
             }
         }
         return if (deviceId == null) {
-            broadcast(text)
+            broadcast(text, honourPause = false)
         } else if (enabledFor(deviceId) && host.send(deviceId, kdePacket(KdeTypes.CLIPBOARD) { put("content", text) })) {
             1
         } else {
@@ -72,7 +74,7 @@ class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host
     }
 
     override fun onConnected(deviceId: String) {
-        if (!host.config.clipboardSend || !enabledFor(deviceId)) return
+        if (!host.config.clipboardSend || !enabledFor(deviceId) || paused(deviceId)) return
         val (text, stamp) = synchronized(lock) {
             if (sensitive || content.isEmpty()) return
             content to timestampMs
@@ -81,7 +83,9 @@ class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host
     }
 
     override fun onPacket(deviceId: String, packet: KdePacket) {
-        if (!host.config.clipboardReceive || !enabledFor(deviceId)) return
+        // Before the content is recorded: a clip refused while paused must
+        // not count as held, or the same copy made here later would not go.
+        if (!host.config.clipboardReceive || !enabledFor(deviceId) || paused(deviceId)) return
         val text = packet.string("content") ?: return
         if (text.isEmpty()) return
         synchronized(lock) {
@@ -98,14 +102,17 @@ class ClipboardPlugin internal constructor(host: KdePluginHost) : KdePlugin(host
         host.emit(KdeEvent.ClipboardReceived(deviceId, host.device(deviceId)?.name.orEmpty(), text))
     }
 
-    private fun broadcast(text: String): Int {
+    private fun broadcast(text: String, honourPause: Boolean): Int {
         var sent = 0
         for (id in host.connectedIds()) {
-            if (!enabledFor(id)) continue
+            if (!enabledFor(id) || (honourPause && paused(id))) continue
             if (host.send(id, kdePacket(KdeTypes.CLIPBOARD) { put("content", text) })) sent++
         }
         return sent
     }
+
+    private fun paused(deviceId: String): Boolean =
+        KdeClipboardPause.isPaused(host.config.clipboardPauses, deviceId, host.now())
 
     /**
      * Strictly increasing, even if the wall clock steps back: kdeconnect-kde

@@ -215,6 +215,7 @@ object Layouts {
     val SPANISH_QWERTY: KeyboardLayout get() = BuiltInLayouts.SPANISH.compile(LayoutLayer.LETTERS)
     val PROBHAT: KeyboardLayout get() = BuiltInLayouts.PROBHAT.compile(LayoutLayer.LETTERS)
     val JATIYA: KeyboardLayout get() = BuiltInLayouts.JATIYA.compile(LayoutLayer.LETTERS)
+    val BSTI: KeyboardLayout get() = BuiltInLayouts.BSTI.compile(LayoutLayer.LETTERS)
 
     val SYMBOLS: KeyboardLayout get() = default.compile(LayoutLayer.SYMBOLS)
     val SYMBOLS_SHIFTED: KeyboardLayout get() = default.compile(LayoutLayer.SYMBOLS_SHIFTED)

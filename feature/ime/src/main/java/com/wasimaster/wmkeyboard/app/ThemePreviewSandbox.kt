@@ -117,6 +117,7 @@ data class ThemePreviewSandbox(
                 else -> copy(layoutMode = LayoutMode.SECONDARY, secondaryLayoutId = action.id)
             }
             KeyAction.Emoji -> copy(panel = PanelMode.EMOJI)
+            KeyAction.Toolbox -> copy(panel = PanelMode.TOOLBOX)
             KeyAction.Numpad -> copy(panel = PanelMode.NUMPAD)
             is KeyAction.Tool -> onTool(action.tool)
             // Modifiers, raw key events, chords and the rest have nowhere to go
@@ -283,14 +284,17 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.LEARN_FROM_TEXT -> PanelMode.LEARN_FROM_TEXT
     ToolbarTool.FIND_REPLACE -> PanelMode.FIND_REPLACE
     ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> PanelMode.NOTES
+    ToolbarTool.TODO -> PanelMode.TODO
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> PanelMode.SEND_FILES
     ToolbarTool.GALLERY -> PanelMode.GALLERY
+    ToolbarTool.MUSIC_ID -> PanelMode.MUSIC_ID
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF
     ToolbarTool.STICKER -> PanelMode.STICKER
+    ToolbarTool.EMOJI_MIX -> PanelMode.EMOJI_MIX
     ToolbarTool.WEB_SEARCH -> PanelMode.WEB_SEARCH
     ToolbarTool.IMAGE_SEARCH -> PanelMode.IMAGE_SEARCH
     ToolbarTool.OCR -> PanelMode.OCR
@@ -306,6 +310,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.PASSWORD_GEN -> PanelMode.PASSWORD_GEN
     ToolbarTool.TEXT_REPEAT -> PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> PanelMode.TYPING_TEST
+    ToolbarTool.SPEED_TEST -> PanelMode.SPEED_TEST
     ToolbarTool.MEDIA_CONTROL -> PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> PanelMode.KDE_CONNECT
     ToolbarTool.PLUGINS -> PanelMode.PLUGINS

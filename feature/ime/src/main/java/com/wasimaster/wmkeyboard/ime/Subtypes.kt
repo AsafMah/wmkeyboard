@@ -128,6 +128,36 @@ fun subtypeFor(spec: LayoutSpec, nameResId: Int = 0): InputMethodSubtype {
         .build()
 }
 
+/**
+ * The one subtype registered while the OS switcher is off: [spec]'s language,
+ * under the keyboard's own name ([labelResId], the IME's manifest label).
+ *
+ * With no subtype at all Android has no idea what language is being typed, and
+ * the system spell checker, left on "use system language", falls back to the
+ * phone's language: an English phone underlined every Indonesian word, and a
+ * tap on one opened the browser's fix menu over the keyboard. This tells it the
+ * language without the picker growing a language name, since a label with no
+ * `%s` is shown as it stands.
+ *
+ * No layout id in the extra value, so [layoutIdOf] reads it as not ours and a
+ * selection of it is never followed back into the keyboard.
+ */
+fun languageOnlySubtype(spec: LayoutSpec, labelResId: Int): InputMethodSubtype {
+    val tag = spec.language().localeTag
+    return InputMethodSubtypeBuilder()
+        .setSubtypeMode("keyboard")
+        .setSubtypeNameResId(labelResId)
+        .setSubtypeLocale(tag.replace('-', '_'))
+        .setLanguageTag(tag)
+        .setIsAsciiCapable(spec.script().id == ScriptId.LATIN)
+        .setOverridesImplicitlyEnabledSubtype(false)
+        .setSubtypeId(stableSubtypeId("$LANGUAGE_ONLY_PREFIX$tag"))
+        .build()
+}
+
+/** Keeps [languageOnlySubtype]'s ids apart from any layout's own. */
+private const val LANGUAGE_ONLY_PREFIX = "os-language:"
+
 /** The layout id a subtype stands for, or null if it is not one of ours. */
 fun layoutIdOf(subtype: InputMethodSubtype?): String? =
     layoutIdFromExtraValue(subtype?.extraValue)

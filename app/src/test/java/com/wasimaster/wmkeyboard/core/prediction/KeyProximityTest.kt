@@ -169,4 +169,67 @@ class KeyProximityTest {
         assertFalse(KeyProximity.QWERTY.areAdjacent('3', 'e'))
         assertFalse(KeyProximity.QWERTY == p)
     }
+
+    private fun withNumberRow(letters: List<List<Key>>, numberRow: List<Key>?) = LayoutSpec(
+        id = "custom_970",
+        name = "Mine",
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(letters, numberRow = numberRow)),
+    )
+
+    @Test
+    fun `a layout's own number row is the one stitched over its letters`() {
+        // Eastern Arabic digits over the top row (#970): ٨ sits where 8 would.
+        val digits = "١٢٣٤٥٦٧٨٩٠".map { Key(it.toString()) }
+        val spec = withNumberRow(
+            listOf("qwertyuiop", "asdfghjkl").map { row -> row.map { Key(it.toString()) } },
+            digits,
+        )
+        val p = KeyProximity.forLayout(spec, numberRow = true)
+        assertTrue(p.areAdjacent('٨', 'i'))
+        assertTrue(p.areAdjacent('i', '٨'))
+        assertFalse("the built-in digits are not on this board", p.areAdjacent('8', 'i'))
+        // Off, no number row at all, authored or not.
+        assertFalse(KeyProximity.forLayout(spec).areAdjacent('٨', 'i'))
+        // A layout that authored none keeps the built-in digits.
+        val plain = withNumberRow(listOf("qwertyuiop", "asdfghjkl").map { row -> row.map { Key(it.toString()) } }, null)
+        assertTrue(KeyProximity.forLayout(plain, numberRow = true).areAdjacent('8', 'i'))
+    }
+
+    @Test
+    fun `a key carries the letters on its shift, its corner and its hold`() {
+        val spec = withNumberRow(
+            listOf(
+                listOf(
+                    Key("ه", shiftLabel = "ة"),
+                    Key("ع", shiftLabel = "ّ"),
+                    Key("ا", longPress = listOf("أ", "إ", "آ", "!")),
+                    Key("s", longPress = listOf("ß")),
+                    Key("q"),
+                ),
+                listOf(Key("؟", hint = "ئ"), Key("e"), Key("u", shiftLabel = "U")),
+            ),
+            listOf(Key("8", longPress = listOf("i", "¾"))),
+        )
+        val p = KeyProximity.forLayout(spec, numberRow = true)
+        assertTrue(p.carries('ه', 'ة'))
+        assertTrue(p.carries('ا', 'أ'))
+        assertTrue(p.carries('ا', 'آ'))
+        assertTrue(p.carries('s', 'ß'))
+        assertTrue("a corner hint counts", p.carries('؟', 'ئ'))
+        assertTrue("so does a number-row key's hold", p.carries('8', 'i'))
+        assertFalse("punctuation is not a letter a word holds", p.carries('ا', '!'))
+        assertFalse("nor is a fraction", p.carries('8', '¾'))
+        assertFalse("a mark on Shift never stands in for the letter", p.carries('ع', 'ّ'))
+        assertFalse("Latin's Shift is a capital, nothing to carry", p.carries('u', 'U'))
+        assertFalse("one way: the shifted letter typed on purpose stays itself", p.carries('ة', 'ه'))
+        assertFalse(p.carries('q', 'w'))
+        // The carried letters are part of the model's identity: the engine
+        // rebuilds its search only when a proximity stops comparing equal.
+        val letters = spec.layer(LayoutLayer.LETTERS)!!.rows
+        val bare = withNumberRow(
+            letters.map { row -> row.map { it.copy(shiftLabel = null, longPress = emptyList(), hint = null) } },
+            null,
+        )
+        assertFalse(KeyProximity.forLayout(bare) == KeyProximity.forLayout(spec))
+    }
 }

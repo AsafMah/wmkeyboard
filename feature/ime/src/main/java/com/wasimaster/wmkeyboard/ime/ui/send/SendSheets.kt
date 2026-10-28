@@ -48,6 +48,7 @@ import com.wasimaster.wmkeyboard.core.send.SendInstances
 import com.wasimaster.wmkeyboard.core.send.SendReceived
 import com.wasimaster.wmkeyboard.core.send.SendUpload
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.send.BrowserUi
 import com.wasimaster.wmkeyboard.ime.send.DirectUi
 import com.wasimaster.wmkeyboard.ime.send.SendAction
 import com.wasimaster.wmkeyboard.ime.send.SendDelivered
@@ -77,7 +78,57 @@ internal fun BoxScope.SendSheets(ui: SendUi, act: (SendAction) -> Unit) {
         ui.sheet == SendSheet.INSTANCES -> InstancesSheet(ui, act)
         ui.sheet == SendSheet.HISTORY -> HistorySheet(ui, act)
         ui.sheet == SendSheet.DIRECT_CODE -> DirectCodeSheet(ui, act)
+        ui.sheet == SendSheet.BROWSER_CODE -> BrowserCodeSheet(ui, act)
         else -> Unit
+    }
+}
+
+/**
+ * The browser page's code (#927). On a Wi-Fi this phone opened it is two
+ * codes, one after the other: the Wi-Fi to join, then the page.
+ */
+@Composable
+private fun BoxScope.BrowserCodeSheet(ui: SendUi, act: (SendAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val serving = ui.nearby.browser as? BrowserUi.Serving ?: return
+    val hotspot = serving.hotspot
+    var showWifi by remember(hotspot) { mutableStateOf(hotspot != null) }
+    SheetCard(Modifier.align(Alignment.Center).padding(16.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            QrImage(if (showWifi && hotspot != null) hotspot.joinCode else serving.url, Modifier.size(180.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                if (hotspot != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ToolPanelChip(stringResource(R.string.ime_send_browser_step_wifi), selected = showWifi) { showWifi = true }
+                        ToolPanelChip(stringResource(R.string.ime_send_browser_step_page), selected = !showWifi) { showWifi = false }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
+                if (showWifi && hotspot != null) {
+                    Text(stringResource(R.string.ime_send_browser_scan_wifi), color = kb.popupText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(stringResource(R.string.ime_send_direct_wifi, hotspot.ssid), color = kb.popupText, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (hotspot.passphrase.isNotEmpty()) {
+                        Text(stringResource(R.string.ime_send_direct_password, hotspot.passphrase), color = kb.popupText, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                } else {
+                    Text(stringResource(R.string.ime_send_browser_scan_page), color = kb.popupText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.ime_send_browser_scan_page_body), color = kb.popupText.copy(alpha = 0.8f), fontSize = 11.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text(serving.url.removePrefix("http://"), color = kb.accent, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (showWifi && hotspot != null) {
+                        ToolPanelChip(stringResource(R.string.ime_send_browser_next), selected = true) { showWifi = false }
+                    } else {
+                        ToolPanelChip(stringResource(R.string.ime_send_copy)) { act(SendAction.CopyBrowserLink) }
+                        ToolPanelChip(stringResource(R.string.ime_send_close), selected = true) { act(SendAction.OpenSheet(null)) }
+                    }
+                }
+            }
+        }
     }
 }
 

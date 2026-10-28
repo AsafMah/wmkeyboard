@@ -8,7 +8,7 @@
 //!
 //! The table was generated from the Unicode decompositions with the Kotlin
 //! rule (a base letter followed only by non-spacing marks, plus the stroked
-//! letters `ł ø đ ħ ŀ` that have no decomposition).
+//! letters `ł ø đ ħ ŀ` and Turkish dotless `ı` that have no decomposition).
 
 /// (accented, bare), sorted by the accented code unit.
 const TABLE: &[(u16, u16)] = &[
@@ -116,6 +116,8 @@ const TABLE: &[(u16, u16)] = &[
     (0x012E, 0x0049),
     (0x012F, 0x0069),
     (0x0130, 0x0049),
+    // Turkish dotless ı: no decomposition, but it sits on the i key.
+    (0x0131, 0x0069),
     (0x0134, 0x004A),
     (0x0135, 0x006A),
     (0x0136, 0x004B),
@@ -571,6 +573,7 @@ mod tests {
     fn folds_latin_and_greek() {
         assert_eq!(u('z'), bare(u('ż')));
         assert_eq!(u('l'), bare(u('ł')));
+        assert_eq!(u('i'), bare(u('ı')));
         assert_eq!(u('e'), bare(u('é')));
         assert_eq!(u('α'), bare(u('ά')));
         assert_eq!(u('a'), bare(u('ạ')));

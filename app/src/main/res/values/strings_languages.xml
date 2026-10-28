@@ -148,14 +148,12 @@
     <string name="languages_autocorrect_group">Autocorrect</string>
     <string name="languages_autocorrect_title">Autocorrect this language</string>
     <string name="languages_autocorrect_subtitle">Fix typos when you press space</string>
-    <string name="languages_autocorrect_global_off_subtitle">Autocorrect is off for all languages in Typing</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_autocorrect_info">Turn this off to keep each word you type in <xliff:g id="language" example="Bengali">%1$s</xliff:g> as you typed it, while other languages are still corrected. The suggestion strip still shows its suggestions, and you can tap one. The autocorrect switch in Typing turns autocorrect off for all languages.</string>
 
     <string name="languages_spacing_group">Spacing</string>
     <string name="languages_space_after_suggestion_title">Space after a suggestion</string>
     <string name="languages_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Space after a suggestion is off for all languages in Typing</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_space_after_suggestion_info">Turn this off to type a word you select from the suggestion strip in <xliff:g id="language" example="Bengali">%1$s</xliff:g> without a space after it, so you can add an ending straight away. Other languages still get the space. The Space after a suggestion switch in Typing turns the space off for all languages.</string>
 
@@ -241,6 +239,9 @@
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_phonetic_strip_fixed_info">Usually the first word on the strip is the word that the space bar will write, so the words move as you type.\n\nWith this on, the first two words always stay in the same place. On the left is what you typed, in English letters. Next to it is the <xliff:g id="language" example="Bengali">%1$s</xliff:g> that the phonetic rules make from it, letter for letter. The suggestions come after them. Tap the left word to write in English, or the word next to it to write the exact <xliff:g id="language" example="Bengali">%1$s</xliff:g> reading.\n\nThe space bar does not change: it writes the same word as before. That word shows in bold, and in the autocorrect word color if you set one. The strip does not put a word in the middle on this layout, so that the left word is always first.</string>
     <!-- Khipro layouts: a strip chip with the keys exactly as pressed (#772). -->
+    <string name="languages_khipro_english_title">Type English words as English on Khipro</string>
+    <string name="languages_khipro_english_subtitle">Separate from Avro\'s. Off, English words wait on the strip</string>
+    <string name="languages_khipro_english_info">With English picked above, keys that spell an English word, and no Bangla word the list or your dictionary knows, are written in English when you press space: hello stays hello, and ami is still আমি.\n\nOff, the space bar always writes the Bangla the keys spell, and an English word is only ever a chip on the strip, written when you tap it.\n\nKeys typed into the middle of a word are never taken as English, whichever way this is set. Avro has its own switch, so turning one on leaves the other as it was.</string>
     <string name="languages_raw_keys_chip_title">Show the keys you pressed</string>
     <string name="languages_raw_keys_chip_subtitle">prshn/ next to প্রশ্ন on the strip</string>
     <string name="languages_raw_keys_chip_info">Khipro keys such as f and / change the letters before them, so the word on the strip does not always show which keys you pressed.\n\nWith this on, the second word on the strip is the keys exactly as you pressed them, modifiers included. Tap it to write those keys as they are, in English letters. The space bar does not change: it writes the Bengali word.\n\nWith this off, the keys show only when they are all letters and English is mixed in on the layout, for English words that the dictionary does not know.</string>
@@ -259,6 +260,17 @@
     <string name="languages_phonetic_candidates_title">Avro candidate list</string>
     <string name="languages_phonetic_candidates_subtitle">The words desktop Avro shows under the word you type</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_khipro_specs_group">Khipro\'s rules</string>
+    <string name="languages_khipro_specs_title">Layout rules</string>
+    <string name="languages_khipro_specs_bundled">The rules this version came with, from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Newer ones are looked for once a day while you type with Khipro. Tap to check now.</string>
+    <string name="languages_khipro_specs_downloaded">Updated rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Tap to check for newer ones.</string>
+    <string name="languages_khipro_specs_checking">Checking for newer rules…</string>
+    <string name="languages_khipro_specs_failed">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. The last check installed nothing: <xliff:g id="reason" example="HTTP 404">%2$s</xliff:g>. Tap to try again.</string>
+    <string name="languages_khipro_specs_unsupported">The rules this version came with. This build cannot update them.</string>
+    <string name="languages_khipro_specs_up_to_date">Khipro\'s rules are up to date</string>
+    <string name="languages_khipro_specs_installed">Khipro\'s rules updated to <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g></string>
+    <string name="languages_khipro_specs_bundled_title">Use the bundled rules</string>
+    <string name="languages_khipro_specs_bundled_subtitle">Go back to the rules this version came with. The daily check leaves them until a newer set is published.</string>
     <string name="languages_avro_dictionary_title">Desktop Avro\'s dictionary</string>
     <string name="languages_avro_dictionary_download">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g> to download. Tap to download.</string>
     <string name="languages_avro_dictionary_downloaded">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g></string>
@@ -296,9 +308,19 @@ On test words the space bar wrote the right word 56%% of the time instead of 25%
     <string name="languages_neural_phonetic_model_missing">Not downloaded, <xliff:g id="size" example="13 MB">%1$s</xliff:g>. Tap to download.</string>
     <!-- %1$s and %2$s are sizes, for example "4 MB" of "13 MB". -->
     <string name="languages_neural_phonetic_model_downloading">Downloading, <xliff:g id="done" example="4 MB">%1$s</xliff:g> of <xliff:g id="total" example="13 MB">%2$s</xliff:g></string>
+    <!-- Romanized dictation (#948): IndicXlit the other way round, Indic script back to Latin letters. -->
+    <string name="languages_romanized_dictation_group">Voice typing</string>
+    <string name="languages_romanized_dictation_model_title">Romanized dictation model</string>
+    <!-- %1$s is the download size, for example "13 MB". -->
+    <string name="languages_romanized_dictation_model_missing">Not downloaded, <xliff:g id="size" example="13 MB">%1$s</xliff:g>. Tap to download. Dictation in Latin letters then spells the words the keyboard does not know the way people write them.</string>
+    <string name="languages_romanized_dictation_delete_title">Delete the romanized dictation model?</string>
+    <string name="languages_romanized_dictation_delete_body">Dictation in Latin letters goes back to the spelling rules for the words the keyboard does not know. Tap the row to download the model again.</string>
     <string name="languages_phonetic_english_switch_title">Switch on the suggestion strip</string>
     <string name="languages_phonetic_english_switch_subtitle">A small button beside the suggestions turns English words on and off as you type</string>
     <string name="languages_phonetic_english_switch_info">The button shows on this language\'s phonetic layout and is lit while English words are on. It is for the moment a word keeps coming out in the wrong script: tap it in the middle of the word and the word turns back before you press space.\n\nOff takes the button away and leaves the setting above exactly as you set it, so English words simply stay on. Shared by every language with a phonetic layout.</string>
+    <string name="languages_bengali_vowel_twice_title">Tap twice for আ or এ</string>
+    <string name="languages_bengali_vowel_twice_subtitle">On Probhat, Jatiya and BSTI, after a vowel: one tap gives য়া or য়ে, a second tap gives আ or এ</string>
+    <string name="languages_bengali_vowel_twice_info">After a vowel, the আ-কার and এ-কার keys write য়া and য়ে, as in কায়া and দিয়ে, because a bare া or ে cannot follow a vowel. With this on, pressing the key again straight away turns য়া into আ and য়ে into এ. Holding either key offers আ or এ whether this is on or not. Off by default, because a quick double press then types the glide twice.</string>
     <string name="languages_ansi_group">ANSI output</string>
     <string name="languages_ansi_allowed_title">Allow ANSI output</string>
     <string name="languages_ansi_allowed_subtitle">An ANSI button on the Bengali layouts writes Bijoy-style text, so আ comes out as Av</string>
@@ -379,6 +401,17 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_word_pairs_downloaded">Next-word predictions, <xliff:g id="size" example="3 MB">%1$s</xliff:g></string>
     <string name="languages_word_pairs_failed">The download failed. Try again.</string>
     <string name="languages_word_pairs_delete_desc">Delete the word pairs</string>
+    <string name="languages_context_model_title">Context model</string>
+    <string name="languages_context_model_download_size">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g> to download</string>
+    <string name="languages_context_model_downloaded">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
+    <string name="languages_context_model_failed">The download failed. Try again.</string>
+    <string name="languages_context_model_delete_desc">Delete the context model</string>
+    <string name="languages_context_model_variant_standard">Standard</string>
+    <string name="languages_context_model_variant_large">Large</string>
+    <!-- %1$s a size name (Standard, Large), %2$s the file size -->
+    <string name="languages_context_model_variant_size"><xliff:g id="variant" example="Large">%1$s</xliff:g>, <xliff:g id="size" example="16.7 MB">%2$s</xliff:g></string>
+    <string name="languages_context_model_downloaded_variant">Sentence-aware predictions, <xliff:g id="variant" example="Standard">%1$s</xliff:g> model, <xliff:g id="size" example="10.8 MB">%2$s</xliff:g></string>
+    <string name="languages_context_model_switch">Switch to the <xliff:g id="variant" example="Large">%1$s</xliff:g> model (<xliff:g id="size" example="16.7 MB">%2$s</xliff:g>)</string>
 
     <!-- ===== Dictionary ===== -->
 
@@ -579,6 +612,18 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
          are examples and stay as they are. 发 is the Simplified form, 發 means
          "to send" and 髮 means "hair". -->
     <string name="languages_cjk_traditional_info">The keyboard converts each candidate from Simplified (简体) to Traditional (繁體) before it shows the candidate. Some Simplified characters have more than one Traditional form, and the word decides which one is correct: 发 is 發 in 發展 but 髮 in 頭髮, and 后 is 後 in 後來 but 后 in 皇后. With the phrase table pack downloaded, the keyboard reads whole words, so it writes the correct form. Without the pack, or for a word that is in no table, it converts one character at a time.</string>
+    <string name="languages_cjk_traditional_button_title">繁 button</string>
+    <string name="languages_cjk_traditional_button_subtitle">A button beside the candidates switches between Simplified and Traditional</string>
+    <string name="languages_cjk_reading_in_field_title">Show the reading in the text field</string>
+    <string name="languages_cjk_reading_in_field_subtitle">Off, the pinyin you type shows only on the keyboard, before the candidates</string>
+    <string name="languages_cjk_reading_in_field_info">On, the pinyin, zhuyin or Jyutping that you type shows underlined in the text field until you pick a candidate. Off, the text field stays as it is, and the keyboard shows what you typed at the start of the candidate strip. Only the candidate you pick goes into the text field, the way fcitx5 works.</string>
+    <string name="languages_cjk_reading_on_switch_title">When you switch language mid-reading</string>
+    <string name="languages_cjk_reading_on_switch_convert">Type the first candidate</string>
+    <string name="languages_cjk_reading_on_switch_convert_desc">The best candidates for everything that you typed go into the text field</string>
+    <string name="languages_cjk_reading_on_switch_typed">Type what you typed</string>
+    <string name="languages_cjk_reading_on_switch_typed_desc">The pinyin or zhuyin goes into the text field as letters, the way fcitx5 does it</string>
+    <string name="languages_cjk_reading_on_switch_discard">Discard it</string>
+    <string name="languages_cjk_reading_on_switch_discard_desc">Nothing goes into the text field</string>
     <string name="languages_cjk_region_title">Regional wording</string>
     <!-- The Chinese characters are examples and stay as they are. 出租車 and
          計程車 both mean "taxi", but they are different words with different

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.Intent
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -138,10 +139,7 @@ private fun shareLink(context: android.content.Context, url: String) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, "$blurb $url")
     }
-    val chooserTitle = context.getString(R.string.about_share_chooser_title)
-    context.startActivity(Intent.createChooser(intent, chooserTitle).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    })
+    AppShareSheet.start(context, intent, context.getString(R.string.about_share_chooser_title))
 }
 
 /**
@@ -729,6 +727,25 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/snakers4/silero-vad",
             ),
         )
+        // Phrase end detector (#976): models the phone downloads on request.
+        add(
+            Attribution(
+                "FireRedVAD",
+                R.string.about_bundled_firered_vad_used,
+                "Copyright 2026 Xiaohongshu (FireRedTeam)",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/FireRedTeam/FireRedVAD",
+            ),
+        )
+        add(
+            Attribution(
+                "Smart Turn",
+                R.string.about_bundled_smart_turn_used,
+                "Copyright (c) 2024-2025, Daily",
+                "BSD-2-Clause", "bsd-2-clause-smart-turn.txt",
+                "https://github.com/pipecat-ai/smart-turn",
+            ),
+        )
     }
     add(
         Attribution(
@@ -829,6 +846,15 @@ private val bundledAttributions: List<Attribution> = buildList {
             "Copyright (c) 2024 rank_coder, (c) 2026 KhiproTeam",
             "MIT", "mit-khipro.txt",
             "https://khipro.khiproteam.com/",
+        ),
+    )
+    add(
+        Attribution(
+            "Bangla BSTI Mobile",
+            R.string.about_bundled_bsti_used,
+            "Copyright (c) 2026 Ekushey",
+            "CC BY 4.0", "cc-by-4.0-bsti.txt",
+            "https://github.com/ekushey-org/bangla-bsti-mobile",
         ),
     )
     add(
@@ -1397,13 +1423,13 @@ internal fun AboutSettings(
                 stringResource(R.string.about_whats_new_subtitle, BuildConfig.VERSION_NAME),
             ) { showNotes = true }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The licence identifier and the copyright line travel verbatim.
             NavRow(R.string.about_licence_title, "MIT, © 2026 Wasi Master") {
                 onOpenLicenseText("mit-wmkeyboard.txt")
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.about_source_title,
                 SOURCE_URL.removePrefix("https://"),
@@ -1411,7 +1437,29 @@ internal fun AboutSettings(
                 uriHandler.openUri(SOURCE_URL)
             }
         }
+        // How much of the settings app shows, and whether what it leaves
+        // out is pointed at; see SettingsDepth.kt. Here, with the other rows
+        // about the app itself, rather than on every page.
         item {
+            val depth = LocalSettingsDepth.current
+            ChoiceSetting(
+                title = R.string.settings_depth_title,
+                subtitle = stringResource(R.string.settings_depth_subtitle),
+                info = stringResource(R.string.settings_depth_info),
+                options = depthOptions(),
+                selected = depth.depth,
+                detail = { ChoiceDetail(depthDescription(it)) },
+            ) { depth.change(it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.settings_hidden_rows_title,
+                stringResource(R.string.settings_hidden_rows_subtitle),
+                settings.watch { it.appUi.hiddenSettingsRows },
+                default = SettingsDefaults.appUi.hiddenSettingsRows,
+            ) { scope.launch { repository.setHiddenSettingsRows(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_name_title,
                 stringResource(R.string.about_launcher_name_subtitle),
@@ -1424,7 +1472,7 @@ internal fun AboutSettings(
                 },
             )
         }
-        item(visible = !television) {
+        item(visible = !television, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_shown_title,
                 stringResource(R.string.about_launcher_shown_subtitle),
@@ -1449,9 +1497,9 @@ internal fun AboutSettings(
                     englishName = nativeLanguageName("en"),
                 )
             }
-            item(visible = canDropLanguageSwitch) { KeepEnglishOnlyRow() }
+            item(visible = canDropLanguageSwitch, level = SettingLevel.ADVANCED) { KeepEnglishOnlyRow() }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.about_storage_title,
                 stringResource(R.string.about_storage_subtitle),
@@ -1459,7 +1507,8 @@ internal fun AboutSettings(
                 onClick = onOpenStorage,
             )
         }
-        item {
+        // Owned by the Statistics extension: gone with it.
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.statistics_title,
                 stringResource(R.string.statistics_subtitle),
@@ -1467,7 +1516,7 @@ internal fun AboutSettings(
                 onClick = onOpenStatistics,
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.about_diagnostics_title,
                 stringResource(R.string.about_diagnostics_subtitle),
@@ -1475,7 +1524,7 @@ internal fun AboutSettings(
                 onClick = onOpenDebugLog,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The quiz answers still decide how many tools are pinned, how the
             // theme gallery is laid out and which pages the wizard even has,
             // and until this row existed there was nowhere in settings that
@@ -1488,7 +1537,7 @@ internal fun AboutSettings(
                 onClick = onReplayOnboarding,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The wizard's only way back in once it has been finished. A
             // replay never rewrites settings, so the row can promise that.
             NavRow(
@@ -1523,7 +1572,7 @@ internal fun AboutSettings(
                 uriHandler.openUri(PRIVACY_POLICY_URL)
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // A web link to one setting, from the setting itself (#646). The
             // rows read the mode through LocalSettingLinks, so this row and
             // its own heading change the moment it is picked.
@@ -1559,7 +1608,7 @@ internal fun AboutSettings(
                 shareLink(context, FDROID_URL)
             }
         }
-        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
+        item(visible = !BuildConfig.ENABLE_PLAY_STORE, level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.about_share_github_link,
                 SOURCE_URL.removePrefix("https://"),
@@ -1569,7 +1618,7 @@ internal fun AboutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.about_third_party_title)) {
+    SettingsGroup(stringResource(R.string.about_third_party_title), level = SettingLevel.STANDARD) {
         item {
             NavRow(
                 R.string.about_licences_title,
@@ -1579,7 +1628,7 @@ internal fun AboutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.about_word_lists_title)) {
+    SettingsGroup(stringResource(R.string.about_word_lists_title), level = SettingLevel.ADVANCED) {
         item {
             NavRow(
                 R.string.about_dictionaries_title,

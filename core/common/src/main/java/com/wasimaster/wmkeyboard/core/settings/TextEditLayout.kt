@@ -46,13 +46,19 @@ enum class TextEditAction {
     // `github.com` is not followed by one. What a hold or a double tap of
     // [NO_SPACE] runs, and an action of its own for a key or a flick.
     NO_SPACE_NEXT,
+
+    // Issue #980. A word at a time, either way: what a swipe across the delete
+    // key does a step of, and what Ctrl+Backspace / Ctrl+Delete do on a
+    // desktop, as an action of its own for a key or a flick. Both stop where
+    // the "Delete word stops at" settings say a word ends.
+    DELETE_WORD, DELETE_WORD_FORWARD,
 }
 
 /**
  * The actions whose second press does something the first did not, so holding the
  * key is worth repeating.
  *
- * The moves, and the two deletes. Home, End and the two selection commands are left out
+ * The moves, and the deletes. Home, End and the two selection commands are left out
  * for the reason [HoldRepeatCursorTools] leaves them out of the toolbar's repeat:
  * the caret is already there, so a repeat would buzz away doing nothing. Those are
  * exactly the keys whose hold is free for a second action — see
@@ -63,6 +69,7 @@ val RepeatingTextEditActions: Set<TextEditAction> = setOf(
     TextEditAction.PAGE_UP, TextEditAction.PAGE_DOWN,
     TextEditAction.WORD_LEFT, TextEditAction.WORD_RIGHT,
     TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE,
+    TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
 )
 
 /** Whether a hold on a key running [action] repeats it. */

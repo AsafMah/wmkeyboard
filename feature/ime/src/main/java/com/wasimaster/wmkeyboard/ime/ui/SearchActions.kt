@@ -14,6 +14,8 @@ import com.wasimaster.wmkeyboard.ime.SearchTab
 internal class SearchActions(
     /** A tab of the panel tapped. */
     val onTab: (SearchTab) -> Unit = {},
+    /** A SearXNG category chip tapped (#934); null is All. */
+    val onCategory: (String?) -> Unit = {},
     /** More results, at the end of the open tab's results. */
     val onMore: () -> Unit = {},
     /** Copies text to the clipboard: the engine's answer, a result's link. */

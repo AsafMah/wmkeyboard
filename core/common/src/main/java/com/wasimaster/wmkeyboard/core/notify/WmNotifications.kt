@@ -252,6 +252,9 @@ object NotificationIds {
     /** A file arriving through a Send link or from a device nearby. */
     const val SEND_RECEIVE = 8
 
+    /** Clipboard sharing with a computer on hold, with Resume (#918). */
+    const val CONNECT_PAUSE = 9
+
     /**
      * One per running timer, from its id. Timer ids only grow, so two running
      * timers sharing a row would need 400 timers in between.
@@ -263,6 +266,23 @@ object NotificationIds {
 
     private const val CLOCK_TIMER_BASE = 200
     private const val CLOCK_TIMER_SPAN = 400
+
+    /**
+     * One per alarm, from its id, for the notice about it in the shade: the
+     * snooze it is in, or the ring coming up (#970). One row, since an alarm is
+     * never both.
+     */
+    fun forAlarmNotice(id: Long): Int = CLOCK_NOTICE_BASE + Math.floorMod(id, CLOCK_ALARM_SPAN.toLong()).toInt()
+
+    /** Whether [id] is one of [forAlarmNotice]'s. */
+    fun isAlarmNotice(id: Int): Boolean = id in CLOCK_NOTICE_BASE until CLOCK_NOTICE_BASE + CLOCK_ALARM_SPAN
+
+    /** One per alarm for a ring nobody answered, apart from [forAlarmNotice] so a snooze does not take it down. */
+    fun forMissedAlarm(id: Long): Int = CLOCK_MISSED_BASE + Math.floorMod(id, CLOCK_ALARM_SPAN.toLong()).toInt()
+
+    private const val CLOCK_NOTICE_BASE = 600
+    private const val CLOCK_MISSED_BASE = 800
+    private const val CLOCK_ALARM_SPAN = 200
 
     /**
      * One id per download, derived from its key.

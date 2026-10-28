@@ -98,7 +98,7 @@ class ComposingResumeTest {
         // Probhat and Jatiya type Bengali into the field and hold Bengali in the
         // buffer, which is the whole test. They still commit ordinary keystrokes
         // straight through — the resumed word is the only thing they compose.
-        for (spec in listOf(BuiltInLayouts.PROBHAT, BuiltInLayouts.JATIYA)) {
+        for (spec in listOf(BuiltInLayouts.PROBHAT, BuiltInLayouts.JATIYA, BuiltInLayouts.BSTI)) {
             val composer = composerOf(spec)
             assertTrue(spec.id, composer.isClusterShaping)
             assertTrue(spec.id, composingResumable(composer, hasWordSources = true))

@@ -101,7 +101,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 default = defaults.format,
             ) { scope.launch { repository.setLocationFormat(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.location_map_link_title,
                 subtitle = stringResource(R.string.location_map_link_subtitle),
@@ -120,7 +120,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 default = defaults.precision,
             ) { scope.launch { repository.setLocationPrecision(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.location_lookup_address_title,
                 stringResource(R.string.location_lookup_address_subtitle),
@@ -129,7 +129,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 default = defaults.lookupAddress,
             ) { scope.launch { repository.setLocationLookupAddress(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.location_locate_on_open_title,
                 stringResource(R.string.location_locate_on_open_subtitle),
@@ -137,12 +137,13 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
                 default = defaults.locateOnOpen,
             ) { scope.launch { repository.setLocationLocateOnOpen(it) } }
         }
-        serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.NOMINATIM))
+        serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.NOMINATIM), level = SettingLevel.ADVANCED)
     }
 
     SettingsGroup(
         stringResource(R.string.location_tiles_group),
         info = stringResource(R.string.location_tiles_info),
+        level = SettingLevel.ADVANCED,
     ) {
         item {
             TextFieldSetting(
@@ -159,6 +160,7 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
     SettingsGroup(
         stringResource(R.string.location_template_group),
         info = stringResource(R.string.location_template_info, LocationFormatter.TOKENS.joinToString(" ")),
+        level = SettingLevel.ADVANCED,
     ) {
         item {
             TextFieldSetting(

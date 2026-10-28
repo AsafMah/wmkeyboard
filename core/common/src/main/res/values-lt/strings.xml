@@ -26,6 +26,7 @@
     <string name="common_default">Numatyta</string>
     <string name="common_delete">Ištrinti</string>
     <string name="common_disable">Išjungti</string>
+    <string name="common_disabled_open_setting">Atidaryti nustatymą</string>
     <string name="common_disclosure_blocked_body">„Android“ daugiau nerodo šios užklausos, nes anksčiau atsisakėte leidimo. Vis tiek galite jį įjungti programos nustatymų ekrane.</string>
     <string name="common_disclosure_not_now">Ne dabar</string>
     <string name="common_done">Atlikta</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Įdiegti</string>
     <string name="common_installing">Diegiama...</string>
     <string name="common_loading">Įkeliama...</string>
+    <string name="common_more">Daugiau</string>
     <string name="common_next">Kitas</string>
     <string name="common_none">Nėra</string>
     <string name="common_notify_channel_backup_body">Tik tada, kai automatinė atsarginė kopija nepavyksta. Sėkmingos atsarginės kopijos yra tylios.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Rodyti pranešimus</string>
     <string name="common_permission_storage_body">„Android 9“ ir senesnėse versijose klaviatūrai reikia saugyklos leidimo, kad būtų galima išsaugoti vaizdą jūsų galerijoje. Senasis „Android“ leidimas taip pat apima skaitymą iš saugyklos. Klaviatūra įrašo tik tą vaizdą, kurį prašote išsaugoti. Klaviatūra nieko neskaito ir nieko neįkelia. Naujesnėms „Android“ versijoms šio leidimo nereikia.</string>
     <string name="common_permission_storage_title">Prieiga prie saugyklos, kad būtų galima išsaugoti galerijoje</string>
+    <string name="common_permission_tasks_body">„WM Keyboard“ sinchronizuoja savo darbų sąrašą ir vieną užduočių sąrašą užduočių programėlėje: užduotis, jų veiksmus, žymes ir terminus abiem kryptimis. Leidimas apima kiekvieną programėlės užduočių sąrašą. Klaviatūra skaito programėlės sąrašus tik tam, kad galėtumėte pasirinkti vieną, ir skaito bei rašo tik jūsų pasirinktą sąrašą. Klaviatūra niekur nieko nesiunčia. „DAVx5“, jei naudojate, sinchronizuoja tą sąrašą su jūsų „CalDAV“ serveriu. Be šio leidimo darbų sąrašas lieka šiame telefone.</string>
+    <string name="common_permission_tasks_opentasks_title">„OpenTasks“ prieiga darbų sąrašui</string>
+    <string name="common_permission_tasks_tasks_org_title">„Tasks.org“ prieiga prie darbų sąrašo</string>
+    <string name="common_preview_scale_desc">Peržiūros dydis</string>
+    <string name="common_preview_scale_larger">Padidinti peržiūrą</string>
+    <string name="common_preview_scale_smaller">Sumažinti peržiūrą</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Pašalinti</string>
     <string name="common_reset">Atstatyti</string>
     <string name="common_reset_defaults">Atkurti numatytuosius nustatymus</string>

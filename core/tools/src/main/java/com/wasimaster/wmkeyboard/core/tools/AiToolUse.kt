@@ -352,6 +352,16 @@ object AiTools {
     const val RENAME_CHAT = "rename_chat"
 
     /**
+     * Two steps of a deep research run ([AiResearch]) that are not tools at
+     * all: the plan of searches, and the look for what is still missing.
+     * Named here because the chat records them as it records a tool call, so
+     * they draw as steps beside the searches and pages they led to. Never
+     * offered to a model.
+     */
+    const val RESEARCH_PLAN = "research_plan"
+    const val RESEARCH_REVIEW = "research_review"
+
+    /**
      * The tools whose description ends with today's date, since a model has
      * no clock of its own and "tomorrow at five" means nothing without one.
      * The day only: the description is part of the prompt an on-device chat
@@ -648,7 +658,7 @@ object AiTools {
 
     /** Every name the keyboard's own tools answer to, which no MCP tool may take. */
     val reservedNames: Set<String> by lazy {
-        setOf(WEB_SEARCH, WEB_FETCH, REMEMBER, FORGET, RENAME_CHAT) + builtIns.map { it.name }
+        setOf(WEB_SEARCH, WEB_FETCH, REMEMBER, FORGET, RENAME_CHAT, RESEARCH_PLAN, RESEARCH_REVIEW) + builtIns.map { it.name }
     }
 
     /** The enabled tools, in the order a model sees them. */

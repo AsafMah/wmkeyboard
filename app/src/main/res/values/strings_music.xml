@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tools → Music ID (MusicSettingsScreens.kt). -->
+<resources>
+    <string name="music_providers_title">Song recognisers</string>
+    <string name="music_providers_info">Who is asked what a clip is, in order, until one names the song. Each needs a key of yours, and each is sent the clip.</string>
+
+    <string name="music_insert_group">What goes into the text</string>
+    <string name="music_text_format_title">Insert as</string>
+    <string name="music_text_format_subtitle">What the Insert button types. Every other shape is a chip beside it.</string>
+    <string name="music_card_style_title">Picture style</string>
+    <string name="music_card_style_subtitle">The picture the Picture chip makes first. The others are one tap further.</string>
+    <string name="music_open_link_title">Open in</string>
+    <string name="music_open_link_subtitle">Which store a link points to, when the song is on it</string>
+    <string name="music_open_link_first">The first the song has</string>
+
+    <string name="music_listening_group">Listening</string>
+    <string name="music_clip_seconds_title">Listen for</string>
+    <string name="music_clip_seconds_subtitle">How long the microphone records before asking. Longer clips match more reliably and cost the same.</string>
+    <string name="music_clip_seconds_value">%d s</string>
+    <string name="music_now_playing_first_title">Check what the phone plays first</string>
+    <string name="music_now_playing_first_subtitle">Read the song from the player on this phone before listening, where notification access allows it</string>
+
+    <string name="music_history_group">History</string>
+    <string name="music_keep_history_title">Keep a history</string>
+    <string name="music_keep_history_subtitle">Remember the songs recognised, on this phone only</string>
+    <string name="music_history_open_title">Recognised songs</string>
+    <string name="music_history_open_subtitle">Every song the tool has named, newest first</string>
+    <string name="music_history_title">Recognised songs</string>
+    <string name="music_history_empty">Nothing recognised yet. Songs the keyboard names are listed here.</string>
+    <string name="music_history_clear_title">Clear the history</string>
+    <string name="music_history_clear_subtitle">Forgets every song listed above</string>
+    <plurals name="music_history_count">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+</resources>

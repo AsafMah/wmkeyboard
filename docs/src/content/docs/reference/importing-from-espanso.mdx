@@ -47,6 +47,19 @@ An Espanso pack can also be served from an [addon repository](/development/addon
 
 Espanso trigger words nearly always start with a colon or a semicolon, and that is exactly why this works at all: those triggers get their own matching path in WM Keyboard, because the keyboard's word buffer never holds punctuation. Multi-word triggers like `gr db` come in through the same path, for the same reason. See [Triggers with punctuation or spaces in them](/tools/snippets/#triggers-with-punctuation-or-spaces-in-them).
 
+## When a trigger fires
+
+Espanso fires a match the moment its last character is typed, unless the match says otherwise. WM Keyboard reads the same options into each snippet's [Expand immediately](/tools/snippets/#expanding-immediately) and **Also inside words** switches:
+
+| In the Espanso file | In WM Keyboard |
+|---|---|
+| none of `word`, `left_word`, `right_word` | Expands immediately, inside words too |
+| `left_word: true` | Expands immediately, at the start of a word only |
+| `word: true`, or `left_word` and `right_word` together | Waits for a space, punctuation or Enter, as an ordinary trigger does |
+| `right_word: true` alone | Waits for the space, at the start of a word only (see below) |
+
+So `:shrug` from a Hub package turns into the shrug as soon as you type the `g`, as it does on a computer. A `regex` match always waits for the space, since a pattern is matched over whole words.
+
 ## What doesn't
 
 Every one of these is reported in the import dialog with a count, so you know what a package lost before you accept it.
@@ -56,7 +69,7 @@ Every one of these is reported in the import dialog with a count, so you know wh
 - **Rich text.** A `markdown` or `html` match keeps its words and loses its formatting, because a snippet goes into the field you are typing in as plain characters.
 - **Pictures.** An `image_path` match is skipped.
 - **App filters.** `apps` and `exclude_apps` name desktop windows and executables, which mean nothing to an Android app, so they are ignored rather than half-translated.
-- **Mid-word triggers.** Espanso's `word` defaults to off, meaning a trigger can fire in the middle of a word. WM Keyboard always wants a word boundary in front of a trigger that starts with a letter or a digit. A package that relies on mid-word matching still imports, and its triggers work as whole words. A trigger starting with punctuation is unaffected, since the punctuation is its own boundary.
+- **`right_word` on its own.** It lets a trigger start in the middle of a word as long as a space or punctuation follows it. WM Keyboard waits for the space the same way, but wants a word boundary in front of a trigger that starts with a letter or a digit, so such a trigger works as a whole word only. A trigger starting with punctuation is unaffected, since the punctuation is its own boundary. Every other combination maps across exactly; see [when a trigger fires](#when-a-trigger-fires).
 - **Pick-from-a-list inside a sentence.** A `choice` variable that sits in the middle of longer text becomes a random pick, because only part of what gets typed would be up for choosing. A match that is nothing but the choice keeps its list: it becomes a snippet with several expansions, and the suggestion bar asks the same question Espanso would have.
 - **Triggers that don't end in a word.** A trigger made entirely of punctuation, like `->`, or one ending in it, like `x:`, cannot be watched for: there is no last word to look it up by. Its snippet still arrives and still inserts from the panel. Punctuation at the front or in the middle is fine, and so are spaces.
 - **Other files.** `imports` cannot follow a file onto a phone. Inside a package archive they are resolved within the archive.
@@ -72,7 +85,7 @@ One more case: a snippet whose text already contains something in braces that th
 - **An Espanso match file**, a `.yml` to drop into Espanso's match folder. Find that folder with `espanso path config`.
 - **An Espanso package**, a `.zip` holding `package.yml`, `_manifest.yml` and a `README.md`. Install it with `espanso install --path`, or use it as the starting point for something you want to publish to the Hub. The app asks for a package name and sanitizes it to the lowercase letters, digits and hyphens the Hub requires.
 
-Going out, `word: true` is written on every trigger. Espanso would otherwise fire them mid-word, and a snippet that behaves differently on the two devices is worse than one that does not travel.
+Going out, each trigger says when it fires, so it behaves the same on both devices: `word: true` on one that waits for the space, `left_word: true` on one that expands immediately at a word start, and nothing on one that expands immediately inside words too, since that is Espanso's default.
 
 A snippet with [several expansions](/tools/snippets/#several-expansions) goes out as a `choice` variable when every one of them is plain text, which is Espanso's own way of asking you to pick. When one of them holds a date, the clipboard or a capture reference, a choice cannot carry it, so only the default is written and the export says so. [Linked snippets](/tools/snippets/#linked-snippets) have no Espanso equivalent at all and are reported rather than half-translated.
 

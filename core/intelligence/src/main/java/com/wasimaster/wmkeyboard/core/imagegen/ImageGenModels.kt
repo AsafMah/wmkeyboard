@@ -207,8 +207,8 @@ object ImageGenModels {
      * timestep input could not hold past 968) on Euler, 20 steps with
      * guidance, as Qualcomm's own demo runs it.
      */
-    fun npuSpec(): ModelSpec = ModelSpec(
-        id = Catalog.SD15_NPU.id,
+    fun npuSpec(id: String = Catalog.SD15_NPU.id): ModelSpec = ModelSpec(
+        id = id,
         name = Catalog.SD15_NPU.displayName,
         runtime = ImageRuntime.QNN,
         licence = NativeConsent.OPENRAIL_M,

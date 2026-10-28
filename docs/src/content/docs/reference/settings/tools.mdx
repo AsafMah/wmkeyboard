@@ -1,6 +1,6 @@
 ---
 title: "Tools"
-description: "The master tool list: how to enable, disable, recolour, and open each of the 85 tools' own settings, plus what each tool's in-panel manager does."
+description: "The master tool list: how to enable, disable, recolour, and open each of the 86 tools' own settings, plus what each tool's in-panel manager does."
 sidebar:
   order: 15
 ---
@@ -42,18 +42,20 @@ Tools are grouped by what they do, in this order. Each group starts folded shut,
 
 | Group | Tools |
 |---|---|
-| Panels | Emoji, Clipboard, Snippets, Notes, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Camera, Gallery, Dictionary, Vocabulary, Learn from text, Find & replace, Grammar check, App launcher, Media controls, KDE Connect, Smart home, Send files |
+| Panels | Emoji, Clipboard, Snippets, Notes, To-do list, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Camera, Gallery, Dictionary, Vocabulary, Learn from text, Find & replace, Grammar check, App launcher, Media controls, KDE Connect, Smart home, Send files, Music ID |
 | Scanners | Text scan (OCR), QR & barcode scanner, Document scanner |
-| Online tools | Translate, GIFs, Stickers, Web search, Image search, Wikipedia, Currency converter, AI writing tools, AI reply |
+| Online tools | Translate, GIFs, Stickers, Web search, Image search, Wikipedia, Currency converter, Internet speed test, AI writing tools, AI reply |
 | Create and convert | Special symbols, Calculator, Unit converter, QR code generator, Password generator, Text repeat, Read back, Typing speed test |
 | Keyboard modes | Keyboard modes, One-handed mode, Split keyboard, Floating keyboard, Keep on screen, Resize |
 | Cursor | The twelve one-tap cursor moves, Selection mode, plus Hide keyboard |
 | Quick actions | Undo, Redo, Copy, Cut, Paste, Autocorrect, Selection actions, English words, Switch language, Fancy text, Secondary layout, Incognito, Sound & haptics, Themes, Power saving, Settings shortcut, Statistics |
 | Utilities | Flashlight, Compass, Bubble level, Calendar, Clock, Weather, Location, Moon phase, Plugins |
 
-Panels is the longest group by far. If twenty rows are too many to scan, turn on **Split the Panels group**, the switch just above the groups. It's off by default. On, Panels gives way to two groups in the same place: **Writing** holds Emoji, Clipboard, Snippets, Notes, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Dictionary, Vocabulary, Learn from text, Find & replace and Grammar check, and **Connect and media** holds Camera, Gallery, App launcher, Media controls, KDE Connect and Send files. Each of the two remembers whether you left it open, separately from Panels. The switch only changes this screen: the tool pickers elsewhere in settings, such as the floating button's, keep the one Panels group.
+Panels is the longest group by far. If twenty rows are too many to scan, turn on **Split the Panels group**, the switch just above the groups. It's off by default. On, Panels gives way to two groups in the same place: **Writing** holds Emoji, Clipboard, Snippets, Notes, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Dictionary, Vocabulary, Learn from text, Find & replace and Grammar check, and **Connect and media** holds Camera, Gallery, App launcher, Media controls, Music ID, KDE Connect and Send files. Each of the two remembers whether you left it open, separately from Panels. The switch only changes this screen: the tool pickers elsewhere in settings, such as the floating button's, keep the one Panels group.
 
 The two AI tools are also on the Home screen's **AI** row, next to the chat and the history. Their switches there and here are the same switch.
+
+A tool that belongs to a feature bundle switched off on [Extensions](/reference/settings/extensions/) is not on this list at all, nor in any tool picker, until the bundle comes back; its own switch here is kept as it was. The Scanners group, for one, is a bundle in itself.
 
 A tool that a future group forgets to claim still shows. It would fall into a trailing **Other** catch-all, so nothing ever goes missing from the list. Every tool has a named home today, though, so that catch-all currently has nothing in it and doesn't appear.
 
@@ -86,7 +88,7 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 | Tool | What's there | Notes |
 |---|---|---|
 | Voice typing | The **Recognition engine** provider list. Each engine's own screen, opened from its row, holds its models (Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual), **Prefer on-device recognition** (the phone's recognizer) or what a transcription server is sent with | Default engine is **Phone's recognizer**. Whisper's screen adds **Translate to English** (off by default) above the model list, and **Compute** (Automatic, CPU or GPU; Automatic by default) once a whisper.cpp model is downloaded. A transcription server's setup sheet takes **Server address**, **Endpoint path**, **Model** and **API key**, with a **Test** button; its screen adds **Send the keyboard language** (on by default), the prompt and the server languages. Full details: [Voice typing](/tools/voice/), [Offline voice (Whisper)](/tools/whisper/), [Transcription server](/tools/transcription-server/). |
-| AI writing tools | An AI providers list (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave Answers, Ollama, LM Studio, OpenAI-compatible services, On your device), each row with its own screen (its key, address and model, its extra headers, and for On your device the local-model manager), an **In use** choice, plus the action list, the changes view and the history | On your device is the only kind not offered on <Flavor edition="fdroid" />. See [AI tools](/tools/ai/). |
+| AI writing tools | An AI providers list (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave Answers, Ollama, LM Studio, OpenAI-compatible services, On your device), each row with its own screen (its key, address and model, its extra headers, and for On your device the local-model manager), an **In use** choice, plus the action list, the changes view and the history. The **Chat** group adds suggested follow-up questions and Deep research's depth and plan review | On your device is the only kind not offered on <Flavor edition="fdroid" />. See [AI tools](/tools/ai/). |
 | AI reply | Replies per run, length, emoji, what the drafts should know about you, reply language, how much conversation is sent, how screenshots are read, whether the copies it used are cleared afterwards, and whether drafts are kept in the AI history | Borrows the AI tool's provider and key. Reading a screenshot on the device is <Flavor edition="google" />. See [AI reply](/tools/ai-reply/). |
 | Handwriting | A recognition-model manager, one entry per typed language, and, where ML Kit is in the build, **Offline recogniser for Chinese and Japanese** (off by default) | Each model is an on-demand download, roughly 8&nbsp;MB to 26&nbsp;MB from ML Kit, 26&nbsp;MB to 52&nbsp;MB for zinnia's. See [Handwriting](/tools/handwriting/). |
 | Snippets | Full add/edit/delete list, plus import and export | Stored as a JSON file the tool manages itself. See [Snippets & text expansion](/tools/snippets/). |
@@ -94,10 +96,12 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 | Clock | An **Open the clock** row for the Clock screen, the grants an alarm still needs, the hour format, seconds, the default format, the alarm and timer sounds, vibration, snooze, fade in, when a ring stops, volume keys, the Pomodoro lengths, the planner's working hours and how long history is kept | See [Clock](/tools/clock/). |
 | Gallery | Photo access, what a tap does, columns, the camera tile, videos, fast scroll, the starting height, the last album, haptics, the picture size, how many can be picked, the caption, where a refused send goes, closing after a send, keeping edited photos, and the privacy switches (location, camera details, random names, the sent list) | The Play Store build has no grid, so it shows only the size, the limit, the fallback and the privacy rows. See [Gallery](/tools/gallery/). |
 | Location | The default format, the map a link opens, the precision, the address lookup, locate on open, a custom template with a live example, the saved places, and the permission | See [Location](/tools/location/). |
+| Music ID | The **Song recognisers** provider list (AudD, ACRCloud, AudioTag, Shazam via RapidAPI, your own server), what Insert types, the picture style, the store a link opens, how long it listens, the now-playing check, and the history | Every recogniser needs a key of yours; the tool stays off until one is set up. See [Music ID](/tools/music-id/). |
 | Send files | The Send instance (a list of public ones and your own), the default expiry, download count and password of a new link, what happens to the link once it is ready, the chip that offers to receive a pasted or copied link, opening a received file, Nearby and the direct link between two phones, the share sheet entry, and the history | See [Send files](/tools/send/). |
 | Typing speed test | The default test's mode and length, its Punctuation and Numbers switches, a Typing aids group (Glide typing, Suggestions), a Records group (tests completed, recent average, best score per test length and language, and a "Clear records" row once there's something to clear), then an Achievements group | See [Utility tools](/tools/utilities/). |
+| Internet speed test | The run (seconds per direction, connections at once, Measure upload, Unit), the Result card (Style, Size, Layout, how a sticker-sized card is sent, Save sent cards to the gallery, Show my IP address), then the Servers list | See [Internet speed test](/tools/speed-test/). |
 | Plugins | A "Manage plugins" row | **This one opens a separate screen.** <SettingsPath path="Tools / Plugins" /> is an entry point into [Plugins overview](/plugins/overview/), not an inline manager. |
-| Stickers | A "Sticker packs" row alongside the tool's own settings, and a **Suggest while typing** group: **Offer your stickers as you type** (on by default), **Where they show** (Tray, On the strip or One chip, default **Tray**; the tray's place is set under Rows & bars) and **After you send one** (Remove the typed text or Keep the typed text, default **Remove**) and **Hold to see them bigger** (on by default: hold a sticker in the tray to see it large, slide to see the others) | **Also a separate screen.** See [Stickers](/emoji/stickers/) and [Stickers as you type](/emoji/stickers/#stickers-as-you-type). |
+| Stickers | A "Sticker packs" row alongside the tool's own settings, and a **Suggest while typing** group: **Offer your stickers as you type** (on by default), **Where they show** (Tray, On the strip or One chip, default **Tray**; the tray's place is set under Rows & bars) and **After you send one** (Remove the typed text or Keep the typed text, default **Remove**) and **Hold to see them bigger** (on by default: hold a sticker in the tray to see it large, slide to see the others) | **Also a separate screen.** See [Stickers](/emoji/stickers/) and [Stickers as you type](/emoji/stickers/#stickers-as-you-type). Under Sticker packs, **Create stickers** has its own **Engines** list (On this phone, and online image services, Pollinations and AI Horde starting off) and an engine chooser above the prompt; see [Engines](/emoji/sticker-generator/#engines). |
 | Media controls | A "Music players" row, plus a notification-access row that reports the grant | **Also a separate screen.** The picker lists every installed app, players first. See [Media controls](/tools/media/#which-apps-count-as-music). |
 
 ## F-Droid build
@@ -114,7 +118,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 | Guide page | Tools covered |
 |---|---|
-| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 85) |
+| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 86) |
 | [Custom layouts & the layout editor](/languages/custom-layouts/) | Secondary layout |
 | [Clipboard manager](/tools/clipboard/) | Clipboard |
 | [Snippets & text expansion](/tools/snippets/) | Snippets |
@@ -132,13 +136,16 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 | [Search & Wikipedia](/tools/search/) | Web search, Image search, Wikipedia, Dictionary |
 | [Vocabulary](/tools/vocabulary/) | Vocabulary |
 | [Notes](/tools/notes/) | Notes |
+| [To-do list](/tools/todo/) | To-do list |
 | [AI tools](/tools/ai/) | AI writing tools |
 | [AI reply](/tools/ai-reply/) | AI reply |
 | [Read back and offline voices](/tools/read-back/) | Read back |
 | [Utility tools](/tools/utilities/) | Calculator, Unit converter, Currency converter, Special symbols, QR code generator, Password generator, Text repeat, Typing speed test |
 | [Instruments](/tools/instruments/) | Flashlight, Compass, Bubble level, Moon phase, Weather |
+| [Internet speed test](/tools/speed-test/) | Internet speed test |
 | [Location](/tools/location/) | Location |
 | [Clock](/tools/clock/) | Clock |
+| [Music ID](/tools/music-id/) | Music ID |
 | [Gallery](/tools/gallery/) | Gallery |
 | [Media controls](/tools/media/) | Media controls |
 | [Calendar](/tools/calendar/) | Calendar |
@@ -164,7 +171,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 ## Details & edge cases
 
-- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 85 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 85 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
+- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 86 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 86 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
 - **Disabling a tool is one switch, not three.** The tool disappears from the toolbar, the toolbox, and its hardware leader-key letter at the same moment. The one piece you can drop on its own is the toolbox: **Show in toolbox** on the tool's own screen takes it out of the grid and leaves it working everywhere else.
 - **Folders and the toolbox search live on the keyboard.** Neither has a switch here. You make a folder by dropping one tool on the middle of another in the toolbox, and the magnifier at the top of the toolbox searches it by name. See [Folders](/tools/overview/#folders) and [Searching the toolbox](/tools/overview/#searching-the-toolbox). Folders are part of a settings backup.
 - **A tool hidden from the toolbox can still be pinned.** If it is already on the toolbar it stays there. Drag it off the bar and it unpins without landing in the grid, since the grid no longer takes it; turn **Show in toolbox** back on to see it there again.

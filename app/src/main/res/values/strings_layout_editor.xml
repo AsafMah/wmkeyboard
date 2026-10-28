@@ -9,6 +9,21 @@
     <string name="layout_editor_your_layouts_title">Your layouts</string>
     <string name="layout_editor_empty_title">No layouts of your own yet</string>
     <string name="layout_editor_empty_subtitle">Copy a layout below to start from a grid that already works</string>
+    <string name="layout_editor_bundle_title">Export layouts in use</string>
+    <string name="layout_editor_bundle_subtitle">Every layout that is on, and every one of your own, in one file. Import a layout reads it back</string>
+    <plurals name="layout_editor_bundle_done_message">
+        <item quantity="one">The app saved %d layout.</item>
+        <item quantity="other">The app saved %d layouts.</item>
+    </plurals>
+    <plurals name="layout_editor_bundle_confirm_title">
+        <item quantity="one">Import %d layout?</item>
+        <item quantity="other">Import %d layouts?</item>
+    </plurals>
+    <string name="layout_editor_bundle_confirm_body">They are added to your layouts. A layout you already have stays as it is, and the copy comes in beside it.</string>
+    <plurals name="layout_editor_bundle_imported_message">
+        <item quantity="one">The app imported %d layout.</item>
+        <item quantity="other">The app imported %d layouts.</item>
+    </plurals>
     <string name="layout_editor_import_title">Import a layout</string>
     <!-- .wmlayout.json is a file name ending. Do not translate it. -->
     <string name="layout_editor_import_subtitle">Opens a .wmlayout.json file that someone shared</string>
@@ -282,6 +297,8 @@
     </plurals>
     <string name="layout_editor_key_row_span_hint">More than one makes the key taller. The rows under it draw their keys around it.</string>
 
+    <!-- #970: the field that gives the key's width as a percentage of the row's full width. -->
+    <string name="layout_editor_width_percent_label">Share of the row</string>
     <!-- Name of the field you type an exact key width into. -->
     <string name="layout_editor_width_field_label">Width</string>
     <!-- Buttons that change the width of the key by a small step. -->
@@ -432,6 +449,13 @@
     <!-- Sets the size back to the one the settings give. Keep it short: it is
          the first chip in a row of sizes. -->
     <string name="layout_editor_font_scale_auto_chip">Auto</string>
+    <string name="layout_editor_size_key_height_title">Key height on this layout</string>
+    <string name="layout_editor_size_key_gap_title">Key spacing on this layout</string>
+    <string name="layout_editor_size_side_left_title">Left padding on this layout</string>
+    <string name="layout_editor_size_side_right_title">Right padding on this layout</string>
+    <string name="layout_editor_size_inherit">Same as everywhere (%1$s)</string>
+    <string name="layout_editor_size_hint">Only this layout changes. The others keep the size from Layout and size, or from your theme.</string>
+    <string name="layout_editor_size_reset">Same as everywhere</string>
     <string name="layout_editor_font_scale_hint">Makes every label on this layout larger or smaller than the size in Settings. It does not change the size on other layouts.</string>
     <!-- Label size for one layer of the layout, which overrides the layout-wide
          size above. %1$.2f is the multiple, for example 1.20. -->
@@ -443,6 +467,9 @@
     <string name="layout_editor_key_label_scale_label">Label size ×<xliff:g id="multiple" example="1.30">%1$.2f</xliff:g></string>
     <string name="layout_editor_key_label_scale_auto_label">Label size: automatic</string>
     <string name="layout_editor_key_label_scale_hint">Automatic draws one letter large and a word small. Set a size to choose for this key.</string>
+    <string name="layout_editor_key_hint_scale_auto_label">Hint size: same as every key</string>
+    <string name="layout_editor_key_hint_scale_label">Hint size ×<xliff:g id="multiple" example="1.50">%1$.2f</xliff:g></string>
+    <string name="layout_editor_key_hint_scale_hint">The corner hint on this key alone, larger or smaller than on the others</string>
 
     <string name="layout_editor_tablet_expand_title">Add tablet keys automatically</string>
     <string name="layout_editor_tablet_expand_subtitle">On a tablet, add tab, backslash, caps lock, a second shift and the arrow keys around this layout</string>
@@ -478,6 +505,10 @@
     <string name="layout_editor_action_reading_column_title">Pinyin syllable list</string>
     <!-- Detail line for the action above. -->
     <string name="layout_editor_action_reading_column_detail">A scrolling list in place of the key. While you type on a T9 pinyin pad it lists the syllables your keys could spell, to pick one; otherwise it lists the key\'s long-press characters</string>
+    <!-- A key action that flips Chinese candidates between Simplified and Traditional characters (issue #962). -->
+    <string name="layout_editor_action_han_script_title">Simplified / Traditional Chinese</string>
+    <!-- Detail line for the action above. -->
+    <string name="layout_editor_action_han_script_detail">Switches Chinese candidates between Simplified (简体) and Traditional (繁體) characters. The same setting as Traditional characters on the Chinese screen</string>
 
     <string name="layout_editor_action_symbols_title">Symbols page</string>
     <!-- ?123 and =\\&lt; are printed on the two symbol keys. Do not translate them. -->
@@ -486,6 +517,8 @@
     <string name="layout_editor_action_letters_detail">Goes back to the letter grid</string>
     <string name="layout_editor_action_emoji_title">Emoji panel</string>
     <string name="layout_editor_action_emoji_detail">Opens the emoji picker</string>
+    <string name="layout_editor_action_toolbox_title">Toolbox</string>
+    <string name="layout_editor_action_toolbox_detail">Opens the grid of every tool, like the button at the start of the toolbar</string>
     <string name="layout_editor_action_switch_layout_title">Switch layout</string>
     <string name="layout_editor_action_switch_layout_detail">Changes to the next layout that you turned on</string>
     <string name="layout_editor_action_input_method_picker_title">Switch keyboard</string>
@@ -688,6 +721,7 @@
     <string name="panel_name_numpad">Numpad</string>
     <string name="panel_name_gif">GIF panel</string>
     <string name="panel_name_sticker">Sticker panel</string>
+    <string name="panel_name_emoji_mix">Emoji mixes panel</string>
     <string name="panel_name_handwriting">Handwriting panel</string>
     <string name="field_name_emoji_tabs">Emoji categories</string>
     <string name="field_name_emoji_search">Emoji search</string>
@@ -700,6 +734,7 @@
     <string name="field_name_trackpad">Trackpad</string>
     <string name="field_name_gif_browser">GIF search and results</string>
     <string name="field_name_sticker_browser">Sticker search and results</string>
+    <string name="field_name_emoji_mix_browser">Emoji mixes</string>
     <string name="field_name_handwriting_canvas">Writing area</string>
     <string name="field_name_unknown">Unknown component</string>
     <string name="layout_editor_action_group_panel">Panel</string>
@@ -740,6 +775,8 @@
     <string name="textedit_action_paste">Paste</string>
     <string name="textedit_action_backspace">Delete</string>
     <string name="textedit_action_forward_delete">Forward delete</string>
+    <string name="textedit_action_delete_word">Delete word</string>
+    <string name="textedit_action_delete_word_forward">Delete word forward</string>
 
     <!-- Chevron on a layout's row that opens or closes the list of its layers. %1$s is the layout's name. -->
     <string name="layout_editor_layers_expand_desc">Show the layers of <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>

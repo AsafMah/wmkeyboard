@@ -9,7 +9,8 @@
 😂	smileys	crying,face,feels,funny,haha,happy,hehe,hilarious,joy,laugh,lmao,lol,rofl,roflmao,tear,face with tears of joy,with,tears,of	আনন্দ,আনন্দের কান্না ভরা মুখ,কান্না,চোখে পানি,জোরে হাসা,মুখ,হা হা হা,হাসতে হাসতে চোখে জল,হাসিকান্না,হাসি,মজা		face with tears of joy
 🙂	smileys	face,happy,slightly,smile,smiling,slightly smiling face,slight,ok,fine,content	মুখ,মুখে সামান্য হাসি,হাসি		slightly smiling face
 🙃	smileys	face,hehe,smile,upside-down,upside-down face	উল্টো,ওল্টানো চেহারা,মাথাটা নিচে তলাটা উপরে এমন মুখ,মুখ		upside-down face
-🫠	smileys	disappear,dissolve,embarrassed,face,haha,heat,hot,liquid,lol,melt,melting,sarcasm,sarcastic,melting face	অদৃশ্য,উত্তাপ,গরম,গলা,গলিত মুখ,গলে জল,গলে যাওয়া,তরল,ব্যাঙ্গাত্মক,লজ্জিত,হা হা		melting face
+🫠	smileys	disappear,dissolve,embarrassed,face,haha,heat,hot,liquid,lol,melt,melting,sarcasm,sarcastic,melting face	অদৃশ্য,উত্তাপ,গরম,গলা,গলিত মুখ,গলে জল,গলে যাওয়া,তরল,ব্যঙ্গাত্মক,লজ্জিত,হা হা,ব্যাঙ্গাত্মক		melting face
+🫫	smileys	breaking,crumbling,masking,resilience,reveal,tension,transformation,cracking face,cracking,face	অদম্যতা,উদ্বেগ,ক্ষয় হওয়া,ফাটল ধরা,রূপান্তর,লুকিয়ে রাখা,সামনে আসা,ফাটল ধরা মুখ		cracking face
 😉	smileys	face,flirt,heartbreaker,sexy,slide,tease,wink,winking,winks,winking face	চোখ,চোখ টিপা,চোখ টিপে হাসি,চোখ মারা,মুখ		winking face
 😊	smileys	blush,eye,eyes,face,glad,satisfied,smile,smiling,smiling face with smiling eyes,with,happy,warm,sweet,shy	গালে লজ্জার গোলাপী আভা,চোখ,চোখে হাসির সাথে মুখে হাসি,মুখ,হাসি,খুশি,লাজুক		smiling face with smiling eyes
 😇	smileys	angel,angelic,angels,blessed,face,fairy,fairytale,fantasy,halo,happy,innocent,peaceful,smile,smiling,spirit,tale,smiling face with halo,with	আশীর্বাদ,ঈশ্বরের আশীর্বাদ,কল্পনা,জ্যোতির্বলয়,দেবদূত,নিরীহ,মাথায় চক্রের সাথে মুখে হাসি,মুখ,রূপকথা,হাসি,নিষ্পাপ		smiling face with halo
@@ -199,6 +200,8 @@
 🫵	people	at,finger,hand,index,pointing,poke,viewer,you,index pointing at the viewer,the	আঙ্গুল,উদ্দেশ্য,এই যে,খোঁচা মারা,তুমি,দর্শকদের দিকে উদ্দ্যেশ্য করে তর্জনী,পয়েন্ট		index pointing at the viewer
 👍	people	+1,good,hand,like,thumb,up,yes,thumbs up,thumbs,approve,ok	+1,উর্দ্ধমুখী,একদম ঠিক,ঠিক আছে,থাম্বস আপ,দারুন,পছন্দ হয়েছে,বুড়ো আঙ্গুল,ভালো করেছো,হাতের ভঙ্গি,লাইক,ভালো,হ্যাঁ,বুড়ো আঙুল		thumbs up
 👎	people	-1,bad,dislike,down,good,hand,no,nope,thumb,thumbs,thumbs down,disapprove	1,থাম্বস ডাউন,না কখনই না,নিম্নমুখী,ভালো করতে পারোনি,ডিসলাইক,খারাপ,না		thumbs down
+🫹	people	grip,left,neutral,point,that,this,leftwards thumb sign,leftwards,thumb,sign	ইশারা,এদিকে,ওদিকে,নিরপেক্ষ,বাম,মুঠো,বাম দিক নির্দেশকারী বুড়ো আঙুল		leftwards thumb sign
+🫺	people	grip,neutral,point,right,that,this,rightwards thumb sign,rightwards,thumb,sign	ইশারা,এদিকে,ওদিকে,ডান,নিরপেক্ষ,মুঠো,ডান দিক নির্দেশকারী বুড়ো আঙুল		rightwards thumb sign
 ✊	people	clenched,fist,hand,punch,raised,solidarity,raised fist,power,protest	আঙ্গুল সামনের দিকে করে মুড়ে রাখা,কিল,ঘুসি,মুষ্টাঘাত,মুষ্টিবদ্ধ,শরীর,হাত,মুষ্টি,শক্তি,প্রতিবাদ		raised fist
 👊	people	absolutely,agree,boom,bro,bruh,bump,clenched,correct,fist,hand,knuckle,oncoming,pound,punch,rock,ttyl,oncoming fist,fist bump	কিল,ঘুঁসি,ঘুঁসি মারা,মুষ্টাঘাত,মুষ্টিবদ্ধ,শরীর,হাত,ঘুষি,মুষ্টি		oncoming fist
 🤛	people	fist,left-facing,leftwards,left-facing fist,left fist,bump	ঘুঁষি,ঘুসি,বাঁদিকে,বাঁদিকে ঘুঁষি মারা,মুষ্টি		left-facing fist
@@ -675,6 +678,7 @@
 🦪	animals	diving,oyster,pearl	ওয়েস্টার,ঝিনুক,ডুবুরি,পার্ল,মুক্ত		oyster
 🐌	animals	animal,escargot,garden,nature,slug,snail,slow	পশুপাখি,শামুক,ধীর		snail
 🦋	animals	butterfly,insect,pretty,beautiful,transform	কীটপতঙ্গ,পতঙ্গ,পশুপাখি,প্রজাপতি,সুন্দর		butterfly
+🫌	animals	caterpillar,change,fragile,hope,insect,metamorphosis,migration,transformation,monarch butterfly,monarch,butterfly	অভিপ্রয়াণ,আশা,পতঙ্গ,পরিবর্তন,ভঙ্গুর,রূপবদল,রূপান্তর,শুঁয়োপোকা,মোনার্ক প্রজাপতি		monarch butterfly
 🐛	animals	animal,bug,garden,insect	কীটপতঙ্গ,ক্ষুদ্র কীট,পশুপাখি,পোকা		bug
 🐜	animals	animal,ant,garden,insect,work	গাছ পালা,পশুপাখি,পিঁপড়া,পিপড়ে,পোকা,প্রাণী,বাগান,পিঁপড়া		ant
 🐝	animals	animal,bee,bumblebee,honey,honeybee,insect,nature,spring,buzz	পশু,পশুপাখি,পোকা,প্রকৃতি,মধু,মৌমাছি		honeybee
@@ -746,6 +750,7 @@
 🌶️	food	hot,pepper,hot pepper,chili,spicy	খাবার,গরম,গাছ,ঝাল,ধানী লঙ্কা,মরিচ,লঙ্কা,লাল লঙ্কা,ঝাল লঙ্কা,মসলা		hot pepper
 🫑	food	bell,capsicum,food,pepper,vegetable,bell pepper	ক্যাপসিকাম,খাদ্য,খাবার,পুষ্টি,বেল পেপার,মরিচ,সবজি,সবুজ বেলপেপার		bell pepper
 🥒	food	cucumber,food,pickle,vegetable	আচার,খাদ্য ও পানীয়,খাবার,শসা,সবজি		cucumber
+🫝	food	brine,condiment,cucumber,ferment,gherkin,relish,trouble,pickle	গাঁজানো,চাটনি,ছোট শসা,মশলা,লবণজল,শসা,সমস্যা,লবণজলে ভেজানো শসা		pickle
 🥬	food	bok,burgers,cabbage,choy,green,kale,leafy,lettuce,salad,leafy green	পাতা কপি,বক চোই,বাঁধাকপি,বার্গার,লেটুস,সবুজ শাক,সবুজ শাক পাতা,সালাদ		leafy green
 🥦	food	broccoli,cabbage,wild,vegetable,green,healthy	ওয়াইল্ড ক্যাবেজ,কপি,খাবার,ফুলকপি,ব্রকলিন,ব্রকলি,সবজি,সবুজ		broccoli
 🧄	food	flavoring,garlic	খাদ্য ও পানীয়,খাবার,মশলা,রসুন,স্বাদ		garlic
@@ -966,6 +971,7 @@
 🚦	travel	drove,intersection,light,signal,stop,stoplight,traffic,vertical,vertical traffic light,traffic light	আলো,উল্লম্ব ট্রাফিক লাইট,ট্রাফিক,সিগন্যাল,ট্রাফিক বাতি		vertical traffic light
 🛑	travel	octagonal,sign,stop,stop sign	অষ্টকোণী,চিহ্ন,থামার চিহ্ন,থামুন		stop sign
 🚧	travel	barrier,construction	নির্মাণ,বাধা		construction
+🛙	travel	beacon,enlightenment,guidance,hope,light,maritime,navigation,sea,signal,lighthouse	আলো,আলোক,আশা,জাহাজ,নৌপথ,পথনির্দেশ,বাতিঘর,সংকেত,সমুদ্র,লাইটহাউস		lighthouse
 ⚓	travel	anchor,ship,tool,port,harbor	জাহাজ,নোঙর,সরঞ্জাম,বন্দর		anchor
 🛟	travel	buoy,float,life,lifesaver,preserver,rescue,ring,safety,save,saver,swim,ring buoy	আত্মরক্ষক,জীবন বাঁচানো,জীবন সংরক্ষক,নিরাপত্তা,পুনরুদ্ধার করা,ভাসমান,রিং বয়		ring buoy
 ⛵	travel	boat,resort,sailboat,sailing,sea,yacht	ইয়ট,নৌকা,পাল তোলা নৌকা,যানবাহন,রিসোর্ট,সাগর,পালতোলা নৌকা		sailboat
@@ -1040,7 +1046,7 @@
 🪐	nature	planet,ringed,saturn,saturnine,ringed planet	গম্ভীরস্বভাব,গ্রহ,নক্ষত্র,বলয় বেষ্টিত,বলয়যুক্ত গ্রহ,মহাকাশ,শনি		ringed planet
 ⭐	nature	astronomy,medium,star,stars,white,favorite,night,shine	তারা,সাদা মাঝারি তারা,তারকা,রাত		star
 🌟	nature	glittery,glow,glowing,night,shining,sparkle,star,win,glowing star,shine,bright	উজ্জ্বল তারা,উদ্ভাস,উদ্ভাসিত,জ্বলজ্বলে,ঝকমক,তারা,দ্যুতি,উজ্জ্বল,ঝলমল		glowing star
-🌠	nature	falling,night,shooting,space,star,shooting star	উল্কা,তারা,পতিত,মহাকাশ,শুটিং		shooting star
+🌠	nature	falling,night,shooting,space,star,shooting star	উল্কা,তারা,পতিত,মহাকাশ,শুটিং,উল্কাপিন্ড		shooting star
 🌌	nature	milky,space,way,milky way	আকাশগঙ্গা,আবহাওয়া,মহাকাশ,মিল্কিওয়ে		milky way
 ☁️	nature	cloud,weather,cloudy	আবহাওয়া,মেঘ,আবহাওয়া		cloud
 ⛅	nature	behind,cloud,cloudy,sun,weather,sun behind cloud,partly cloudy,sun cloud	আবহাওয়া,মেঘ,মেঘাচ্ছন্ন,মেঘের পিছনে সূর্য,সূর্য,রোদ,আবহাওয়া		sun behind cloud
@@ -1065,39 +1071,40 @@
 ☃️	nature	cold,man,snow,snowman	আবহাওয়া,ঠান্ডা,তুষারপাত,তুষারমানব,বরফের মানুষ		snowman
 ⛄	nature	cold,man,snow,snowman,snowman without snow,without,winter	আবহাওয়া,ঠান্ডা,তুষার ছাড়াই তুষারমানব,তুষারপাত,তুষারমানব,শীত		snowman without snow
 ☄️	nature	comet,space,meteor,fire	ধূমকেতু,মহাকাশ,উল্কা		comet
+🪋	nature	apocalypse,falling,fireball,gravity,rock,space,star,meteor	অগ্নিগোলক,তারা,পতন,পাথর,মহাকাশ,মাধ্যাকর্ষণ,সর্বনাশ,উল্কা		meteor
 🔥	nature	af,burn,fire,flame,hot,lit,litaf,tool	আগুন,গরম,শিখা,সরঞ্জাম,জ্বলন্ত		fire
 💧	nature	cold,comic,drop,droplet,nature,sad,sweat,tear,water,weather,rain	আবহাওয়া,কমিক,ঘাম,চোখের জল,জলের ফোঁটা,ঠান্ডা,পানি,ফোঁটা,জল		droplet
 🌊	nature	nature,ocean,surf,surfer,surfing,water,wave,water wave,sea	আবহাওয়া,জল,জল তরঙ্গ,ঢেউ,পানি,মহাসাগর,সমুদ্রের ঢেউ,সার্ফার,সাগর,সমুদ্র		water wave
 🎃	activities	celebration,halloween,jack,jack-o-lantern,lantern,pumpkin,jack o lantern,spooky	উদযাপন,কুমড়ো,জ্যাক,জ্যাকো লণ্ঠন,লণ্ঠন,হ্যালোইন,কুমড়া		jack-o-lantern
-🎄	activities	celebration,christmas,tree,christmas tree,holiday,xmas,december	উদযাপন,ক্রিসমাস,ক্রিসমাস ট্রী,গাছ,বড়দিন		Christmas tree
+🎄	activities	celebration,christmas,tree,christmas tree,holiday,xmas,december	উদযাপন,ক্রিসমাস,ট্রি,ক্রিসমাস ট্রী,গাছ,বড়দিন		Christmas tree
 🎆	activities	boom,celebration,entertainment,fireworks,yolo,new year,explosion	আতস বাজি,উদযাপন,আতশবাজি,নববর্ষ		fireworks
 🎇	activities	boom,celebration,fireworks,sparkle,sparkler	আতশবাজি,উদযাপন,দ্যুতি,ফুলঝুড়ি,বাজি,ফুলঝুরি		sparkler
 🧨	activities	dynamite,explosive,fire,firecracker,fireworks,light,pop,popping,spark,bomb	আগুন,আগুনের শিখা,আতশবাজি,আলো,জ্বলন্ত আগুন,ডিনামাইট,বাজি,বিস্ফোরক,বোমা,পটকা		firecracker
-✨	activities	*,magic,sparkle,sparkles,star,shine,glitter,new	*,উজ্জ্বল,জ্বলজ্বলে,ঝিকিমিকি,তারা,দ্যুতি,ঝলমল,জাদু,চকচকে		sparkles
+✨	activities	*,magic,sparkle,sparkles,star,shine,glitter,new	*,জাদু,ঝিকিমিকি,তারা,দ্যুতি,উজ্জ্বল,জ্বলজ্বলে,ঝলমল,চকচকে		sparkles
 🎈	activities	balloon,birthday,celebrate,celebration,party	উদযাপন,জন্মদিন,বার্থডে,বেলুন,পার্টি		balloon
 🎉	activities	awesome,birthday,celebrate,celebration,excited,hooray,party,popper,tada,woohoo,party popper,congrats	অনুষ্ঠান,ইয়াহু,উদযাপন,টাডা,পপার,পার্টি,হুড়রে,পার্টি পপার,অভিনন্দন,আনন্দ		party popper
 🎊	activities	ball,celebrate,celebration,confetti,party,woohoo,confetti ball,congrats	উদযাপন,কনফেট্টি,বল,কনফেট্টি বল,কনফেত্তি,পার্টি		confetti ball
 🎋	activities	banner,celebration,japanese,tanabata,tree,tanabata tree	উদযাপন,গাছ,জাপানি,তানাবাতা ট্রী,ব্যানার		tanabata tree
 🎍	activities	bamboo,celebration,decoration,japanese,pine,plant,pine decoration	উদযাপন,গাছ,জাপানি,পাইন,পাইনের সজ্জা,বাঁশ		pine decoration
 🎎	activities	celebration,doll,dolls,festival,japanese,japanese dolls	উৎসব,উদযাপন,জাপানি,পুতুল,জাপানি পুতুল		Japanese dolls
-🎏	activities	carp,celebration,streamer,carp streamer	আলোকরশ্মি,উদযাপন,কার্প,কার্প স্ট্রিমার		carp streamer
+🎏	activities	carp,celebration,streamer,carp streamer	উদযাপন,কার্প,স্ট্রিমার,কার্প স্ট্রিমার,আলোকরশ্মি		carp streamer
 🎐	activities	bell,celebration,chime,wind,wind chime	উইন্ড চাইম,উদযাপন,ঘণ্টা,হাওয়া		wind chime
-🎑	activities	celebration,ceremony,moon,viewing,moon viewing ceremony,moon viewing,festival,japanese	অনুষ্ঠান,উদযাপন,চন্দ্র দর্শন,চাঁদ,চাঁদ দেখার উৎসব,চাঁদ দেখা,উৎসব		moon viewing ceremony
+🎑	activities	celebration,ceremony,moon,viewing,moon viewing ceremony,moon viewing,festival,japanese	অনুষ্ঠান,উদযাপন,চাঁদ,দর্শন,চাঁদ দেখার উৎসব,চন্দ্র দর্শন,চাঁদ দেখা,উৎসব		moon viewing ceremony
 🧧	activities	envelope,gift,good,hóngbāo,lai,luck,money,red,see,red envelope	অর্থ,উপহার,কপাল,ঘুষ,বকশিশ,লাই সি,লাল,লাল খাম,লাল খামে বকশিশ,সৌভাগ্য,হং বাও		red envelope
 🎀	activities	celebration,ribbon,bow,gift,cute	উদযাপন,রিবন,ফিতা,উপহার		ribbon
 🎁	activities	birthday,bow,box,celebration,christmas,gift,present,surprise,wrapped,wrapped gift	উদযাপন,উপহার,জড়ান,বাক্স,মোড়কে থাকা উপহার,জন্মদিন,চমক		wrapped gift
-🎗️	activities	celebration,reminder,ribbon,reminder ribbon,awareness,cause	অনুস্মারক,উদযাপন,ফিতা,রিবন,অনুস্মারক রিবন,সচেতনতা		reminder ribbon
+🎗️	activities	celebration,reminder,ribbon,reminder ribbon,awareness,cause	অনুস্মারক,উদযাপন,রিবন,অনুস্মারক রিবন,ফিতা,সচেতনতা		reminder ribbon
 🎟️	activities	admission,ticket,tickets,admission tickets,event,entry	টিকেট,প্রবেশ,প্রবেশের টিকিট,টিকিট		admission tickets
 🎫	activities	admission,stub,ticket,event	টিকিট,প্রবেশ		ticket
-🎖️	activities	award,celebration,medal,military,military medal,honor	উদযাপন,পদক,পুরস্কার,মিলিটারি পদক,মিলেটারির মেডেল,মেডেল,সামরিক,সামরিক পদক,সম্মান		military medal
+🎖️	activities	award,celebration,medal,military,military medal,honor	উদযাপন,পদক,পুরস্কার,সামরিক,মিলিটারি পদক,মিলেটারির মেডেল,মেডেল,সামরিক পদক,সম্মান		military medal
 🏆	activities	champion,champs,prize,slay,sport,trophy,victory,win,winning,winner,award,first	ট্রফি,পুরস্কার,বিজয়ী,চ্যাম্পিয়ন		trophy
 🏅	activities	award,gold,medal,sports,winner,sports medal	খেলার পদক,পদক,পুরস্কার,সোনা,স্বর্ণপদক,বিজয়ী		sports medal
-🥇	activities	1st,first,gold,medal,place,1st place medal,gold medal,winner,champion	পদক,প্রথম,প্রথম স্থানের পদক,ফার্স্ট,মেডেল,মোনার,সোনার পদক,বিজয়ী		1st place medal
+🥇	activities	1st,first,gold,medal,place,1st place medal,gold medal,winner,champion	প্রথম,স্থান,স্বর্ণপদক,প্রথম স্থানের পদক,পদক,ফার্স্ট,মেডেল,মোনার,সোনার পদক,বিজয়ী		1st place medal
 🥈	activities	2nd,medal,place,second,silver,2nd place medal,silver medal,runner up	দ্বিতীয়,দ্বিতীয় স্থানের পদক,মেডেল,রুপো,সেকেন্ড,রূপার পদক,দ্বিতীয়		2nd place medal
 🥉	activities	3rd,bronze,medal,place,third,3rd place medal,bronze medal	তৃতীয়,তৃতীয় স্থানের পদক,থার্ড,ব্রোঞ্জ,মেডেল,ব্রোঞ্জ পদক,তৃতীয়		3rd place medal
 ⚽	activities	ball,football,futbol,soccer,sport,soccer ball	ফুটবল,বল,খেলা		soccer ball
 ⚾	activities	ball,baseball,sport	বল,বেসবল,খেলা		baseball
-🥎	activities	ball,glove,softball,sports,underarm	আন্ডারআর্ম,খেলা,খেলাধুলা,খেলার জিনিস,গ্লোভ,দস্তানা,বল,সফটবল,সফ্টবল		softball
+🥎	activities	ball,glove,softball,sports,underarm	আন্ডারআর্ম,খেলাধুলা,গ্লভ,বল,সফটবল,সফ্টবল,খেলা,খেলার জিনিস,গ্লোভ,দস্তানা		softball
 🏀	activities	ball,basketball,hoop,sport,hoops	বল,বাস্কেটবল,হুপ,খেলা		basketball
 🏐	activities	ball,game,volleyball,sport	খেলা,বল,ভলিবল		volleyball
 🏈	activities	american,ball,bowl,football,sport,super,american football,nfl	আমেরিকান,কার্যকলাপ,খেলাধুলা,ফুটবল,বল,সুপারবল,আমেরিকান ফুটবল,খেলা		american football
@@ -1238,7 +1245,7 @@
 📟	objects	communication,pager	পেজার,যোগাযোগ		pager
 📠	objects	communication,fax,machine,fax machine	ফ্যাক্স,ফ্যাক্স মেশিন		fax machine
 🔋	objects	battery,power,charge,energy	ব্যাটারি,চার্জ,শক্তি		battery
-🪫	objects	battery,drained,electronic,energy,low,power,low battery	lএনার্জি কম,এনার্জি কম,বৈদ্যুতিন,ব্যাটারি কম		low battery
+🪫	objects	battery,drained,electronic,energy,low,power,low battery	এনার্জি কম,বৈদ্যুতিন,ব্যাটারি কম,lএনার্জি কম		low battery
 🔌	objects	electric,electricity,plug,electric plug,power,charge	ইলেকট্রিক প্ল্যাগ,প্লাগ,বিদ্যুৎ,বৈদ্যুতিক,চার্জ		electric plug
 💻	objects	computer,laptop,office,pc,personal,work,coding	অফিস,কম্পিউটার,পিসি,ব্যক্তিগত,ল্যাপটপ,ল্যাপটপ কম্পিউটার,কাজ,কোডিং		laptop
 🖥️	objects	computer,desktop,monitor,desktop computer,pc	কম্পিউটার,ডেস্কটপ,ডেস্কটপ কম্পিউটার,মনিটর		desktop computer
@@ -1287,13 +1294,13 @@
 🪙	objects	coin,dollar,euro,gold,metal,money,rich,silver,treasure	ইউরো,কয়েন,টাকা,ডলার,ধনী,ধাতু,মুদ্রা,মোহর,রুপা,সোনা		coin
 💰	objects	bag,bank,bet,billion,cash,cost,dollar,gold,million,money,moneybag,paid,paying,pot,rich,win,money bag,wealth	খরচ,টাকা,টাকার ব্যাগ,ডলার,দাম,ব্যাংক,ব্যাগ,মানিব্যাগ,ধনী,সম্পদ,নগদ		money bag
 🪎	objects	gem,gold,jewels,loot,money,prize,silver,valuables,wealth,treasure chest,treasure,chest	ধনভাণ্ডার,পুরস্কার,মূল্যবান,মোহর,রত্ন,রূপা,লুট,সোনা,গুপ্তধন		treasure chest
-💴	objects	bank,banknote,bill,currency,money,note,yen,yen banknote,cash,japan	ইয়েন,কাগজের মুদ্রা,টাকা,নোট,বিল,ব্যাংক,ব্যাঙ্ক,ব্যাঙ্কনোট,মুদ্রা,ইয়েন ব্যাঙ্কনোট,ইয়েন		yen banknote
+💴	objects	bank,banknote,bill,currency,money,note,yen,yen banknote,cash,japan	অর্থ,ইয়েন,নোট,বিল,ব্যাংক,ব্যাংকনোট,মুদ্রা,ইয়েন ব্যাঙ্কনোট,কাগজের মুদ্রা,টাকা,ব্যাঙ্ক,ব্যাঙ্কনোট,ইয়েন		yen banknote
 💵	objects	bank,banknote,bill,currency,dollar,money,note,dollar banknote,cash,usd	টাকা,ডলার,নোট,বিল,ব্যাঙ্ক,ব্যাঙ্কনোট,মুদ্রা,ডলার ব্যাঙ্কনোট,নগদ		dollar banknote
-💶	objects	100,bank,banknote,bill,currency,euro,money,note,rich,euro banknote,cash,europe	ইউরো,কাগজের মুদ্রা,টাকা,নোট,বড়লোক,বিল,ব্যাংক,ব্যাঙ্ক,ব্যাঙ্কনোট,মুদ্রা,ইউরো ব্যাঙ্কনোট		euro banknote
+💶	objects	100,bank,banknote,bill,currency,euro,money,note,rich,euro banknote,cash,europe	১০০,ইউরো,টাকা,ধনী,নোট,বিল,ব্যাংক,ব্যাংকনোট,মুদ্রা,ইউরো ব্যাঙ্কনোট,কাগজের মুদ্রা,বড়লোক,ব্যাঙ্ক,ব্যাঙ্কনোট		euro banknote
 💷	objects	bank,banknote,bill,billion,cash,currency,money,note,pound,pounds,pound banknote,uk	কাগজের মুদ্রা,টাকা,নোট,পাউন্ড,বিল,ব্যাংক,ব্যাঙ্ক,ব্যাঙ্কনোট,মুদ্রা,পাউন্ড ব্যাঙ্কনোট		pound banknote
 💸	objects	bank,banknote,bill,billion,cash,dollar,fly,million,money,note,pay,wings,money with wings,with,money wings,flying money,spend,expensive,loss	ওড়া,টাকা,টাকার সাথে পাখা,ডলার,ডানা,নোট,বিল,ব্যাংক,ব্যাঙ্ক,খরচ,ব্যয়,দামি		money with wings
 💳	objects	bank,card,cash,charge,credit,money,pay,credit card,payment	ঋণ,কার্ড,ক্রেডিট কার্ড,টাকা,ব্যাংক,পেমেন্ট		credit card
-🧾	objects	accounting,bookkeeping,evidence,invoice,proof,receipt	অ্যাকাউন্টিং,ইনভয়েস,গণনা,চালান,দলিল,নথি,প্রমাণ,রসিদ,হিসাব,হিসাবরক্ষণ		receipt
+🧾	objects	accounting,bookkeeping,evidence,invoice,proof,receipt	চালান,প্রমাণ,রসিদ,সাক্ষ্য-প্রমাণ,হিসাবরক্ষণ,হিসাবলিখন,অ্যাকাউন্টিং,ইনভয়েস,গণনা,দলিল,নথি,হিসাব		receipt
 💹	objects	bank,chart,currency,graph,growth,increasing,market,money,rise,trend,upward,yen,chart increasing with yen,with	ইয়েন,ইয়েনের সাথে ক্রমবর্ধমান চার্ট,গ্রাফ,চার্ট,টাকা,বৃদ্ধি,ব্যাংক,মুদ্রা		chart increasing with yen
 ✉️	objects	e-mail,email,envelope,letter,mail,message	ই-মেল,ইমেল,খাম,চিঠি,মেইল,বার্তা		envelope
 📧	objects	e-mail,email,letter,mail,message,inbox	ই-মেল,ইমেল,চিঠি,মেল,ইমেইল,মেইল,বার্তা		e-mail
@@ -1315,6 +1322,7 @@
 🖌️	objects	paintbrush,painting,paint,art,draw	পেইন্ট ব্রাশ,পেন্টিং,তুলি,রং,আঁকা,শিল্প		paintbrush
 🖍️	objects	crayon,draw,color	ক্রেয়ন,মোমরং,ক্রেয়ন,আঁকা,রং		crayon
 📝	objects	communication,media,memo,notes,pencil,note,write,edit	পেন্সিল,বস্তু,মিডিয়া,মেমো,যোগাযোগ,স্মারকলিপি,নোট,লেখা,খাতা		memo
+🪌	objects	correction,delete,drawing,erase,error,mistake,remove,rub,undo,writing,eraser	অপসারণ,আঁকা,ঘষা,ত্রুটি,পূর্বাবস্থা,ভুল,মুছে ফেলা,মোছা,লেখা,সংশোধন,রাবার		eraser
 💼	objects	briefcase,office	ব্রিফকেস		briefcase
 📁	objects	file,folder,file folder,directory,documents	ফাইল,ফোল্ডার,ফাইল ফোল্ডার,নথি		file folder
 📂	objects	file,folder,open,open file folder,open folder,directory	খোলা,ফাইল,ফোল্ডার,ফাইল ফোল্ডার খোলা,খোলা ফোল্ডার		open file folder
@@ -1344,6 +1352,7 @@
 🔐	objects	bike,closed,key,lock,locked,secure,locked with key,with	চাবি,চাবি দিয়ে তালা বন্ধ করা,তালা,নিরাপদ,বন্ধ		locked with key
 🔑	objects	key,keys,lock,major,password,unlock,access	চাবি,তালা,পাসওয়ার্ড,পাসওয়ার্ড,আনলক		key
 🗝️	objects	clue,key,lock,old,old key,antique,unlock	চাবি,তালা,পুরানো,পুরোনো চাবি,সূত্র,পুরানো চাবি		old key
+🪍	objects	catch,collect,mesh,trap,net with handle,net,with,handle	জাল,ধরা,ফাঁদ,সংগ্রহ,হাতলওয়ালা জাল		net with handle
 🔨	objects	hammer,home,improvement,repairs,tool,build,fix	সরঞ্জাম,হাতুড়ি,হাতুড়ি,যন্ত্র,নির্মাণ		hammer
 🪓	objects	ax,axe,chop,hatchet,split,wood	কাঠ,কাঠ কাটা,কুঠার,কুড়াল,ক্ষুদ্র কুঠার,টুকরো করা,ফালি করা		axe
 ⛏️	objects	hammer,mining,pick,tool	কুড়াল,খনন,টুল,সরঞ্জাম		pick
@@ -1645,9 +1654,9 @@
 🔲	symbols	black,button,geometric,square,black square button	কালো বর্গাকার বোতাম,জ্যামিতিক,বর্গাকার,বোতাম		black square button
 🏁	flags	checkered,chequered,finish,flag,flags,game,race,racing,sport,win,chequered flag,checkered flag	ছক কাটা পতাকা,ছককাটা,পতাকা,ফ্ল্যাগ,রেসিং,চেকার পতাকা,দৌড়,শেষ		chequered flag
 🚩	flags	construction,flag,golf,post,triangular,triangular flag,red flag,warning,alert	ত্রিভুজ পতাকা,ত্রিভুজাকৃতি পতাকা,নির্মাণ,পোস্ট,মেরামত,লাল পতাকা,সতর্কতা		triangular flag
-🎌	flags	celebration,cross,crossed,flags,japanese,crossed flags,japan	আড়াআড়ি অবস্থায় থাকা,আড়াআড়ি অবস্থায় থাকা পতাকা,উদযাপন,ক্রস,জাপানি,পতাকা,ফ্ল্যাগ,জাপান		crossed flags
-🏴	flags	black,flag,waving,black flag,pirate	কালো পতাকা,কালো পতাকা ওড়ানো,কালো পতাকা দেখানো,তরঙ্গায়িত,পতাকা,ফ্ল্যাগ		black flag
-🏳️	flags	flag,waving,white,white flag,surrender,give up	তরঙ্গায়িত,পতাকা,ফ্ল্যাগ,সাদা,সাদা পতাকা ওড়ানো,সাদা পতাকা,আত্মসমর্পণ		white flag
+🎌	flags	celebration,cross,crossed,flags,japanese,crossed flags,japan	উদযাপন,ক্রস,ক্রস করা,জাপানি,পতাকা,আড়াআড়ি অবস্থায় থাকা পতাকা,আড়াআড়ি অবস্থায় থাকা,ফ্ল্যাগ,জাপান		crossed flags
+🏴	flags	black,flag,waving,black flag,pirate	উড়ছে,কালো,পতাকা,কালো পতাকা ওড়ানো,কালো পতাকা,কালো পতাকা দেখানো,তরঙ্গায়িত,ফ্ল্যাগ		black flag
+🏳️	flags	flag,waving,white,white flag,surrender,give up	উড়ছে,পতাকা,সাদা,সাদা পতাকা ওড়ানো,তরঙ্গায়িত,ফ্ল্যাগ,সাদা পতাকা,আত্মসমর্পণ		white flag
 🏳️‍🌈	flags	bisexual,flag,gay,genderqueer,glbt,glbtq,lesbian,lgbt,lgbtq,lgbtqia,pride,queer,rainbow,trans,transgender,rainbow flag	উভকামী,গর্ব,ট্রান্সজেন্ডার,পতাকা,পাতাক,রংধনু,রামধনু,সমকামী,রামধনু পতাকা,রংধনু পতাকা,প্রাইড		rainbow flag
 🏳️‍⚧️	flags	blue,flag,light,pink,transgender,white,transgender flag	গোলাপী,ট্রান্সজেন্ডার,ট্রান্সজেন্ডার ফ্ল্যাগ,পতাকা,সাদা,হালকা নীল		transgender flag
 🏴‍☠️	flags	flag,jolly,pirate,plunder,roger,treasure,pirate flag	জলদস্যু,জলদস্যু পতাকা,জলি রজার,ধন,লুণ্ঠন		pirate flag
@@ -1736,7 +1745,7 @@
 🇬🇧	flags	flag,united kingdom,united,kingdom,uk,britain,england	পতাকা,যুক্তরাজ্য,ব্রিটেন		flag: United Kingdom
 🇬🇩	flags	flag,grenada	পতাকা,গ্রেনাডা		flag: Grenada
 🇬🇪	flags	flag,georgia	পতাকা,জর্জিয়া		flag: Georgia
-🇬🇫	flags	flag,french guiana,french,guiana	পতাকা,ফরাসী গায়ানা		flag: French Guiana
+🇬🇫	flags	flag,french guiana,french,guiana	পতাকা,ফরাসি গায়ানা,ফরাসী গায়ানা		flag: French Guiana
 🇬🇬	flags	flag,guernsey	পতাকা,গার্নসি		flag: Guernsey
 🇬🇭	flags	flag,ghana	পতাকা,ঘানা		flag: Ghana
 🇬🇮	flags	flag,gibraltar	পতাকা,জিব্রাল্টার		flag: Gibraltar
@@ -1745,14 +1754,14 @@
 🇬🇳	flags	flag,guinea	পতাকা,গিনি		flag: Guinea
 🇬🇵	flags	flag,guadeloupe	পতাকা,গুয়াদেলৌপ		flag: Guadeloupe
 🇬🇶	flags	flag,equatorial guinea,equatorial,guinea	পতাকা,নিরক্ষীয় গিনি		flag: Equatorial Guinea
-🇬🇷	flags	flag,greece	পতাকা,গ্রীস		flag: Greece
+🇬🇷	flags	flag,greece	পতাকা,গ্রিস,গ্রীস		flag: Greece
 🇬🇸	flags	flag,south georgia & south sandwich islands,south,georgia,&,sandwich,islands	পতাকা,দক্ষিণ জর্জিয়া ও দক্ষিণ স্যান্ডউইচ দ্বীপপুঞ্জ		flag: South Georgia & South Sandwich Islands
 🇬🇹	flags	flag,guatemala	পতাকা,গুয়াতেমালা		flag: Guatemala
 🇬🇺	flags	flag,guam	পতাকা,গুয়াম		flag: Guam
 🇬🇼	flags	flag,guinea-bissau	পতাকা,গিনি-বিসাউ		flag: Guinea-Bissau
-🇬🇾	flags	flag,guyana	পতাকা,গিয়ানা		flag: Guyana
-🇭🇰	flags	flag,hong kong sar china,hong,kong,sar,china	পতাকা,হংকং এসএআর চীনা		flag: Hong Kong SAR China
-🇭🇲	flags	flag,heard island & mcdonald islands,heard,&,mcdonald,islands	পতাকা,হার্ড এবং ম্যাকডোনাল্ড দ্বীপপুঞ্জ		flag: Heard & McDonald Islands
+🇬🇾	flags	flag,guyana	পতাকা,গায়ানা,গিয়ানা		flag: Guyana
+🇭🇰	flags	flag,hong kong sar china,hong,kong,sar,china	পতাকা,হংকং এসএআর চীন,হংকং এসএআর চীনা		flag: Hong Kong SAR China
+🇭🇲	flags	flag,heard island & mcdonald islands,heard,island,&,mcdonald,islands	পতাকা,হার্ড এবং ম্যাকডোনাল্ড দ্বীপপুঞ্জ		flag: Heard Island & McDonald Islands
 🇭🇳	flags	flag,honduras	পতাকা,হন্ডুরাস		flag: Honduras
 🇭🇷	flags	flag,croatia	পতাকা,ক্রোয়েশিয়া		flag: Croatia
 🇭🇹	flags	flag,haiti	পতাকা,হাইতি		flag: Haiti
@@ -1773,7 +1782,7 @@
 🇯🇴	flags	flag,jordan	পতাকা,জর্ডন		flag: Jordan
 🇯🇵	flags	flag,japan,japanese	পতাকা,জাপান		flag: Japan
 🇰🇪	flags	flag,kenya	পতাকা,কেনিয়া		flag: Kenya
-🇰🇬	flags	flag,kyrgyzstan	পতাকা,কিরগিজিস্তান		flag: Kyrgyzstan
+🇰🇬	flags	flag,kyrgyzstan	পতাকা,কিরগিজস্তান,কিরগিজিস্তান		flag: Kyrgyzstan
 🇰🇭	flags	flag,cambodia	পতাকা,কম্বোডিয়া		flag: Cambodia
 🇰🇮	flags	flag,kiribati	পতাকা,কিরিবাতি		flag: Kiribati
 🇰🇲	flags	flag,comoros	পতাকা,কমোরোস		flag: Comoros
@@ -1832,7 +1841,7 @@
 🇴🇲	flags	flag,oman	পতাকা,ওমান		flag: Oman
 🇵🇦	flags	flag,panama	পতাকা,পানামা		flag: Panama
 🇵🇪	flags	flag,peru	পতাকা,পেরু		flag: Peru
-🇵🇫	flags	flag,french polynesia,french,polynesia	পতাকা,ফরাসী পলিনেশিয়া		flag: French Polynesia
+🇵🇫	flags	flag,french polynesia,french,polynesia	পতাকা,ফরাসি পলিনেশিয়া,ফরাসী পলিনেশিয়া		flag: French Polynesia
 🇵🇬	flags	flag,papua new guinea,papua,new,guinea	পতাকা,পাপুয়া নিউ গিনি		flag: Papua New Guinea
 🇵🇭	flags	flag,philippines	পতাকা,ফিলিপাইন		flag: Philippines
 🇵🇰	flags	flag,pakistan	পতাকা,পাকিস্তান		flag: Pakistan
@@ -1840,7 +1849,7 @@
 🇵🇲	flags	flag,st. pierre & miquelon,st.,pierre,&,miquelon	পতাকা,সেন্ট পিয়ের ও মিকুয়েলন		flag: St. Pierre & Miquelon
 🇵🇳	flags	flag,pitcairn islands,pitcairn,islands	পতাকা,পিটকেয়ার্ন দ্বীপপুঞ্জ		flag: Pitcairn Islands
 🇵🇷	flags	flag,puerto rico,puerto,rico	পতাকা,পুয়ের্তো রিকো		flag: Puerto Rico
-🇵🇸	flags	flag,palestinian territories,palestinian,territories	পতাকা,প্যালেস্টাইন ভূখণ্ড		flag: Palestinian Territories
+🇵🇸	flags	flag,palestinian territories,palestinian,territories	পতাকা,ফিলিস্তিনি ভূখণ্ড,প্যালেস্টাইন ভূখণ্ড		flag: Palestinian Territories
 🇵🇹	flags	flag,portugal	পতাকা,পর্তুগাল		flag: Portugal
 🇵🇼	flags	flag,palau	পতাকা,পালাউ		flag: Palau
 🇵🇾	flags	flag,paraguay	পতাকা,প্যারাগুয়ে		flag: Paraguay
@@ -1856,8 +1865,8 @@
 🇸🇩	flags	flag,sudan	পতাকা,সুদান		flag: Sudan
 🇸🇪	flags	flag,sweden	পতাকা,সুইডেন		flag: Sweden
 🇸🇬	flags	flag,singapore	পতাকা,সিঙ্গাপুর		flag: Singapore
-🇸🇭	flags	flag,st. helena,ascension & tristan da cunha,st.,helena	পতাকা,সেন্ট হেলেনা		flag: St. Helena
-🇸🇮	flags	flag,slovenia	পতাকা,স্লোভানিয়া		flag: Slovenia
+🇸🇭	flags	flag,st. helena,ascension & tristan da cunha,st.,helena,ascension,&,tristan,da,cunha	পতাকা,সেন্ট হেলেনা		flag: St. Helena, Ascension & Tristan da Cunha
+🇸🇮	flags	flag,slovenia	পতাকা,স্লোভেনিয়া,স্লোভানিয়া		flag: Slovenia
 🇸🇯	flags	flag,svalbard & jan mayen,svalbard,&,jan,mayen	পতাকা,স্বালবার্ড ও জান মেয়েন		flag: Svalbard & Jan Mayen
 🇸🇰	flags	flag,slovakia	পতাকা,স্লোভাকিয়া		flag: Slovakia
 🇸🇱	flags	flag,sierra leone,sierra,leone	পতাকা,সিয়েরা লিওন		flag: Sierra Leone
@@ -1874,7 +1883,7 @@
 🇹🇦	flags	flag,tristan da cunha,tristan,da,cunha	পতাকা,ট্রিস্টান ডা কুনহা		flag: Tristan da Cunha
 🇹🇨	flags	flag,turks & caicos islands,turks,&,caicos,islands	পতাকা,তুর্কস ও কাইকোস দ্বীপপুঞ্জ		flag: Turks & Caicos Islands
 🇹🇩	flags	flag,chad	পতাকা,চাদ		flag: Chad
-🇹🇫	flags	flag,french southern and antarctic lands,french,southern,territories	পতাকা,ফরাসী দক্ষিণাঞ্চল		flag: French Southern Territories
+🇹🇫	flags	flag,french southern and antarctic lands,french,southern,and,antarctic,lands,territories	পতাকা,ফরাসি দক্ষিণ এবং অ্যান্টার্কটিক ভূমি,ফরাসী দক্ষিণাঞ্চল		flag: French Southern and Antarctic Lands
 🇹🇬	flags	flag,togo	পতাকা,টোগো		flag: Togo
 🇹🇭	flags	flag,thailand	পতাকা,থাইল্যান্ড		flag: Thailand
 🇹🇯	flags	flag,tajikistan	পতাকা,তাজিকিস্তান		flag: Tajikistan
@@ -1890,7 +1899,7 @@
 🇹🇿	flags	flag,tanzania	পতাকা,তাঞ্জানিয়া		flag: Tanzania
 🇺🇦	flags	flag,ukraine	পতাকা,ইউক্রেন		flag: Ukraine
 🇺🇬	flags	flag,uganda	পতাকা,উগান্ডা		flag: Uganda
-🇺🇲	flags	flag,u.s. outlying islands,u.s.,outlying,islands	পতাকা,যুক্তরাষ্ট্রের পার্শ্ববর্তী দ্বীপপুঞ্জ		flag: U.S. Outlying Islands
+🇺🇲	flags	flag,u.s. outlying islands,u.s.,outlying,islands	পতাকা,মার্কিন যুক্তরাষ্ট্রের পার্শ্ববর্তী দ্বীপপুঞ্জ,যুক্তরাষ্ট্রের পার্শ্ববর্তী দ্বীপপুঞ্জ		flag: U.S. Outlying Islands
 🇺🇳	flags	flag,united nations,united,nations	পতাকা,জাতিসংঘ		flag: United Nations
 🇺🇸	flags	flag,united states,united,states,usa,america	পতাকা,মার্কিন যুক্তরাষ্ট্র,আমেরিকা,যুক্তরাষ্ট্র		flag: United States
 🇺🇾	flags	flag,uruguay	পতাকা,উরুগুয়ে		flag: Uruguay

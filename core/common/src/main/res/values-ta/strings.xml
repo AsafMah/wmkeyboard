@@ -26,6 +26,7 @@
     <string name="common_default">இயல்புநிலை</string>
     <string name="common_delete">நீக்கு</string>
     <string name="common_disable">முடக்கு</string>
+    <string name="common_disabled_open_setting">அமைப்பைத் திறக்கவும்</string>
     <string name="common_disclosure_blocked_body">நீங்கள் ஏற்கனவே அனுமதியை மறுத்துவிட்டதால், ஆண்ட்ராய்டு இந்த கோரிக்கையை இனி காட்டாது. ஆப்ஸ் அமைப்புகள் திரையிலிருந்து நீங்கள் அதை இன்னும் இயக்கலாம்.</string>
     <string name="common_disclosure_not_now">இப்போது வேண்டாம்</string>
     <string name="common_done">முடிந்தது</string>
@@ -44,6 +45,7 @@
     <string name="common_install">நிறுவு</string>
     <string name="common_installing">நிறுவப்படுகிறது…</string>
     <string name="common_loading">ஏற்றப்படுகிறது…</string>
+    <string name="common_more">மேலும்</string>
     <string name="common_next">அடுத்து</string>
     <string name="common_none">எதுவுமில்லை</string>
     <string name="common_notify_channel_backup_body">தானியங்கி காப்புப்பிரதி தோல்வியடையும் போது மட்டுமே. வெற்றிகரமான காப்புப்பிரதிகள் அமைதியாக இருக்கும்.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">அறிவிப்புகளைக் காட்டு</string>
     <string name="common_permission_storage_body">ஆண்ட்ராய்டு 9 மற்றும் அதற்கு முந்தைய பதிப்புகளில், ஒரு படத்தை உங்கள் கேலரியில் சேமிக்க கீபோர்டுக்கு ஸ்டோரேஜ் அனுமதி தேவை. பழைய ஆண்ட்ராய்டு அனுமதி உங்கள் ஸ்டோரேஜைப் படிப்பதையும் உள்ளடக்கியது. நீங்கள் சேமிக்கக் கோரும் படத்தை மட்டுமே கீபோர்டு எழுதும். கீபோர்டு எதையும் படிப்பதில்லை மற்றும் எதையும் பதிவேற்றுவதில்லை. புதிய ஆண்ட்ராய்டு பதிப்புகளுக்கு இந்த அனுமதி தேவையில்லை.</string>
     <string name="common_permission_storage_title">உங்கள் கேலரியில் சேமிக்க சேமிப்பக அணுகல்</string>
+    <string name="common_permission_tasks_body">WM விசைப்பலகை அதன் செய்ய வேண்டியவை பட்டியல் மற்றும் பணி பயன்பாட்டில் உள்ள ஒரு பணிப் பட்டியலை ஒரே மாதிரியாக வைத்திருக்கிறது: பணிகள், அவற்றின் படிகள், அவற்றின் டிக் மற்றும் அவற்றின் காலக்கெடு, இரண்டு வழிகளிலும். இந்த அனுமதி பயன்பாட்டில் உள்ள ஒவ்வொரு பணிப் பட்டியலையும் உள்ளடக்கியது. விசைப்பலகை பயன்பாட்டின் பட்டியல்களை நீங்கள் ஒன்றைத் தேர்ந்தெடுக்க மட்டுமே படிக்கிறது, மேலும் நீங்கள் தேர்ந்தெடுத்த பட்டியலை மட்டுமே படிக்கிறது மற்றும் எழுதுகிறது. விசைப்பலகை எதையும் எங்கும் அனுப்புவதில்லை. DAVx5, நீங்கள் அதைப் பயன்படுத்தினால், அந்தப் பட்டியலை உங்கள் சொந்த CalDAV சேவையகத்துடன் ஒத்திசைக்கிறது. இந்த அனுமதி இல்லையென்றால், செய்ய வேண்டியவை பட்டியல் இந்த தொலைபேசியிலேயே இருக்கும்.</string>
+    <string name="common_permission_tasks_opentasks_title">செய்ய வேண்டியவை பட்டியலுக்கான OpenTasks அணுகல்</string>
+    <string name="common_permission_tasks_tasks_org_title">செய்ய வேண்டியவைகளின் பட்டியல் (To-do list)-க்கான Tasks.org அணுகல்</string>
+    <string name="common_preview_scale_desc">முன்னோட்ட அளவு</string>
+    <string name="common_preview_scale_larger">முன்னோட்டத்தை பெரிதாக்கவும்</string>
+    <string name="common_preview_scale_smaller">முன்னோட்டத்தை சிறியதாக்கு</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">நீக்கு</string>
     <string name="common_reset">மீட்டமை</string>
     <string name="common_reset_defaults">இயல்புநிலைக்கு மீட்டமைக்கவும்</string>

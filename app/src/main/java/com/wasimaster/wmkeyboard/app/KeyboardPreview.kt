@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -47,8 +48,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The keyboard test on every settings screen (#412): a small button that opens
@@ -85,6 +89,12 @@ internal class KeyboardPreviewState {
      * jump back up, keyboard and all, on the way back.
      */
     var hosts by mutableIntStateOf(0)
+
+    /**
+     * The keyboard the field brings up should open in resize mode: set by the
+     * Resize by dragging row on Layout & size (#912), spent once it is asked.
+     */
+    var resizeOnShow by mutableStateOf(false)
 }
 
 internal val LocalKeyboardPreview = compositionLocalOf<KeyboardPreviewState?> { null }
@@ -107,6 +117,9 @@ internal fun CloseOrphanedKeyboardPreview(state: KeyboardPreviewState) {
 }
 
 private const val OrphanGraceMs = 400L
+
+/** How long the field waits for its keyboard before asking for resize mode anyway. */
+private const val ResizeWaitMs = 1_500L
 
 /**
  * The button: a keyboard while the field is closed, the keyboard put away while
@@ -185,6 +198,16 @@ internal fun KeyboardPreviewBar(state: KeyboardPreviewState) {
     // the keyboard comes or goes: the picker is a system dialog, so nothing
     // else here hears that the user switched.
     val ours = remember(imeVisible) { imeSelected(context) }
+    val imeUp by rememberUpdatedState(imeVisible)
+    LaunchedEffect(state.resizeOnShow) {
+        if (!state.resizeOnShow) return@LaunchedEffect
+        // Until the keyboard is up, or a moment for the windows that never
+        // say so (see above). Resize mode on a keyboard that is not ours, or
+        // not running, is nothing to ask for.
+        withTimeoutOrNull(ResizeWaitMs) { snapshotFlow { imeUp }.first { it } }
+        state.resizeOnShow = false
+        if (imeSelected(context)) KeyboardAutomation.host?.startResize()
+    }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),

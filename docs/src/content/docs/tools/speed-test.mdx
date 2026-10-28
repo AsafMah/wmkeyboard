@@ -1,0 +1,78 @@
+---
+title: "Internet speed test"
+description: "Measure download, upload, ping and jitter from the keyboard, then send the result as a picture: a card in your choice of style, size and layout."
+sidebar:
+  order: 15.8
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+Someone asks how the Wi‑Fi is, and the honest answer is a number. The **Internet speed test** tool measures the connection you are on and drops the result into the chat as a picture, without leaving the keyboard. A run takes about twenty seconds. It pings the server, pulls random bytes for ten seconds, pushes them back for ten more, and then shows the card it would send, with chips to change how that card looks before it goes.
+
+## Running a test
+
+Open the tool from the toolbox. The panel shows a **Start test** button, the server a run will use, and roughly how much data the run will move. Press Start and the panel turns into a dial with the live speed, the phase under way (Connecting, Ping, Download, Upload) and a thin line of the last seconds. **Cancel** stops it at once, and so does closing the panel or hiding the keyboard: a run nobody is watching is only costing data.
+
+A finished run shows four numbers.
+
+- **Download** and **Upload** are the mean speed over each transfer with its first fifth left out. That is where the connections are still opening and TCP is still finding its pace, and every browser test discards it too. The unit is megabits per second unless you switch it to megabytes.
+- **Ping** is the median of ten round trips to an empty page, the first one dropped because it also opens the connection.
+- **Jitter** is how much those ten varied, as the mean difference between one and the next.
+
+The panel remembers the last run. Open the tool again later and the result is already there with its card, and the next run's card notes how it compares.
+
+## The card
+
+The result is sent as a PNG. The panel draws it small beside three rows of chips, and every chip redraws the preview on the spot.
+
+- **Style**: **Theme** paints the card in the colours of the keyboard theme you have on, so it matches your screenshots. **Dark**, **Light**, **Gradient** and **Mono** are fixed designs that look the same whatever theme is on. Mono is black on white, for printing or a plain thread.
+- **Size**: **Square** (1080 × 1080) and **Portrait** (1080 × 1350, 4:5) suit most chats; **Story** is 9:16 for a status or story; **Wide** is 16:9 for a post or a forum; **Sticker** is 512 × 512, small enough to go as a sticker where the app takes one.
+- **Layout**: **Full** has every number, the download line as a graph, and a footer naming your network, the server and the change since the last run. **Gauge** is one dial with the download speed in it and the other numbers underneath. **Compact** is the four numbers in a grid, which suits the Sticker size. **Minimal** is the two speeds and nothing else, in very large type.
+
+Under the chips sit the ways to send it.
+
+- **Send** puts the card into the field, the same way a GIF or a sticker goes. An app that takes no pictures gets the card on its share screen instead, or on the clipboard.
+- **Save** writes it to `Pictures/WM Keyboard`.
+- **Share** opens the [share sheet](/reference/settings/share-sheet/) with the card.
+- **As text** types one line instead of a picture, `↓ 94 Mbps · ↑ 31 Mbps · 18 ms ping (Cloudflare Dhaka)`, with your own numbers.
+- **Run again** starts over.
+
+The footer never shows your IP address unless you turn **Show my IP address** on. It does name your network provider and the city of the server that answered, which is what a result is usually shared to say.
+
+## Servers
+
+A run talks to one server, and the chip under the Start button picks which. <SettingsPath path="Tools / Internet speed test / Servers" /> is the list, in the same shape as every other [provider list](/tools/providers/).
+
+- **Cloudflare** is on by default and needs nothing set up. The test reaches the nearest of Cloudflare's data centres, which is why the numbers are about your line rather than about some distant server, and Cloudflare tells the keyboard which network you are on and which city answered, which the card shows.
+- **LibreSpeed** is a server running the free LibreSpeed software. Add the row, then either type the address of one you run yourself under **Setup**, or open the row and **Pick from the public list**: about a hundred volunteers' servers, listed by city with their sponsor, filtered as you type. Picking one fills in the row. You can add several LibreSpeed rows and switch between them on the panel.
+
+In the F-Droid edition both addresses, Cloudflare's and the list at librespeed.org, are settings on the row's screen and under <SettingsPath path="Advanced / Servers" />, as every service's address there is.
+
+## Data use
+
+This is the one tool in the keyboard that moves a lot of data on purpose: on a fast line a run can pass a few hundred megabytes. The panel says what a run is likely to cost before you start, worked out from the last run's speeds (a guess of 50 Mbps each way before there is one). On a connection Android counts as metered, [Data saver](/privacy/data-saver/) asks first by default and **Run anyway** is the yes. Every request of a run shows up in [Network activity](/privacy/network-activity/) under Speed test, with the bytes it moved.
+
+### Options
+
+<SettingsPath path="Tools / Internet speed test" />
+
+- **Seconds per direction**: 5 to 30, default **10**. How long the download and then the upload each run. Longer is steadier and costs more data.
+- **Connections at once**: 1 to 8, default **4**. Requests in flight together. One connection rarely fills a fast line, and four is what the browser tests use.
+- **Measure upload**: on by default. Off, a run is pings and download only, in half the time and data.
+- **Unit**: **Mbps** (default) or **MB/s**, on the panel and the card.
+- **Result card**: **Style**, **Size** and **Layout**, the same choices as the panel's chips, so either place changes both. **Send a sticker-sized card as** picks Picture (default) or Sticker for the Sticker size, which is the only size that can go as a sticker, and only into apps that take one. **Save sent cards to the gallery** (off) keeps a copy of every card you send; the panel's Save button saves one regardless. **Show my IP address** (off) puts the connection's public address in the card's footer.
+- **Servers**: the provider list described above.
+
+The speed test is the **Speed test** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool leaves the toolbar, the toolbox and the Tools list until the bundle is switched back on.
+
+## Details & edge cases
+
+- **Discoverable by typing.** Typing `speedtest` or `bandwidth` as a word offers a [smart chip](/smart/chips/) that opens the tool. The list is editable under the tool's own **Keyword shortcut** field.
+- **Not before you unlock.** The tool needs the network and the settings, so it waits for the first unlock like the other online tools; see [the toolbar](/tools/overview/#which-tools-work-before-you-unlock-your-phone).
+- **A VPN or a hotspot counts as metered** to Android, so Data saver may ask on Wi‑Fi too. The question names the kind of link it saw.
+- **What the headline leaves out.** The first fifth of each transfer is dropped from the mean. The dial during a run shows the same running mean, so it climbs while the connections open and then settles on the number the card will carry; the thin line beside it is the raw 200 ms samples, lightly smoothed and drawn as a curve on a fixed time axis, so it grows to the right rather than squeezing up as the run goes on. A run shorter than a second has too few samples to trim and reports them all.
+- **Why the upload line is spikier than the download line.** A write lands in the phone's send buffer at once and counts the moment it does; the next waits until that buffer drains. The raw samples therefore come in bursts, which the running mean on the dial evens out.
+- **Cloudflare limits repeated runs.** After several large runs from one address in a short time, Cloudflare refuses big downloads with HTTP 429 while still serving small ones. The test then asks for smaller pieces, 25 MB down to 1 MB, and the run goes on; only when even those are refused does it stop, saying that Cloudflare is limiting speed tests from this connection for now. Other refusals name the status and the phase. A LibreSpeed server has no such limit.
+- **Uploads on a slow line.** The upload body grows while requests finish quickly and shrinks when they take seconds, so a slow line is not stuck finishing one large post after the clock has run out; at the deadline every open connection is cut.
+- **Hardware shortcut.** There is no default letter. Reach it through the toolbox (<KeyCap>T</KeyCap>) or [assign one yourself](/reference/shortcuts/).

@@ -98,8 +98,54 @@ object WikipediaClient {
             ?.get("pages")?.jsonObject ?: return ""
         return pages.values.firstNotNullOfOrNull {
             it.jsonObject["extract"]?.jsonPrimitive?.content?.takeIf(String::isNotBlank)
-        }.orEmpty()
+        }.orEmpty().let(::foldMath)
     }
+
+    /**
+     * Formulas folded back into the sentence they belong to, as `\(TeX\)`
+     * the panel typesets (#937).
+     *
+     * The plain-text extract flattens each formula's MathML one token per
+     * indented line, then prints its TeX source as well, `{\displaystyle …}`:
+     * a set of three letters took a screen. The TeX is the exact formula, so
+     * it is what is kept, inline with the text around it; the token lines go.
+     * `\(` rather than `$`, so a price in an article is never read as maths.
+     */
+    internal fun foldMath(text: String): String {
+        if (!text.contains(DISPLAY_STYLE)) return text
+        val lines = text.split('\n')
+        val out = ArrayList<String>(lines.size)
+        for (line in lines) {
+            if (!line.trimStart().startsWith(DISPLAY_STYLE)) {
+                out += line
+                continue
+            }
+            var from = out.size
+            while (from > 0 && (out[from - 1].isBlank() || out[from - 1].startsWith(' '))) from--
+            out.subList(from, out.size).clear()
+            val tex = line.trim().removePrefix(DISPLAY_STYLE).removeSuffix("}").trim()
+            out += "$MATH_MARK$tex$MATH_MARK"
+        }
+        return out.joinToString("\n")
+            // Running on into the same sentence: a mark hugs the formula, a
+            // lower-case word follows it after a space; anything else is a
+            // new paragraph.
+            .replace(Regex("\\s*$MATH_MARK(.*?)$MATH_MARK\\s*(?=[,.;:)])")) { " \\(${it.groupValues[1]}\\)" }
+            .replace(Regex("\\s*$MATH_MARK(.*?)$MATH_MARK\\s*(?=\\p{Ll})")) { " \\(${it.groupValues[1]}\\) " }
+            .replace(Regex("\\s*$MATH_MARK(.*?)$MATH_MARK\\s*")) { " \\(${it.groupValues[1]}\\)\n\n" }
+            .trim()
+    }
+
+    /** Whether [text] holds a formula [foldMath] kept. */
+    fun hasMath(text: String): Boolean = "\\(" in text
+
+    /** [text] with each kept formula written out in Unicode, for a text field: `\(x^2\)` is `x²`. */
+    fun plainMath(text: String): String =
+        if (!hasMath(text)) text else INLINE_MATH.replace(text) { LatexMath.plain(it.groupValues[1]) }
+
+    private val INLINE_MATH = Regex("\\\\\\((.*?)\\\\\\)")
+    private const val DISPLAY_STYLE = "{\\displaystyle"
+    private const val MATH_MARK = '\u0001'
 
     /** Search snippets arrive with `<span class="searchmatch">` markup. */
     internal fun stripHtml(text: String): String =

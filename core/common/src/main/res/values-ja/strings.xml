@@ -26,6 +26,7 @@
     <string name="common_default">デフォルト</string>
     <string name="common_delete">削除</string>
     <string name="common_disable">オフにする</string>
+    <string name="common_disabled_open_setting">設定を開く</string>
     <string name="common_disclosure_blocked_body">以前に権限を拒否したため、Androidはこのリクエストをこれ以上表示しません。アプリの設定画面からいつでもオンにできます。</string>
     <string name="common_disclosure_not_now">今はしない</string>
     <string name="common_done">完了</string>
@@ -44,6 +45,7 @@
     <string name="common_install">インストール</string>
     <string name="common_installing">インストール中…</string>
     <string name="common_loading">読み込み中…</string>
+    <string name="common_more">その他</string>
     <string name="common_next">次へ</string>
     <string name="common_none">なし</string>
     <string name="common_notify_channel_backup_body">自動バックアップが失敗した場合のみ通知します。成功したバックアップは通知されません。</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">通知を表示</string>
     <string name="common_permission_storage_body">Android 9以前では、画像をギャラリーに保存するためにキーボードにストレージ権限が必要です。古いAndroidの権限はストレージの読み取りも対象となります。キーボードは保存を要求された画像のみを書き込みます。キーボードは何も読み取らず、何もアップロードしません。新しいAndroidバージョンではこの権限は不要です。</string>
     <string name="common_permission_storage_title">ギャラリーに保存するためのストレージアクセス</string>
+    <string name="common_permission_tasks_body">WM Keyboardは、独自のTo-Doリストとタスクアプリ内のタスクリストを同期させ、タスクの内容、ステップ、チェック状況、期限などを双方向に保ちます。この権限はアプリ内のすべてのタスクリストを対象としますが、キーボードはリストを選択できるように一覧を取得し、選択したリストに対してのみ読み書きを行います。キーボードがデータを外部へ送信することはありません。DAVx5を使用している場合は、そのリストが自身のCalDAVサーバーと同期されます。この権限を許可しない場合、To-Doリストは端末内にのみ保存されます。</string>
+    <string name="common_permission_tasks_opentasks_title">ToDoリストのOpenTasksアクセス</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.orgのToDoリストへのアクセス</string>
+    <string name="common_preview_scale_desc">プレビューサイズ</string>
+    <string name="common_preview_scale_larger">プレビューを拡大</string>
+    <string name="common_preview_scale_smaller">プレビューを小さくする</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">削除</string>
     <string name="common_reset">リセット</string>
     <string name="common_reset_defaults">デフォルトにリセット</string>

@@ -32,9 +32,10 @@ Your own messages sit in bubbles on the right. Answers have no bubble: each one 
 
 The newest answer always shows its buttons, a row of plain icons under it. Tap any older message to bring out its own. Long-press an icon to see its name.
 
-- **Insert** puts the answer in the field at the cursor, with markdown markers stripped, since a text field won't render them.
+- **Insert** puts the answer in the field at the cursor, with markdown markers stripped, since a text field won't render them. A table keeps one line per row, its cells between bars.
 - **Copy** copies the answer as written. Long-pressing a bubble copies it too, in one move.
 - **Write again** throws the newest answer away and asks for another.
+- **Share** sends the answer to another app as a Markdown file. See [Sharing an answer](#sharing-an-answer).
 - **Edit**, on your own newest message, pulls it back into the message box along with the answer it got, so you can fix the question and send it again.
 - A code block gets its own **Copy** and **Insert**, which take just the code, exactly as written.
 
@@ -44,7 +45,7 @@ Maths written in LaTeX is drawn as maths. A formula on its own line, between `$$
 
 ### The message box
 
-The message box is one rounded box. What you write is at the top; along its bottom edge sit its controls: the **Reasoning** switch at the start (see [The Reasoning switch](#the-reasoning-switch)), and **+** and the send arrow at the end. While an answer streams, the send arrow becomes **Stop**.
+The message box is one rounded box. What you write is at the top; along its bottom edge sit its controls: the **Reasoning** switch at the start (see [The Reasoning switch](#the-reasoning-switch)), and the mode button, **+** and the send arrow at the end (see [Modes and answer formats](#modes-and-answer-formats)). While an answer streams, the send arrow becomes **Stop**.
 
 ### The + menu
 
@@ -166,6 +167,57 @@ Two ways in open the chat as a sheet over whatever app you're in, with the app s
 
 If you don't want **Ask AI** in the selection menu, turn off **Ask AI in the selection menu** in the [AI tool's options](/tools/ai/#options). Turning the AI tool itself off takes it out too. Either way **Look up** and the other apps' entries move up into the space it leaves.
 
+## Modes and answer formats
+
+A message can ask for more than an answer. Each message goes out in a **mode**, and its answer comes back in a **format**. Both stay picked from one message to the next until you change them, on the keyboard and in the app alike.
+
+- **On the keyboard**, the button with the sliders in the message box opens a row of modes and a row of formats over it. While either is something other than plain chat, the button wears the mode's icon and a line beside it names what's picked, so a research run never starts by surprise.
+- **In the app**, the message box has a **Mode** chip and a **Format** chip next to **Reasoning**; each opens a menu. The chips scroll sideways on a narrow screen.
+
+| Mode | What it does | Format it uses on Auto |
+|---|---|---|
+| **Chat** | The chat as it always was | Whatever the model writes |
+| **Deep research** | Plans sub-questions, searches the web, reads pages and writes a report with numbered sources. See [Deep research](#deep-research) | Markdown report |
+| **Summarize** | Sums up what you give it. Links in your message (up to three) are read first, so every model gets the pages, on-device ones included; quoted text and files are summed up as they are | Bullet points |
+| **Compare** | Compares the things you name point by point and ends with a verdict when there is one. A model with web search looks up facts that may have changed | Table |
+
+The formats are **Auto format**, **Plain text**, **Markdown**, **Bullet points**, **Table**, **JSON** and **Code**. Auto leaves the shape to the mode. Any other format is an instruction added to your message, not to the model's standing prompt, so it applies to that message and the answers that follow it, and it doesn't throw away an on-device model's session. Plain text is the one to pick when the answer is going straight into a field.
+
+**Edit** on your own message brings its mode and format back with it, and **Retry** and **Write again** run it the way it first ran.
+
+### Deep research
+
+Deep research answers a question from the web the way a research agent does, in steps you can watch. It needs two things: a cloud or server model that can call tools (any provider except **On your device** and Brave), and a [web search provider](/tools/search/) (SearXNG, Tavily or Brave). With either missing, a line above the message box says which, and the send button waits.
+
+1. **Plan.** The model breaks your question into sub-questions, from the general (what it is, why it matters) to the specific (details, numbers, recent changes), and gives each one to three searches. The plan appears as a checklist at the top of the answer.
+2. **Gather.** One sub-question at a time, its searches run and the best results are read, no more than two pages from one site. Each search and each page is a step on the chain, as a tool call is, and its sub-question is ticked once it's covered. A page that can't be read, or is a PDF or a video, is skipped.
+3. **Look again.** On Standard and Deep, the model reads short notes from the pages so far and either names what is still missing as new searches, which join the checklist, or says it has enough.
+4. **Write.** The report streams in: a short direct answer, a section for each sub-question, a conclusion. Every fact carries the number of the source it came from, like `[3]`. The list of **Sources** under the report is added by the keyboard, not written by the model, and holds only the pages the report cites, each a link. A source the report never cited isn't listed.
+
+The model doing every step is the one picked in the chat. The plan and the look-again ask it not to reason, to save time; the report follows the **Reasoning** switch.
+
+<SettingsPath path="Tools / AI writing tools / Deep research depth" /> sets how far a report goes:
+
+| Depth | Sub-questions | Searches in the first round | Looks again | Pages read |
+|---|---|---|---|---|
+| Quick | up to 3 | 3 | never | 4 |
+| Standard (default) | up to 4 | 6 | once | 8 |
+| Deep | up to 6 | 9 | twice | 14 |
+
+Each page is a request to its site, and up to 6,000 characters of it go to the model, with about 48,000 characters of page text in all for the report. Deeper reports take longer and cost more tokens. A Standard report on a fast cloud model takes about half a minute.
+
+Turn on <SettingsPath path="Tools / AI writing tools / Review the research plan first" /> to see the plan before anything is searched. A card under the plan asks **Research these questions?** with **Start** and **Cancel**. Cancel ends the run with a **Retry**; rephrase the question if the plan missed the point. With the setting off, the plan runs as soon as it's made, and **Stop** ends a run at its next step, keeping the steps so far.
+
+[Data Saver](/privacy/data-saver/) covers a research run twice: as a cloud AI request and as a web search. When it would hold either, the run is held, and **Retry** is the yes. When data saving is on and allows the run, it reads half as many pages.
+
+### Suggested next questions
+
+Under the newest answer from a cloud or server model, up to three chips suggest what you might ask next. A tap puts the question in the message box to send or change; nothing is sent until you do. The model writes them at the end of the same answer, so they cost a few dozen tokens and no extra request, and they're taken out of the answer before it's shown, copied or inserted. On-device models are never asked for them. Turn them off with <SettingsPath path="Tools / AI writing tools / Suggest follow-up questions" />.
+
+### Sharing an answer
+
+The **Share** icon under an answer hands it to another app. In the app it offers a **Markdown file**, a **PDF** or the **Text**; on the keyboard it shares the Markdown file. The file opens with the chat's title and your question, then the answer as written, sources and all. The PDF is laid out on A4 pages, with headings, lists, code and tables set apart. Files are made in the app's cache and shared from there.
+
 ## Picking the model
 
 A scrolling row of chips above the transcript lists everything you can talk to right now: models you've downloaded on-device first (when **On your device** is on the AI providers list), then every row of [that list](/tools/ai/#choosing-where-it-runs) that is on and set up. Set up means the thing it needs is filled in: an API key for the cloud services, an address for Ollama or LM Studio, and both an address and a model name for an OpenAI-compatible service. Two rows of one service show their nicknames. With fewer than two to choose from, the row doesn't appear at all.
@@ -263,6 +315,7 @@ Exactly what the AI tool sends, and only when you hit send:
 
 - **An on-device model** sends nothing. The whole conversation stays on the phone.
 - **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Your saved [AI memory](/tools/ai-memory/) goes with it only if you've turned on **Use with cloud models**. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
+- **Deep research and Summarize** also go to the web. Deep research sends the searches its plan made to your [search provider](/tools/search/), then fetches each page it reads straight from its site, and the pages' text goes to your AI provider with your question. Summarize fetches the links in your message the same way. Nothing goes to a page but an ordinary request for it.
 - **The transcript itself** goes nowhere. It's deliberately left out of settings backups, the same as the [AI history](/tools/ai/#history) and for the same reason: your own conversations shouldn't ride along in a file you export and mail to yourself. See [Your data](/privacy/data/).
 
 ## Details & edge cases

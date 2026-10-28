@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.res.stringResource
@@ -45,6 +46,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import kotlinx.coroutines.launch
 
 // ---- tools ----
@@ -95,6 +98,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
+    ToolbarTool.EMOJI_MIX -> ImeR.string.ime_tool_emoji_mix
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
@@ -114,6 +118,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> ImeR.string.ime_tool_weather
     ToolbarTool.LOCATION -> ImeR.string.ime_tool_location
     ToolbarTool.CLOCK -> ImeR.string.ime_tool_clock
+    ToolbarTool.MUSIC_ID -> ImeR.string.ime_tool_music_id
     ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> ImeR.string.ime_tool_send_files
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
@@ -150,11 +155,13 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_title
     ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_title
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_title
+    ToolbarTool.SPEED_TEST -> R.string.fonts_tool_speed_test_title
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_title
     ToolbarTool.KDE_CONNECT -> ImeR.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> ImeR.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> ImeR.string.ime_tool_find_replace
     ToolbarTool.NOTES -> ImeR.string.ime_tool_notes
+    ToolbarTool.TODO -> ImeR.string.ime_tool_todo
     ToolbarTool.PLUGINS -> ImeR.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_title
     ToolbarTool.AI -> R.string.fonts_tool_ai_title
@@ -191,6 +198,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
+    ToolbarTool.EMOJI_MIX -> R.string.fonts_tool_emoji_mix_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc
@@ -210,6 +218,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> R.string.fonts_tool_weather_desc
     ToolbarTool.LOCATION -> R.string.fonts_tool_location_desc
     ToolbarTool.CLOCK -> R.string.fonts_tool_clock_desc
+    ToolbarTool.MUSIC_ID -> R.string.fonts_tool_music_id_desc
     ToolbarTool.HOME_ASSISTANT -> R.string.fonts_tool_home_assistant_desc
     ToolbarTool.SEND_FILES -> R.string.fonts_tool_send_files_desc
     ToolbarTool.GALLERY -> R.string.fonts_tool_gallery_desc
@@ -246,11 +255,13 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_desc
     ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_desc
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_desc
+    ToolbarTool.SPEED_TEST -> R.string.fonts_tool_speed_test_desc
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_desc
     ToolbarTool.KDE_CONNECT -> R.string.fonts_tool_kde_connect_desc
     ToolbarTool.STATISTICS -> R.string.fonts_tool_statistics_desc
     ToolbarTool.FIND_REPLACE -> R.string.fonts_tool_find_replace_desc
     ToolbarTool.NOTES -> R.string.fonts_tool_notes_desc
+    ToolbarTool.TODO -> R.string.fonts_tool_todo_desc
     ToolbarTool.PLUGINS -> R.string.fonts_tool_plugins_desc
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_desc
     ToolbarTool.AI -> R.string.fonts_tool_ai_desc
@@ -290,14 +301,14 @@ internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector
  * names that are searched: a Bengali install is searched in Bengali.
  */
 @Composable
-private fun rememberToolSearchIndex(): Map<ToolbarTool, String> {
+private fun rememberToolSearchIndex(extensions: Set<Extension>): Map<ToolbarTool, String> {
     val resources = LocalContext.current.resources
     // The configuration is the composition's own handle on the locale, so a
     // language change rebuilds the index rather than leaving last language's
     // words in it.
     val configuration = LocalConfiguration.current
-    return remember(resources, configuration) {
-        ToolGroups.flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
+    return remember(resources, configuration, extensions) {
+        ToolGroups.withExtensions(extensions).flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
             normalizeForSearch(
                 resources.getString(toolTitle(tool)) + ' ' +
                     resources.getString(toolDescription(tool)),
@@ -355,7 +366,10 @@ internal fun ToolsSettings(
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val searchIndex = rememberToolSearchIndex()
+    // A switched-off bundle's tools (Extensions) are not on this list, in
+    // its search, or in any picker built from the same groups.
+    val extensions = settings.watch { it.extensionsResolved() }
+    val searchIndex = rememberToolSearchIndex(extensions)
     // Every word of the query has to be somewhere in the tool's name or its
     // description. Substring rather than whole word, because a name is found
     // halfway through typing it.
@@ -441,7 +455,7 @@ internal fun ToolsSettings(
         onChange = { scope.launch { repository.setSplitToolPanels(it) } },
         default = SettingsDefaults.appUi.splitToolPanels,
     )
-    val groups = if (splitPanels) SplitToolGroups else ToolGroups
+    val groups = (if (splitPanels) SplitToolGroups else ToolGroups).withExtensions(extensions)
     // Only the group titles need a composition; each grouping itself is fixed.
     val allGroups = groups.map { (title, tools) -> stringResource(title) to tools }
     // Resolved once per grouping, not per recomposition: the keys go into
@@ -523,56 +537,69 @@ internal fun ToolRow(
 ) {
     val route = toolRoute(tool)
     val usable = blocker == null
-    WmRow(
-        title = stringResource(toolTitle(tool)),
-        subtitle = when (blocker) {
-            null -> stringResource(toolDescription(tool))
-            ToolBlocker.NEEDS_SEARCH_KEY -> stringResource(R.string.tools_needs_key_subtitle)
-            ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
-            ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
-            ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
-        },
-        leading = {
-            SlotIcon(
-                IconSlots.forTool(tool),
-                contentDescription = null,
-                modifier = Modifier.wmSharedElement(takeOffKey("icon", route)),
-                tint = paint?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
-                brush = paint?.brush,
-            )
-        },
-        flightTo = route,
-        subtitleFlies = true,
-        trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (toolHasOptions(tool)) {
-                    Icon(
-                        Icons.Outlined.Tune,
-                        contentDescription = optionsDesc,
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    val title = stringResource(toolTitle(tool))
+    val subtitle = when (blocker) {
+        null -> stringResource(toolDescription(tool))
+        ToolBlocker.NEEDS_SEARCH_KEY -> stringResource(R.string.tools_needs_key_subtitle)
+        ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
+        ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
+        ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
+        ToolBlocker.NEEDS_MIX_SOURCE -> stringResource(R.string.tools_needs_mix_source_subtitle)
+        ToolBlocker.NEEDS_MUSIC_PROVIDER -> stringResource(R.string.tools_needs_music_provider_subtitle)
+    }
+    val row: @Composable () -> Unit = {
+        WmRow(
+            title = title,
+            subtitle = subtitle,
+            leading = {
+                SlotIcon(
+                    IconSlots.forTool(tool),
+                    contentDescription = null,
+                    modifier = Modifier.wmSharedElement(takeOffKey("icon", route)),
+                    tint = paint?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    brush = paint?.brush,
+                )
+            },
+            flightTo = route,
+            subtitleFlies = true,
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (toolHasOptions(tool)) {
+                        Icon(
+                            Icons.Outlined.Tune,
+                            contentDescription = optionsDesc,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = usable && enabled,
+                        onCheckedChange = onToggle,
+                        enabled = usable,
+                        modifier = Modifier.wmSharedElement(takeOffKey("switch", route)),
                     )
                 }
-                Switch(
-                    checked = usable && enabled,
-                    onCheckedChange = onToggle,
-                    enabled = usable,
-                    modifier = Modifier.wmSharedElement(takeOffKey("switch", route)),
-                )
-            }
-        },
-        onClick = onOpen,
-    )
+            },
+            onClick = onOpen,
+        )
+    }
+    // The row still opens, only its switch is greyed out: the hold says why,
+    // and sends the user to the tool's page, which holds every fix.
+    if (usable) {
+        row()
+    } else {
+        HighlightableRow(title, disabledReason = DisabledReason(subtitle, route = route), content = row)
+    }
 }
 /** The Panels group, in the order the Tools screen lists it. */
 private val PanelTools = listOf(
-    ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES,
+    ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES, ToolbarTool.TODO,
     ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
     ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
-    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+    ToolbarTool.MUSIC_ID, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
 )
 
 /**
@@ -580,7 +607,7 @@ private val PanelTools = listOf(
  * apps and other devices. The rest of [PanelTools] is Writing.
  */
 private val ConnectPanels = setOf(
-    ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
+    ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL, ToolbarTool.MUSIC_ID,
     ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
 )
 
@@ -628,7 +655,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
         R.string.tools_group_online_title to listOf(
             ToolbarTool.TRANSLATE, ToolbarTool.GIF, ToolbarTool.STICKER,
             ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
-            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.AI, ToolbarTool.AI_REPLY,
+            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.SPEED_TEST, ToolbarTool.AI, ToolbarTool.AI_REPLY,
         ),
     )
     add(

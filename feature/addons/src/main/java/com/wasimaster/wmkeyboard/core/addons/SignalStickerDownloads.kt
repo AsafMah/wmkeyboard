@@ -130,7 +130,8 @@ object SignalStickerDownloads {
 
     /**
      * Downloads every sticker [manifest] lists and registers them with [store]
-     * as one pack.
+     * as one pack. [only], when given, names the sticker ids the user ticked
+     * in the preview (#965); the rest are neither downloaded nor converted.
      *
      * Throws [IOException] when not one sticker could be fetched and the
      * network is why, so that the screen can say so instead of reporting a
@@ -144,9 +145,10 @@ object SignalStickerDownloads {
         manifest: SignalPackManifest,
         defaultName: String,
         cacheDir: File,
+        only: Set<Int>? = null,
         onProgress: (phase: Phase, done: Int, total: Int) -> Unit,
     ): StickerImportResult = withContext(Dispatchers.IO) {
-        val wanted = manifest.stickers
+        val wanted = manifest.stickers.filter { only == null || it.id in only }
         val fetching = minOf(wanted.size, StickerPackStore.MAX_STICKERS_PER_PACK)
         val files = download(packId, packKey, wanted, cacheDir) { done ->
             onProgress(Phase.DOWNLOADING, done, fetching)

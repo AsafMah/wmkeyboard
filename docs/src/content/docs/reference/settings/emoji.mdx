@@ -28,25 +28,31 @@ The Emoji screen collects every setting behind emoji access, suggestions, the pa
 |---|---|---|---|
 | Emoji button in toolbar | Toggle | On / Off | On |
 | Buttons beside the suggestions *(shown only while Emoji button in toolbar is on)* | Tool picker + reorderable list | any tools, in any order | Emoji |
+| Toolbox button *(same condition)* | Toggle | On / Off | Off |
 | Buttons on the right *(same condition)* | Toggle | On / Off | Off |
 | Own size for these buttons *(same condition)* | Toggle | On / Off | Off |
-| Button width *(shown only while Own size for these buttons is on)* | Slider | 30–64 dp | 38 dp |
+| Button width *(shown only while Own size for these buttons is on)* | Slider | 20–64 dp | 38 dp |
 | Button icon size *(same condition)* | Slider | 14–30 dp | 22 dp |
 | Full-screen emoji panel | Toggle | On / Off | On |
 | Panel layout | Nav row | n/a | opens the emoji panel's layout editor |
 | Emoji panel | Nav row | n/a | opens the [Emoji panel](#emoji-panel) page |
+| Emoji mixes | Nav row | n/a | opens the [Emoji mixes](/emoji/mixes/) page: its sources and where mixes show |
 
 **Emoji button in toolbar** keeps a one-tap emoji launcher in the top bar even while suggestions are showing.
 
 **Buttons beside the suggestions** picks which tools stay beside the suggestions, and how many. Emoji is the default. Tap **Add** to add Clipboard, Voice input or any other tool; the list under it holds the chosen buttons, where you drag the handle to change their order and tap the bin to take one off. A tool must be turned on under Tools to show. A tool that is also pinned on the toolbar slides between its two spots when the bar flips between the suggestions and the tools, the way the emoji button always has. With the tools on a row of their own, a button already on that open row is left off the strip.
 
-**Buttons on the right** moves these buttons from the strip's start, before the words, to its far end, after them.
+**Toolbox button** puts the toolbox launcher first among these buttons, so the toolbox is one tap away while the suggestions show, the same as from the toolbar.
+
+**Buttons on the right** moves these buttons from the strip's start, before the words, to its far end, after them. On a right-to-left layout (Arabic, Hebrew, Urdu) the words run from the right, but the buttons stay on the side and in the order you set, as the toolbar's tools do. Turn on **Reverse the order for right-to-left languages** under [Toolbar](/reference/settings/appearance/) to have both follow the script instead.
 
 **Own size for these buttons** sizes the buttons beside the suggestions apart from the toolbar's tools, with **Button width** and **Button icon size**. Off, they take the toolbar's [Tool width and Tool icon size](/reference/settings/appearance/), so a tool in both places looks the same in each. Turned on, it also brings the English words switch of a phonetic layout up to the same size, instead of the smaller button it otherwise uses.
 
 **Full-screen emoji panel** makes the panel take over the whole keyboard: the toolbar, emoji row, and symbol row step aside, and the category tabs move into the row they leave behind, next to a back button. Turn it off to keep the toolbar within reach while picking emoji.
 
 **Panel layout** and **Emoji panel** are the two doors to the panel itself, side by side: the first edits the panel's grid of tabs, search and rows, the second holds every other panel setting. They sit together in this group so that everything about the panel starts from one place.
+
+**Emoji mixes** opens the page for two-emoji stickers. The keyboard ships no source for them; the page takes one you add and sets where its mixes show. See [Emoji mixes](/emoji/mixes/).
 
 Two more emoji-access toggles live on a different screen. See [Details & edge cases](#details--edge-cases) below.
 
@@ -76,7 +82,10 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 | Setting | Control | Options / range | Default |
 |---|---|---|---|
 | Grid size | Slider | 36–64 | 44 |
+| Narrowest tab | Slider | 24–48 dp | 40 dp |
 | Emoji size | Slider | 20–36 | 28 |
+| Columns | Slider | Auto, 5–14 | Auto |
+| Row height | Slider | Auto, 36–72 | Auto |
 | Recent emoji kept | Slider | 8–96 | 32 |
 | Clear emoji history | Button (confirms first) | n/a | n/a |
 | Return to the keyboard after you insert | Toggle | On / Off | Off |
@@ -84,8 +93,8 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 | Open the last used panel | Toggle | On / Off | Off |
 | One long list | Toggle | On / Off | Off |
 | Panel height | Slider | Same as keyboard to +400 dp | Same as keyboard |
-| History tab | Choice | Recent / Most used / Off | Recent |
-| Clear recents button *(shown only when History tab is Recent)* | Toggle | On / Off | Off |
+| History tab | Choice | Recent / Most used / Both / Off | Recent |
+| Clear recents button *(shown only when History tab is Recent or Both)* | Toggle | On / Off | Off |
 | Kaomoji tab | Toggle | On / Off | Off |
 | Kaomoji | Page | Opens the kaomoji library's settings | |
 | Emoji descriptions | Toggle | On / Off | On |
@@ -102,6 +111,10 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 
 **Emoji size** is how large each emoji is drawn, on every tab and in search results. The long-press popup keeps its own size regardless.
 
+**Narrowest tab** is how narrow a category tab may get before the tab strip stops sharing out the width and scrolls sideways instead. At 40 dp a 1080p phone holds about ten tabs; at 32 it fits the history tab, every category and the kaomoji tab without scrolling.
+
+**Columns** fixes how many emoji go across a row. On **Auto** the grid fits as many as **Grid size** allows, so a wider screen shows more; a number keeps every emoji in the same column on any screen. **Row height** fixes how tall each row is, in dp; on **Auto** a row is as tall as the emoji size needs. With both fixed, a swipe of a given length always scrolls to the same emoji. [Arrange like](#emoji-categories) sets them, with the emoji size, to match the keyboard you copy, and a fixed grid centres each emoji in its cell.
+
 **Recent emoji kept** caps the history tab. 32 is about one row on a small phone and four on a tablet. Lowering it trims the list straight away.
 
 **Clear emoji history** empties the history tab, unpins your favourites, and puts each emoji's skin tone back to the default. It confirms first, and it can't be undone. The emoji themselves are untouched.
@@ -116,7 +129,7 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 
 **Panel height** makes the emoji, GIF and sticker panels open taller than the keyboard, so more of them fit on screen at once, while the letters keep their own, more compact height. The three panels share it, so going from one to another never moves the top of the keyboard. The bar across the top of the GIF and sticker panels drags this same setting, and the GIF and sticker tool pages show it too. The panel never covers more than most of the screen, so on a short screen or a phone held sideways it can stay shorter than you set. While you type a search, the panel shrinks as before so the keys fit under it.
 
-**History tab** sets what the panel's first tab shows. **Recent** lists emoji in the order you last used them, and **Most used** ranks by frequency. Favourited emoji are pinned to the front of either list. **Off** removes the tab, and the panel opens on the first emoji category.
+**History tab** sets what the panel's first tab shows. **Recent** lists emoji in the order you last used them, and **Most used** ranks by frequency. **Both** puts your 16 most used at the top under their own heading, then the recents. Favourited emoji are pinned to the front of either list. **Off** removes the tab, and the panel opens on the first emoji category.
 
 **Kaomoji tab** adds a tab to the end of the panel's tab strip with your kaomoji library: Japanese-style faces and Western ASCII emoticons, under tag tabs you can add to, sort and rename. The **Kaomoji** row under it opens the tab's own settings: a separate Emoticons tab, the tag tabs, the edit buttons beside the grid, kaomoji suggestions while you type, and the library itself with its import from Emotic, export and reset. Full coverage: [Kaomoji & text art](/emoji/kaomoji/).
 
@@ -213,10 +226,13 @@ The emoji panel ships its categories in the order Unicode defines them, which is
 
 | Control | What it does |
 |---|---|
+| Arrange like | Unicode (default), Gboard, SwiftKey or HeliBoard: copies that keyboard's tabs and emoji order |
 | Drag handle | Moves a category's tab in the panel's tab strip |
 | Eye | Hides a category's tab, or brings it back |
 | The row itself | Opens that category's emoji, to arrange them |
 | Reset every order | Puts the tabs, the hidden ones and every category's emoji back the way they shipped |
+
+**Arrange like.** Sets every order on this screen at once to match another keyboard, for when your thumb learned emoji there. Where that keyboard groups emoji differently from the catalogue, the emoji move to the tab it keeps them on (on HeliBoard, plants join Animals and the weather joins Travel), and a tab left empty is hidden: Nature on all three, and People on SwiftKey, which keeps faces and people together. It also sets the grid to that keyboard's columns, row height, emoji size and scrolling. Everything stays draggable and resizable afterwards. After a hand change the row shows **Your own**, and picking a preset then asks before it replaces your arrangement. **Unicode** does what **Reset every order** does. See [Arranging the panel like your old keyboard](/emoji/customization/#arranging-the-panel-like-your-old-keyboard) for what each preset moves.
 
 **Reordering a tab.** Drag a row by its handle. The order you leave it in is the order the tabs appear in the panel, left to right.
 
@@ -228,6 +244,25 @@ Three tabs are deliberately not listed here:
 
 - **Recent** (or **Most used**) orders itself by what you use, with your favourites pinned to the front. Reorder those from any favourited emoji's long-press popup.
 - **Kaomoji** (and **Emoticons**, when split off) is switched on and off by the **Kaomoji tab** toggle above and always sits at the end of the strip. Its own tags are sorted on the Kaomoji page.
+
+## Added emoji
+
+<SettingsPath path="Emoji / Emoji panel / Added emoji" />
+
+Emoji from a Unicode release newer than the app's own catalogue (Emoji 17.0), added by hand. Each one shows at the end of its tab in the emoji panel, is found by panel search and inline `:word` search, and can be a favourite or land in Recent. See [Adding emoji the keyboard doesn't have yet](/emoji/customization/#adding-emoji-the-keyboard-doesnt-have-yet) for the reasoning.
+
+| Control | What it does |
+|---|---|
+| Add an emoji | Opens a form: the emoji itself, a name, comma-separated keywords, and the tab it goes in |
+| Import emoji-test.txt | Adds every emoji in Unicode's `emoji-test.txt` that the keyboard doesn't have yet, skin tone versions excepted |
+| A row under Your added emoji | Opens the same form to change or delete that emoji. Swiping the row deletes it |
+| Delete all added emoji | Removes every added emoji, after asking |
+
+The form won't save an emoji the keyboard already has (it names the tab it is in), one you already added, or text with a space in it. When your emoji font can't draw what you pasted, the form says so but still lets you save it: the keyboard types it correctly, and **Hide emoji that your device cannot show** never hides an added emoji.
+
+When an update includes an emoji you added, its row says **The keyboard now includes this emoji**. The built-in entry is used from then on and keeps your keywords, so deleting yours loses nothing.
+
+Added emoji are part of your settings: a backup with Settings ticked carries them, and sync copies them between devices. The list holds up to 500.
 
 ## Emoji keywords
 
@@ -271,6 +306,7 @@ Each enabled language's own settings screen also carries a matching **Emoji** gr
 - **Kaomoji and emoticons insert as plain text.** Tapping one types it directly. It counts for the Kaomoji tab's own Recent tag and never joins your emoji recents or most-used history.
 - **Power Saving mode can drop emoji suggestions independently of the toggle here.** See [Power saving](/typing/power-saving/) for its own emoji-prediction toggle.
 - **The toolbar's Emoji tool has its own mini-settings panel** with a duplicate "Emoji button in toolbar" toggle and an "All emoji settings" shortcut back to this screen. See [Tools](/tools/overview/) for toolbar-tool customization in general.
+- **The Emoji categories screen lists added emoji too.** They sit at the end of their category and can be dragged like the built-in ones.
 - **No build differences.** Every setting on this screen and its keyword sub-screen works the same in every build.
 
 ## Related pages

@@ -161,6 +161,25 @@ enum class ToolbarTool {
     // with a row of the latest notes under it to switch to one and add to it
     // (#864). Action-only, like [CLIPBOARD_SEARCH].
     QUICK_NOTE,
+    // A to-do list with steps under each task (#920), kept in the app's files
+    // and shared with the settings app's list. Can sync with a CalDAV task
+    // list through DAVx5's task app when the user sets that up. Reads
+    // filesDir, so not available before the first unlock.
+    TODO,
+    // Two emoji drawn as one sticker, from a source the user added under
+    // Emoji › Emoji mixes: the panel beside emoji, GIFs and stickers on the
+    // switch. Nothing ships for it, so it is blocked until a source is added.
+    EMOJI_MIX,
+    // What song is playing: ten seconds from the microphone, asked of the
+    // recognition services on its list in turn, and the answer typed as text
+    // or sent as a picture. Keeps its history under filesDir, so not before
+    // the first unlock. Blocked until a recogniser is set up with a key.
+    MUSIC_ID,
+    // An internet speed test (download, upload, ping, jitter) whose result
+    // goes into the field as a picture: a card drawn in one of several
+    // styles, sizes and layouts. Against Cloudflare's test servers or a
+    // LibreSpeed server, from the tool's own provider list.
+    SPEED_TEST,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -355,7 +374,7 @@ val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
  * their converters and their calendar already on.
  */
 val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
-    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.GALLERY, ToolbarTool.POWER_SAVING,
+    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.TODO, ToolbarTool.GALLERY, ToolbarTool.POWER_SAVING,
     ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
@@ -383,10 +402,11 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
-    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
+    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.SPEED_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

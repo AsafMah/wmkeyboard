@@ -1,0 +1,61 @@
+---
+title: "Sharing with everyone"
+description: "Send a theme or layout you made to the community addon repository from the app, and how it gets checked, previewed and published."
+sidebar:
+  order: 5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The community addon repository, [`wmkeyboard-community-addons`](https://github.com/wasi-master/wmkeyboard-community-addons) on GitHub, holds themes and layouts that people made in the app and sent in. It is pre-added like the other two repositories, so its themes show up under Addons and behind the **Community themes** and **Community layouts** rows. You can send your own from the app in a few taps. A GitHub account is the only requirement.
+
+## Sending a theme
+
+<SettingsPath path="Appearance / Keyboard themes" />
+
+Every theme under Your themes has a globe icon on its card, **Share with everyone**. Built-in themes don't, since they aren't yours to publish. A family card sends the whole family, a separate card the one look it shows, the same as Export.
+
+The dialog asks for:
+
+- **Name**, the theme's own name to begin with.
+- **Description** and **Tags**, both optional. Tags are separated by commas.
+- **Licence**: CC0-1.0 (anyone can use and change it, no credit needed), CC-BY-4.0 (they must credit you) or CC-BY-SA-4.0 (they must credit you and share their changes the same way).
+- **Replaces your earlier one**, optional: the id of a theme you published before, to send a new version of it instead of a second theme.
+
+**Open GitHub** opens a new issue in the community repository with all of that filled in. You check the box saying you made it, or have the right to share every picture in it, and press Submit. Nothing is sent from the app itself. The issue is filed by you, under your account, which is how the repository knows a later update comes from the same person.
+
+## Sending a layout
+
+<SettingsPath path="Layout & size / Key layouts" />
+
+Each layout of your own, and each secondary layout, has **Share with everyone** in its ⋮ menu. The dialog is the same as a theme's. Layouts that ship with the app have no such item.
+
+## Sending from the web store
+
+The theme and layout builders in the [web store](/addons/new/) have the same form under **Submit to community**, beside Export. It builds the same issue, so a theme drawn on a computer goes through the same checks as one sent from the phone.
+
+## How the file gets to GitHub
+
+A theme or layout reaches the issue one of three ways, picked by its size:
+
+- **In the link.** Most colour and gradient themes and every ordinary layout fit in the link that opens the issue, so the form arrives filled in and you only press Submit.
+- **Pasted.** Too long for a link but under about 60,000 characters: the app copies it, and you paste it into the **Addon** box on GitHub.
+- **As a file.** A theme with photos in it is usually too big to paste. The app first offers **Make smaller**, which re-saves the background pictures as JPEG at keyboard width; that often brings it down to a paste. Animated GIFs and pictures with transparent parts are left as they are. Otherwise **Save file** writes a `.zip`, and you drag it into the **Addon** box on GitHub.
+
+## What happens after you submit
+
+The repository's bot reads the issue within a minute or two. It checks the theme or layout with the same importer the app uses, so anything the app would refuse is refused there too, with the importer's reason. It also checks the form itself: that the id is free, or belongs to your earlier submission when you are sending an update, and that a licence is chosen.
+
+It then comments on the issue with a quick preview drawn from the file, and links to try it before anyone approves it: one opens the addon in the app, the other in the [web store](/addons/). A few minutes later it replaces that preview with a render of the real keyboard wearing the theme. If something needs fixing, the comment says what. Edit the issue and the checks run again.
+
+When a maintainer approves it, the bot adds it to the repository and closes the issue with a link to install it. It then appears under **Community themes** or **Community layouts** for everyone.
+
+## Remixes
+
+A theme or layout installed from any repository remembers where it came from. Copy it, change it and send the copy, and the dialog says *Credited as a remix of …* with the original's name and author. The repository's page for your version shows **Remix of** with a link to the original. A theme you made from scratch, or from a built-in, has no such line.
+
+## Details
+
+- Removing the community repository from Addons works like removing the others: permanent, and the **Community themes** row then offers to add it back instead of opening it.
+- The issue is always filed on GitHub, even when the F-Droid build's Servers screen points the repository at a mirror.
+- Your theme's own id and any background file paths are never sent; the export already replaces them, and the app installs a published theme under a fresh id.

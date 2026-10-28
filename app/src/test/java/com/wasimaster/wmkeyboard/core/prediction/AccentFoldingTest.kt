@@ -54,6 +54,16 @@ class AccentFoldingTest {
         assertEquals(0.0, got.editCost, 1e-9)
     }
 
+    @Test fun turkishDotlessIIsAnAccentOfI() {
+        assertEquals('i', Accents.bare('ı'))
+        // Telegram group: "haklisin" for "haklısın", ı typed as i twice.
+        val got = walk(listOf("haklısın" to 2_000), "haklisin").single()
+        assertEquals("haklısın", got.word)
+        assertEquals(0, got.edits)
+        assertEquals(2, got.accents)
+        assertEquals("güzel", walk(listOf("güzel" to 2_000), "guzel").single().word)
+    }
+
     @Test fun aLeftOutHalfSpaceIsFoundWithoutSpendingAnEdit() {
         // #406: Persian writes می‌کنم, typed as the letters alone.
         val got = walk(listOf("می\u200Cکنم" to 58_927), "میکنم").single()

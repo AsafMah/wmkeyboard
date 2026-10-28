@@ -81,7 +81,7 @@ internal fun KaomojiSettings(
     // or not, so it can be set up before it is shown.
     val rail = settings.watch { it.emoji.kaomoji.rail }
     SettingsGroup(stringResource(R.string.langemoji_kaomoji_tab_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_kaomoji_split_title,
                 stringResource(R.string.langemoji_kaomoji_split_subtitle),
@@ -89,7 +89,7 @@ internal fun KaomojiSettings(
                 default = SettingsDefaults.emoji.kaomoji.splitEmoticons,
             ) { scope.launch { repository.setKaomojiSplitEmoticons(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_kaomoji_tag_tabs_title,
                 stringResource(R.string.langemoji_kaomoji_tag_tabs_subtitle),
@@ -97,7 +97,7 @@ internal fun KaomojiSettings(
                 default = SettingsDefaults.emoji.kaomoji.tagTabs,
             ) { scope.launch { repository.setKaomojiTagTabs(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.langemoji_kaomoji_start_title,
                 subtitle = stringResource(R.string.langemoji_kaomoji_start_subtitle),
@@ -113,7 +113,7 @@ internal fun KaomojiSettings(
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_kaomoji_rail_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.langemoji_kaomoji_rail_title,
                 subtitle = stringResource(R.string.langemoji_kaomoji_rail_subtitle),
@@ -129,7 +129,7 @@ internal fun KaomojiSettings(
         }
         // One switch per button, so a rail can carry only what its owner uses.
         for ((button, title) in KaomojiRailButtonTitles) {
-            item(visible = rail != KaomojiRailSide.OFF) {
+            item(visible = rail != KaomojiRailSide.OFF, level = SettingLevel.ADVANCED) {
                 val buttons = settings.watch { it.emoji.kaomoji.railButtons }
                 ToggleSetting(
                     title,
@@ -150,7 +150,7 @@ internal fun KaomojiSettings(
                 default = SettingsDefaults.emoji.kaomoji.suggest,
             ) { scope.launch { repository.setKaomojiSuggest(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_kaomoji_in_search_title,
                 stringResource(R.string.langemoji_kaomoji_in_search_subtitle),
@@ -209,21 +209,21 @@ private fun KaomojiLibraryGroup(model: KaomojiModel, context: Context, onNavigat
                 route = "kaomoji/tags",
             ) { onNavigate("kaomoji/tags") }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ActionRow(
                 R.string.langemoji_kaomoji_import_title,
                 stringResource(R.string.langemoji_kaomoji_import_subtitle),
                 action = stringResource(R.string.langemoji_kaomoji_import_action),
             ) { importLauncher.launch(arrayOf("*/*")) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ActionRow(
                 R.string.langemoji_kaomoji_export_title,
                 stringResource(R.string.langemoji_kaomoji_export_subtitle),
                 action = stringResource(R.string.langemoji_kaomoji_export_action),
             ) { exportLauncher.launch(KaomojiFiles.DEFAULT_FILE_NAME) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ActionRow(
                 R.string.langemoji_kaomoji_reset_title,
                 stringResource(R.string.langemoji_kaomoji_reset_subtitle),

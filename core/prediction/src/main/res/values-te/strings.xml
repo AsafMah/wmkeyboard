@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">సబ్‌టైటిల్స్ మరియు వెబ్ టెక్స్ట్ నుండి లెక్కించబడింది. మరిన్ని పేర్లు, యాస మరియు టైపింగ్ తప్పులతో కూడిన మరిన్ని పదాలు.</string>
     <string name="core_pred_wordlist_source_frequency_label">ఫ్రీక్వెన్సీ</string>
+    <string name="core_pred_wordlist_variant_australia_label">ఆస్ట్రేలియా</string>
     <string name="core_pred_wordlist_variant_brazil_label">బ్రెజిల్</string>
+    <string name="core_pred_wordlist_variant_canada_label">కెనడా</string>
     <string name="core_pred_wordlist_variant_europe_label">యూరప్</string>
     <string name="core_pred_wordlist_variant_uk_label">యునైటెడ్ కింగ్‌డమ్</string>
     <string name="core_pred_wordlist_variant_us_label">యునైటెడ్ స్టేట్స్</string>

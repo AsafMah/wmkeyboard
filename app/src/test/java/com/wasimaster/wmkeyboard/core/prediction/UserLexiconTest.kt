@@ -91,6 +91,45 @@ class UserLexiconTest {
     }
 
     @Test
+    fun aLanguageChosenByHandSticksAndRoundTrips() {
+        // #930: the personal dictionary screen files words by language.
+        val f = file()
+        UserLexicon(f).apply {
+            learnWord("adda", 2, langId = "bn")
+            learnWord("hello", 2, langId = "en")
+            addWord("Wasimaster")
+            assertFalse(setLanguage("nowhere", "en"))
+            assertTrue(setLanguage("Wasimaster", "bn"))
+            // Every language: typing it in English later leaves it there.
+            assertTrue(setLanguage("hello", null))
+            learnWord("hello", 1, langId = "en")
+            assertNull(languageOf("hello"))
+            save()
+        }
+        val back = UserLexicon(f)
+        assertEquals("bn", back.languageOf("wasimaster"))
+        assertTrue(back.isLanguagePinned("Wasimaster"))
+        assertNull(back.languageOf("hello"))
+        assertTrue(back.isLanguagePinned("hello"))
+        // A word nobody filed still follows the language it is typed in.
+        assertFalse(back.isLanguagePinned("adda"))
+        back.learnWord("adda", 1, langId = "hi")
+        assertEquals("hi", back.languageOf("adda"))
+        assertTrue("\"langPinned\":[\"hello\",\"wasimaster\"]" in f.readText())
+    }
+
+    @Test
+    fun aFileFromBeforeLanguagePinsKeepsItsTags() {
+        val f = file()
+        f.parentFile?.mkdirs()
+        f.writeText("""{"words":{"adda":2,"wmk":1},"wordLang":{"adda":"bn"},"addedByHand":["wmk"]}""")
+        val lexicon = UserLexicon(f)
+        assertEquals("bn", lexicon.languageOf("adda"))
+        assertNull(lexicon.languageOf("wmk"))
+        assertFalse(lexicon.isLanguagePinned("adda"))
+    }
+
+    @Test
     fun nextWordsOrderSurvivesMutation() {
         val lexicon = UserLexicon(null)
         lexicon.learnBigram("a", "x")

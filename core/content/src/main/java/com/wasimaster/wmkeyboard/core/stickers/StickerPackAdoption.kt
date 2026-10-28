@@ -108,6 +108,15 @@ object StickerPackAdoption {
         }
     }
 
+    /**
+     * [incoming] cut down to the ones the user ticked (#965): the [chosen]
+     * indexes, and every sticker with nothing to show, so that a missing
+     * picture still gets its repair note in the report rather than quietly
+     * disappearing with the stickers the user left out.
+     */
+    fun <T> chosenOf(items: List<T>, chosen: Set<Int>, pickable: (T) -> Boolean): List<T> =
+        items.filterIndexed { index, item -> index in chosen || !pickable(item) }
+
     /** Writes one sticker into [packDir], or notes in [repairs] why it was dropped. */
     private fun keep(
         item: Incoming,

@@ -29,7 +29,8 @@ internal object NativeGlide {
             wiggleExtent.toDouble(), wiggleWeight.toDouble(), loopExclusion.toDouble(), unclaimedLoop.toDouble(),
             learnedShapeGain, if (shapeSeeding) 1.0 else 0.0, shapeChannel, startRadius.toDouble(),
             endRadius.toDouble(), nearRadius.toDouble(), vocabularyRank.toDouble(), lookAheadCost,
-            lookAheadBudget.toDouble(), joinerCost.toDouble(),
+            lookAheadBudget.toDouble(), joinerCost.toDouble(), freqWeight, joinCost,
+            joinMinPart.toDouble(), joinPartPenalty,
         )
     }
 
@@ -54,16 +55,22 @@ internal object NativeGlide {
         limit: Int,
         shapes: GlideShapeSource?,
         lookAhead: Int,
+        openHead: Int = 0,
+        openTail: Int = 0,
     ): List<GlideBeam.Candidate>? {
         val s = Sources(sources, tuning.vocabularyRank)
         if (!s.complete) return null
-        val learned = shapes != null && tuning.learnedShapeGain > 0.0 && tuning.shapeChannel > 0.0
-        val seeding = shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0
+        // A stroke with an open end has a walk to or from the spacebar in
+        // it that no stored shape has (#968): the shape channel stands down,
+        // in the decoder and in the seeding here.
+        val open = openHead > 0 || openTail > 0
+        val learned = !open && shapes != null && tuning.learnedShapeGain > 0.0 && tuning.shapeChannel > 0.0
+        val seeding = !open && shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0
         val stroke = Path(path)
         val walked = PredictionNative.glideDecode(
             tuningArray, stroke.xs, stroke.ys, stroke.ts, keys.nativeHandle, keyWidth,
             s.handles.copyOf(s.count), s.kinds.copyOf(s.count), s.weights.copyOf(s.count), s.tiers.copyOf(s.count),
-            s.floors.copyOf(s.count), limit, lookAhead, if (learned || seeding) 1 else 0,
+            s.floors.copyOf(s.count), limit, lookAhead, if (learned || seeding) 1 else 0, openHead, openTail,
         ) ?: return emptyList()
         if (!learned && !seeding) return candidates(walked)
         @Suppress("UNCHECKED_CAST")

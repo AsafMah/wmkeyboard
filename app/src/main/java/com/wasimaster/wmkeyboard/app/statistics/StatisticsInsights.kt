@@ -364,7 +364,7 @@ internal fun EquivalentsRows(totals: TypingStats.Totals) {
 }
 
 @Composable
-private fun InsightRow(icon: ImageVector, title: Int, subtitle: String, value: String) {
+internal fun InsightRow(icon: ImageVector, title: Int, subtitle: String, value: String) {
     WmRow(
         title = stringResource(title),
         subtitle = subtitle,

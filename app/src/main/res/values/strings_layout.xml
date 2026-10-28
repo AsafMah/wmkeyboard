@@ -66,7 +66,10 @@
 
     <!-- Layout screen: the size and position group. -->
     <string name="layout_size_position_title">Size and position</string>
-    <string name="layout_size_subtitle">Height, width, padding, and each screen shape</string>
+    <string name="layout_size_subtitle">Key height and keyboard size</string>
+    <string name="layout_resize_drag_title">Resize by dragging</string>
+    <string name="layout_resize_drag_subtitle">Opens the keyboard with handles on its edges: drag the height, position and side margins in place</string>
+    <string name="layout_resize_drag_action">Resize</string>
     <string name="layout_key_height_title">Key height</string>
     <string name="layout_key_height_subtitle">The height of each key row, which sets the total keyboard height</string>
     <string name="layout_key_height_info">Tall keys are easier to press, but the keyboard covers more of the screen. The emoji, clipboard and snippet panels change size with this value too.</string>
@@ -141,7 +144,7 @@
 
     <!-- Layout screen: one-handed, split and floating keyboards. -->
     <string name="layout_one_handed_group_title">One-handed, split and floating</string>
-    <string name="layout_one_handed_page_subtitle">One-handed, split and floating</string>
+    <string name="layout_one_handed_page_subtitle">One-handed, split, floating</string>
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
     <string name="layout_one_handed_caption">You can set one-handed mode for each orientation. In the keyboard, the arrow on the rail changes the side and saves it here for that orientation.</string>
@@ -229,7 +232,7 @@
     <string name="layout_globe_guard_subtitle">A tap on 🌐 just after a letter does nothing</string>
     <string name="layout_globe_guard_info">The 🌐 key is next to the spacebar and the comma, so a fast thumb can hit it by mistake in the middle of a word and change the language. Set a time here and a tap on 🌐 that comes sooner than this after a typed key does nothing. A tap after a pause changes the language as usual, and so do quick taps one after the other on 🌐 itself. Press and hold 🌐 to open the language list at any time. Letters, space, backspace and enter count as typing. Shift and the mode keys do not. This setting is off by default.</string>
     <!-- Subtitle of the two settings that change the 🌐 key, while it is hidden. -->
-    <string name="layout_globe_hidden_subtitle">No effect while the 🌐 key is hidden</string>
+    <!-- Said on a long press of a greyed-out 🌐 row, above "Open the setting". -->
     <string name="layout_split_large_only_title">Split only on wide screens</string>
     <string name="layout_split_large_only_subtitle">Stay whole on a portrait phone, split when there is room</string>
     <string name="layout_split_spacebar_title">Split the spacebar</string>

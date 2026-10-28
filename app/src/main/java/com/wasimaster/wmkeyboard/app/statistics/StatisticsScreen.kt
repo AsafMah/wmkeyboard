@@ -50,7 +50,9 @@ import com.wasimaster.wmkeyboard.app.chartEntrance
 import com.wasimaster.wmkeyboard.app.rememberChartEntrance
 import com.wasimaster.wmkeyboard.app.rememberValuesMorph
 import com.wasimaster.wmkeyboard.app.storage.ConfirmDeleteDialog
+import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.tools.StatsPeriod
@@ -72,29 +74,46 @@ import java.util.TimeZone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Abc
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.app.ChoiceDetail
 
 /**
- * How much you type: your level and achievements, where you tap, all-time
- * totals, a day/week/month history with charts, and the switch that turns the
- * counting off.
+ * How much you type: your level and achievements, where you tap, your typos
+ * and the slips behind them, who you are when you type, all-time totals, a
+ * day/week/month history with charts, and the switch that turns the counting
+ * off.
  *
  * The screen is a *reader* of the keyboard's [TypingStats] file — it builds
  * its own instance on the same path and never calls save, so it cannot race
  * the keyboard into losing counts. Deleting goes the other way round: empty
  * the file, then bump [KeyboardSettings.statsVersion] so the keyboard drops
- * its in-memory copy instead of writing the old numbers back.
+ * its in-memory copy instead of writing the old numbers back. The slips and
+ * the fix pairs are read the same way off the learned corrections store.
  */
 @Composable
-internal fun StatisticsScreen(repository: SettingsRepository, settings: LiveSettings) {
+internal fun StatisticsScreen(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onOpenLearnedCorrections: () -> Unit = {},
+) {
     // The charts and figures fill in when the screen opens, and are simply
     // there when it is composed again for the same visit.
-    ChartIntroScope { StatisticsBody(repository, settings) }
+    ChartIntroScope { StatisticsBody(repository, settings, onOpenLearnedCorrections) }
 }
 
+/** What the learned corrections store has to say: the slips, and the pairs. */
+private class Slips(
+    val habits: List<CorrectionMemory.Habit> = emptyList(),
+    val pairs: List<Pair<String, CorrectionMemory.Taught>> = emptyList(),
+)
+
 @Composable
-private fun StatisticsBody(repository: SettingsRepository, settings: LiveSettings) {
+private fun StatisticsBody(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onOpenLearnedCorrections: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var confirmDelete by remember { mutableStateOf(false) }
@@ -117,6 +136,15 @@ private fun StatisticsBody(repository: SettingsRepository, settings: LiveSetting
         entries = read.first
         totals = read.second
         heatmaps = read.third
+    }
+    // The slips and fix pairs live in the learned corrections store, which
+    // has a reload signal of its own; read, never saved, like the counts.
+    var slips by remember { mutableStateOf(Slips()) }
+    LaunchedEffect(settings.watch { it.suggestionStrip.correctionsVersion }) {
+        slips = withContext(Dispatchers.IO) {
+            val memory = CorrectionMemory(File(context.filesDir, LEARNED_CORRECTIONS_FILE))
+            Slips(memory.habitSummary(), memory.pairs())
+        }
     }
 
     val statsOn = settings.watch { it.typingStatsEnabled }
@@ -160,6 +188,23 @@ private fun StatisticsBody(repository: SettingsRepository, settings: LiveSetting
         StreakCard(entries, todayEpochDay())
     }
 
+    // Typos: what went wrong and how, once there is a word to be wrong in.
+    if (lifetime.words > 0L || lifetime.autocorrects > 0L) {
+        SectionHeader(
+            stringResource(R.string.statistics_typos_section),
+            info = stringResource(R.string.statistics_typos_info),
+        )
+        TyposTiles(lifetime)
+        TypoRows(lifetime)
+    }
+    if (slips.habits.isNotEmpty() || slips.pairs.isNotEmpty()) {
+        SectionHeader(
+            stringResource(R.string.statistics_slips_section),
+            info = stringResource(R.string.statistics_slips_info),
+        )
+        SlipRows(slips.habits, slips.pairs, onOpenLearnedCorrections)
+    }
+
     if (heatmaps.isNotEmpty()) {
         SectionHeader(
             stringResource(R.string.statistics_heatmap_section),
@@ -177,6 +222,36 @@ private fun StatisticsBody(repository: SettingsRepository, settings: LiveSetting
             info = stringResource(R.string.statistics_sources_info),
         )
         SourcesCard(lifetime)
+    }
+
+    val badges = remember(lifetime) { TypingInsights.badges(lifetime) }
+    if (badges.isNotEmpty()) {
+        SectionHeader(
+            stringResource(R.string.statistics_persona_section),
+            info = stringResource(R.string.statistics_persona_info),
+        )
+        PersonaRows(badges)
+    }
+
+    if (hasPunctuation(lifetime)) {
+        SectionHeader(
+            stringResource(R.string.statistics_punctuation_section),
+            info = stringResource(R.string.statistics_punctuation_info),
+        )
+        PunctuationCard(lifetime)
+    }
+
+    if (hasRecords(lifetime)) {
+        SectionHeader(stringResource(R.string.statistics_records_section))
+        RecordBookRows(lifetime)
+    }
+
+    if (lifetime.wordsByLanguage.values.any { it > 0L }) {
+        SectionHeader(
+            stringResource(R.string.statistics_languages_section),
+            info = stringResource(R.string.statistics_languages_info),
+        )
+        LanguagesCard(lifetime)
     }
 
     // Issue #761: dictation, beside the typing and never inside it.
@@ -322,6 +397,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
             Metric.CHARS -> bucket.chars.toDouble()
             Metric.SPEED -> TypingStatsMath.wpm(bucket.chars, bucket.activeMs)
             Metric.SPOKEN -> bucket.voiceWords.toDouble()
+            Metric.TYPOS -> bucket.typos.toDouble()
         }
     }
     SettingsGroup {
@@ -342,6 +418,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                         Metric.CHARS to stringResource(R.string.statistics_chart_chars_label),
                         Metric.SPEED to stringResource(R.string.statistics_chart_speed_label),
                         Metric.SPOKEN to stringResource(R.string.statistics_chart_spoken_label),
+                        Metric.TYPOS to stringResource(R.string.statistics_chart_typos_label),
                     ),
                     selected = metric,
                     modifier = Modifier.padding(top = 8.dp),
@@ -353,6 +430,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                                 Metric.CHARS -> Icons.Outlined.Abc
                                 Metric.SPEED -> Icons.Outlined.Speed
                                 Metric.SPOKEN -> Icons.Outlined.Mic
+                                Metric.TYPOS -> Icons.Outlined.Spellcheck
                             },
                         )
                     },
@@ -385,7 +463,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
 @Composable
 private fun BucketRows(buckets: List<TypingStatsMath.Bucket>, period: StatsPeriod) {
     val numbers = remember { NumberFormat.getIntegerInstance() }
-    val nonEmpty = buckets.filter { it.chars > 0L || it.words > 0L || it.voiceWords > 0L }.asReversed()
+    val nonEmpty = buckets.filter { it.chars > 0L || it.words > 0L || it.voiceWords > 0L || it.typos > 0L }.asReversed()
     if (nonEmpty.isEmpty()) return
     SettingsGroup {
         for (bucket in nonEmpty) {
@@ -577,7 +655,7 @@ private fun SpeedLine(values: List<Double>, modifier: Modifier = Modifier) {
     }
 }
 
-private enum class Metric { WORDS, CHARS, SPEED, SPOKEN }
+private enum class Metric { WORDS, CHARS, SPEED, SPOKEN, TYPOS }
 
 /**
  * Names a bucket for its row and the chart's edges. The epoch day is local,

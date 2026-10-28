@@ -42,10 +42,34 @@ object ClockEngine {
      * data for ever, and keep its alarm from ringing the next day.
      */
     private fun expireStale(context: Context, now: Long) {
-        val limit = ClockPrefs.get(context).autoSilenceMinutes.coerceAtLeast(1) * 60_000L + STALE_GRACE_MS
+        val limit = silenceMs(context) + STALE_GRACE_MS
         val stale = ClockStore.get(context).data.ringing.filter { now - it.since > limit }
         if (stale.isEmpty()) return
-        update(context) { d -> stale.fold(d) { acc, r -> ClockActions.missed(acc, r, now) } }
+        settleUnanswered(context, stale, now)
+    }
+
+    /** How long a ring goes on before nobody is counted as there to answer it. */
+    private fun silenceMs(context: Context): Long =
+        ClockPrefs.get(context).autoSilenceMinutes.coerceAtLeast(1) * 60_000L
+
+    /**
+     * [rings] ran their time with nobody answering: each snoozes itself, while
+     * its alarm has [ClockConfig.autoSnoozes] left, or counts as missed, and a
+     * missed alarm gets its notice in the shade (#970).
+     */
+    private fun settleUnanswered(context: Context, rings: List<Ringing>, now: Long) {
+        val config = ClockPrefs.get(context)
+        val missed = mutableListOf<Ringing>()
+        update(context) { d ->
+            rings.fold(d) { acc, r ->
+                // The same test [ClockActions.unanswered] makes, to know which went missed.
+                val snoozes = r.kind == RingKind.ALARM &&
+                    (acc.alarm(r.ref)?.snoozeCount ?: Int.MAX_VALUE) < config.autoSnoozes
+                if (r.kind == RingKind.ALARM && !snoozes) missed += r
+                ClockActions.unanswered(acc, r, now, config.autoSnoozes, snoozeMinutesFor(context, r, acc))
+            }
+        }
+        if (config.missedNotice) missed.forEach { ClockNotifications.postMissed(context, it) }
     }
 
     private const val STALE_GRACE_MS = 60_000L
@@ -77,6 +101,26 @@ object ClockEngine {
             am.cancel(timerPi)
         } else {
             setExact(am, nextTimer, timerPi)
+        }
+        // The heads-up before the next alarm (#970). Inexact: a notice a minute
+        // late is still a notice, and it is not worth an exact-alarm slot.
+        val upcoming = ClockPrefs.get(context).upcomingNoticeMinutes
+        val noticeAt = nextAlarm?.second?.minus(upcoming * 60_000L)?.takeIf { upcoming > 0 && it > now }
+        val noticePi = broadcast(context, ClockReceiver.ACTION_UPCOMING, REQUEST_UPCOMING)
+        if (noticeAt == null) {
+            am.cancel(noticePi)
+        } else {
+            runCatching { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, noticeAt, noticePi) }
+        }
+        // The end of a ring nobody answers, so it snoozes or counts as missed
+        // on time even with no ring service to time it (the Play build, or a
+        // service Android refused).
+        val silenceAt = data.ringing.minOfOrNull { it.since }?.plus(silenceMs(context) + STALE_GRACE_MS + 1)
+        val silencePi = broadcast(context, ClockReceiver.ACTION_SILENCE, REQUEST_SILENCE)
+        if (silenceAt == null) {
+            am.cancel(silencePi)
+        } else {
+            setExact(am, silenceAt, silencePi)
         }
     }
 
@@ -188,9 +232,21 @@ object ClockEngine {
         }
     }
 
-    fun missedAll(context: Context) {
-        val now = System.currentTimeMillis()
-        update(context) { d -> d.ringing.fold(d) { acc, r -> ClockActions.missed(acc, r, now) } }
+    /** The ring service's auto-silence ran out: everything still ringing went unanswered. */
+    fun unansweredAll(context: Context) {
+        val ringing = ClockStore.get(context).data.ringing
+        if (ringing.isNotEmpty()) settleUnanswered(context, ringing, System.currentTimeMillis())
+    }
+
+    /** The auto-silence wake-up fired (see [rearm]). */
+    fun onSilenceWake(context: Context, at: Long) = expireStale(context, at)
+
+    fun endSnooze(context: Context, id: Long) {
+        update(context) { ClockActions.endSnooze(it, id) }
+    }
+
+    fun skipComing(context: Context, id: Long) {
+        update(context) { ClockActions.skipComing(it, id, System.currentTimeMillis()) }
     }
 
     /** The alarm's own snooze, or the tool's. Timers snooze for one minute. */
@@ -213,4 +269,6 @@ object ClockEngine {
     private const val REQUEST_ALARM = 1
     private const val REQUEST_TIMER = 2
     private const val REQUEST_SHOW = 3
+    private const val REQUEST_UPCOMING = 4
+    private const val REQUEST_SILENCE = 5
 }

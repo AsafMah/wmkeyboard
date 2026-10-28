@@ -6,6 +6,7 @@ import android.util.LruCache
 import java.io.File
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -25,8 +26,12 @@ import java.util.concurrent.TimeoutException
  * waits for the answer only as long as its budget ([await]); a late answer
  * is kept for the next pass over the same word. Nothing here downloads
  * anything: without the model or the runtime every call answers nothing.
+ *
+ * The same class runs the other direction, [IndicXlitModels.LATIN], for
+ * romanized dictation: [readingsOf] spells a whole phrase's native words in
+ * Latin letters at once (কাজল → kajol, kajal).
  */
-class IndicXlit(context: Context) {
+class IndicXlit(context: Context, private val pack: IndicXlitModels.Pack = IndicXlitModels.NATIVE) {
 
     private val dir: File = context.applicationContext.noBackupFilesDir
     private val worker: ExecutorService = Executors.newSingleThreadExecutor { r ->
@@ -49,8 +54,9 @@ class IndicXlit(context: Context) {
     private var pendingKey: String? = null
 
     /**
-     * Starts reading [roman] for [languageId] (which must be one of
-     * [IndicXlitModels.LANGUAGES]); the answer is the readings best first.
+     * Starts reading [roman] for [languageId] (which must be one of the
+     * pack's [IndicXlitModels.Pack.languages]); the answer is the readings
+     * best first.
      * A request already waiting for the worker is cancelled.
      */
     fun request(languageId: String, roman: String): Future<List<String>> {
@@ -86,6 +92,47 @@ class IndicXlit(context: Context) {
         emptyList()
     }
 
+    /**
+     * The readings of each of [words] in [languageId], best first, as many
+     * words as the worker gets through in [budgetMs]; a word it did not
+     * reach, or has no reading for, is not in the map. One task for the lot,
+     * so a phrase does not queue behind itself word by word. Blocking: call
+     * it off the main thread.
+     */
+    fun readingsOf(languageId: String, words: Collection<String>, budgetMs: Long): Map<String, List<String>> {
+        val found = ConcurrentHashMap<String, List<String>>()
+        val todo = ArrayList<String>()
+        for (w in words.distinct()) {
+            val cached = cache.get("$languageId\u0000$w")
+            if (cached == null) todo += w else if (cached.isNotEmpty()) found[w] = cached
+        }
+        if (todo.isEmpty()) return found
+        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(budgetMs)
+        val future = worker.submit(Runnable {
+            for (w in todo) {
+                if (System.nanoTime() > deadline || Thread.currentThread().isInterrupted) break
+                val answers = run(languageId, w) ?: break
+                cache.put("$languageId\u0000$w", answers)
+                if (answers.isNotEmpty()) found[w] = answers
+            }
+        })
+        try {
+            future.get(budgetMs.coerceAtLeast(0), TimeUnit.MILLISECONDS)
+        } catch (_: TimeoutException) {
+            future.cancel(false)
+        } catch (_: CancellationException) {
+        } catch (_: ExecutionException) {
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+        return HashMap(found)
+    }
+
+    /** Opens the model now, on the worker, so the first request does not wait for it. */
+    fun prepare() {
+        worker.execute { open() }
+    }
+
     /** Frees the model; the next request opens it again. */
     fun release() {
         pending?.cancel(false)
@@ -100,25 +147,25 @@ class IndicXlit(context: Context) {
         worker.shutdown()
     }
 
-    /** The readings of [roman], or null when the model is not here to ask. */
-    private fun run(languageId: String, roman: String): List<String>? {
-        if (!IndicXlitModels.supports(languageId) || roman.isEmpty() || roman.length > MAX_LETTERS) return emptyList()
+    /** The readings of [word], or null when the model is not here to ask. */
+    private fun run(languageId: String, word: String): List<String>? {
+        if (!pack.supports(languageId) || word.isEmpty() || word.length > MAX_LETTERS) return emptyList()
         if (!open()) return null
         val v = vocab ?: return null
-        val src = v.encode(languageId, roman) ?: return emptyList()
-        val packed = XlitNative.nativeTransliterate(handle, src, v.allowed(languageId), BEAM, 2 * roman.length + 6)
+        val src = v.encode(languageId, word) ?: return emptyList()
+        val packed = XlitNative.nativeTransliterate(handle, src, v.allowed(languageId), BEAM, 2 * word.length + 6)
             ?: return null
         return IndicXlitVocab.unpack(packed, v).map { it.first }.filter { it.isNotEmpty() }.distinct()
     }
 
     private fun open(): Boolean {
         if (handle != 0L) return true
-        if (failedOpen || !IndicXlitModels.isDownloaded(dir) || !XlitNative.load()) return false
+        if (failedOpen || !pack.isDownloaded(dir) || !XlitNative.load()) return false
         return try {
-            vocab = IndicXlitModels.file(dir, IndicXlitModels.Part.VOCAB).useLines(block = IndicXlitVocab::parse)
+            vocab = pack.file(dir, pack.vocab).useLines { IndicXlitVocab.parse(it, pack) }
             handle = XlitNative.nativeOpen(
-                IndicXlitModels.file(dir, IndicXlitModels.Part.ENCODER).path,
-                IndicXlitModels.file(dir, IndicXlitModels.Part.DECODER).path,
+                pack.file(dir, pack.encoder).path,
+                pack.file(dir, pack.decoder).path,
                 THREADS,
             )
             if (handle == 0L) failedOpen = true
@@ -150,7 +197,7 @@ class IndicXlit(context: Context) {
         /** One thread: the keyboard's own work matters more than this. */
         private const val THREADS = 1
 
-        /** Words longer than this are pasted text, not typing. */
+        /** Words longer than this are pasted text, not typing (or a recognizer's run-on). */
         private const val MAX_LETTERS = 32
 
         private const val CACHE_WORDS = 256

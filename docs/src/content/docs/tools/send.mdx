@@ -39,6 +39,14 @@ You can also press **Receive a link instead** in the panel and paste the link in
 
 **Nearby** uses the same engine as the [KDE Connect](/tools/kde-connect/) tool, so it reaches phones and computers running WM Keyboard, KDE Connect, GSConnect or Valent on the same Wi-Fi. Pick files, pair with a device once by comparing the eight-character code, and press **Send** beside its name. Files sent to you land in **Downloads › WM Keyboard** and show in the panel's transfer list while they arrive.
 
+### In a browser
+
+The other device does not need WM Keyboard, or any app. Press **In a browser** and the phone starts a small web page on its Wi-Fi address, then shows a QR code. Whoever scans it on the same Wi-Fi gets a page in their browser with each file you picked and a **Download** button beside it. With **Accept files** on, the page also takes files back: choose or drop them there and they land in **Downloads › WM Keyboard** on your phone. Files you add or remove in the panel show up on the page within a few seconds.
+
+When the other device is on a different network, or the Wi-Fi keeps its devices apart (common on guest and office networks), press **Use a hotspot**. The phone opens a Wi-Fi of its own, the same way the direct link below does, and the code sheet shows two codes: the first joins that Wi-Fi from a phone camera, the second opens the page. A laptop joins by typing the Wi-Fi name and password shown beside the code.
+
+Nothing goes through the internet and no outside server is involved; the page comes straight from your phone. The address carries a random 128-bit token, so a device on the same Wi-Fi that did not get the code finds nothing. The page is plain HTTP, since browsers refuse a certificate a phone made for itself, so use it on networks you trust. It stops when you press **Stop** or after 10 minutes with nobody on it.
+
 ### With no Wi-Fi between you
 
 Two phones with WM Keyboard can link directly. On the receiving phone press **Receive here**: the phone opens a Wi-Fi of its own (a Wi-Fi Direct group, or a local hotspot where the phone cannot do that) and shows a QR code. On the sending phone press **Scan a code** <Flavor edition="google" /> and point the camera at it. The code carries the Wi-Fi's name and password, the receiver's address and a one-time pairing token, so the sender joins the Wi-Fi, finds the receiver and pairs with it in one go; then the files go. **Disconnect** takes the Wi-Fi down again, unless **Keep a direct link up** is on.
@@ -59,6 +67,8 @@ If a file is too big for the chosen server, the panel says so and offers the ins
 
 <SettingsPath path="Tools / Send files" />
 
+Send files is the **Send files** bundle on [Extensions](/reference/settings/extensions/). Switch the bundle off and the tool, the link detection and the history screen leave together; the history stays on the phone.
+
 | Setting | What it does |
 |---|---|
 | Instance | The server uploads go to, and the list of your own. |
@@ -68,7 +78,7 @@ If a file is too big for the chosen server, the panel says so and offers the ins
 | After the upload | Insert the link, copy it, show it, or ask. |
 | Offer to receive links | The strip chip for a Send link typed, pasted or copied. |
 | Open after download | A single received file opens as soon as it is saved. |
-| Send to devices nearby | The Nearby mode, including the direct link. |
+| Send to devices nearby | The Nearby mode, including the direct link and the browser page. |
 | Keep a direct link up | Stay on the other phone's Wi-Fi after a transfer. |
 | Show in other apps' share sheets | The **Send with WM Keyboard** entry. |
 | Keep a history | The links you made and the files you received, for the History sheet and screen. |

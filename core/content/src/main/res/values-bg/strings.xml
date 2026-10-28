@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">Копирай</string>
     <string name="core_content_selection_macro_deepl_write">DeepL Write</string>
     <string name="core_content_selection_macro_digits_latin">Цифри</string>
+    <string name="core_content_selection_macro_edit_word">Редактиране на дума</string>
     <string name="core_content_selection_macro_email">Имейл</string>
     <string name="core_content_selection_macro_fancy">Ефектно</string>
     <string name="core_content_selection_macro_find">Намери</string>

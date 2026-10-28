@@ -36,13 +36,13 @@ internal fun AutomationSettingsScreen(repository: SettingsRepository) {
     )) {
         SettingsGroup(stringResource(title), info = stringResource(info)) {
             for (permission in permissions) {
-                item {
+                // Off, the banner above is the page; the permissions come back with it.
+                item(visible = automation.enabled) {
                     val (rowTitle, rowSubtitle) = automationRowStrings(permission)
                     ToggleSetting(
                         rowTitle,
                         stringResource(rowSubtitle),
                         permission in automation.allowed,
-                        enabled = automation.enabled,
                         default = permission.defaultAllowed,
                     ) { scope.launch { repository.setAutomationAllowed(permission, it) } }
                 }
@@ -67,6 +67,8 @@ internal fun automationRowStrings(permission: AutomationPermission): Pair<Int, I
         R.string.automation_incognito_off_title to R.string.automation_incognito_off_subtitle
     AutomationPermission.WORDS -> R.string.automation_words_title to R.string.automation_words_subtitle
     AutomationPermission.BACKUP -> R.string.automation_backup_title to R.string.automation_backup_subtitle
+    AutomationPermission.BACKUP_PAUSE ->
+        R.string.automation_backup_pause_title to R.string.automation_backup_pause_subtitle
     AutomationPermission.LAYOUT_EVENTS ->
         R.string.automation_layout_events_title to R.string.automation_layout_events_subtitle
     AutomationPermission.TYPE_TEXT -> R.string.automation_type_text_title to R.string.automation_type_text_subtitle

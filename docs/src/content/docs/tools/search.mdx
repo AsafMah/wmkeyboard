@@ -22,13 +22,13 @@ Open **Web search** from the toolbar, or from the toolbox if you haven't pinned 
 
 Results come in two tabs under the search bar: **All**, the web results, and **Images**. Switch tabs after a search and the same search runs on the other tab, once; switching back shows what was already there. Image search used to be a tool of its own. Its **Image search** button is still in the toolbox and opens this panel on the Images tab, and so do the <KeyCap>I</KeyCap> leader key, a key or gesture bound to it, and a smart chip for "images". Its settings are all on web search's page now.
 
-Both tabs ask the providers in their **Providers** list, in order: the Brave Search API by default, [Tavily](#searching-with-tavily) with a key of your own, or a SearXNG instance you name, on any build. If the first one fails, the next one that is on answers. Typing routes into the panel's own header search bar rather than your field, the same key-rerouting trick the GIF, sticker, and Wikipedia panels use. Unlike GIFs and stickers, the search doesn't run live as you type. It waits for you to press the search action before firing a request.
+Both tabs ask the providers in their **Providers** list, in order: the Brave Search API by default, [Tavily](#searching-with-tavily) with a key of your own, or a SearXNG instance you name, on any build. If the first one fails, the next one that is on answers. Typing routes into the panel's own header search bar rather than your field, the same key-rerouting trick the GIF, sticker, and Wikipedia panels use. Unlike GIFs and stickers, the search doesn't run live as you type. It waits for you to press the search action before firing a request. To search in your browser instead, tap the open-in-browser icon at the end of the row of tabs: it opens the typed query as a search page on your SearXNG instance when that is your first provider, on Brave Search when Brave is, and on DuckDuckGo otherwise. Nothing is fetched by the keyboard for it.
 
 <PhoneFrame side caption="The Images tab: tap a thumbnail for its menu, to insert the picture, save it, or open, insert or copy its link.">
 <Shot id="tools/image-search-grid" alt="The Images tab. Tap a thumbnail for its menu: insert the picture, save it, or open, insert or copy its link." />
 </PhoneFrame>
 
-- **All**: each row shows the title, host, and an HTML-stripped snippet. Tap a result for its menu: **Open in the browser** (which leaves the keyboard), **Insert the link** at the cursor, or **Copy the link**. **Tap a result** in the options can skip the menu: set to **Insert**, a tap inserts the address and an open icon on each row opens the page; set to **Open in the browser**, it's the other way round. Press and hold a result for its menu whatever that says.
+- **All**: each row shows the title, host, and an HTML-stripped snippet. From a SearXNG instance the host is followed by the engines that found the result, such as `en.wikipedia.org · google, duckduckgo`. Tap a result for its menu: **Open in the browser** (which leaves the keyboard), **Insert the link** at the cursor, or **Copy the link**. **Tap a result** in the options can skip the menu: set to **Insert**, a tap inserts the address and an open icon on each row opens the page; set to **Open in the browser**, it's the other way round. Press and hold a result for its menu whatever that says.
 - **The search engine's answer**: when the backend writes a short answer to your query, it sits in a box above the results. Tavily writes one from the pages it found, and some SearXNG instances give instant answers; Brave doesn't with a normal search key. It's drawn the way the [AI chat](/tools/ai-chat/) draws an answer: LaTeX formulas are typeset, Markdown shows as headings, lists, bold and links, and a code block sits in its own box with **Copy** and **Insert** for just that code. The box shows about four lines and a tap shows the rest. Two icons beside its label act on the whole answer: the copy icon puts it on the clipboard as written, and the insert icon puts it in your text without the Markdown marks. Press and hold either to see its name. Under the box, a row of up to five pictures for your query: Tavily sends them with its answer at no extra cost, and with another provider the row shows the Images tab's pictures when that tab already searched the same words. A picture there works as it does on the Images tab. Turn **Show the answer from the search engine** off to hide it.
 - **Images**: tap a thumbnail for its menu. **Insert the picture** downloads the full image and inserts it directly, on the same `commitContent` path the clipboard and GIF tools use. **Save to the gallery** downloads it into Pictures/WM Keyboard. **Open in the browser** opens the page the picture is on, or the picture itself when the search didn't say which page that is. **Insert the link** and **Copy the link** give the picture's own address. With **Tap a result** set to **Insert**, a tap inserts the picture, and set to **Open in the browser** it opens its page; press and hold for the menu either way. The grid dedupes results by image URL before drawing them, since Brave can return the same full-size image for more than one widely-reposted result.
 - **More results**: at the end of either tab, it runs the same search again for the next page and adds what it finds under what you have. Press it again for the page after, as often as you like; when a page brings nothing new it reads "No more results" instead. Each press is one more request, which counts against your quota like a search. Tavily has no pages, so the keyboard asks it again without the sites already shown, and without the answer, which came with the first page. Brave gives ten pages of web results and up to 200 pictures, and a SearXNG instance pages as far as its engines go. With [data saving](/privacy/data-saver/) holding searches back on mobile data, the button says so and fetches nothing.
@@ -70,6 +70,16 @@ Every setting for both tabs is on **Tools / Web search**. **Tools / Image search
 
 The settings page's own caption: "Web and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows 'via Brave'." That attribution is a small **"via Brave"** label inside the search bar, at its right end (just before the **✕** when there's a search to clear). It reads **"via Tavily"** while Tavily answers, and a SearXNG instance, being your own server, gets no label.
 
+### SearXNG categories
+
+<SettingsPath path="Tools / Web search / SearXNG / Search categories" />
+
+SearXNG sorts its engines into categories: general, images, videos, news, science, IT, music, files and more, depending on the instance. **Search categories**, on the SearXNG row's own screen, lists the ones your instance has and lets you pick any of them. The list comes from the instance's `/config` page, which answers even where the JSON search API is off; when the instance can't be reached, the screen offers the usual SearXNG categories and says so. General and images aren't in it, since they're the **All** and **Images** tabs already. None are picked by default.
+
+Each category you pick becomes a chip in the panel's row of tabs, between **All** and **Images**, in the order the instance lists them; the row scrolls sideways when there are more than fit. Tap one to search that category only. Its results look like the **All** tab's, with a title, the site, the engines and a snippet, and a video result shows its thumbnail at the start of the row. **More results** pages through the category, and a tap on **All** goes back to the general search. The search engine's answer only shows on **All**.
+
+The chips only show while a SearXNG instance is the one that searches: first in the **Providers** list, or picked in the panel's provider chooser. With Brave or Tavily first, the row is **All** and **Images** as before. A category search only asks the SearXNG instances in the list, never Brave or Tavily, whose general results would pass for the category's.
+
 ### Searching with Tavily
 
 [Tavily](https://tavily.com) is a search API built for AI tools, and it works as a third backend for both tabs. Sign up at `app.tavily.com` for a key. The free plan gives 1,000 credits a month, and each search the keyboard makes uses one: it asks for Tavily's `basic` search unless you pick another **Search depth**, and only **Advanced** uses two. The answer Tavily writes for the query is free, and shows above the results while **Show the answer from the search engine** is on, with up to five of the pictures Tavily found under it, also free.
@@ -91,11 +101,13 @@ An open article has three tabs:
 
 - **Summary**: the article's short description plus its extract, with **Insert summary**, **Insert link**, and **Insert title** chips.
 - **Links**: the article's outgoing links, namespace 0 only, so no Talk: or File: noise. The list is capped by **Links per article** in the tool's options: 50 to 500, defaulting to 200. 500 is as many as Wikipedia returns at once. The tab loads the first time you open it, and each link gets its own **Insert** chip.
-- **Full article**: the complete plain-text extract, split into paragraphs. Tap any paragraph to insert just that paragraph. Also loaded on first visit rather than up front.
+- **Full article**: the complete plain-text extract, split into paragraphs. Tap any paragraph to insert just that paragraph. Also loaded on first visit rather than up front. Formulas are typeset in place, the way the [AI chat](/tools/ai-chat/) draws maths, rather than spread over the screen one symbol per line. What you insert or copy has them written out in plain characters (`x²`, `√(x+1)`), since a text box can't show a typeset formula. **Ask AI** gets the formula's LaTeX.
 
 Two buttons beside the article's title are for reading it in more room. The expand button grows the panel up the screen, to as much as 80% of its height, and tapping it again brings it back to the keyboard's height; search results always stay at the normal height. The other opens the article's page on wikipedia.org in your browser.
 
 Under the title, next to the tabs, **Copy** copies the article's text (the full article once you've opened that tab, otherwise the summary) with its address after it.
+
+When the phone has an app that looks words up, such as Kiwix with a Wikipedia file in it or Aard 2, an **Open in** chip sits after **Copy** and hands it the article's title. A search that finds nothing offers the same chip with your query. With one such app the chip names it; with several, tapping it lists them. Apps that offer themselves in the text selection menu count too, so a translator may be on the list. The chip doesn't show on a phone with none.
 
 Once you've opened an article from a results list, a back arrow appears and returns you to those results instead of a blank search. The idle screen puts it simply, with `en` swapped for whichever language you've set below: "Search for a subject on en.wikipedia.org. Read the summary, open the links, and insert text or the address of the article."
 
@@ -162,7 +174,8 @@ The tool asks the first source that is on. When that source doesn't know the wor
 4. **Free Dictionary API**: dictionaryapi.dev. Last of the online sources because it's often down for days at a time; while it's down, every look-up waits about 8 seconds on it before giving up.
 5. **Wiktionary, offline**: the [offline dictionary](#offline-dictionaries) made from Wiktionary, once downloaded.
 6. **Open English WordNet**: the [offline dictionary](#offline-dictionaries) made from WordNet, once downloaded.
-7. **Imported dictionaries**: the [Yomichan and Yomitan dictionaries](#imported-dictionaries) you imported, in any language. Every one that is on and knows the word answers, in their own order.
+7. **Bengali–English Wiktionary**: the [offline dictionary](#offline-dictionaries) of Bengali words with their English meanings, once downloaded. Only a Bengali word finds anything in it.
+8. **Imported dictionaries**: the [Yomichan and Yomitan dictionaries](#imported-dictionaries) you imported, in any language. Every one that is on and knows the word answers, in their own order.
 
 The two offline dictionaries come after the online sources, so with a connection you get Wiktionary's fuller entries and recordings, and without one the tool still answers from the phone. Drag either one higher to have it answer first and send nothing. An update that adds a source puts it at the end of your list, switched on.
 
@@ -178,10 +191,15 @@ Press **Wiktionary (offline)** or **Open English WordNet** on the source list to
 |---|---|---|---|
 | **Wiktionary (offline)** | about 65,000 common English words from Wiktionary, slang like "selfie" and "lol" included: three senses per part of speech and six in all, a short example, synonyms, antonyms and IPA; no proper nouns | 5.1 MB | CC BY-SA 4.0 and GFDL |
 | **Open English WordNet** | every single English word in Open English WordNet 2024 (about 79,000), every sense, one example, synonyms, antonyms and, where it has one, IPA | 5.0 MB | CC BY 4.0 |
+| **Bengali–English Wiktionary** | about 7,500 Bengali words from English Wiktionary with their English meanings, an example with its translation where Wiktionary has one, and the romanized spelling in place of IPA. Each inflected form Wiktionary lists (কলকাতার, বাড়িতে…) opens its word | 0.5 MB | CC BY-SA 4.0 and GFDL |
 
 Both hold single words only. Phrases such as "ice cream" or "look after" are not in them, and neither are hyphenated compounds. A word form finds its headword: "mice" opens *mouse*, "houses" *house*, "running" *run*. Neither has recordings, so their entries have no play button.
 
 Each takes about 14 MB on the phone once installed. A look-up reads a few kilobytes of that file; it does not load the dictionary into memory. Neither file is read before the phone is unlocked for the first time after a restart.
+
+### Dictionary apps on the phone
+
+A dictionary app you already use can answer too. When the phone has one, an **Open in** chip after the "From" line at the bottom of an entry hands the word to it, and the "No entry" and "not in the dictionaries on this device" messages offer the same chip. It finds apps three ways: Aard 2's own lookup, the ColorDict intent that ColorDict, GoldenDict and most other offline dictionaries answer, and the text selection menu, which is how Kiwix and many others offer themselves. With one app the chip names it, and with several a tap lists them, each app once. Nothing is sent anywhere but to the app you pick.
 
 The **Import a dictionary** row on each screen takes a `.wmdict.gz` file fetched elsewhere: **Get the files** lists both download links, to open in a browser on any device, and **Import** installs the file. See [Using it without internet](/privacy/offline/).
 
@@ -215,6 +233,8 @@ Press **Imported dictionaries** on the source list to open its screen. The dicti
 - **Servers** (F-Droid build only): on the screens of Wiktionary, Wiktionary definitions and the Free Dictionary API, the address each is called at, for a mirror or a copy you host yourself.
 
 The settings page's caption: "Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool." [Power saving](/typing/power-saving/)'s "Background network" toggle overrides this row. While that toggle is on, auto-lookup is forced off whatever you've set here. A look-up nobody explicitly asked for is exactly what it exists to stop.
+
+Web search, image search and Wikipedia are the **Web search** bundle on [Extensions](/reference/settings/extensions/). Off there, the three tools leave the toolbar, the toolbox and the Tools list until the bundle is switched back on; your search services stay set.
 
 ## Details & edge cases
 

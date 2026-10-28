@@ -389,7 +389,8 @@ impl DuetDecoder {
         let k = (limit * 2).max(RESULT_K);
         let mut results: HashMap<Vec<u16>, Candidate> = HashMap::new();
         let mut floor = f64::NEG_INFINITY;
-        let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
+        let fw = self.tuning.freq_weight;
+        let root_bound = |s: &Source| s.log_weight + fw * ln1p(s.walker.max_subtree(s.walker.root()));
         let mut ordered: Vec<&Source> = sources.iter().collect();
         sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
@@ -695,7 +696,7 @@ impl DuetDecoder {
         // start: zeroed.
         self.ws.scratch = [0.0; SLOTS * MS];
         let root = walker.root();
-        self.ws.push(root, -1, NO_LABEL, 0, -1, -1, 0, 0, 0.0, src.log_weight + ln1p(walker.max_subtree(root)));
+        self.ws.push(root, -1, NO_LABEL, 0, -1, -1, 0, 0, 0.0, src.log_weight + self.tuning.freq_weight * ln1p(walker.max_subtree(root)));
 
         let mut children = std::mem::take(&mut self.ws.children);
         let mut pops = 0;
@@ -731,7 +732,7 @@ impl DuetDecoder {
             if emits {
                 let frequency = if partial { walker.max_subtree(node) } else { walker.frequency(node) };
                 let cost = settled + self.unclaimed_loop(s);
-                let score = src.log_weight + ln1p(frequency) - weight * cost as f64;
+                let score = src.log_weight + self.tuning.freq_weight * ln1p(frequency) - weight * cost as f64;
                 if score > floor - EPS || results.len() < k {
                     let word = self.ws.materialize(s);
                     if partial || !(src.tier == Tier::Dictionary && is_non_word(&word)) {
@@ -770,7 +771,7 @@ impl DuetDecoder {
                 self.ws.load_scratch(s);
                 self.ws.clear_scratch_slot(slot);
                 let child_settled = settled + end;
-                let bound = src.log_weight + ln1p(walker.max_subtree(node)) - weight * (child_settled + self.ws.open_floors()) as f64;
+                let bound = src.log_weight + self.tuning.freq_weight * ln1p(walker.max_subtree(node)) - weight * (child_settled + self.ws.open_floors()) as f64;
                 if bound < floor - EPS {
                     continue;
                 }
@@ -818,7 +819,7 @@ impl DuetDecoder {
                 if subtree < min_frequency {
                     continue;
                 }
-                let head = src.log_weight + ln1p(subtree);
+                let head = src.log_weight + self.tuning.freq_weight * ln1p(subtree);
 
                 let code_point: i32;
                 if let Some(high) = pending_high {

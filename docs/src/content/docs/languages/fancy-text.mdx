@@ -12,7 +12,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import fancy from '../../../../../app/src/main/assets/layouts/fancy.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-Fancy Text isn't a language. It's 31 Unicode "font" styles on a single keyboard, plus a Normal style that types plain letters. Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward.
+Fancy Text isn't a language. It's 32 Unicode "font" styles on a single keyboard, plus a Normal style that types plain letters. Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward, and the suggestion strip and autocorrect work on the plain letters underneath.
 
 <PhoneFrame caption="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly, and the style strip sits above the keys.">
   <Shot id="languages/fancy-text-bold-field" alt="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly." />
@@ -58,7 +58,7 @@ The full set, with the name each one shows:
 | Underline | Regional Indicator | Parenthesized |
 | Double Underline | Overline | Slashthrough |
 | Wavy Underline | Dotted | Upside Down |
-| Bypass | | |
+| Currency | Bypass | |
 
 ## The keyboard itself
 
@@ -76,7 +76,7 @@ Hold any digit key, on the symbols panel or the number row, for every styled for
 
 ## How it works
 
-The layout stores plain letters, and the selected style substitutes each one at the last moment, both on the key labels and in what a tap commits. Shift works exactly like any other layout: it uppercases the plain letter, and the style supplies its capital form where one exists. Two different Unicode techniques produce the styling, depending on the style:
+The layout stores plain letters, and the selected style substitutes each one at the last moment, both on the key labels and in what goes into the field. The keyboard itself keeps working with the plain word: that's what it suggests from, corrects and learns, and the style is applied to the word being typed and to everything committed into the field. Shift works exactly like any other layout: it uppercases the plain letter, and the style supplies its capital form where one exists. Two different Unicode techniques produce the styling, depending on the style:
 
 - **Precomposed characters**, mostly from the Mathematical Alphanumeric Symbols block, for Bold, Italic, Script, Fraktur, Double-struck, Sans, and Monospace (and their combinations). These sit outside the Basic Multilingual Plane, so they need a font with supplementary-plane coverage to render. See the gaps below.
 - **Combining marks stacked on plain ASCII letters**, for Strikethrough (a stroke mark after each letter) and Underline (a low-line mark after each letter). These stay inside the BMP, so they render reliably almost everywhere, at the cost of being two codepoints per letter instead of one.
@@ -87,15 +87,21 @@ Not every style has full alphabet coverage. Italic, Script, non-bold Fraktur, an
 
 ## Details & edge cases
 
-**Case coverage varies by style.** Superscript and Small Caps have no capitals, so shift leaves them as they are. Unicode doesn't define capital forms for them. Squared, Squared (Filled), and Circled (Filled) are single-case too, since Unicode only assigned capital-shaped symbols for those blocks. Circled (non-filled), Fullwidth, Double-struck, and every Fraktur/Script variant do have real upper/lower distinction.
+**Case coverage varies by style.** Superscript and Small Caps have no capitals, so shift leaves them as they are. Unicode doesn't define capital forms for them. Squared, Squared (Filled), and Circled (Filled) are single-case too, since Unicode only assigned capital-shaped symbols for those blocks. Currency is single-case as well: it borrows currency signs and other symbols that look like the letters (₳ ฿ ₵ ₫), and leaves out letters a language writes with, such as ł and Ø, so a Polish or Danish word read back from the field is never mistaken for styled text. Circled (non-filled), Fullwidth, Double-struck, and every Fraktur/Script variant do have real upper/lower distinction.
 
-**A handful of letters fall back to an older block.** Double-struck is missing astral capitals for C, H, N, P, Q, R, and Z, and non-bold Fraktur for C, H, I, R, and Z, so both fall back to the Letterlike Symbols block for those. Non-bold Script is missing letters in both cases: e, g, o in lowercase and B, E, F, H, I, L, M, R in capitals. Italic has exactly one gap, the lowercase h. Bold Fraktur, Bold Italic, and Bold Script have no such gaps, since their Unicode blocks are complete. Small Caps has a gap of its own kind: Unicode never encoded a small-capital X, so "x" types a plain lowercase x.
+**A handful of letters fall back to an older block.** Double-struck is missing astral capitals for C, H, N, P, Q, R, and Z, and non-bold Fraktur for C, H, I, R, and Z, so both fall back to the Letterlike Symbols block for those. Non-bold Script is missing letters in both cases: e, g, o in lowercase and B, E, F, H, I, L, M, R in capitals. Italic has exactly one gap, the lowercase h. Bold Fraktur, Bold Italic, and Bold Script have no such gaps, since their Unicode blocks are complete. Small Caps has gaps of its own kind: Unicode never encoded a small-capital X, so "x" types a plain lowercase x, and "q" types ǫ, because the small capital Q Unicode added later is missing from most phone fonts and would show as a blank.
 
 :::caution
 Fancy Text is exempt from the keyboard's normal ASCII-only safeguard. Fields that request ASCII-only input (a common flag on username boxes, coupon codes, and some search fields) normally force WM Keyboard back onto a plain layout automatically, because the app storing that field can't hold non-Latin text. That check compares script IDs, and Fancy Text is technically registered as the Latin script (its keys are Latin letters, just styled), so it passes the check and stays active. If the fancy keyboard is your current layout when you tap into one of those fields, it keeps typing styled glyphs, which the field may silently reject or mangle. Switch to a plain layout first if you're not sure a field will accept anything but ASCII.
 :::
 
-**No suggestions, no autocorrect, no swipe typing.** Fancy Text ships no bundled dictionary and has no downloadable wordlist, so the language screen's Dictionaries section has no word list row, only Custom dictionaries. The styled letters never enter the composing buffer either, in any style, so nothing you type here is learned or corrected. Glide typing is off here for the same reason: the keyboard only turns a swipe into a word when the active language has a word list that covers the letters on the grid, and Fancy Text has none.
+**Suggestions, autocorrect and swipe typing use English.** Fancy Text has no word list of its own (the language screen's Dictionaries section has no word list row, only Custom dictionaries), so it borrows the English one. You type plain letters, and the strip suggests and corrects them as it would on an English layout. The word being typed already shows in the style, underlined like any word in progress. A space, a punctuation mark, a pick from the strip, an autocorrection and a swipe all go into the field styled, and a backspace straight after an autocorrection still puts back what you typed. The keyboard learns the plain spelling of what you type, never a styled word.
+
+Tap a different style while a word is being typed and that word switches style with it. Moving the caret back into a styled word doesn't pick it up for editing the way it does on other layouts: the field holds styled glyphs, and the keyboard only edits words it can read as plain letters.
+
+**Upside Down types letter by letter.** Its glyphs only read correctly once the whole line is reversed, so it keeps substituting each key as you press it, with no suggestions or autocorrect.
+
+**Everything the keyboard puts in the field is styled.** Besides typing, that covers text pasted from the clipboard panel, dictation and snippet expansions while the fancy keyboard is active. Emoji and punctuation have no styled forms and go in unchanged. The selection actions' own conversions are the exception: a Fancy or colour conversion of selected text goes in exactly as the action wrote it.
 
 **The keyboard's own search boxes get plain letters.** Typing into the emoji search, GIF search, or any other panel search while the fancy keyboard is active types unstyled letters, so those searches actually match. Only text committed to the app's field is styled.
 

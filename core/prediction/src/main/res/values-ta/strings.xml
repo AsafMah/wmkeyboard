@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">துணைத்தலைப்புகள் மற்றும் இணைய உரையிலிருந்து கணக்கிடப்பட்டது. கூடுதல் பெயர்கள், பேச்சு வழக்கு மற்றும் தட்டச்சுப் பிழைகளுடன் பல கூடுதல் சொற்கள்.</string>
     <string name="core_pred_wordlist_source_frequency_label">அதிர்வெண்</string>
+    <string name="core_pred_wordlist_variant_australia_label">ஆஸ்திரேலியா</string>
     <string name="core_pred_wordlist_variant_brazil_label">பிரேசில்</string>
+    <string name="core_pred_wordlist_variant_canada_label">கனடா</string>
     <string name="core_pred_wordlist_variant_europe_label">ஐரோப்பா</string>
     <string name="core_pred_wordlist_variant_uk_label">ஐக்கிய இராச்சியம்</string>
     <string name="core_pred_wordlist_variant_us_label">அமெரிக்கா</string>

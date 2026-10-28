@@ -119,9 +119,12 @@ private val WORD_JOINERS = charArrayOf('/', '\\', '&', '=', '-', '–', '—', '
  * ends in a double quote that opened a quotation rather than closing one, or it
  * ends in a [WORD_JOINERS] mark that is itself joined to the word behind it.
  *
- * A URL field never earns one at all. An address has no spaces in it, so a word
- * glided into the middle of one joins whatever it lands on, whether that is a
- * dot, a slash or the tail of the host name.
+ * A URL field earns one only for a search (#974). An address has no spaces in
+ * it, so a word glided into the middle of one joins whatever it lands on,
+ * whether that is a dot, a slash or the tail of the host name. But a browser's
+ * address bar is a search box first, and a line already spaced, or one of
+ * plain words with no mark of an address in it, is a search: "weather" typed,
+ * then "today" glided, reads "weather today", not "weathertoday".
  *
  * [textBefore] is the text in front of the caret. Only its last character
  * decides the answer, bar the quote, which is counted over the line, and a
@@ -131,7 +134,7 @@ internal fun spacesBeforeGlidedWord(
     textBefore: String,
     fieldKind: FieldKind = FieldKind.TEXT,
 ): Boolean {
-    if (fieldKind == FieldKind.URI) return false
+    if (fieldKind == FieldKind.URI && !readsAsSearch(textBefore)) return false
     val last = textBefore.lastOrNull() ?: return false
     if (WordContext.isSpaceLike(last)) return false
     if (last in WORD_OPENERS) return false
@@ -217,6 +220,17 @@ internal fun closingQuoteTakesSpace(mark: Char, textBefore: () -> String): Boole
  */
 internal fun typedAsSearch(textBefore: String): Boolean =
     textBefore.substringAfterLast('\n').any { WordContext.isSpaceLike(it) }
+
+/**
+ * Whether the address-bar line [textBefore] is a search a glided word is
+ * spaced into (#974): [typedAsSearch], or a line of letters alone, which no
+ * address is until it has a dot, a slash or a scheme. Digits and marks keep
+ * the address reading, so `192` and `example.` still join on.
+ */
+internal fun readsAsSearch(textBefore: String): Boolean {
+    val line = textBefore.substringAfterLast('\n')
+    return typedAsSearch(line) || (line.isNotEmpty() && line.all(Char::isLetter))
+}
 
 /**
  * Whether typing [text] right after a space the keyboard typed — after a glided

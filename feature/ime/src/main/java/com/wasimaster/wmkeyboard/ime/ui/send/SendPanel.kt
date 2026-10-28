@@ -57,7 +57,8 @@ internal fun SendPanel(
     val act = callbacks.onAction
     val kb = LocalKbTheme.current
     val typing = state.sendTypingActive
-    val tall = ui.sheet == SendSheet.QR || ui.sheet == SendSheet.HISTORY || ui.sheet == SendSheet.INSTANCES || ui.sheet == SendSheet.DIRECT_CODE
+    val tall = ui.sheet == SendSheet.QR || ui.sheet == SendSheet.HISTORY || ui.sheet == SendSheet.INSTANCES || ui.sheet == SendSheet.DIRECT_CODE ||
+        ui.sheet == SendSheet.BROWSER_CODE
     val screen = LocalConfiguration.current.screenHeightDp.dp
     FullBleedTool(
         state = state,

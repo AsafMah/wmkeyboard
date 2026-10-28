@@ -70,6 +70,7 @@ object LayoutJsonDocs {
             "the bottom row under it.",
         "LayoutSpec.themeId" to "A theme of this layout's own, used while the layout is on screen. A layer's themeId beats it.",
         "LayoutSpec.version" to "The revision of the layout format. The app brings an older one up to date when it reads it.",
+        "LayoutSpec.basedOn" to "The repository addon this layout was installed from, so a copy edited from it still credits the original when shared. Set by the app.",
 
         "LayerSpec.rows" to "The rows of keys, top to bottom. Each row is a list of keys, left to right.",
         "LayerSpec.numberRow" to
@@ -135,6 +136,7 @@ object LayoutJsonDocs {
             "text in the same direction, and work on action keys too.",
         "Key.multitap" to "What tapping the key again types in place of the last tap, in order. After the last entry the cycle goes back to the key itself.",
         "Key.labelScale" to "This key's label size, as a multiple of a letter's. Leave it out and the keyboard decides.",
+        "Key.hintScale" to "This key's corner hint size, as a multiple of every hint's size, from 0.5 to 3. Leave it out to follow the setting.",
         "Key.letters" to "Every letter this key stands for, such as \"abc\" on a T9 key. The prediction works out which one you meant.",
         "Key.repeatOnHold" to
             "Holding the key does its action over and over, the way holding delete does. It spends the press and hold, so " +
@@ -148,6 +150,9 @@ object LayoutJsonDocs {
         "KeyAlternate.icon" to "The name of an icon to draw in place of the label.",
 
         "KeymanBinding.keyboardId" to "The id of the Keyman keyboard.",
+        "RemixCredit.key" to "The original's repository id and addon id, joined by a slash.",
+        "RemixCredit.name" to "The original's name.",
+        "RemixCredit.author" to "Who made the original.",
         "KeymanBinding.version" to "The version of the Keyman keyboard the layout came from.",
 
         "InputMethodBinding.id" to "The folder the imported input method's files are kept in.",
@@ -183,6 +188,7 @@ object LayoutJsonDocs {
             "The other keyboard's input method id, the package/.ServiceClass text the system files it under. Leave it blank and " +
             "the key opens the system list.",
         "action:emoji" to "Opens the emoji panel.",
+        "action:toolbox" to "Opens the toolbox, the grid of every tool, as the button at the start of the toolbar does.",
         "action:numpad" to "Opens the number pad. The keyboard makes this key by itself, and a layout does not use it.",
         "action:tool" to "Opens one of the keyboard's tools, the same as its toolbar button.",
         "action:tool.tool" to "Which tool the key opens.",

@@ -25,6 +25,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -99,44 +102,68 @@ internal fun ClocksTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
     }
     val now = rememberNow(if (ui.config.showSeconds) 1000L else 15_000L)
     var menuFor by remember { mutableStateOf<String?>(null) }
-    LazyColumn(
+    // Re-sorted once a minute: the offsets only move at a change of daylight time.
+    val zones = remember(ui.config, now / 60_000L) { ui.config.shownZones(now) }
+    // Two cards to a row when asked for (#970), the way the clipboard lays out
+    // its clips. A card's menu and its insert sheet then take a row of their
+    // own under it: half a row has no room for either.
+    val grid = ui.config.zonesGrid
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(if (grid) 2 else 1),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        item(key = "home") {
+        item(key = "home", span = { GridItemSpan(maxLineSpan) }) {
             HomeClock(now, ui, act)
         }
         if (ui.insertZone == "") {
-            item(key = "home-insert") { InsertSheet("", now, ui, act) }
+            item(key = "home-insert", span = { GridItemSpan(maxLineSpan) }) { InsertSheet("", now, ui, act) }
         }
-        items(ui.config.zones, key = { it.zoneId }) { zone ->
-            Column(Modifier.animateItem()) {
-                ZoneCard(
-                    zone = zone,
-                    now = now,
-                    ui = ui,
-                    menuOpen = menuFor == zone.zoneId,
-                    onTap = {
-                        menuFor = null
-                        act(ClockAction.InsertSheet(zone.zoneId))
-                    },
-                    onHold = { menuFor = if (menuFor == zone.zoneId) null else zone.zoneId },
-                    act = act,
-                )
-                AnimatedVisibility(
-                    visible = ui.insertZone == zone.zoneId,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    Column {
-                        Spacer(Modifier.height(4.dp))
-                        InsertSheet(zone.zoneId, now, ui, act)
+        for (zone in zones) {
+            val onTap = {
+                menuFor = null
+                act(ClockAction.InsertSheet(zone.zoneId))
+            }
+            val onHold = { menuFor = if (menuFor == zone.zoneId) null else zone.zoneId }
+            item(key = zone.zoneId) {
+                Column(Modifier.animateItem()) {
+                    if (grid) {
+                        ZoneGridCard(zone, now, ui, menuOpen = menuFor == zone.zoneId, onTap = onTap, onHold = onHold)
+                        return@Column
+                    }
+                    ZoneCard(
+                        zone = zone,
+                        now = now,
+                        ui = ui,
+                        menuOpen = menuFor == zone.zoneId,
+                        onTap = onTap,
+                        onHold = onHold,
+                        act = act,
+                    )
+                    AnimatedVisibility(
+                        visible = ui.insertZone == zone.zoneId,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut(),
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(4.dp))
+                            InsertSheet(zone.zoneId, now, ui, act)
+                        }
+                    }
+                }
+            }
+            if (grid && (menuFor == zone.zoneId || ui.insertZone == zone.zoneId)) {
+                item(key = "${zone.zoneId}-more", span = { GridItemSpan(maxLineSpan) }) {
+                    Column(Modifier.animateItem()) {
+                        if (menuFor == zone.zoneId) ZoneMenu(zone, ui, act)
+                        if (ui.insertZone == zone.zoneId) InsertSheet(zone.zoneId, now, ui, act)
                     }
                 }
             }
         }
-        item(key = "footer") {
+        item(key = "footer", span = { GridItemSpan(maxLineSpan) }) {
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -297,33 +324,116 @@ private fun ZoneCard(
                 Text(ClockFormats.weekday(now, tz), color = kb.secondaryText, fontSize = 11.sp)
             }
         }
-        AnimatedVisibility(visible = menuOpen) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PillButton(
-                    stringResource(formatLabel(ui.insertFormat)),
-                    primary = true,
-                    height = 32.dp,
-                    modifier = Modifier.weight(1f, fill = false),
-                ) { act(ClockAction.InsertDefault(zone.zoneId)) }
-                RoundButton(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_clock_move_up_desc), size = 32.dp) {
-                    act(ClockAction.MoveZone(zone.zoneId, -1))
-                }
-                RoundButton(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_clock_move_down_desc), size = 32.dp) {
-                    act(ClockAction.MoveZone(zone.zoneId, 1))
-                }
-                RoundButton(Icons.Outlined.Edit, stringResource(R.string.ime_clock_rename_desc), size = 32.dp) {
-                    act(ClockAction.RenameZone(zone.zoneId))
-                }
-                RoundButton(Icons.Outlined.Delete, stringResource(R.string.ime_clock_remove_desc), size = 32.dp) {
-                    act(ClockAction.RemoveZone(zone.zoneId))
-                }
+        AnimatedVisibility(visible = menuOpen) { ZoneMenu(zone, ui, act) }
+    }
+}
+
+/**
+ * A city card in the grid (#970): the same facts as [ZoneCard], stacked to fit
+ * half a row. Its menu is drawn under the row, by [ClocksTab].
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ZoneGridCard(
+    zone: WorldZone,
+    now: Long,
+    ui: ClockUi,
+    menuOpen: Boolean,
+    onTap: () -> Unit,
+    onHold: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val tz = remember(zone.zoneId) { TimeZone.getTimeZone(zone.zoneId) }
+    val home = TimeZone.getDefault()
+    val coords = remember(zone) {
+        val lat = zone.latitude
+        val lon = zone.longitude
+        if (lat != null && lon != null) lat to lon else ZoneCoordinates.of(zone.zoneId)
+    }
+    val sun = remember(zone.zoneId, now / DAY_MS) { coords?.let { SolarCalculator.forDate(it.first, it.second, now, tz) } }
+    val city = remember(zone) { zone.label.ifEmpty { IcuZoneNames().city(zone.zoneId) ?: ZoneCatalog.fallbackCity(zone.zoneId) } }
+    val shift = ClockFormats.dayShift(now, tz, home)
+    val dayWord = stringResource(
+        when (shift) {
+            1 -> R.string.ime_clock_tomorrow
+            -1 -> R.string.ime_clock_yesterday
+            else -> R.string.ime_clock_today
+        },
+    )
+    ClockCard(
+        modifier = Modifier.fillMaxWidth(),
+        highlighted = ui.insertZone == zone.zoneId || menuOpen,
+        onClick = onTap,
+        onLongClick = onHold,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AnalogDial(now, tz, isDay(now, tz, sun?.sunriseMinutes, sun?.sunsetMinutes), seconds = false, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(
+                city,
+                color = kb.suggestionText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 2.dp)) {
+            Text(
+                ClockFormats.timeDigits(now, tz, ui.hour24),
+                color = kb.suggestionText,
+                style = digits(22.sp, FontWeight.Normal),
+            )
+            val ampm = ClockFormats.amPm(now, tz, ui.hour24)
+            if (ampm.isNotEmpty()) {
+                Text(
+                    ampm,
+                    color = kb.secondaryText,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(start = 3.dp, bottom = 3.dp),
+                )
             }
+        }
+        Text(
+            stringResource(R.string.ime_clock_zone_delta, dayWord, ClockFormats.deltaLabel(ClockFormats.offsetDelta(now, tz, home))),
+            color = kb.secondaryText,
+            fontSize = 10.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** A city's own buttons, under its card: type its time, move, rename, remove. */
+@Composable
+private fun ZoneMenu(zone: WorldZone, ui: ClockUi, act: (ClockAction) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PillButton(
+            stringResource(formatLabel(ui.insertFormat)),
+            primary = true,
+            height = 32.dp,
+            modifier = Modifier.weight(1f, fill = false),
+        ) { act(ClockAction.InsertDefault(zone.zoneId)) }
+        // Sorted by time, the list has no order of its own to move a city in.
+        if (!ui.config.sortZonesByTime) {
+            RoundButton(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_clock_move_up_desc), size = 32.dp) {
+                act(ClockAction.MoveZone(zone.zoneId, -1))
+            }
+            RoundButton(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_clock_move_down_desc), size = 32.dp) {
+                act(ClockAction.MoveZone(zone.zoneId, 1))
+            }
+        }
+        RoundButton(Icons.Outlined.Edit, stringResource(R.string.ime_clock_rename_desc), size = 32.dp) {
+            act(ClockAction.RenameZone(zone.zoneId))
+        }
+        RoundButton(Icons.Outlined.Delete, stringResource(R.string.ime_clock_remove_desc), size = 32.dp) {
+            act(ClockAction.RemoveZone(zone.zoneId))
         }
     }
 }
@@ -534,14 +644,14 @@ private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockActi
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        items(results, key = { it.id }) { e ->
+        items(results, key = { it.key }) { e ->
             val tz = remember(e.id) { TimeZone.getTimeZone(e.id) }
             val isAdded = e.id in added
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(kb.chipShape())
-                    .clickable(enabled = !isAdded) { act(ClockAction.AddZone(e.id)) }
+                    .clickable(enabled = !isAdded) { act(ClockAction.AddZone(e)) }
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

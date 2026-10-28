@@ -82,6 +82,7 @@ internal fun FingerSwipeSettings(
                         swipe.fingers,
                         stringResource(directionLabel(swipe.direction)),
                     ),
+                    icon = SettingsRowIcons[R.string.typing_finger_swipe_row_title],
                     subtitle = if (swipe.fingers == 2 && thumbsGlide) {
                         stringResource(R.string.typing_finger_swipe_two_thumb_subtitle)
                     } else {

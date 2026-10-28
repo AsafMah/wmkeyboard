@@ -56,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.tips.Heart
 import com.wasimaster.wmkeyboard.app.tips.SupportKoriCard
@@ -82,12 +83,14 @@ import kotlin.math.sin
  * people who tipped through Google Play in the Play build.
  *
  * The list the APK was built with (`assets/supporters.json`, refreshed by
- * `docs/scripts/sync-supporters.mjs`) shows straight away and is all an
- * offline phone, or the build with no internet permission, ever sees. The
- * button fetches the live list from the docs site, and only when pressed:
- * nothing goes out just because the screen was opened. The one exception is
- * the Play build's tip credit (see [com.wasimaster.wmkeyboard.app.tips.TipCredits]),
- * which only exists because the user tipped and typed a name to be listed.
+ * `docs/scripts/sync-supporters.mjs` before each release build) shows
+ * straight away and is all an offline phone, or the build with no internet
+ * permission, ever sees. A snapshot goes stale within days of a release, so
+ * the GitHub and Play builds also fetch the live list from the docs site as
+ * the screen opens; the F-Droid build keeps to its rule that nothing leaves
+ * the phone unasked and fetches only when the button is pressed. The Play
+ * build's tip credit (see [com.wasimaster.wmkeyboard.app.tips.TipCredits])
+ * exists because the user tipped and typed a name to be listed.
  *
  * How the screen asks for support depends on the channel. Play's Payments
  * policy forbids linking out to SupportKori from the Play build, so that build
@@ -138,8 +141,28 @@ internal fun SupportersScreen() {
     var justAdded by remember { mutableStateOf<List<Supporter>>(emptyList()) }
     var state by remember { mutableStateOf<RefreshState>(RefreshState.Idle) }
 
+    val check: suspend () -> Unit = {
+        state = RefreshState.Checking
+        val fresh = withContext(Dispatchers.IO) {
+            runCatching {
+                parseSupporters(
+                    ToolHttp.get(SUPPORTERS_URL, source = NetSource.SUPPORTERS, route = "/api/supporters"),
+                )
+            }.getOrNull()
+        }
+        if (fresh == null) {
+            state = RefreshState.Failed
+        } else {
+            val known = (supporters.orEmpty() + justAdded).map { it.name }.toSet()
+            state = RefreshState.Added(fresh.count { it.name !in known })
+            supporters = fresh
+        }
+    }
     LaunchedEffect(Unit) {
         supporters = withContext(Dispatchers.IO) { bundledSupporters(context) }
+        // Checked as the screen opens, in the builds that may (see the file
+        // note): a bundled list is only as fresh as the last release build.
+        if (InternetPermission.granted && !BuildConfig.ENABLE_FDROID) check()
     }
     val purchase by jar.purchase.collectAsStateWithLifecycle()
     LaunchedEffect(purchase) {
@@ -188,29 +211,7 @@ internal fun SupportersScreen() {
         OutlinedButton(
             enabled = !checking,
             shape = RoundedCornerShape(16.dp),
-            onClick = {
-                state = RefreshState.Checking
-                scope.launch {
-                    val fresh = withContext(Dispatchers.IO) {
-                        runCatching {
-                            parseSupporters(
-                                ToolHttp.get(
-                                    SUPPORTERS_URL,
-                                    source = NetSource.SUPPORTERS,
-                                    route = "/api/supporters",
-                                ),
-                            )
-                        }.getOrNull()
-                    }
-                    if (fresh == null) {
-                        state = RefreshState.Failed
-                    } else {
-                        val known = (list.orEmpty() + justAdded).map { it.name }.toSet()
-                        state = RefreshState.Added(fresh.count { it.name !in known })
-                        supporters = fresh
-                    }
-                }
-            },
+            onClick = { scope.launch { check() } },
         ) {
             Icon(
                 Icons.Outlined.Refresh,

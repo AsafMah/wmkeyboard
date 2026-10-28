@@ -431,7 +431,7 @@ internal fun SnippetSettings(
     }
     Spacer(Modifier.height(12.dp))
     SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.expander_multi_expand_title,
                 subtitle = stringResource(R.string.expander_multi_expand_subtitle),
@@ -457,7 +457,7 @@ internal fun SnippetSettings(
                 },
             ) { scope.launch { repository.setSnippetMultiExpand(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.expander_grid_columns_title,
                 subtitle = stringResource(R.string.expander_grid_columns_subtitle),
@@ -468,7 +468,23 @@ internal fun SnippetSettings(
                 default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
             ) { scope.launch { repository.setSnippetGridColumns(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.expander_titles_only_title,
+                stringResource(R.string.expander_titles_only_subtitle),
+                settings.watch { it.suggestionStrip.snippetTitlesOnly },
+                default = SettingsDefaults.suggestionStrip.snippetTitlesOnly,
+            ) { scope.launch { repository.setSnippetTitlesOnly(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.expander_panel_stays_title,
+                stringResource(R.string.expander_panel_stays_subtitle),
+                settings.watch { it.suggestionStrip.snippetPanelStays },
+                default = SettingsDefaults.suggestionStrip.snippetPanelStays,
+            ) { scope.launch { repository.setSnippetPanelStays(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.expander_secure_fields_title,
                 stringResource(R.string.expander_secure_fields_subtitle),
@@ -476,6 +492,20 @@ internal fun SnippetSettings(
                 info = stringResource(R.string.expander_secure_fields_info),
                 default = SettingsDefaults.suggestionStrip.snippetsInSecureFields,
             ) { scope.launch { repository.setSnippetsInSecureFields(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                title = R.string.expander_escape_title,
+                subtitle = stringResource(R.string.expander_escape_subtitle),
+                info = stringResource(R.string.expander_escape_info),
+                options = listOf(
+                    "\\" to stringResource(R.string.expander_escape_backslash_label),
+                    "`" to stringResource(R.string.expander_escape_backtick_label),
+                    "" to stringResource(R.string.expander_escape_off_label),
+                ),
+                selected = settings.watch { it.suggestionStrip.snippetEscape },
+                default = SettingsDefaults.suggestionStrip.snippetEscape,
+            ) { scope.launch { repository.setSnippetEscape(it) } }
         }
     }
     Spacer(Modifier.height(12.dp))
@@ -502,7 +532,7 @@ internal fun SnippetSettings(
     val canEditFolders = folders.isNotEmpty()
     LaunchedEffect(canEditFolders) { if (!canEditFolders) editingFolders = false }
     // Where hub.espanso.org package links are looked up.
-    ServerFieldsGroup(repository, settings, repos = listOf(ServiceRepo.ESPANSO_HUB))
+    ServerFieldsGroup(repository, settings, repos = listOf(ServiceRepo.ESPANSO_HUB), level = SettingLevel.ADVANCED)
     SettingsGroup(
         stringResource(R.string.expander_folders_title),
         info = stringResource(R.string.expander_folders_info),
@@ -1584,6 +1614,8 @@ private fun SnippetEditorForm(
         )
     }
     var confirm by remember { mutableStateOf(initial?.confirm == true) }
+    var immediate by remember { mutableStateOf(initial?.immediate == true) }
+    var insideWords by remember { mutableStateOf(initial?.insideWords == true) }
     var propagateCase by remember { mutableStateOf(initial?.propagateCase == true) }
     var uppercaseStyle by remember {
         mutableStateOf(initial?.uppercaseStyle ?: UppercaseStyle.CAPITALIZE)
@@ -1619,6 +1651,10 @@ private fun SnippetEditorForm(
         triggerPattern = if (word) null else pattern.text.trim().ifBlank { null },
         triggerWords = if (word) 0 else words,
         confirm = confirm,
+        // Only a word trigger that rewrites on its own can fire early: a
+        // pattern is matched over whole words, and asking has nothing to fire.
+        immediate = word && !confirm && immediate,
+        insideWords = word && !confirm && immediate && insideWords,
         folderId = folderId,
         // A link to something deleted while this screen was open is not a link.
         children = children.filter { id -> all.any { it.id == id } },
@@ -1766,7 +1802,7 @@ private fun SnippetEditorForm(
                     }
                 }
             }
-            item(visible = word) {
+            item(visible = word, level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.rows_snippet_propagate_case_label,
                     stringResource(R.string.rows_snippet_propagate_case_body),
@@ -1775,7 +1811,7 @@ private fun SnippetEditorForm(
             }
             // The style only means anything for a trigger typed with one
             // leading capital. An all-caps trigger always shouts.
-            item(visible = word && propagateCase) {
+            item(visible = word && propagateCase, level = SettingLevel.ADVANCED) {
                 ChoiceControl(
                     options = listOf(
                         UppercaseStyle.CAPITALIZE to
@@ -1794,17 +1830,31 @@ private fun SnippetEditorForm(
         }
 
         SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.rows_snippet_confirm_label,
                     stringResource(R.string.rows_snippet_confirm_body),
                     checked = confirm,
                 ) { confirm = it }
             }
+            item(visible = word && !confirm, level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.rows_snippet_immediate_label,
+                    stringResource(R.string.rows_snippet_immediate_body),
+                    checked = immediate,
+                ) { immediate = it }
+            }
+            item(visible = word && !confirm && immediate, level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.rows_snippet_inside_words_label,
+                    stringResource(R.string.rows_snippet_inside_words_body),
+                    checked = insideWords,
+                ) { insideWords = it }
+            }
             // Nothing to choose between until there is more than one thing to
             // insert, so the row appears when the snippet earns it.
             if (kept.size > 1 || children.isNotEmpty()) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ChoiceSetting(
                         title = R.string.rows_snippet_multi_expand_label,
                         options = listOf(
@@ -1829,7 +1879,7 @@ private fun SnippetEditorForm(
             }
         }
 
-        SettingsGroup(stringResource(R.string.rows_snippet_linked_label)) {
+        SettingsGroup(stringResource(R.string.rows_snippet_linked_label), level = SettingLevel.ADVANCED) {
             item {
                 LinkedSnippetsSection(
                     children = children,
@@ -1841,7 +1891,7 @@ private fun SnippetEditorForm(
             }
         }
 
-        SettingsGroup(stringResource(R.string.rows_snippet_tags_label)) {
+        SettingsGroup(stringResource(R.string.rows_snippet_tags_label), level = SettingLevel.STANDARD) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     ChipInputField(

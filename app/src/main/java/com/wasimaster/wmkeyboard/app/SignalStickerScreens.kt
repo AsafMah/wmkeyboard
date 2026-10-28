@@ -3,12 +3,9 @@ package com.wasimaster.wmkeyboard.app
 import android.content.Intent
 import android.net.Uri
 import android.widget.ImageView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -37,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -230,6 +225,9 @@ internal fun SignalPackScreen(
     val mine = remember(revision) {
         store.packs().firstOrNull { it.source == StickerPack.signalSource(packId) }
     }
+    // The sticker ids ticked for adding (#965): all of them once the pack
+    // loads, and only those are downloaded and converted.
+    var chosen by remember { mutableStateOf<Set<Int>>(emptySet()) }
 
     val notFound = stringResource(R.string.import_signal_error_not_found)
     val badKey = stringResource(R.string.import_signal_error_bad_key)
@@ -242,7 +240,10 @@ internal fun SignalPackScreen(
                 SignalStickerDownloads.manifest(packId, packKey, cacheDir)
             }
             load = when (outcome) {
-                is SignalStickerDownloads.ManifestOutcome.Ok -> PackLoad.Loaded(outcome.manifest)
+                is SignalStickerDownloads.ManifestOutcome.Ok -> {
+                    chosen = outcome.manifest.stickers.mapTo(HashSet()) { it.id }
+                    PackLoad.Loaded(outcome.manifest)
+                }
                 SignalStickerDownloads.ManifestOutcome.NotFound -> PackLoad.Failed(notFound)
                 SignalStickerDownloads.ManifestOutcome.BadKey -> PackLoad.Failed(badKey)
                 is SignalStickerDownloads.ManifestOutcome.Failed ->
@@ -261,11 +262,12 @@ internal fun SignalPackScreen(
 
     fun add(manifest: SignalPackManifest) {
         val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-        progress = PackProgress(SignalStickerDownloads.Phase.DOWNLOADING, 0, manifest.stickers.size)
+        val only = chosen
+        progress = PackProgress(SignalStickerDownloads.Phase.DOWNLOADING, 0, only.size)
         scope.launch {
             val text = try {
                 SignalStickerDownloads.import(
-                    store, packId, packKey, manifest, fallbackName, cacheDir,
+                    store, packId, packKey, manifest, fallbackName, cacheDir, only,
                 ) { phase, done, total -> progress = PackProgress(phase, done, total) }
                     .describe(context)
             } catch (e: IOException) {
@@ -299,6 +301,8 @@ internal fun SignalPackScreen(
             cacheDir = cacheDir,
             mine = mine,
             progress = progress,
+            chosen = chosen,
+            onChosenChange = { chosen = it },
             onAdd = { add(current.manifest) },
             onOpenMine = { mine?.let { onNavigate(stickerPackRoute(it.id)) } },
         )
@@ -342,10 +346,14 @@ private fun LoadedPack(
     cacheDir: File,
     mine: StickerPack?,
     progress: PackProgress?,
+    chosen: Set<Int>,
+    onChosenChange: (Set<Int>) -> Unit,
     onAdd: () -> Unit,
     onOpenMine: () -> Unit,
 ) {
     val count = manifest.stickers.size
+    // Ticking is for a pack that is not in yet and not on its way in.
+    val picking = mine == null && progress == null
     SettingsGroup(manifest.title.ifBlank { stringResource(R.string.import_signal_untitled) }) {
         item {
             WmRow(
@@ -390,15 +398,29 @@ private fun LoadedPack(
                 )
 
                 else -> WmRow(
-                    title = stringResource(R.string.import_signal_add_title),
+                    title = if (chosen.size == count) {
+                        stringResource(R.string.import_signal_add_title)
+                    } else {
+                        pluralStringResource(R.plurals.import_stickers_add_chosen, chosen.size, chosen.size)
+                    },
                     subtitle = stringResource(R.string.import_signal_add_subtitle),
                     icon = Icons.Outlined.Add,
                     accent = routeAccent("sticker_packs"),
-                    enabled = count > 0,
+                    enabled = chosen.isNotEmpty(),
                     onClick = onAdd,
                 )
             }
         }
+    }
+
+    if (picking && count > 0) {
+        StickerPickBar(
+            chosen = chosen.size,
+            total = count,
+            onAll = { onChosenChange(manifest.stickers.mapTo(HashSet()) { it.id }) },
+            onNone = { onChosenChange(emptySet()) },
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+        )
     }
 
     val loader = rememberMediaImageLoader()
@@ -422,11 +444,9 @@ private fun LoadedPack(
                     }.getOrNull()
                 }
             }
-            Box(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            StickerPickCell(
+                checked = if (picking) sticker.id in chosen else null,
+                onClick = if (picking) ({ onChosenChange(chosen.withToggled(sticker.id)) }) else null,
             ) {
                 val shown = preview
                 val label = sticker.emoji.ifBlank { unnamed }

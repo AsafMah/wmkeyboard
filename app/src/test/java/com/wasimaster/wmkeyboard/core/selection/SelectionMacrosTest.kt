@@ -138,6 +138,7 @@ class SelectionMacrosTest {
             SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH, SelectionMacro.DIGITS_LATIN, SelectionMacro.COLOUR,
             SelectionMacro.MAP, SelectionMacro.CALENDAR, SelectionMacro.TIME_ZONES, SelectionMacro.CHAT_BOLD,
             SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
+            SelectionMacro.EDIT_WORD,
         )) {
             assertTrue(gated.name, gated !in plain)
         }
@@ -470,6 +471,21 @@ class SelectionMacrosTest {
         assertTrue(SelectionMacro.STRIP_TRACKERS !in SelectionMacros.offer(SelectionKind.URL, all))
         // A link inside a sentence is text, and is cleaned where it stands (#665).
         assertTrue(SelectionMacro.STRIP_TRACKERS in SelectionMacros.offer(SelectionKind.TEXT, all, tracked))
+    }
+
+    @Test
+    fun `edit word is offered on one word of text only, and not before the first unlock`() {
+        val all = SelectionMacros.configurable.toSet()
+        val word = MacroGates(oneWord = true)
+        assertTrue(SelectionMacro.EDIT_WORD in SelectionMacros.offer(SelectionKind.TEXT, all, word))
+        assertTrue(SelectionMacro.EDIT_WORD !in SelectionMacros.offer(SelectionKind.TEXT, all))
+        // A link or an address is not a dictionary word, whatever the gate says.
+        for (kind in listOf(SelectionKind.URL, SelectionKind.EMAIL, SelectionKind.PHONE)) {
+            assertTrue(kind.name, SelectionMacro.EDIT_WORD !in SelectionMacros.offer(kind, all, word))
+        }
+        assertTrue(SelectionMacro.EDIT_WORD in SelectionMacros.defaultMacros)
+        // The personal dictionary is behind the lock.
+        assertTrue(!SelectionMacro.EDIT_WORD.directBootSafe)
     }
 
     @Test

@@ -120,6 +120,12 @@ data class AddonEntry(
      * the base list alone, which is exactly what it offered before.
      */
     val localizations: List<AddonLocalization> = emptyList(),
+    /**
+     * The addon this one remixes, as its install key `"<repoId>/<addonId>"`.
+     * Set by the community repository's bot from what the app sent with the
+     * submission; the detail page credits the original. Informational only.
+     */
+    val basedOn: String? = null,
 ) {
     /** `"<repoId>/<addonId>"` — how an install is tracked in [AddonStore]. */
     fun key(repoId: String): String = "$repoId/$id"

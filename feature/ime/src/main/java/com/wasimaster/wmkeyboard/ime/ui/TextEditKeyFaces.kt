@@ -67,6 +67,8 @@ fun textEditIcon(op: TextEditAction): ImageVector? = when (op) {
     TextEditAction.RETYPE_WORD -> Icons.Outlined.EditNote
     // Drawn as its tie glyph: no icon says "join these" better.
     TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT -> null
+    // Read as words: a backspace glyph would pass for the plain delete key.
+    TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD -> null
     // Select is a toggle rather than a move: it reads as a word, and being lit
     // is what says it is on.
     TextEditAction.SELECT -> null
@@ -110,4 +112,6 @@ internal fun textEditDescription(op: TextEditAction): Int = when (op) {
     TextEditAction.RETYPE_WORD -> R.string.ime_textedit_retype_word_desc
     TextEditAction.NO_SPACE -> R.string.ime_textedit_no_space_desc
     TextEditAction.NO_SPACE_NEXT -> R.string.ime_textedit_no_space_next_desc
+    TextEditAction.DELETE_WORD -> R.string.ime_textedit_delete_word_desc
+    TextEditAction.DELETE_WORD_FORWARD -> R.string.ime_textedit_delete_word_forward_desc
 }

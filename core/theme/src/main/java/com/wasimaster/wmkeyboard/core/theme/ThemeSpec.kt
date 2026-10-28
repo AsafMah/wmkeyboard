@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.theme
 
 import android.content.Context
 import android.util.Base64
+import com.wasimaster.wmkeyboard.core.share.RemixCredit
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -683,6 +684,14 @@ data class ThemeSpec(
      * format.
      */
     val variants: List<ThemeSpec> = emptyList(),
+    /**
+     * The repository addon this theme was installed from, and so the one an
+     * edited copy is a remix of. Set by the addon installer, carried through
+     * every copy, and sent along when the theme is published to the community
+     * repository so the original author is credited. Null for a theme made
+     * here.
+     */
+    val basedOn: RemixCredit? = null,
 )
 
 /**

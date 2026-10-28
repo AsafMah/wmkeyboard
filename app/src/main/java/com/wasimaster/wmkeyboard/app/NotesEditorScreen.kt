@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -462,10 +463,7 @@ private fun shareNote(context: Context, title: String, body: String, tags: List<
         putExtra(Intent.EXTRA_SUBJECT, note.displayTitle().ifEmpty { context.getString(R.string.notes_untitled) })
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    return runCatching {
-        context.startActivity(Intent.createChooser(intent, context.getString(R.string.notes_share_title)))
-        null
-    }.getOrElse { context.getString(R.string.notes_share_error) }
+    return if (AppShareSheet.start(context, intent, context.getString(R.string.notes_share_title))) null else context.getString(R.string.notes_share_error)
 }
 
 private const val AUTOSAVE_MS = 600L

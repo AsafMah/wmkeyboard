@@ -31,7 +31,7 @@ switch for each kind of command, in two groups:
 | Switch language and layout | Keyboard controls | On | `SET_LAYOUT`, `SET_LANGUAGE`, `NEXT_LAYOUT`, `PREVIOUS_LAYOUT`, `LIST_LAYOUTS` |
 | Apply a keyboard mode | Keyboard controls | On | `SET_MODE` |
 | Change the theme | Keyboard controls | On | `SET_THEME` |
-| Show and pin the keyboard | Keyboard controls | On | `SHOW_KEYBOARD`, `SET_PINNED` |
+| Show and pin the keyboard | Keyboard controls | On | `SHOW_KEYBOARD`, `SET_PINNED`, `SET_FLOATING_BUTTON` |
 | Sound and haptics | Keyboard controls | On | `SET_KEY_SOUND`, `SET_HAPTICS` |
 | Power saving and data saver | Keyboard controls | On | `SET_POWER_SAVING`, `SET_DATA_SAVER` |
 | Size and position | Keyboard controls | On | `SET_POSITION` |
@@ -40,6 +40,7 @@ switch for each kind of command, in two groups:
 | Turn incognito off | Needs more trust | Off | `SET_INCOGNITO` with `enabled` false |
 | Add and block words | Needs more trust | Off | `ADD_WORD`, `BLOCK_WORD` |
 | Back up now | Needs more trust | Off | `BACKUP_NOW` |
+| Pause and resume backups | Needs more trust | Off | `PAUSE_BACKUP`, `RESUME_BACKUP`, `PAUSE_SYNC`, `RESUME_SYNC` |
 | Announce layout changes | Needs more trust | Off | The `LAYOUT_CHANGED` event the keyboard sends |
 | Type text (not in the Google Play edition) | Needs more trust | Off | `TYPE_TEXT` |
 
@@ -109,6 +110,7 @@ command flips the current state.
 | `SET_THEME` | `theme`: theme id or name, or `default` | Picks the keyboard theme. | No |
 | `SHOW_KEYBOARD` | none | Brings the keyboard up over the field in use. | Yes |
 | `SET_PINNED` | `enabled` | Keeps the keyboard on screen, or stops. | No |
+| `SET_FLOATING_BUTTON` | `enabled` | Shows the floating button, or takes it down. Without `enabled` it toggles. The button still needs Android's permission to draw over other apps, given once in the app. | No |
 | `SET_KEY_SOUND` | `enabled` | Key sound on or off. | No |
 | `SET_HAPTICS` | `enabled` | Vibration on key press on or off. | No |
 | `SET_POWER_SAVING` | `enabled` | Power saving's manual switch. | No |
@@ -118,7 +120,11 @@ command flips the current state.
 | `SET_INCOGNITO` | `enabled` | Incognito on or off. | No |
 | `ADD_WORD` | `word` | Adds one word to your personal dictionary, as adding it by hand does. | Yes |
 | `BLOCK_WORD` | `word`, and `language` if the block is for one language only | Stops the word being suggested. | No |
-| `BACKUP_NOW` | none | Starts a backup to every location ticked under **Back up to** in Automatic backup. Fails when none is ticked. | No |
+| `BACKUP_NOW` | none | Starts a backup to every location ticked under **Back up to** in Automatic backup. Fails when none is ticked. Runs even while backups are paused. | No |
+| `PAUSE_BACKUP` | `hours`: 1 to 168, or left out for until resumed | Pauses the scheduled backups, as **Pause backups** does. Answers "paused for `<n>` h" or "paused until resumed". Any other `hours` is refused. | No |
+| `RESUME_BACKUP` | none | Ends a backup pause. | No |
+| `PAUSE_SYNC` | `hours`, as for `PAUSE_BACKUP` | Pauses the scheduled syncs, as **Pause sync** does. | No |
+| `RESUME_SYNC` | none | Ends a sync pause and syncs straight away. | No |
 | `TYPE_TEXT` | `text`, or `snippet`: a snippet's trigger or label | Types into the field in use. | Yes |
 
 "Needs the keyboard running" means WM Keyboard is the keyboard you have

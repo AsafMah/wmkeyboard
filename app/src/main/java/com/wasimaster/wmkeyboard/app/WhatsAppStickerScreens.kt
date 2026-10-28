@@ -28,18 +28,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.content.R as ContentR
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackAdoption
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.util.readBytesCapped
-import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,23 +117,22 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
     var scan by remember { mutableStateOf<FolderScan?>(null) }
     var picked by remember { mutableStateOf<List<Uri>?>(null) }
     var namingPack by remember { mutableStateOf<String?>(null) }
+    var importing by remember { mutableStateOf<Uri?>(null) }
+    // Which of the folder's stickers are ticked on its pick page (#965).
+    var folderChosen by remember { mutableStateOf<Set<Int>>(emptySet()) }
 
-    val fallbackName = stringResource(ContentR.string.core_content_sticker_pack_imported_label)
     val folderPackName = stringResource(R.string.import_whatsapp_folder_pack_name)
     val folderNone = stringResource(R.string.import_whatsapp_folder_none, WHATSAPP_STICKER_FOLDER)
 
+    // A file is read, its stickers picked (#965) and the ticked ones added by
+    // the same flow the Sticker packs screen's Import a pack row runs.
     val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        busy = true
-        scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri)
-                        .use { WaStickersFile.import(it, store, fallbackName) }
-                }.getOrDefault(StickerImportResult.Failed)
-            }
-            busy = false
-            message = result.describe(context)
+        if (uri != null) importing = uri
+    }
+    importing?.let { uri ->
+        StickerFileImport(uri) { report ->
+            importing = null
+            message = report
         }
     }
 
@@ -149,6 +147,9 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
                 scan = null
                 message = folderNone
             } else {
+                // The newest a pack can hold, ticked: what the folder route
+                // added before there was a choice.
+                folderChosen = (0 until minOf(found.stickers.size, StickerPackStore.MAX_STICKERS_PER_PACK)).toSet()
                 scan = found
             }
         }
@@ -158,17 +159,17 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
         if (uris.isNotEmpty()) picked = uris
     }
 
-    fun addFolder(found: FolderScan.Found) {
-        scan = null
+    fun addFolder(found: FolderScan.Found, chosen: Set<Int>) {
+        val wanted = found.stickers.filterIndexed { index, _ -> index in chosen }
         busy = true
-        progress = 0 to minOf(found.stickers.size, StickerPackStore.MAX_STICKERS_PER_PACK)
+        progress = 0 to minOf(wanted.size, StickerPackStore.MAX_STICKERS_PER_PACK)
         scope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     StickerPackAdoption.adopt(
                         store = store,
                         name = folderPackName,
-                        incoming = found.stickers.map { sticker ->
+                        incoming = wanted.map { sticker ->
                             StickerPackAdoption.Incoming(
                                 label = sticker.name,
                                 addedAt = sticker.modified,
@@ -184,6 +185,7 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
                     )
                 }.getOrDefault(StickerImportResult.Failed)
             }
+            scan = null
             progress = null
             busy = false
             message = result.describe(context)
@@ -265,32 +267,25 @@ internal fun WhatsAppStickersScreen(onNavigate: (String) -> Unit) {
             confirmButton = {},
         )
 
-        is FolderScan.Found -> AlertDialog(
-            onDismissRequest = { scan = null },
-            title = { Text(stringResource(R.string.import_whatsapp_folder_title)) },
-            text = {
-                val count = current.stickers.size
-                val cap = StickerPackStore.MAX_STICKERS_PER_PACK
-                Text(
-                    if (count > cap) {
-                        stringResource(R.string.import_whatsapp_folder_found_capped, count, current.folderName, cap)
-                    } else {
-                        context.resources.getQuantityString(
-                            R.plurals.import_whatsapp_folder_found,
-                            count,
-                            count,
-                            current.folderName,
-                        )
-                    },
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { addFolder(current) }) { Text(stringResource(CommonR.string.common_add)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { scan = null }) { Text(stringResource(CommonR.string.common_cancel)) }
-            },
-        )
+        is FolderScan.Found -> {
+            val count = current.stickers.size
+            val cap = StickerPackStore.MAX_STICKERS_PER_PACK
+            val shown = remember(current) { current.stickers.map { PickSticker(it.uri, it.name) } }
+            StickerPickPage(
+                title = stringResource(R.string.import_whatsapp_folder_title),
+                subtitle = if (count > cap) {
+                    stringResource(R.string.import_whatsapp_folder_found_capped, count, current.folderName, cap)
+                } else {
+                    pluralStringResource(R.plurals.import_whatsapp_folder_found, count, count, current.folderName)
+                },
+                stickers = shown,
+                chosen = folderChosen,
+                onChosenChange = { folderChosen = it },
+                progress = progress,
+                onAdd = { addFolder(current, folderChosen) },
+                onDismiss = { scan = null },
+            )
+        }
     }
 
     picked?.let { uris ->

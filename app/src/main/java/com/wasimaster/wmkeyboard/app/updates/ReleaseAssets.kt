@@ -168,11 +168,14 @@ internal object ReleaseAssets {
                 ?.takeIf { it.flavor == wantFlavor && it.languages == wantLanguages }
                 ?.let { it to asset }
         }
-        // From 0.6.3 GitHub publishes one build, the standard one (full ·
-        // English, which fetches its other languages and feature libraries).
-        // A lite or all-languages install moves onto it rather than stopping
-        // at the last release that carried its own variant.
-        val ours = matching(flavor, languages).ifEmpty { matching(STANDARD_FLAVOR, LANGUAGES_EN) }
+        // From 0.6.3 there is no lite build on GitHub: a lite install moves
+        // onto the full one with its own languages. 0.6.3 itself carried no
+        // all-languages build either, only copies of the standard one under
+        // its name, so where a release has neither, the standard build
+        // (English, which fetches its other languages) is the answer.
+        val ours = matching(flavor, languages)
+            .ifEmpty { matching(STANDARD_FLAVOR, languages) }
+            .ifEmpty { matching(STANDARD_FLAVOR, LANGUAGES_EN) }
         if (ours.isEmpty()) return null
         for (abi in supportedAbis) {
             ours.firstOrNull { it.first.abi == abi }?.let { return it.second }

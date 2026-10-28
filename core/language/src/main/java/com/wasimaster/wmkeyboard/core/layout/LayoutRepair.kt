@@ -577,7 +577,7 @@ fun LayoutSpec.repair(): RepairedLayout {
  */
 private fun Key.leavesSecondaryLayout(): Boolean = when (action) {
     KeyAction.Letters, KeyAction.Symbols, KeyAction.LanguageSwitch -> true
-    is KeyAction.Layout, is KeyAction.Tool -> true
+    is KeyAction.Layout, is KeyAction.Tool, KeyAction.Toolbox -> true
     // A page key leaves for one of the layout's own grids, which is off the
     // secondary one either way.
     is KeyAction.LayerSwitch -> true

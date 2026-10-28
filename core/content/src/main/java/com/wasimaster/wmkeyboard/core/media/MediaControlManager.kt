@@ -110,6 +110,18 @@ class MediaControlManager(private val context: Context) {
         }
     }
 
+    /**
+     * What is playing right now, read once without tracking: for the Music
+     * ID tool, which asks before it listens. The session that is playing,
+     * else the top one; null without notification access or with nothing up.
+     */
+    fun peek(): MediaSnapshot? {
+        if (!hasAccess()) return null
+        val sessions = activeSessions()
+        val chosen = sessions.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: sessions.firstOrNull()
+        return chosen?.let(::snapshot)
+    }
+
     /** Stops tracking and drops the callback. */
     fun stop() {
         sessionManager?.removeOnActiveSessionsChangedListener(sessionsListener)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick Settings tile "Floating button": a round button lifted off a
+     screen edge, the shape the button itself takes by default. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M15,4 A5,5 0 1 1 15,14 A5,5 0 1 1 15,4 Z M15,6 A3,3 0 1 0 15,12 A3,3 0 1 0 15,6 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M3,3 H5 V21 H3 Z M7,17 H13 V19 H7 Z" />
+</vector>

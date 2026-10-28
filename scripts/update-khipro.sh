@@ -11,6 +11,11 @@
 # change. The interpreter in native/wm-engine/src/khipro.rs runs the files verbatim; a test failure
 # after an update is a spec feature the interpreter does not handle yet, not a
 # table to edit.
+#
+# When anything changed, REVISION beside the specs is stamped with the time of
+# the run: phones take a spec set from the data repository (#909) only when it
+# is newer than the one they were built with, so a set published before this
+# run stops being offered once a build carrying these copies ships.
 
 set -euo pipefail
 
@@ -18,6 +23,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MAIN="$ROOT/native/wm-engine/data/khipro"
 TEST="$ROOT/native/wm-engine/data/khipro/tests"
 RAW="https://raw.githubusercontent.com"
+CHANGED=0
 
 fetch() {
     local url="$1" dest="$2" tmp
@@ -29,6 +35,7 @@ fetch() {
     else
         mv "$tmp" "$dest"
         echo "updated    ${dest#"$ROOT"/}"
+        CHANGED=1
     fi
 }
 
@@ -43,6 +50,11 @@ fetch "$RAW/KhiproTeam/khipro-dark-m17n/HEAD/bn-khipro-dark.mim" "$MAIN/bn-khipr
 fetch "$RAW/KhiproTeam/khipro-dark-m17n/HEAD/khipro-testcases.tsv" "$TEST/khipro-dark-testcases.tsv"
 fetch "$RAW/KhiproTeam/khipro-dark-mim-touchscreen/HEAD/bn-khipro-dark.mim" "$MAIN/bn-khipro-dark-touchscreen.mim"
 fetch "$RAW/KhiproTeam/khipro-dark-mim-touchscreen/HEAD/khipro-testcases.tsv" "$TEST/khipro-dark-testcases-touch.tsv"
+
+if [ "$CHANGED" = 1 ]; then
+    date -u +%Y-%m-%dT%H:%M:%SZ > "$MAIN/REVISION"
+    echo "stamped    ${MAIN#"$ROOT"/}/REVISION $(cat "$MAIN/REVISION")"
+fi
 
 cd "$ROOT/native/wm-engine"
 cargo test khipro

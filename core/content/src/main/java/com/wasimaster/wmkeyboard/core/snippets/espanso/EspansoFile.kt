@@ -271,6 +271,12 @@ object EspansoFile {
         match: Map<String, Any?>,
     ): Snippet {
         val propagate = EspansoYaml.asBoolean(match["propagate_case"]) ?: false
+        // A regex is matched over whole words at the space, never early.
+        val (immediate, insideWords) = if (pattern == null && triggers.isNotEmpty()) {
+            readTiming(match)
+        } else {
+            false to false
+        }
         return Snippet(
             id = 0,
             label = label,
@@ -281,6 +287,8 @@ object EspansoFile {
             uppercaseStyle = readUppercaseStyle(match["uppercase_style"]),
             triggerPattern = pattern,
             triggerWords = if (pattern == null) 0 else SnippetMatcher.DEFAULT_WORDS,
+            immediate = immediate,
+            insideWords = insideWords,
         )
     }
 
@@ -311,15 +319,32 @@ object EspansoFile {
             if (clean.isEmpty()) continue
             if (matchable(clean)) out.add(clean) else notes.add(EspansoNote.SYMBOL_TRIGGER)
         }
-        // Espanso defaults `word` to false, meaning a trigger may fire in the
-        // middle of a word. This app always requires a boundary. A trigger that
-        // starts with punctuation does not care either way; one that starts
-        // with a letter does, whether it is a plain word or a phrase.
-        val wordless = EspansoYaml.asBoolean(match["word"]) == false ||
-            (match["word"] == null && match["left_word"] == null && match["right_word"] == null)
-        notes.addIf(wordless && out.any(::needsBoundary), EspansoNote.MID_WORD)
+        // `right_word` alone waits for a separator after the trigger but lets
+        // it start mid-word. This app fires at the separator only for a trigger
+        // with a boundary in front, so a trigger that starts with a letter
+        // loses its mid-word reach; one that starts with punctuation does not.
+        // Every other shape maps across exactly — see [readTiming].
+        val rightOnly = flag(match, "right_word") && !flag(match, "word") && !flag(match, "left_word")
+        notes.addIf(rightOnly && out.any(::needsBoundary), EspansoNote.MID_WORD)
         return out
     }
+
+    /**
+     * When Espanso would fire this match's triggers, as [Snippet.immediate]
+     * and [Snippet.insideWords].
+     *
+     * `word: true`, or `right_word`, waits for a separator after the trigger:
+     * this app's ordinary trigger. With no word option at all Espanso fires the
+     * moment the last character is typed, anywhere, even inside a word.
+     * `left_word` alone fires at once too, but only at the start of a word.
+     */
+    private fun readTiming(match: Map<String, Any?>): Pair<Boolean, Boolean> = when {
+        flag(match, "word") || flag(match, "right_word") -> false to false
+        flag(match, "left_word") -> true to false
+        else -> true to true
+    }
+
+    private fun flag(match: Map<String, Any?>, key: String): Boolean = EspansoYaml.asBoolean(match[key]) == true
 
     /**
      * True when this app could actually watch for [trigger].

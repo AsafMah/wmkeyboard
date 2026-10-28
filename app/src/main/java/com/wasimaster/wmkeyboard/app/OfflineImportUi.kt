@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -366,7 +367,5 @@ private fun copyLink(context: Context, url: String) {
 private fun shareLinks(context: Context, links: List<OfflineLink>) {
     val text = links.joinToString("\n") { "${it.label}: ${it.url}" }
     val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-    runCatching {
-        context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
+    AppShareSheet.start(context, send)
 }

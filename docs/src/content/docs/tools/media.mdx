@@ -87,6 +87,8 @@ Tap **Allow access**. A short explanation appears first, restating what the acce
 
 An IME cannot show its own permission dialog, which is why this detour through system Settings is needed. You do it once, and you can revoke it at any time from the same Settings screen. The keyboard re-checks the grant every time it returns to the foreground, so grant it in Settings and come back: the panel picks it up without being reopened.
 
+Media controls are the **Media controls** bundle on [Extensions](/reference/settings/extensions/). Off there, the tool, the pin and the music apps screen leave the keyboard and the app until the bundle is switched back on.
+
 ## Details & edge cases
 
 - **Works with anything that publishes an Android media session**: music players, YouTube, podcast apps and the like. That isn't every app that makes sound. An app has to implement the platform's Media Session API for its controls to show up here. One that plays audio without publishing a session won't appear.

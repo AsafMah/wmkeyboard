@@ -215,6 +215,37 @@ def s01_hero():
     return finish(img, "01-hero.png")
 
 
+def s02_glide():
+    """Global default for Slide #2: Gesture typing & fluid flow."""
+    img = base((2250, 220, 480), (300, 1100, 500), (2300, 1250, 400))
+    headline(img, 140, 290, "Type at the speed of ", "glide")
+    text(img, (140, 420), "Fluid gesture typing, fully offline.",
+         font("Inter", 34, 480), fill=BODY)
+    d = ImageDraw.Draw(img, "RGBA")
+    f_mono = font("SpaceGrotesk", 52, 500)
+    sample = "swipe across keys"
+    tw = K.measure(d, sample, f_mono)[0] // SS
+    K.rrect(img, (140, 520, 140 + tw + 110, 520 + 118), 30,
+            fill=(255, 255, 255, 14), outline=(255, 255, 255, 34), width=1)
+    text(img, (190, 579), sample, f_mono, fill=(210, 218, 233), anchor="lm")
+    cx = 190 + tw + 12
+    d.rounded_rectangle([cx * SS, 552 * SS, (cx + 4) * SS, 606 * SS],
+                        2 * SS, fill=CYAN + (255,))
+    gradient_text(img, (140, 690), "Fast. Fluid. Private.",
+                  font("Manrope", 96, 800), VIOLET, CYAN, glow=10)
+    text(img, (140, 920), "Shared trie-lattice decoder for tap and glide.",
+         font("Inter", 32, 480), fill=BODY)
+    text(img, (140, 968), "Built-in English list, 330+ languages to download.",
+         font("Inter", 32, 480), fill=BODY)
+    chip_stack(img, 140, 1050,
+               [("Glide in 330+ languages", CYAN),
+                ("Spacebar trackpad", None),
+                ("Word-swipe delete", VIOLET)])
+    sh = load("kb-english-dark")
+    tablet(img, sh, 1300, 260, 1160, crop_top=int(sh.height * 0.055))
+    return finish(img, "02-glide.png")
+
+
 def s02_bengali():
     img = base((2250, 220, 480), (300, 1100, 500), (2300, 1250, 400))
     headline(img, 140, 290, "Type it how it ", "sounds")
@@ -383,9 +414,9 @@ def s08_chip_wall():
 if __name__ == "__main__":
     import sys
     wanted = sys.argv[1:]  # e.g. python3 gen_tablet.py 01 07
-    all_slides = {"01": s01_hero, "02": s02_bengali, "03": s03_offline,
-                  "04": s04_ai, "05": s05_clipboard, "06": s06_tools,
-                  "07": s07_themes, "08": s08_chip_wall}
+    all_slides = {"01": s01_hero, "02": s02_glide, "02-bengali": s02_bengali,
+                  "03": s03_offline, "04": s04_ai, "05": s05_clipboard,
+                  "06": s06_tools, "07": s07_themes, "08": s08_chip_wall}
     for key, fn in all_slides.items():
         if wanted and key not in wanted:
             continue

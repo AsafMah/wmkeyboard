@@ -269,6 +269,8 @@
     <!-- Shift, backspace, symbols and the other keys that are not letters. -->
     <string name="theme_modifier_keys_title">Modifier keys</string>
     <string name="theme_modifier_key_text_title">Modifier key text</string>
+    <string name="theme_match_letter_keys_title">Make every key match the letter keys</string>
+    <string name="theme_match_letter_keys_subtitle">Shift, ?123, the emoji and tool keys and Enter take the letter keys\' colours. You can change each one after.</string>
     <!-- The small long-press alternate drawn in a key's top-right corner. -->
     <string name="theme_hint_text_title">Key hint text</string>
     <string name="theme_enter_key_title">Enter key</string>
@@ -408,6 +410,7 @@
     <string name="theme_glass_dispersion_body">How far red and blue part where the pane bends the backdrop, like light through the edge of a prism.</string>
     <string name="theme_glass_window_blur_title">Blur behind the keyboard</string>
     <string name="theme_glass_window_blur_subtitle">The app behind the keyboard shows through the board, blurred. Android 12 and later. Off while the phone\'s blur or the keyboard\'s power saving is off, and in the floating keyboard</string>
+    <string name="theme_glass_window_blur_unavailable">This phone isn\'t blurring windows right now: its blur is off, or it has none. The glass shows your wallpaper instead of the app, so the background won\'t change from app to app. Look for a window blur switch in the phone\'s settings, or turn off battery saver.</string>
     <string name="theme_glass_blur_strength_title">Blur strength</string>
     <string name="theme_glass_blur_strength_body">How far the system blurs the app behind the board, and the keys behind a popup or menu.</string>
     <string name="theme_glass_fallback_title">Board opacity without blur</string>

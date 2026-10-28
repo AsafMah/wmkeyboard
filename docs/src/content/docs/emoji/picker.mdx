@@ -59,7 +59,7 @@ Typing `:cat:` is a different feature entirely: it searches or auto-commits an e
 
 Tap the magnifying-glass tab at the start of the tab strip. The panel switches into search mode and a search pill appears. With the full-screen panel on (the default) the pill takes the header row beside the back button, in place of the tab strip. With it off, the pill sits under the results instead, right above the keys that type into it, so the emoji stay at the top of the panel where your thumb left them.
 
-The pill is not a text field you type into directly. Tap it, and the letter keys underneath become a query editor: what you type appends to the pill instead of going to your document, and the keyboard's own backspace key deletes from the pill. A small backspace icon inside the pill deletes from your actual text field instead, without leaving search. Tapping the pill again unlatches typing, and the tab strip returns once the query is empty, so backspacing your query away is the way back to browsing.
+The pill is not a text field you type into directly. Tap it, and the letter keys underneath become a query editor: what you type appends to the pill instead of going to your document, and the keyboard's own backspace key deletes from the pill. A small backspace icon inside the pill deletes from your actual text field instead, without leaving search. Tapping the pill again unlatches typing, and the tab strip returns once the query is empty, so backspacing your query away is the way back to browsing. An ✕ at the end of the pill, while it holds a query, empties it in one tap: the full grid comes back, and the keys stay on the pill for a new query.
 
 Search understands more than an exact keyword match, layered in this order, where matches on more than one query word add up:
 
@@ -110,7 +110,9 @@ Emoji with gender or role variants (a runner shown as 🏃‍♀️ or 🏃‍�
 
 <SettingsPath path="Emoji / Emoji panel / History tab" />
 
-The first tab in the panel shows your history, once you have at least one recent or favourited emoji. **History tab** chooses what fills it. **Recent** orders by when you last used an emoji, and **Most used** ranks by frequency. Favourited emoji are pinned to the front either way. **Off** removes the tab, so the panel opens on the first emoji category and every category keeps a fixed place. The keyboard still remembers what you use, for the emoji row and emoji suggestions.
+The first tab in the panel shows your history, once you have at least one recent or favourited emoji. **History tab** chooses what fills it. **Recent** orders by when you last used an emoji, and **Most used** ranks by frequency. **Both** shows the two at once: your 16 most used emoji under a **Most used** heading, then the recents under **Recent**. Favourited emoji are pinned to the front either way. **Off** removes the tab, so the panel opens on the first emoji category and every category keeps a fixed place. The keyboard still remembers what you use, for the emoji row and emoji suggestions.
+
+The history tab doesn't reorder while you tap through it. What you pick shows up the next time the tab comes into view: when the panel opens, or when you close or clear a search, so an emoji you found by searching is in Recent as soon as the grid is back.
 
 <PhoneFrame caption="The history tab with favourites pinned first, and the long-press options for a starred emoji.">
   {/* shot: emoji/history-tab */}
@@ -197,6 +199,6 @@ The animations are **Noto Animated Emoji** by Google, licensed [CC BY 4.0](https
 
 ### Coverage
 
-The bundled catalog covers 1,914 base emoji across ten categories (activities, animals, flags, food, nature, objects, people, smileys, symbols, travel). Of those, 330 carry Fitzpatrick skin-tone variants, five uniform tones each, and 19 of that 330 also support independently-toned pairs like 🤝. Together that's 2,030 additional toned sequences on top of the base count.
+The bundled catalog is Emoji 18.0 and covers 1,923 base emoji across ten categories (activities, animals, flags, food, nature, objects, people, smileys, symbols, travel). Of those, 332 carry Fitzpatrick skin-tone variants, five uniform tones each, and 19 of that 332 also support independently-toned pairs like 🤝. Together that's 2,040 additional toned sequences on top of the base count. An emoji newer than your phone's emoji font draws as a box until the font catches up; picking a newer font under **Emoji font** fixes that.
 
 For the settings that shape all of this (which font draws the emoji, keyword packs for other languages, word-typing predictions, and the emoji row), see [Emoji customization](/emoji/customization/).

@@ -30,6 +30,10 @@
     <!-- Inserts the link of one article from the list of links. -->
     <string name="ime_wiki_insert_action">Insert</string>
     <string name="ime_wiki_full_error">The app cannot load the text of the article.</string>
+    <!-- #970: hands the word or article title to another app on the phone, such as an offline dictionary (Aard 2, ColorDict) or an offline Wikipedia (Kiwix). %1$s is that app's name. -->
+    <string name="ime_lookup_app_one">Open in <xliff:g id="app" example="Aard 2">%1$s</xliff:g></string>
+    <!-- The same, when several apps can; tapping lists them. -->
+    <string name="ime_lookup_app_many">Open in another app</string>
 
     <!-- Dictionary tool panel: English word lookup. -->
     <string name="ime_dict_search_hint">Look up a word…</string>
@@ -74,6 +78,9 @@
     <!-- Takes back the space the keyboard added after a word, or ends the word without one (#851). -->
     <string name="ime_textedit_no_space_desc">No space</string>
     <string name="ime_textedit_no_space_next_desc">No space after the next key</string>
+    <!-- Deletes the word before / after the cursor, the way Ctrl+Backspace and Ctrl+Delete do (#980). -->
+    <string name="ime_textedit_delete_word_desc">Delete word</string>
+    <string name="ime_textedit_delete_word_forward_desc">Delete word forward</string>
     <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>
     <string name="ime_textedit_select_word_desc">Select the word</string>
     <string name="ime_textedit_select_line_desc">Select the line</string>
@@ -87,6 +94,8 @@
     <string name="ime_password_separator_label">Separator: %1$s</string>
     <string name="ime_password_capitalize_label">Capital letters</string>
     <string name="ime_password_add_digit_label">Add a digit</string>
+    <!-- Chip on the PIN tab: skip PINs like 1111, 1234, 1212 or a date. -->
+    <string name="ime_password_pin_avoid_weak_label">No easy PINs</string>
     <!-- %1$d is how many bits of entropy the password has. -->
     <!-- "bits" is the unit of an approximate measurement, not a count of things: no plural. -->
     <string name="ime_password_entropy_info" tools:ignore="PluralsCandidate">≈%1$d bits of entropy</string>
@@ -260,6 +269,7 @@
     <string name="ime_moon_detail_info" tools:ignore="PluralsCandidate">%1$d%% illuminated · day %2$d of 30</string>
     <!-- %1$s is a date. -->
     <string name="ime_moon_full_info">Full moon: %1$s</string>
+    <string name="ime_moon_phase_at">%1$s: %2$s</string>
     <!-- %1$s is a date. -->
     <string name="ime_moon_new_info">New moon: %1$s</string>
 

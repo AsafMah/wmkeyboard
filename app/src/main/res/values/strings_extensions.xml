@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Extensions screen: feature bundles with one switch each (SETTINGS_REDESIGN.md §3). -->
+    <string name="extensions_title">Extensions</string>
+    <string name="extensions_subtitle">Extras most keyboards never had, on or off as one thing</string>
+    <string name="extensions_intro">These are the features most people never expect a keyboard to have. Each is off until you switch it on here, and off means gone: no tool, no button on the keyboard, no search result, no background work. Switch it back on and it returns with the settings it had.</string>
+    <string name="extensions_group_title">Features</string>
+    <string name="extensions_count_summary">%1$d of %2$d on</string>
+
+    <!-- One bundle's own page. -->
+    <string name="extension_enabled_title">Turned on</string>
+    <string name="extension_enabled_subtitle">Show this feature everywhere and let it work in the background</string>
+    <string name="extension_tools_title">Tools</string>
+    <string name="extension_tools_off_subtitle">Hidden from the toolbar, the toolbox and the Tools list while the feature is off</string>
+    <string name="extension_screens_title">Settings screens</string>
+    <string name="extension_screens_off_subtitle">Gone from Home, Advanced and search while the feature is off</string>
+
+    <!-- Drawn in place of a screen whose bundle is off. -->
+    <string name="extension_off_notice">This screen is part of %1$s, which is switched off.</string>
+    <string name="extension_off_action">Open Extensions</string>
+
+    <!-- The bundles: a name and one line on what each adds. -->
+    <string name="extension_vocabulary_title">Vocabulary</string>
+    <string name="extension_vocabulary_desc">Word packs, the word of the day, nudges and flashcards</string>
+    <string name="extension_notes_title">Notes</string>
+    <string name="extension_notes_desc">A notebook in the keyboard and the quick note action</string>
+    <string name="extension_stickers_title">Stickers, GIFs and emoji mixes</string>
+    <string name="extension_stickers_desc">The three picture panels, sticker packs and the generator</string>
+    <string name="extension_scanners_title">Scanners</string>
+    <string name="extension_scanners_desc">Text scan, the QR and barcode reader and the document scanner</string>
+    <string name="extension_modes_title">Keyboard modes</string>
+    <string name="extension_modes_desc">Per-app and per-field setups, picked by hand or automatically</string>
+    <string name="extension_handwriting_title">Handwriting</string>
+    <string name="extension_handwriting_desc">Write by hand on the keyboard, with downloadable models</string>
+    <string name="extension_calculators_title">Calculator and converters</string>
+    <string name="extension_calculators_desc">Sums, units and currencies, worked out on the keyboard</string>
+    <string name="extension_web_search_title">Web search</string>
+    <string name="extension_web_search_desc">Web search, image search and Wikipedia inside the keyboard</string>
+    <string name="extension_camera_gallery_title">Camera and gallery</string>
+    <string name="extension_camera_gallery_desc">Take or pick a photo without leaving the field</string>
+    <string name="extension_calendar_clock_title">Calendar and clock</string>
+    <string name="extension_calendar_clock_desc">Events, world clocks, timers and countdowns</string>
+    <string name="extension_generators_title">Generators</string>
+    <string name="extension_generators_desc">Passwords, QR codes and repeated text</string>
+    <string name="extension_typing_test_title">Typing test</string>
+    <string name="extension_typing_test_desc">Measure your speed and keep the scores</string>
+    <string name="extension_read_back_title">Read back</string>
+    <string name="extension_read_back_desc">The field read aloud</string>
+    <string name="extension_learn_from_text_title">Learn from text</string>
+    <string name="extension_learn_from_text_desc">Teach the dictionary from a block of text</string>
+    <string name="extension_find_replace_title">Find and replace</string>
+    <string name="extension_find_replace_desc">Search and replace inside the field</string>
+    <string name="extension_media_controls_title">Media controls</string>
+    <string name="extension_media_controls_desc">Play, pause and skip from the toolbar</string>
+    <string name="extension_app_launcher_title">App launcher</string>
+    <string name="extension_app_launcher_desc">Open apps and split-screen pairs from the keyboard</string>
+    <string name="extension_weather_location_title">Weather and location</string>
+    <string name="extension_weather_location_desc">The forecast, and your place to type or share</string>
+    <string name="extension_instruments_title">Instruments</string>
+    <string name="extension_instruments_desc">Flashlight, compass, bubble level and moon phase</string>
+    <string name="extension_music_id_title">Music recognition</string>
+    <string name="extension_music_id_desc">Name the song that is playing</string>
+    <string name="extension_speed_test_title">Speed test</string>
+    <string name="extension_speed_test_desc">Test the connection and share the result</string>
+    <string name="extension_kde_connect_title">KDE Connect</string>
+    <string name="extension_kde_connect_desc">Type on a paired desktop, and share with it</string>
+    <string name="extension_send_files_title">Send files</string>
+    <string name="extension_send_files_desc">Send files to other devices</string>
+    <string name="extension_smart_home_title">Smart home</string>
+    <string name="extension_smart_home_desc">Lights, switches and scenes from the keyboard</string>
+</resources>

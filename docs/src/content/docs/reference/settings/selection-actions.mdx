@@ -7,7 +7,7 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-The Selection actions screen is the switch and two choices, then four doors: the Actions list, Icon only, the AI buttons and the Time zones. This page is the field reference. For what the feature is and how each action behaves, start at [Selection actions](/smart/selection-actions/).
+The Selection actions screen is the switch and two choices, then four doors: the Actions list, Icon only, the AI buttons and the Time zones. Below them sit the switches for the entries in other apps' selection menus. This page is the field reference. For what the feature is and how each action behaves, start at [Selection actions](/smart/selection-actions/).
 
 ## Options
 
@@ -20,12 +20,16 @@ The Selection actions screen is the switch and two choices, then four doors: the
 | Show on every selection | Toggle | Off |
 | Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 33 of 51 on |
+| Actions | Screen | 37 of 56 on |
 | Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and the device's zone |
+| WM Keyboard in the selection menu | Toggle | On |
+| WM Translate in the selection menu | Toggle | Off, listed while the Translate tool is on |
+| Ask AI in the selection menu | Toggle | On, listed while the AI tool is on |
+| Look up in the selection menu | Toggle | On |
 
-**Selection actions** is the whole feature. Nothing below it is read while it is off, and no selection raises anything.
+**Selection actions** is the keyboard's bar. Nothing else on the screen is read by the keyboard while it is off, and no selection raises anything. The four selection menu switches at the bottom are separate and work either way.
 
 **Where it appears** is either *Own row* or *Suggestion strip*. Own row gives the bar a row of its own above the keys, which arrives with the selection and leaves with it, so the keyboard is one row taller while it is there. That row is called **Selection actions** in the row list on [Rows & bars](/reference/settings/rows/#row-order), where you can move it above or below the suggestion strip. Suggestion strip draws the actions over the strip instead and costs no height, since there are no word suggestions to show while text is selected. Under that choice the strip goes back to the toolbar whenever a panel is open, because the arrow on that row is the way out of the panel.
 
@@ -34,6 +38,12 @@ The Selection actions screen is the switch and two choices, then four doors: the
 **Show with nothing selected** keeps the own row up while the field has only a caret. Offered then are Select all and Paste, out of the actions you have on; Paste is drawn whether or not the clipboard holds anything, so the row does not change shape under your thumb, and a paste of nothing does nothing. Selecting text replaces it with the usual row for that selection, and collapsing the selection brings the caret row back. The row is not drawn while a panel is open, the same as for a selection. The switch is only listed with **Where it appears** set to **Own row**, and has no effect on the strip placement. Password fields are excluded whichever way this is set.
 
 **Read what is selected** decides whether a selection is read as a phone number, an address or a link, or only ever as plain text. With it off you keep every action that works on any text and lose Call, Message, WhatsApp, Email, Open, QR and Contact, because none of those mean anything without the reading. Phone shapes come from the formats you saved under [Phone number formats](/reference/settings/phone-formats/).
+
+**WM Keyboard in the selection menu** adds **WM Keyboard** to the menu apps show over selected text, in the apps whose menu lists other apps' entries ([which ones](/smart/selection-actions/#when-the-entry-is-missing)). It opens a sheet with Translate, the AI actions and the rewrites and Open in actions from the **Actions** list below, in the order set there; see [In any app's selection menu](/smart/selection-actions/#in-any-apps-selection-menu). The sheet uses the same list as the bar whether or not the bar is on.
+
+**WM Translate in the selection menu** adds a second entry, **WM Translate**, that opens the same sheet with the text already being translated into the Translate tool's target language. It is listed, and the entry is in the menu, only while the Translate tool is switched on.
+
+**Ask AI in the selection menu** and **Look up in the selection menu** are the switches from the [AI tool](/tools/ai/#options) and [Look up](/tools/look-up/#options) pages, shown here as well. Each entry the switches add is one more row in every app's menu.
 
 ## Actions
 
@@ -80,6 +90,7 @@ The list is an allow list, not a guarantee: an action that is on is drawn only w
 | Search | Look up | Off | Plain text, with the Web search tool on |
 | Speak | Look up | Off | Every selection |
 | Zones | Look up | Off | A time |
+| Edit word | Look up | On | One word of plain text, punctuation around it aside |
 | Share | Open in | On | Every selection |
 | Call | Open in | On | Phone numbers |
 | Message | Open in | On | Phone numbers |
@@ -93,11 +104,15 @@ The list is an allow list, not a guarantee: an action that is on is drawn only w
 
 Search is off to start with, because it is a round trip to a network service and not what a selection usually means. Translate is on: it only opens the Translate tool, which can translate on the device, and a selection in a language you can't read is the text you could not have typed into that tool yourself. It was off before; a list you had already picked yourself keeps its choices, so switch it on here. The chat markers, the programmer's cases, Speak, Zones, Map, Calendar and the decoders are off because each is a taste rather than a need, and the row is long enough already.
 
+### Renaming an action
+
+The pencil on an action's row changes the word the bar draws for it, up to 24 characters: a shorter word, say, or one in your own language. The selection menu sheet in other apps keeps the shipped names. The list then shows your name too, and a hold on an icon-only chip says it. Clear the field, or press **Reset**, to go back to the shipped word. Search on this screen still finds the action by its shipped name.
+
 ## Icon only
 
 <SettingsPath path="Advanced / Selection actions / Icon only" />
 
-A checkbox per action that is on and has an icon, in the bar's order. A picked action is drawn as its icon alone, with no name beside it, so the ones you know by sight take less of the row; a screen reader still says the name. The case options are not listed: they are written in the case they apply and have no icon to show instead.
+A checkbox per action that is on and has an icon, in the bar's order. A picked action is drawn as its icon alone, with no name beside it, so the ones you know by sight take less of the row; press and hold one to see its name, and a screen reader still says it. The case options are not listed: they are written in the case they apply and have no icon to show instead.
 
 ## AI buttons
 
@@ -109,7 +124,7 @@ A checkbox per AI action, in the AI tool's own order. Each picked action gets a 
 
 <SettingsPath path="Advanced / Selection actions / Time zones" />
 
-The zones the Zones action renders a selected time in, reorderable, with a delete handle each. Below the list, a field searches every zone the device knows by city and by offset; tap a result to add it. With nothing picked the list is UTC and the device's own zone, and deleting everything returns to that.
+The zones the Zones action renders a selected time in, reorderable, with a delete handle each. Below the list, a field searches every zone the device knows by city and by offset; tap a result to add it. With nothing picked the list is UTC and the device's own zone, and deleting everything returns to that. **Sort by time** (off) lists the zones in the Zones action earliest time first instead of in this order.
 
 ## Details
 

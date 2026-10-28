@@ -26,6 +26,7 @@
     <string name="common_default">Padrão</string>
     <string name="common_delete">Excluir</string>
     <string name="common_disable">Desativar</string>
+    <string name="common_disabled_open_setting">Abrir a configuração</string>
     <string name="common_disclosure_blocked_body">O Android não mostra mais esta solicitação porque você recusou a permissão anteriormente. Você ainda pode ativá-la na tela de configurações do aplicativo.</string>
     <string name="common_disclosure_not_now">Agora não</string>
     <string name="common_done">Concluído</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instalar</string>
     <string name="common_installing">Instalando...</string>
     <string name="common_loading">A carregar…</string>
+    <string name="common_more">Mais</string>
     <string name="common_next">Próximo</string>
     <string name="common_none">Nenhum</string>
     <string name="common_notify_channel_backup_body">Apenas quando um backup automático falha. Backups bem-sucedidos são silenciosos.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Mostrar notificações</string>
     <string name="common_permission_storage_body">No Android 9 e anteriores, o teclado precisa de permissão de armazenamento para salvar uma imagem na sua galeria. A permissão antiga do Android também cobre a leitura do seu armazenamento. O teclado grava apenas a imagem que você pede para salvar. O teclado não lê nem envia nada. Versões mais recentes do Android não precisam desta permissão.</string>
     <string name="common_permission_storage_title">Acesso ao armazenamento para salvar na sua galeria</string>
+    <string name="common_permission_tasks_body">O Teclado WM mantém sua lista de tarefas e a lista de tarefas no aplicativo de tarefas sincronizadas: as tarefas, seus passos, marcações e datas de vencimento funcionam nos dois sentidos. A permissão abrange todas as listas de tarefas no aplicativo. O teclado lê as listas do aplicativo apenas para que você possa escolher uma, e ele lê e escreve apenas na lista que você escolheu. O teclado não envia nada para lugar nenhum. O DAVx5, caso você o utilize, sincroniza essa lista com seu próprio servidor CalDAV. Sem essa permissão, a lista de tarefas permanece neste telefone.</string>
+    <string name="common_permission_tasks_opentasks_title">Acesso ao OpenTasks para a lista de tarefas</string>
+    <string name="common_permission_tasks_tasks_org_title">Acesso ao Tasks.org para a lista de tarefas</string>
+    <string name="common_preview_scale_desc">Tamanho da pré-visualização</string>
+    <string name="common_preview_scale_larger">Aumentar a visualização</string>
+    <string name="common_preview_scale_smaller">Diminuir pré-visualização</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Remover</string>
     <string name="common_reset">Redefinir</string>
     <string name="common_reset_defaults">Redefinir para os padrões</string>

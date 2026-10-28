@@ -110,6 +110,8 @@ export interface AddonEntry {
 	licenseFile?: string;
 	/** Addon ids in the same repository the app offers to download alongside. */
 	requires: string[];
+	/** `"<repoId>/<addonId>"` of the addon this one remixes; AddonEntry.basedOn in the app. */
+	basedOn?: string;
 }
 
 export interface Manifest {

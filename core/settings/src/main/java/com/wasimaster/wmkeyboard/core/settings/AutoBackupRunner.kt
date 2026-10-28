@@ -139,7 +139,7 @@ object AutoBackupRunner {
             val failed: Map<String, SinkError> = emptyMap(),
         ) : Outcome
 
-        /** Nothing to do: turned off, no folder, or the interval has not elapsed. */
+        /** Nothing to do: turned off, paused, no folder, or the interval has not elapsed. */
         data object Skipped : Outcome
 
         /**
@@ -155,8 +155,9 @@ object AutoBackupRunner {
     /**
      * Runs a backup if one is due.
      *
-     * [force] is the "Back up now" button: it skips the interval check and the
-     * enabled switch, but not the lock check or the destination check, because
+     * [force] is the "Back up now" button: it skips the interval check, the
+     * pause and the enabled switch, but not the lock check or the destination
+     * check, because
      * those are about whether a backup can be any good rather than whether one
      * was asked for.
      */
@@ -165,12 +166,14 @@ object AutoBackupRunner {
         repository: SettingsRepository,
         force: Boolean = false,
         nowMs: Long = System.currentTimeMillis(),
+        /** The frequent schedule's run (#970) rather than the main one's. */
+        frequent: Boolean = false,
     ): Outcome = BackupGate.mutex.withLock {
         // Files this run's traffic as scheduled in the network activity log,
         // unless the user pressed "Back up now". The gate holds one run at a time.
         BackupTraffic.unattended = !force
         try {
-            runLocked(context, repository, force, nowMs)
+            runLocked(context, repository, force, nowMs, frequent)
         } finally {
             BackupTraffic.unattended = false
         }
@@ -181,24 +184,67 @@ object AutoBackupRunner {
         repository: SettingsRepository,
         force: Boolean,
         nowMs: Long,
+        frequent: Boolean,
     ): Outcome {
         val appContext = context.applicationContext
         val settings = repository.settings.first().autoBackup
+        // First, and before anything is listed or built: while paused, the
+        // periodic job still fires (see BackupPause), and each of those
+        // firings should cost one settings read.
+        if (!force && settings.paused(nowMs)) return Outcome.Skipped
         val targets = settings.backupTargets
 
         if (!force && !settings.enabled) return Outcome.Skipped
+        if (frequent && !settings.frequent.enabled) return Outcome.Skipped
         if (targets.isEmpty()) return Outcome.Skipped
-        if (!force && !isDue(settings, nowMs)) return Outcome.Skipped
+        val due = if (frequent) isDue(settings.frequent.lastRunAtMs, settings.frequent.intervalHours, nowMs) else isDue(settings, nowMs)
+        if (!force && !due) return Outcome.Skipped
         // Before anything else. A locked device cannot produce a real bundle,
         // and an unreal one is worse than none.
         if (!DirectBoot.isUserUnlocked(appContext)) return Outcome.Locked
 
-        BackupLog.d("run force=$force locations=${targets.map { "${it.type.id}:${it.id}" }}")
+        BackupLog.d("run force=$force frequent=$frequent locations=${targets.map { "${it.type.id}:${it.id}" }}")
+        val plan = if (frequent) Plan.frequent(settings) else Plan.main(settings)
         val outcome = runCancellable {
-            backUp(appContext, repository, targets, settings, nowMs, announce = !force)
+            backUp(appContext, repository, targets, settings, plan, nowMs, announce = !force)
         }
         return outcome.getOrElse { failure ->
-            fail(appContext, repository, failure, nowMs, announce = !force, location = null)
+            fail(appContext, repository, failure, nowMs, announce = !force, location = null, frequent = frequent)
+        }
+    }
+
+    /**
+     * What one run writes: the main schedule's choices, or the frequent
+     * one's (#970). The two share the locations, the passphrase and the
+     * staging; everything here is what differs.
+     */
+    private data class Plan(
+        val sections: Set<ConfigBackup.Section>,
+        val encrypt: Boolean,
+        val includeSecrets: Boolean,
+        val keep: Int,
+        val staggered: Boolean,
+        val frequent: Boolean,
+    ) {
+        companion object {
+            fun main(settings: AutoBackupSettings) = Plan(
+                sections = settings.sectionSet,
+                encrypt = settings.encrypt && settings.passphrase.isNotEmpty(),
+                includeSecrets = settings.backupIncludeSecrets,
+                keep = settings.keep,
+                staggered = settings.staggered,
+                frequent = false,
+            )
+
+            // Never the keys: see [FrequentBackup].
+            fun frequent(settings: AutoBackupSettings) = Plan(
+                sections = settings.frequent.sectionSet,
+                encrypt = settings.frequent.encrypt && settings.passphrase.isNotEmpty(),
+                includeSecrets = false,
+                keep = settings.frequent.keep,
+                staggered = false,
+                frequent = true,
+            )
         }
     }
 
@@ -284,13 +330,16 @@ object AutoBackupRunner {
      * two edge cases that are easy to get wrong and impossible to observe from
      * outside a run.
      */
-    fun isDue(settings: AutoBackupSettings, nowMs: Long): Boolean {
-        val last = settings.lastRunAtMs
+    fun isDue(settings: AutoBackupSettings, nowMs: Long): Boolean =
+        isDue(settings.lastRunAtMs, settings.intervalHours, nowMs)
+
+    /** [isDue] for any schedule: its last good run and its interval. */
+    fun isDue(last: Long, intervalHours: Int, nowMs: Long): Boolean {
         // A last-run time in the future is a clock that moved, or a bundle from
         // another device that got through. Either way, waiting for it to come
         // round again could mean waiting for weeks; take one now instead.
         if (last <= 0L || last > nowMs) return true
-        return nowMs - last >= settings.intervalHours.coerceAtLeast(1) * 60L * 60L * 1000L
+        return nowMs - last >= intervalHours.coerceAtLeast(1) * 60L * 60L * 1000L
     }
 
     private suspend fun backUp(
@@ -298,11 +347,12 @@ object AutoBackupRunner {
         repository: SettingsRepository,
         targets: List<BackupLocation>,
         settings: AutoBackupSettings,
+        plan: Plan,
         nowMs: Long,
         announce: Boolean,
     ): Outcome {
-        val encrypt = settings.encrypt && settings.passphrase.isNotEmpty()
-        val requested = settings.sectionSet
+        val encrypt = plan.encrypt
+        val requested = plan.sections
         if (requested.isEmpty()) return Outcome.Skipped
 
         // Drop the bulky sections before building anything, not after: the
@@ -321,7 +371,7 @@ object AutoBackupRunner {
             // strongly suggests a passphrase before it goes on, and warns when
             // it is on without one; it does not quietly drop keys the user
             // asked to keep.
-            includeSecrets = settings.backupIncludeSecrets,
+            includeSecrets = plan.includeSecrets,
             appVersion = version.first,
             appVersionName = version.second,
             // Never the locations themselves. A backup at one location holding
@@ -344,6 +394,8 @@ object AutoBackupRunner {
                 encrypted = encrypt,
                 installId = installId,
                 device = BackupInstall.deviceLabel(appContext),
+                group = settings.sync.group,
+                frequent = plan.frequent,
             )
             val mime =
                 if (encrypt) ConfigBackup.ENCRYPTED_MIME_TYPE else ConfigBackup.MIME_TYPE
@@ -351,15 +403,19 @@ object AutoBackupRunner {
             var firstName: String? = null
             val failed = LinkedHashMap<String, SinkError>()
             for (location in targets) {
-                val written = copyTo(appContext, location, name, mime, staged, settings.keep, installId)
+                val written = copyTo(appContext, location, name, mime, staged, plan.keep, plan.staggered, installId, plan.frequent)
                 written.onSuccess { entry ->
                     if (firstName == null) firstName = entry.name
-                    repository.setLocationStatus(location.id) { it.copy(backupAtMs = nowMs, backupError = "") }
+                    // A location's status is the main schedule's: what the
+                    // screen calls its last backup is the whole one.
+                    if (!plan.frequent) {
+                        repository.setLocationStatus(location.id) { it.copy(backupAtMs = nowMs, backupError = "") }
+                    }
                 }.onFailure { failure ->
                     val reason = (failure as? BackupSinkException)?.reason ?: SinkError.IO
                     BackupLog.w("location ${location.id} failed: $reason", failure)
                     failed[location.id] = reason
-                    repository.setLocationStatus(location.id) { it.copy(backupError = reason.name) }
+                    if (!plan.frequent) repository.setLocationStatus(location.id) { it.copy(backupError = reason.name) }
                     if (announce && reason != SinkError.NOT_CONFIGURED) {
                         BackupNotification.post(appContext, reason, location.type)
                     }
@@ -374,11 +430,16 @@ object AutoBackupRunner {
                     nowMs,
                     announce = false,
                     location = null,
+                    frequent = plan.frequent,
                 )
             // The run counts as done when any location has it: the schedule is
             // about whether a recent copy exists somewhere, and the failures are
             // recorded per location for the screen to show.
-            repository.setAutoBackupOutcome(ranAtMs = nowMs, error = "")
+            if (plan.frequent) {
+                repository.setFrequentBackupOutcome(ranAtMs = nowMs, error = "")
+            } else {
+                repository.setAutoBackupOutcome(ranAtMs = nowMs, error = "")
+            }
             BackupLog.d("done $landed (${staged.length()} B) skipped=$skipped failed=$failed")
             return Outcome.Done(landed, skipped, failed)
         } finally {
@@ -398,13 +459,15 @@ object AutoBackupRunner {
         mime: String,
         staged: File,
         keep: Int,
+        staggered: Boolean,
         installId: String,
+        frequent: Boolean,
     ): Result<com.wasimaster.wmkeyboard.core.settings.sink.SinkEntry> {
         val sink = sinkFor(appContext, location)
             ?: return Result.failure(BackupSinkException(SinkError.NOT_CONFIGURED))
         sink.readiness().exceptionOrNull()?.let { return Result.failure(it) }
         val written = sink.write(name, mime) { out -> staged.inputStream().use { it.copyTo(out) } }
-        if (written.isSuccess) rotate(sink, keep, installId)
+        if (written.isSuccess) rotate(sink, keep, staggered, installId, frequent)
         return written
     }
 
@@ -478,11 +541,12 @@ object AutoBackupRunner {
         info.versionCode to info.versionName.orEmpty()
     }.getOrDefault(0 to "")
 
-    private suspend fun rotate(sink: BackupSink, keep: Int, installId: String) {
-        // Backups only. A sink lists sync files too, and a sync file counted
+    private suspend fun rotate(sink: BackupSink, keep: Int, staggered: Boolean, installId: String, frequent: Boolean) {
+        // Backups only, and only this schedule's (#970). A sink lists sync
+        // files too, and a sync file or the other schedule's backup counted
         // here would be a generation to delete.
-        val entries = sink.list().getOrNull()?.filter { AutoBackupNaming.isOurs(it.name) } ?: return
-        val doomed = AutoBackupNaming.rotation(entries, keep, installId)
+        val entries = sink.list().getOrNull()?.filter { AutoBackupNaming.isOurs(it.name, frequent) } ?: return
+        val doomed = AutoBackupNaming.rotation(entries, keep, installId, staggered)
         BackupLog.d("rotate: ${entries.size} listed, keep $keep, deleting ${doomed.map { it.name }}")
         for (entry in doomed) {
             sink.delete(entry)
@@ -505,10 +569,15 @@ object AutoBackupRunner {
         nowMs: Long,
         announce: Boolean,
         location: BackupLocation?,
+        frequent: Boolean = false,
     ): Outcome {
         val reason = (failure as? BackupSinkException)?.reason ?: SinkError.IO
         BackupLog.w("failed: $reason", failure)
-        repository.setAutoBackupOutcome(ranAtMs = nowMs, error = reason.name)
+        if (frequent) {
+            repository.setFrequentBackupOutcome(ranAtMs = nowMs, error = reason.name)
+        } else {
+            repository.setAutoBackupOutcome(ranAtMs = nowMs, error = reason.name)
+        }
         if (announce && reason != SinkError.NOT_CONFIGURED) {
             BackupNotification.post(context, reason, location?.type ?: BackupDestination.FOLDER)
         }

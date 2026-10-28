@@ -45,6 +45,8 @@ The words go into the field as they are recognised, underlined and without punct
 
 In **Type while you speak** (see [Typing while you dictate](/tools/voice/#typing-while-you-dictate)), nothing goes into the field until the phrase is finished, so there the words are on the line under the microphone only.
 
+**Where a phrase ends.** The model has no ear for pauses of its own. With **Stop after a pause** set, the **Phrase end detector** on the Voice typing screen listens for it: by default loudness, the way Whisper's clips end, and Silero instead once ONNX Runtime and Silero's 1.8 MB file are on the phone. FireRedVAD, a model of your own and **Smart Turn** work here too; see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase).
+
 On a desktop, its output matched the model makers' own reference decoder word for word, punctuation included. Speed and accuracy on a phone are not yet measured by this project.
 
 ## Details & edge cases

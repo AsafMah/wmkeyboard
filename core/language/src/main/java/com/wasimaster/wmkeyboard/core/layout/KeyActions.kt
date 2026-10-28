@@ -153,6 +153,13 @@ sealed interface KeyAction {
     @Serializable @SerialName("emoji") data object Emoji : KeyAction
 
     /**
+     * Opens the toolbox, as the launcher at the head of the toolbar does
+     * (#970): the whole grid of tools one key away, for a layout that keeps
+     * the toolbar out of sight or wants it in reach of the thumb.
+     */
+    @Serializable @SerialName("toolbox") data object Toolbox : KeyAction
+
+    /**
      * Opens the numeric keypad panel over the current field. Produced at
      * runtime by a long-press on the ?123 / symbols key or the popup entry it
      * adds to one with alternates
@@ -327,6 +334,15 @@ sealed interface KeyAction {
      * [Key.output]; a key of it never fires as a whole.
      */
     @Serializable @SerialName("reading_column") data object ReadingColumn : KeyAction
+
+    /**
+     * Flips Chinese candidates between Simplified and Traditional characters,
+     * the same setting as the Chinese screen's Traditional characters row
+     * (#962). The shipped Pinyin layout puts it on the hold of its '词 key,
+     * where the Chinese keyboards its users come from keep the switch; any
+     * layout can bind it. A word being typed takes the new script at once.
+     */
+    @Serializable @SerialName("han_script") data object HanScript : KeyAction
 
     /**
      * Fires an Android broadcast with [action] as its intent action, so a key
@@ -533,6 +549,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // The board draws its list, never a label; this is what the editor's
     // preview shows for one left unlabelled.
     KeyAction.ReadingColumn -> "≡"
+    KeyAction.HanScript -> "简/繁"
     KeyAction.MorseDot -> "·"
     KeyAction.MorseDash -> "–"
     // Drawn from the enter icon slot on the board, so the key itself never
@@ -595,7 +612,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // this stays exhaustive and a new action cannot be added without deciding.
     KeyAction.Text, KeyAction.Shift, KeyAction.CapsLock, KeyAction.Delete,
     KeyAction.ForwardDelete, KeyAction.Enter, KeyAction.LanguageSwitch,
-    KeyAction.InputMethodPicker, KeyAction.Emoji,
+    KeyAction.InputMethodPicker, KeyAction.Emoji, KeyAction.Toolbox,
     -> ""
 }
 
@@ -735,7 +752,7 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     KeyAction.Space, KeyAction.None -> false
     KeyAction.MorseDot, KeyAction.MorseDash -> false
     KeyAction.Shift, KeyAction.CapsLock, KeyAction.Fn -> false
-    KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Emoji -> false
+    KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Emoji, KeyAction.Toolbox -> false
     KeyAction.LanguageSwitch, KeyAction.InputMethodPicker -> false
     is KeyAction.SwitchInputMethod -> false
     is KeyAction.Mod, is KeyAction.Layout, is KeyAction.Tool -> false
@@ -743,6 +760,8 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     is KeyAction.Unknown -> false
     // A list, not a key: nothing presses it as a whole.
     KeyAction.ReadingColumn -> false
+    // A switch: every second repeat would undo the one before.
+    KeyAction.HanScript -> false
     else -> !holdIsSpokenFor()
 }
 
@@ -771,6 +790,8 @@ fun KeyAction.commitsNoText(): Boolean = when (this) {
     // Switching into a URL or email mode to reach `:` or `@` is the same
     // trip the ?123 key makes, and must leave the typed space as spendable.
     is KeyAction.Mode -> true
+    // Flips the script the next candidates come out in; the text stays put.
+    KeyAction.HanScript -> true
     else -> false
 }
 
@@ -806,6 +827,8 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.RETYPE_WORD -> "↺"
     TextEditAction.NO_SPACE -> "⁀"
     TextEditAction.NO_SPACE_NEXT -> "⁀›"
+    TextEditAction.DELETE_WORD -> "^⌫"
+    TextEditAction.DELETE_WORD_FORWARD -> "^⌦"
 }
 
 /**
@@ -851,6 +874,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      * offer while the model is missing.
      */
     @SerialName("handwriting_canvas") HANDWRITING_CANVAS(PanelKind.HANDWRITING),
+    /** The emoji mixes panel's body: the two emoji, their mix, every mix of the first, and the emoji to pick from. */
+    @SerialName("emoji_mix_browser") EMOJI_MIX_BROWSER(PanelKind.EMOJI_MIX),
     @SerialName("unknown") UNKNOWN(PanelKind.EMOJI),
     ;
 
@@ -859,7 +884,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      * plus the emoji / GIF / sticker switch on any of those three panels.
      */
     fun isOn(kind: PanelKind): Boolean =
-        panel == kind || (this == MEDIA_TABS && (kind == PanelKind.GIF || kind == PanelKind.STICKER))
+        panel == kind ||
+            (this == MEDIA_TABS && (kind == PanelKind.GIF || kind == PanelKind.STICKER || kind == PanelKind.EMOJI_MIX))
 
     /** Whether the editor may offer this kind; [UNKNOWN] is a decode artefact. */
     val isReal: Boolean get() = this != UNKNOWN
@@ -871,7 +897,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      */
     val fills: Boolean
         get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD ||
-            this == GIF_BROWSER || this == STICKER_BROWSER || this == HANDWRITING_CANVAS
+            this == GIF_BROWSER || this == STICKER_BROWSER || this == HANDWRITING_CANVAS ||
+            this == EMOJI_MIX_BROWSER
 }
 
 /**

@@ -23,7 +23,7 @@ Reach it from the **Data** group on the settings home screen, or by searching "B
 
 | Part | What it is |
 | --- | --- |
-| Status card | Whether automatic backup is on, how often and to how many locations, when the last backup was, and when this device last synced. **Back up now** runs a backup straight away. **Sync now** appears while sync is on |
+| Status card | Whether automatic backup is on or paused, how often and to how many locations, when the last backup was, and when this device last synced, or that sync is paused. **Back up now** runs a backup straight away, paused or not. **Sync now** appears while sync is on |
 | **Locations** | One card per place backups can go, and **Add a location** |
 | **Automatic backup** | Opens the schedule, the passphrase, where backups go, and what goes in |
 | **Sync devices** | Opens sync between your devices |
@@ -49,7 +49,7 @@ A location is one place backups can go: a folder, a server, or a cloud account. 
 | Email (IMAP) | **Server**, **Security** (TLS, STARTTLS or None; default TLS), **Port** (993, or 143), **User name**, **Password**, **Mail folder** (default "WM Keyboard backups") | Each backup is one email in its own folder, made on first use. Most services want an app password. Some, such as Gmail, keep a deleted email in another folder, so old backups can still count against your quota |
 | Nearby device | **Name** | Not added by hand: pairing a computer that runs WM Keyboard over KDE Connect makes it, when **Sync with paired devices** is on. It only syncs; backups never go there. Remove it to stop syncing with that computer, and unpair it under KDE Connect |
 
-Three of these only appear when the build can reach them, and all three conditions are decided when the APK is built. Google Drive needs the Google Play services library, which the F-Droid build leaves out. Dropbox and OneDrive each need a client id compiled in. A kind with nothing behind it is left off the list rather than shown and then refused.
+Three of these only appear when the build can reach them, and all three conditions are decided when the APK is built. Google Drive needs the Google Play services library, which the F-Droid build leaves out. Dropbox and OneDrive each need a client id compiled in. A kind with nothing behind it is left off the list rather than shown and then refused. The offline build has no internet access at all, so its list holds **Folder** alone. A location of another kind that came across in a restore stays on the screen with a line saying the build can't reach it, instead of a sign-in button that can't work.
 
 The location opens in a sheet. Every kind has an optional **Name**, with an example that suits the kind, for the day you have two of them. Typed details save when you tap **Add** or **Save**, so a half-typed address is never tried by a backup that happens to run meanwhile. **Test the connection** makes the same first call a backup makes, with what's on screen now, and says "It works. Backups can go here." or what went wrong.
 
@@ -57,7 +57,7 @@ Dropbox and OneDrive sign in through your browser. When you approve, the browser
 
 Each card shows the location's name, what tells it apart (the folder, the server, the bucket), and how its last backup went: "Last backup: `<relative time>`", "No backup here yet", "Automatic backups do not go here", or what went wrong. A location that sync uses adds "Syncs here." The menu on each card has **Restore from `<name>`** and **Remove**. Removing a location leaves the backups already there where they are, and forgets how to sign in to it.
 
-**Restore from `<name>`** lists every automatic backup at that location, newest first. Each row shows the device that made it ("This device" for this phone), when, and the size. A lock marks one that has a passphrase. Tap a row to download that backup and open the ordinary import confirmation, which lists what's inside before anything changes. For an encrypted backup the app tries your stored passphrase first, and asks only when that doesn't open it. This is the only way back for a Google Drive backup, because the app's Drive folder is hidden from every other app, the Drive app included.
+**Restore from `<name>`** lists every automatic backup at that location, newest first. Each row shows the device that made it ("This device" for this phone), its [sync group](#sync-groups) after a dot when it had one, when, and the size. When the backups there come from more than one group, chips above the list (**All**, then each group, and **No group**) narrow it to one group; the list starts on your own group when it has backups there. A lock marks one that has a passphrase. Tap a row to download that backup and open the ordinary import confirmation, which lists what's inside before anything changes. For an encrypted backup the app tries your stored passphrase first, and asks only when that doesn't open it. This is the only way back for a Google Drive backup, because the app's Drive folder is hidden from every other app, the Drive app included.
 
 ### Automatic backup
 
@@ -68,14 +68,22 @@ This page writes a backup on a timer to the locations you tick. It stays inert u
 | Setting | Type | Default | Shown when |
 | --- | --- | --- | --- |
 | Back up automatically | Toggle | Off | always (off until a ticked location is usable) |
+| Pause backups | Row: 1 hour, 1 day, 1 week, or Until I resume | Not paused | Back up automatically on |
 | How often | Slider over 1, 2, 3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 120 and 168 hours | 24 hours (1 day) | Back up automatically on |
-| Backups to keep | Slider, 1–30 | 5 | Back up automatically on |
+| Backups to keep | Slider, 1–100 | 5 | Back up automatically on |
+| Keep older backups spread out | Toggle | Off | Back up automatically on |
 | Only while charging | Toggle | On | Back up automatically on |
 | Only on Wi-Fi | Toggle | On | Same, and only while a ticked location needs a connection (anything but a Folder) |
 | **Back up to** | A tick box per location | On for every location | always |
 | Protect with a passphrase | Toggle | Off | always |
 | Passphrase | Password field | empty | Protect with a passphrase on |
 | **What goes in a backup** | The same switches as the export list, with their own settings | Same defaults as the export list | always |
+
+**Pause backups** stops the scheduled backups without turning the feature off. While paused the row reads "Backups are paused" with "Until `<date and time>`" or "Until you resume", and tapping it or **Resume** ends the pause. A timed pause ends by itself. Locations, schedule, passphrase and the backups already kept don't change, and the scheduled job stays where it is, so resuming doesn't restart the interval: a backup that came due during the pause runs at the next check. **Back up now** ignores a pause.
+
+**Backups to keep** counts the newest backups, and the oldest one past that number is deleted after each run. Turn on **Keep older backups spread out** to keep a longer history without keeping every copy: past the newest ones, the app also keeps the newest backup of each of the last 7 days, each of the last 5 weeks and each of the last 12 months. That adds at most 24 files. The ages count back from the newest backup, not from today, so a phone that stopped backing up for a month still has its spread-out copies when it starts again.
+
+**Frequent backup** adds a second automatic backup beside this one, for what changes often and is small. Turn on **Also back up often** and it gets its own **How often, frequent backup** (the same 1 hour to 7 days, 1 hour to start with), **Frequent backups to keep** (5), **Encrypt frequent backups** and **What goes in a frequent backup** (Settings, Themes and Snippets to start with). So the hourly copy can be your settings in plain text while the daily one carries the clipboard and the stickers under a passphrase. It goes to the same ticked locations, waits for the same charging and Wi-Fi conditions, needs **Back up automatically** on, and stops while backups are paused. Its files start `wmkeyboard-quick-` rather than `wmkeyboard-auto-`, so each schedule deletes only its own old copies, and **Restore from a location** lists both. It never carries API keys. **Encrypt frequent backups** uses the passphrase under **Protect with a passphrase**, and stays off until there is one. **Back up now** takes a main backup.
 
 Each backup goes to every ticked location. A location you untick keeps its settings and gets no backups until you tick it again. One passphrase covers the automatic backups and the sync files, so use the same one on every device that syncs.
 
@@ -90,25 +98,39 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 | Setting | Type | Default | Shown when |
 | --- | --- | --- | --- |
 | Sync this device | Toggle | Off | always (needs a location) |
+| Pause sync | Row: 1 hour, 1 day, 1 week, or Until I resume | Not paused | Sync on |
 | When to sync | Choice: Soon after a change / On a schedule / Only when I ask | Soon after a change | Sync on |
 | How often | Slider, the same stops as the backup interval | 6 hours | Sync on, On a schedule |
 | Sync API keys and passwords | Toggle | Off | Sync on |
 | **Sync through** | A tick box per location | the first location, when you turn sync on | always |
+| **Sync through**: Sync group | Row: a name, or none | None | always |
 | **Sync through**: Sync with paired devices | Toggle | On | always |
-| **What syncs** | The section switches, with their own settings, all but AI memory, which never syncs | Settings, Themes, Snippets, Notes | always |
-| **Keep on this device**: Toolbar and toolbox | Toggle | Off | always (needs Settings ticked in What syncs) |
-| **Keep on this device**: Languages and layouts | Toggle | Off | always (needs Settings ticked in What syncs) |
+| **Sync through**: Sync only on Wi-Fi | Toggle | Off | always |
+| **What syncs** | The section switches, with their own settings, all but AI memory, which never syncs | Settings, Themes, Snippets, Notes, To-do list | always |
+| **Keep on this device**: Toolbar and toolbox | Toggle | Off | Settings ticked in What syncs |
+| **Keep on this device**: Languages and layouts | Toggle | Off | Settings ticked in What syncs |
+| **Keep on this device**: Theme | Toggle | Off | Settings ticked in What syncs |
 | **Sync now** | Button | | always |
 
 **Soon after a change** pushes about a minute after you stop changing things, and pulls every hour and each time the app starts. **On a schedule** runs at the interval you set. **Only when I ask** runs only when you tap **Sync now**. Turning sync on runs the first sync straight away, and on that first sync the settings of your other devices win. Anything only this device has goes to the others.
 
 Your devices must share at least one ticked location. Tick more than one and the sync file goes to each, so sync keeps working while one service is down.
 
+**Sync only on Wi-Fi** holds every scheduled and automatic sync back while the phone is on mobile data (any network Android counts as metered), and runs it once it's on Wi-Fi again. **Sync now** still runs at once, wherever you are. A sync whose locations are all on this phone needs no network and is never held back.
+
 With **Sync with paired devices** on, a computer running WM Keyboard that you pair over [KDE Connect](/tools/kde-connect/#pairing-with-wm-keyboard-on-a-computer) is added as a **Nearby device** location, ticked here, and sync is turned on. Backups never go to it. The files cross directly over the local network, while both devices are on it and the keyboard is open.
 
 Some settings never sync, because they only fit one device: the keyboard size and position on each screen, one-handed mode, the floating keyboard, the hardware keyboard, paired KDE Connect computers, the app lock, what's installed or downloaded on the device, and this screen's own settings. Everything else in a ticked section syncs, including settings added in later versions.
 
-**Keep on this device** holds back two more groups when you want them different here, a phone and a tablet with different toolbars for example. **Toolbar and toolbox** covers which tools there are, their order and how they look. **Languages and layouts** covers the layouts you switch between, the extra languages and the layout picked for each app. A ticked group isn't sent, and changes from your other devices don't touch it. Untick it and this device takes what your other devices have, as it did when it first joined.
+**Keep on this device** holds back three more groups when you want them different here, a phone and a tablet with different toolbars for example. **Toolbar and toolbox** covers which tools there are, their order and how they look. **Languages and layouts** covers the layouts you switch between, the extra languages and the layout picked for each app. **Theme** covers the theme in use, the light and dark pair and when the keyboard switches between them; your own themes still sync through the **Themes** section. A ticked group isn't sent, and changes from your other devices don't touch it. Untick it and this device takes what your other devices have, as it did when it first joined.
+
+**Pause sync** holds the scheduled and automatic syncs back, as **Pause backups** does for backups, and reads "Sync is paused" while it lasts. **Sync now** still runs. Resuming syncs straight away.
+
+#### Sync groups
+
+**Sync group** keeps several people apart at one shared location. Devices read and merge only the sync files of their own group; devices with no group sync with each other, as before groups existed. The row reads "None. Syncs with the devices here that have no group" or "`<group>`. Syncs only with devices in this group". Tapping it opens a box to type the name, with chips for the groups other devices already use at your sync locations (**No group** among them) and "Saved as `<name>`" when what you typed changes on saving: letters, digits and single hyphens, up to 12, lowercase. Saving a new group makes this device sync as if for the first time, so the group's settings win, and runs a sync straight away while sync is on.
+
+Ticking a location under **Sync through** checks it for other groups. When other devices sync there in groups this device isn't in, the same box opens, saying so, to pick one to join. A **Nearby device** location ignores the group.
 
 **Sync API keys and passwords** is off by default. It works with or without a passphrase. Without one, the subtitle strongly suggests turning one on first, and turning it on asks you to confirm.
 
@@ -116,7 +138,7 @@ Some settings never sync, because they only fit one device: the keyboard size an
 
 <SettingsPath path="Data / Backup & restore / What goes in an export" />
 
-**What goes in an export** is eighteen toggles, top to bottom. Seventeen are independent; **Include API keys** only exists while **Settings** or **Notes** is on, since it also decides whether locked notes travel:
+**What goes in an export** is nineteen toggles, top to bottom. Eighteen are independent; **Include API keys** only exists while **Settings** or **Notes** is on, since it also decides whether locked notes travel:
 
 | Setting | Subtitle | Default |
 |---|---|---|
@@ -138,6 +160,7 @@ Some settings never sync, because they only fit one device: the keyboard size an
 | Clock | Alarms, timer presets, countdowns and the [Clock](/tools/clock/) settings, including the world clocks. Running timers, the stopwatch and the history stay on the phone. | On |
 | Kaomoji | Your kaomoji library: the faces you added, their tags, the order and your favourites | On |
 | AI memory | What the AI remembers about you, from Settings › AI › Memory. See [AI memory](/tools/ai-memory/) | Off |
+| To-do list | Your tasks and their steps, done or not | On |
 
 :::note[Three lists, not one]
 The export, the automatic backup and sync each have their own list, because they're three different decisions: a file to hand to someone, a copy for yourself, and what your devices share. The export list starts from whatever you had ticked before the lists were split.
@@ -145,7 +168,7 @@ The export, the automatic backup and sync each have their own list, because they
 
 Sticker packs and icon packs default off because their images make the file larger, not out of any privacy concern. Dictionary, Clipboard and Swipe style default off because they're your personal typing history rather than configuration; the swipe shapes are filed under the words you drew them for. Emoji history is personal too, but it defaults on: it's a few hundred bytes, and unlike a word list or a model there's nowhere to download it back from. Add-on repositories carries only the repository addresses you've added, not the addons installed from them.
 
-**Export to a file** stays disabled until at least one toggle is on. Tap it to open Android's save dialog. The name takes the form `wmkeyboard-backup-<date>-<time>.wmconfig.json`, timestamped down to the second so repeated exports don't overwrite each other. The file goes wherever you choose, and nothing is uploaded anywhere. Afterward you see one of:
+**Export to a file** stays disabled until at least one toggle is on. Tap it to open Android's save dialog. The name takes the form `wmkeyboard-backup-<date>-<time>.wmconfig.json`, timestamped down to the second so repeated exports don't overwrite each other. The file goes wherever you choose, and nothing is uploaded anywhere. The save dialog opens in the folder your last export went to, and **Import a file** opens in the folder you last imported from, each remembering its own, so the two never pull each other's way (Android 8 and later). Afterward you see one of:
 
 | Result | Message |
 |---|---|
@@ -171,6 +194,8 @@ The size limit scales with how much memory Android gives the app, at twice the r
   <Shot id="reference/settings/backup-import-confirm" alt="The import confirmation dialog, listing what a backup file contains before anything is applied." />
 </PhoneFrame>
 
+Below the parts the file holds, the dialog names the parts it doesn't, which stay as they are on this phone. A file holds only what was picked when it was made, and **Export to a file**, the automatic backup and sync each keep their own list: the automatic backup leaves the clipboard and your typed words out unless you tick them, whatever the export list says.
+
 Confirming a current-format import applies each section independently and merges or replaces depending on which one it is:
 
 | Section | On import |
@@ -191,6 +216,7 @@ Confirming a current-format import applies each section independently and merges
 | Notes | **Replaces**, except that locked notes already on the phone are kept when the file was made without them. A keyboard already running reloads rather than saving its own list back |
 | Clock | **Replaces** the alarms, presets, countdowns and clock settings, and sets the restored alarms at once. Timers running and the stopwatch on this phone are kept |
 | AI memory | **Replaces** the saved facts, and the chats pick them up at once |
+| To-do list | **Replaces** the tasks and steps. A keyboard already running reloads rather than saving its own list back |
 
 Settings import is rollback-safe. After writing, the keyboard re-reads its own settings to confirm they still parse, and it undoes the write if they don't. The other sections in the same file still apply even when settings roll back. After a confirmed import you see either "The app restored `<sections>`.", a lowercase comma-separated list of what changed, or "The file has nothing to restore." A rolled-back settings portion appends "The app could not apply the settings. Your settings did not change." A confirmed legacy import instead reports how many settings it restored, or says "The app could not apply that backup. Your settings did not change."
 
@@ -210,8 +236,9 @@ Opening a `.wmconfig.json` or `.wmsettings.json` file from a file manager routes
 - **Turning the automatic switch on with nowhere usable to go does nothing.** The row says what's missing and stays off: "Add a location first." with no locations, and "Tick a location in Back up to." when none is ticked. A location card says what it lacks: "Choose a folder first." for a Folder, "Sign in first." for Dropbox and OneDrive, and "Fill in the connection details first." for WebDAV, S3, SFTP, SMB, FTP, Git and IMAP. "Usable" is a cheap check, not proof the upload will work: a folder grant exists, a WebDAV address is filled in, an S3 bucket and key pair are present, an FTP server and user name are filled in, an SFTP server and user with a password or a key, an SMB server, share and user, a Git repository and token, an IMAP server, user and password, or a Dropbox or OneDrive token was stored. Google Drive counts as usable as soon as you add it, because the permission lives with your Google account rather than in a field here. **Test the connection** is how to find out for sure.
 - **A failed backup says why in the app log.** The screen shows one sentence per failure, such as "The last backup did not finish.", but Settings → About → Diagnostics records which location failed, the reason, and for WebDAV the request and the status the server answered with. Include that log when you report a backup that won't go through.
 - **Several locations, one run.** The file is built and checked once, then copied to each ticked location, and each one rotates its own old backups. The run counts as done when any location got the file, and a location that failed says so on its card. A notification names the kind of location that failed.
-- **Locations are filed as secrets, alongside your API keys.** The list of locations holds the WebDAV, FTP, SFTP, SMB and IMAP passwords, SFTP private keys, Git tokens, the S3 secret and the Dropbox and OneDrive sign-ins, so it's stripped from an export unless **Include API keys** is on, and kept out of pre-unlock storage either way. With it on, a phone restored from that file gets its locations and sign-ins back; a Folder location then asks for its folder again, because a folder permission means nothing on another phone. Sync never carries locations. Some things never travel at all, on or off: the **Back up automatically** switch itself, every sync setting, the per-install salt, and the last-run times and errors. That's deliberate. Restore a bundle on a new phone and you don't want its automatic backup or its sync coming back switched on by itself.
-- **One location can hold several phones' backups.** Each automatic backup's name records the device and this installation, like `wmkeyboard-auto-20260923-033823_78c415cf_Pixel-8.wmconfig.json`. **Backups to keep** counts only this installation's backups, so two phones sharing a Dropbox each keep their own five and never delete each other's. Backups from before names carried a device count as this phone's and are rotated out as new ones arrive. The installation id is not a setting. It never goes into an export or Android's backup, so a phone restored from either one starts its own set of backups instead of taking over the old phone's. Clearing the app's storage or reinstalling makes a new one. Sync files are named the same way, `wmkeyboard-sync_<installation>_<device>.wmsync.json` (`.wmsync.enc` with a passphrase), one per device, rewritten in place, and never counted as backups.
+- **Locations are filed as secrets, alongside your API keys.** The list of locations holds the WebDAV, FTP, SFTP, SMB and IMAP passwords, SFTP private keys, Git tokens, the S3 secret and the Dropbox and OneDrive sign-ins, so it's stripped from an export unless **Include API keys** is on, and kept out of pre-unlock storage either way. With it on, a phone restored from that file gets its locations and sign-ins back; a Folder location then asks for its folder again, because a folder permission means nothing on another phone. Sync never carries locations. Some things never travel at all, on or off: the **Back up automatically** switch itself, every sync setting, the per-install salt, and the last-run times and errors. A passphrase that arrives by import or sync gets a fresh salt on this phone, so it works without retyping it. That's deliberate. Restore a bundle on a new phone and you don't want its automatic backup or its sync coming back switched on by itself.
+- **One location can hold several phones' backups.** Each automatic backup's name records the device and this installation, like `wmkeyboard-auto-20260923-033823_78c415cf_Pixel-8.wmconfig.json`. **Backups to keep** counts only this installation's backups, so two phones sharing a Dropbox each keep their own five and never delete each other's. Backups from before names carried a device count as this phone's and are rotated out as new ones arrive. The installation id is not a setting. It never goes into an export or Android's backup, so a phone restored from either one starts its own set of backups instead of taking over the old phone's. Clearing the app's storage or reinstalling makes a new one. Sync files are named the same way, `wmkeyboard-sync_<installation>_<device>.wmsync.json` (`.wmsync.enc` with a passphrase), one per device, rewritten in place, and never counted as backups. A device in a sync group writes `wmkeyboard-sync-<group>_<installation>_<device>.wmsync.json` instead, which versions from before groups don't read at all, and its backups carry the group before the device, as in `…_78c415cf_family--Pixel-8.wmconfig.json`. Moving to another group removes the device's sync file from the old one.
+- **A pause and a sync group belong to this phone.** Neither goes into an export, a backup or a sync file, so a phone restored from a bundle never arrives paused, or in somebody else's group.
 - **Every toggle and slider on this screen carries the usual restore button** once you move it off its default, in Automatic backup, Sync devices and What goes in an export alike. See [Putting one setting back](/reference/settings/#putting-one-setting-back). The text fields are the exception, because an address or a password has no shipped value to go back to.
 
 ## Related pages

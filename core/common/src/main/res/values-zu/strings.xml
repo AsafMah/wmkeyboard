@@ -26,6 +26,7 @@
     <string name="common_default">Okuzenzakalelayo</string>
     <string name="common_delete">Susa</string>
     <string name="common_disable">Vala</string>
+    <string name="common_disabled_open_setting">Vula izilungiselelo</string>
     <string name="common_disclosure_blocked_body">I-Android ayisayibonisi lesi sicelo, ngoba wenqabe imvume ngaphambilini. Usengakwazi ukuyivula kusuka esikrinini sezilungiselelo zohlelo lokusebenza.</string>
     <string name="common_disclosure_not_now">Hhayi manje</string>
     <string name="common_done">Kwenziwe</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Faka</string>
     <string name="common_installing">Iyafaka...</string>
     <string name="common_loading">Iyalayisha...</string>
+    <string name="common_more">Okuningi</string>
     <string name="common_next">Okulandelayo</string>
     <string name="common_none">Akukho</string>
     <string name="common_notify_channel_backup_body">Kuphela uma isipele esizenzakalelayo sehluleka. Izipele eziphumelelayo zithule.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Bonisa izaziso</string>
     <string name="common_permission_storage_body">Ku-Android 9 nangaphambili, ikhibhodi idinga imvume yokugcina ukuze ilondoloze isithombe kugalari yakho. Imvume yakudala ye-Android iphinde ihlanganise ukufunda isitoreji sakho. Ikhibhodi ibhala kuphela isithombe ocela ukuba ilondoloze. Ikhibhodi ayifundi lutho futhi ayilayishi lutho. Izinguqulo ezintsha ze-Android azidingi le mvume.</string>
     <string name="common_permission_storage_title">Ukufinyelela kwisitoreji ukuze ulondoloze kugalari yakho</string>
+    <string name="common_permission_tasks_body">Ikhibhodi ye-WM igcina uhlu lwayo lwemisebenzi nohlu olulodwa lwemisebenzi kuhlelo lokusebenza lwemisebenzi lufana: imisebenzi, izinyathelo zayo, amamaki ayo nezinsuku zokugcina, zombili izindlela. Imvume ihlanganisa lonke uhlu lwemisebenzi kuhlelo lokusebenza. Ikhibhodi ifunda uhlu lohlelo lokusebenza kuphela ukuze ukwazi ukukhetha olulodwa, futhi ifunda futhi ibhale kuphela uhlu olukhethile. Ikhibhodi ayithumeli lutho ndawo. I-DAVx5, uma uyisebenzisa, ivumelanisa lolo hlu neseva yakho ye-CalDAV. Ngaphandle kwale mvume, uhlu lwemisebenzi luhlala kule foni.</string>
+    <string name="common_permission_tasks_opentasks_title">Ukufinyelela kwe-OpenTasks ohlwini lwemisebenzi</string>
+    <string name="common_permission_tasks_tasks_org_title">Ukufinyelela kwe-Tasks.org ohlwini lwemisebenzi</string>
+    <string name="common_preview_scale_desc">Usayizi wokubuka kuqala</string>
+    <string name="common_preview_scale_larger">Yenza ukubuka kuqala kube kukhulu</string>
+    <string name="common_preview_scale_smaller">Yenza ukubuka kuqala kube kuncane</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Susa</string>
     <string name="common_reset">Setha kabusha</string>
     <string name="common_reset_defaults">Setha kabusha kokuzenzakalelayo</string>

@@ -26,6 +26,7 @@
     <string name="common_default">Predvolené</string>
     <string name="common_delete">Odstrániť</string>
     <string name="common_disable">Vypnúť</string>
+    <string name="common_disabled_open_setting">Otvoriť nastavenie</string>
     <string name="common_disclosure_blocked_body">Android už túto žiadosť nezobrazuje, pretože ste predtým odmietli povolenie. Stále ho môžete zapnúť na obrazovke nastavení aplikácie.</string>
     <string name="common_disclosure_not_now">Teraz nie</string>
     <string name="common_done">Hotovo</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Inštalovať</string>
     <string name="common_installing">Inštaluje sa…</string>
     <string name="common_loading">Načítava sa…</string>
+    <string name="common_more">Viac</string>
     <string name="common_next">Ďalej</string>
     <string name="common_none">Žiadne</string>
     <string name="common_notify_channel_backup_body">Iba ak automatické zálohovanie zlyhá. Úspešné zálohy sú tiché.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Zobraziť upozornenia</string>
     <string name="common_permission_storage_body">V systéme Android 9 a staršom potrebuje klávesnica povolenie na úložisko, aby mohla uložiť obrázok do vašej galérie. Staré povolenie systému Android zahŕňa aj čítanie vášho úložiska. Klávesnica zapisuje iba obrázok, ktorý chcete uložiť. Klávesnica nič nečíta a nič nenahráva. Novšie verzie systému Android toto povolenie nepotrebujú.</string>
     <string name="common_permission_storage_title">Prístup k úložisku na ukladanie do galérie</string>
+    <string name="common_permission_tasks_body">WM Klávesnica udržuje svoj zoznam úloh a jeden zoznam úloh v aplikácii Úlohy synchronizovaný: úlohy, ich kroky, zaškrtnutia a dátumy splnenia sa synchronizujú obojsmerne. Toto povolenie sa vzťahuje na každý zoznam úloh v danej aplikácii. Klávesnica číta zoznamy aplikácie iba preto, aby ste mohli jeden vybrať, a následne číta a zapisuje iba do vami zvoleného zoznamu. Klávesnica nikam nič neodosiela. Ak používate DAVx5, táto služba synchronizuje daný zoznam s vaším vlastným serverom CalDAV. Bez tohto povolenia zostane zoznam úloh iba v tomto telefóne.</string>
+    <string name="common_permission_tasks_opentasks_title">Prístup OpenTasks k zoznamu úloh</string>
+    <string name="common_permission_tasks_tasks_org_title">Prístup Tasks.org pre zoznam úloh</string>
+    <string name="common_preview_scale_desc">Veľkosť ukážky</string>
+    <string name="common_preview_scale_larger">Zväčšiť ukážku</string>
+    <string name="common_preview_scale_smaller">Zmenšiť náhľad</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Odstrániť</string>
     <string name="common_reset">Obnoviť</string>
     <string name="common_reset_defaults">Obnoviť predvolené nastavenia</string>

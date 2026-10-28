@@ -26,6 +26,7 @@
     <string name="common_default">Mặc định</string>
     <string name="common_delete">Xóa</string>
     <string name="common_disable">Tắt</string>
+    <string name="common_disabled_open_setting">Mở cài đặt</string>
     <string name="common_disclosure_blocked_body">Android không còn hiển thị yêu cầu này nữa vì bạn đã từ chối quyền trước đó. Bạn vẫn có thể bật quyền này từ màn hình cài đặt ứng dụng.</string>
     <string name="common_disclosure_not_now">Để sau</string>
     <string name="common_done">Xong</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Cài đặt</string>
     <string name="common_installing">Đang cài đặt…</string>
     <string name="common_loading">Đang tải…</string>
+    <string name="common_more">Thêm</string>
     <string name="common_next">Tiếp theo</string>
     <string name="common_none">Không có</string>
     <string name="common_notify_channel_backup_body">Chỉ khi sao lưu tự động thất bại. Các bản sao lưu thành công sẽ không có thông báo.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Hiển thị thông báo</string>
     <string name="common_permission_storage_body">Trên Android 9 trở xuống, bàn phím cần quyền truy cập bộ nhớ để lưu hình ảnh vào thư viện của bạn. Quyền Android cũ cũng bao gồm việc đọc bộ nhớ của bạn. Bàn phím chỉ ghi hình ảnh mà bạn yêu cầu lưu. Bàn phím không đọc gì và không tải lên bất cứ thứ gì. Các phiên bản Android mới hơn không cần quyền này.</string>
     <string name="common_permission_storage_title">Quyền truy cập bộ nhớ để lưu vào thư viện của bạn</string>
+    <string name="common_permission_tasks_body">WM Keyboard giữ danh sách việc cần làm và một danh sách tác vụ trong ứng dụng tác vụ đồng nhất: các tác vụ, các bước thực hiện, dấu tích và ngày đến hạn của chúng, theo cả hai chiều. Quyền này bao gồm mọi danh sách tác vụ trong ứng dụng. Bàn phím chỉ đọc các danh sách của ứng dụng để bạn có thể chọn một, và nó chỉ đọc và ghi trên danh sách bạn đã chọn. Bàn phím không gửi bất cứ thứ gì đi bất cứ đâu. DAVx5, nếu bạn sử dụng nó, sẽ đồng bộ danh sách đó với máy chủ CalDAV của riêng bạn. Nếu không có quyền này, danh sách việc cần làm sẽ chỉ lưu trên điện thoại này.</string>
+    <string name="common_permission_tasks_opentasks_title">Quyền truy cập OpenTasks cho danh sách việc cần làm</string>
+    <string name="common_permission_tasks_tasks_org_title">Quyền truy cập Tasks.org cho danh sách việc cần làm</string>
+    <string name="common_preview_scale_desc">Kích thước xem trước</string>
+    <string name="common_preview_scale_larger">Phóng to bản xem trước</string>
+    <string name="common_preview_scale_smaller">Thu nhỏ bản xem trước</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Xóa</string>
     <string name="common_reset">Đặt lại</string>
     <string name="common_reset_defaults">Đặt lại về mặc định</string>

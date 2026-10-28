@@ -58,6 +58,13 @@ class AiMarkdownTest {
     }
 
     @Test
+    fun `a table keeps a line per row and loses its divider`() {
+        val table = "| Phone | Price |\n|---|:---:|\n| **A1** | \$200 |\n| B2 | 300 \\| 350 |"
+        assertTrue(AiMarkdown.hasMarkdown(table))
+        assertEquals("Phone | Price\nA1 | \$200\nB2 | 300 | 350", AiMarkdown.strip(table))
+    }
+
+    @Test
     fun `stripping plain text changes nothing but trailing space`() {
         assertEquals("Just a sentence.", AiMarkdown.strip("Just a sentence.\n"))
     }

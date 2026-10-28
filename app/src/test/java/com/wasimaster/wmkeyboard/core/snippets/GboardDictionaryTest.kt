@@ -42,6 +42,16 @@ class GboardDictionaryTest {
     }
 
     @Test
+    fun `each word keeps the locale it was filed under`() {
+        // #930: the personal dictionary files them by language.
+        val contents = GboardDictionary.read(export)!!
+        assertEquals(
+            listOf("Wasimaster" to "en-US", "New" to "", "York" to "", "City" to ""),
+            contents.localizedWords,
+        )
+    }
+
+    @Test
     fun `shortcuts become snippets that ask first`() {
         val converted = GboardDictionary.toSnippets(GboardDictionary.read(export)!!)
         assertEquals(3, converted.snippets.size)

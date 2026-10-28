@@ -64,6 +64,27 @@ class AiClientChatBodyTest {
     }
 
     @Test
+    fun `openai gets max_completion_tokens, other OpenAI-shaped servers max_tokens`() {
+        val single = listOf(ChatTurn(ChatRole.USER, "hello"))
+        fun body(c: AiClient.Config) = json.parseToJsonElement(
+            AiClient.openAiCompatibleBody(c, "sys", single, 300),
+        ).jsonObject
+
+        val openAi = body(config(AiProvider.OPENAI))
+        assertEquals(300, openAi["max_completion_tokens"]?.jsonPrimitive?.content?.toInt())
+        assertNull(openAi["max_tokens"])
+
+        val deepSeek = body(config(AiProvider.DEEPSEEK))
+        assertEquals(300, deepSeek["max_tokens"]?.jsonPrimitive?.content?.toInt())
+        assertNull(deepSeek["max_completion_tokens"])
+
+        val viaOpenAi = config(AiProvider.OPENAI_COMPATIBLE).copy(baseUrl = "https://api.openai.com/v1")
+        assertNull(body(viaOpenAi)["max_tokens"])
+        val viaOpenRouter = config(AiProvider.OPENAI_COMPATIBLE).copy(baseUrl = "https://openrouter.ai/api/v1")
+        assertNull(body(viaOpenRouter)["max_completion_tokens"])
+    }
+
+    @Test
     fun `ollama keeps the system message in the array`() {
         val body = json.parseToJsonElement(
             AiClient.ollamaBody(config(AiProvider.OLLAMA), "sys", chat, null),

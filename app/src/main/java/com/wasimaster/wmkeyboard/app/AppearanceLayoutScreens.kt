@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
+import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
+import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.material3.AlertDialog
@@ -53,8 +55,10 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
+import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
+import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -64,6 +68,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewColumn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewWeek
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * Restores the toolbar's default pins ([DefaultToolbarTools]) from Settings —
@@ -129,7 +134,10 @@ internal fun AppearanceSettings(
         s.keyCornerRadiusDp != d.keyCornerRadiusDp ||
             s.fontScale != d.fontScale ||
             s.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale ||
-            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp
+            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp ||
+            s.layoutBehavior.hintOffsetXDp != d.layoutBehavior.hintOffsetXDp ||
+            s.layoutBehavior.labelOffsetXDp != d.layoutBehavior.labelOffsetXDp ||
+            s.layoutBehavior.labelOffsetYDp != d.layoutBehavior.labelOffsetYDp
     }
     // Turning the toolbar off is guarded — it hides suggestions and every tool.
     SettingsGroup(stringResource(R.string.appearance_style_section_title)) {
@@ -152,7 +160,7 @@ internal fun AppearanceSettings(
                 onClick = onOpenThemes,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.appearance_font_title,
                 stringResource(R.string.appearance_font_subtitle),
@@ -165,7 +173,7 @@ internal fun AppearanceSettings(
                 onClick = onOpenFonts,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val active = settings.watch { it.icons.activePackId }
             val changed = settings.watch { it.icons.overrides.size }
             val defaultLabel = stringResource(CommonR.string.common_default)
@@ -189,7 +197,7 @@ internal fun AppearanceSettings(
     }
 
     SettingsGroup(stringResource(R.string.appearance_keys_section_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.appearance_key_corner_radius_title,
                 subtitle = stringResource(R.string.appearance_key_corner_radius_subtitle),
@@ -202,48 +210,82 @@ internal fun AppearanceSettings(
         }
         // A row the active theme's "Layout for this theme" group replaces says
         // so and stands down, here and on every sizing row below (#88); see
-        // [themePinSubtitle].
-        item {
-            val pinned = themePinSubtitle(settings) { it.fontScale }
+        // [themePin].
+        item(level = SettingLevel.STANDARD) {
+            val pin = themePin(settings) { it.fontScale }
             SliderSetting(
                 R.string.appearance_key_label_size_title,
-                subtitle = pinned ?: stringResource(R.string.appearance_key_label_size_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.appearance_key_label_size_subtitle),
                 value = settings.watch { it.fontScale },
                 range = KeyFontScaleRange,
                 display = { multiplierFormat.format(it) },
                 info = stringResource(R.string.appearance_key_label_size_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.fontScale,
             ) { scope.launch { repository.setFontScale(it) } }
         }
-        item {
-            val pinned = themePinSubtitle(settings) { it.hintFontScale }
+        item(level = SettingLevel.ADVANCED) {
+            val pin = themePin(settings) { it.hintFontScale }
             SliderSetting(
                 R.string.appearance_key_hint_size_title,
-                subtitle = pinned ?: stringResource(R.string.appearance_key_hint_size_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.appearance_key_hint_size_subtitle),
                 value = settings.watch { it.layoutBehavior.hintFontScale },
-                range = 0.5f..2.0f,
+                // To ×3 (#970): an Arabic haraka at ×2 was still a speck.
+                range = 0.5f..3.0f,
                 display = { multiplierFormat.format(it) },
                 info = stringResource(R.string.appearance_key_hint_size_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.layoutBehavior.hintFontScale,
             ) { scope.launch { repository.setHintFontScale(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_key_hint_offset_title,
                 subtitle = stringResource(R.string.appearance_key_hint_offset_subtitle),
                 value = settings.watch { it.layoutBehavior.hintOffsetDp }.toFloat(),
-                range = 0f..16f,
+                // Below 0 too (#970): a large hint can sit right up in the corner.
+                range = HintOffsetRange.first.toFloat()..HintOffsetRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_key_hint_offset_info),
                 default = SettingsDefaults.layoutBehavior.hintOffsetDp.toFloat(),
             ) { scope.launch { repository.setHintOffsetDp(it.roundToInt()) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_hint_offset_x_title,
+                subtitle = stringResource(R.string.appearance_key_hint_offset_x_subtitle),
+                value = settings.watch { it.layoutBehavior.hintOffsetXDp }.toFloat(),
+                range = HintOffsetRange.first.toFloat()..HintOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.hintOffsetXDp.toFloat(),
+            ) { scope.launch { repository.setHintOffsetXDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_label_offset_x_title,
+                subtitle = stringResource(R.string.appearance_key_label_offset_x_subtitle),
+                value = settings.watch { it.layoutBehavior.labelOffsetXDp }.toFloat(),
+                range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.labelOffsetXDp.toFloat(),
+            ) { scope.launch { repository.setLabelOffsetXDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_label_offset_y_title,
+                subtitle = stringResource(R.string.appearance_key_label_offset_y_subtitle),
+                value = settings.watch { it.layoutBehavior.labelOffsetYDp }.toFloat(),
+                range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.labelOffsetYDp.toFloat(),
+            ) { scope.launch { repository.setLabelOffsetYDp(it.roundToInt()) } }
+        }
         // Drawn only once something has actually moved. Theme, font and icons
         // are excluded: they lead to their own screens and are not what "reset
         // the sliders" means. The toolbar and toolbox pages reset themselves.
-        item(visible = appearanceMoved) {
+        item(visible = appearanceMoved, level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.appearance_reset_title,
                 subtitle = stringResource(R.string.appearance_reset_subtitle),
@@ -254,7 +296,7 @@ internal fun AppearanceSettings(
     }
 
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.appearance_toolbar_section_title,
                 stringResource(R.string.appearance_toolbar_section_subtitle),
@@ -263,7 +305,7 @@ internal fun AppearanceSettings(
                 onNavigate("appearance/toolbar")
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.appearance_toolbox_section_title,
                 stringResource(R.string.appearance_toolbox_section_subtitle),
@@ -354,7 +396,7 @@ internal fun AppearanceToolbarSettings(
         // Where the tools live: sharing the suggestion strip, or on a row of
         // their own so they are in reach whatever the strip is showing.
         if (toolbarOn) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     title = R.string.appearance_toolbar_placement_title,
                     subtitle = stringResource(R.string.appearance_toolbar_placement_subtitle),
@@ -384,7 +426,28 @@ internal fun AppearanceToolbarSettings(
                     default = SettingsDefaults.toolbarBehavior.showStrip,
                 ) { scope.launch { repository.setToolbarShowStrip(it) } }
             }
-            item {
+            // Sideways only (#970): a column down one side of the keys in
+            // place of anything along the top, for a screen with width to
+            // spare and little height.
+            item(level = SettingLevel.STANDARD) {
+                ChoiceSetting(
+                    title = R.string.appearance_toolbar_landscape_column_title,
+                    subtitle = stringResource(R.string.appearance_toolbar_landscape_column_subtitle),
+                    info = stringResource(R.string.appearance_toolbar_landscape_column_info),
+                    options = listOf(
+                        ToolbarColumn.OFF to
+                            stringResource(R.string.appearance_toolbar_landscape_column_off_label),
+                        ToolbarColumn.LEFT to
+                            stringResource(R.string.appearance_toolbar_landscape_column_left_label),
+                        ToolbarColumn.RIGHT to
+                            stringResource(R.string.appearance_toolbar_landscape_column_right_label),
+                    ),
+                    selected = settings.watch { it.toolbarBehavior.landscapeColumn },
+                    onChange = { scope.launch { repository.setToolbarLandscapeColumn(it) } },
+                    default = SettingsDefaults.toolbarBehavior.landscapeColumn,
+                )
+            }
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.appearance_toolbar_swipe_down_title,
                     stringResource(R.string.appearance_toolbar_swipe_down_subtitle),
@@ -396,7 +459,7 @@ internal fun AppearanceToolbarSettings(
             // A hold that drifts into a drag is the one gesture the bar cannot
             // tell from a hold meant to stay put, so the drag can be given up
             // altogether (#136); the toolbox still rearranges the bar.
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.appearance_toolbar_drag_title,
                     stringResource(R.string.appearance_toolbar_drag_subtitle),
@@ -408,7 +471,7 @@ internal fun AppearanceToolbarSettings(
             // One wait for every hold on a tool (#665): the bound action, the
             // settings page and the pick-up all start from it. The bottom of
             // the track is the system's own delay, which is the default.
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val context = LocalContext.current
                 SliderSetting(
                     R.string.appearance_toolbar_hold_delay_title,
@@ -428,7 +491,7 @@ internal fun AppearanceToolbarSettings(
                 ) { scope.launch { repository.setToolbarHoldDelayMs(toolbarHoldDelayStep(it)) } }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.appearance_toolbar_hardware_only_title,
                 stringResource(R.string.appearance_toolbar_hardware_only_subtitle),
@@ -486,7 +549,7 @@ internal fun AppearanceToolbarSettings(
         // tools float in the middle of a taller strip, and the complaint was
         // about the gap on one side of it. A height set before then still
         // counts, and the toolbar reset below clears it.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_toolbar_padding_top_title,
                 subtitle = stringResource(R.string.appearance_toolbar_padding_top_subtitle),
@@ -497,7 +560,7 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.toolbarBehavior.paddingTopDp.toFloat(),
             ) { scope.launch { repository.setToolbarPaddingTopDp(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_toolbar_padding_bottom_title,
                 subtitle = stringResource(R.string.appearance_toolbar_padding_bottom_subtitle),
@@ -508,7 +571,7 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.toolbarBehavior.paddingBottomDp.toFloat(),
             ) { scope.launch { repository.setToolbarPaddingBottomDp(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.appearance_toolbar_lock_title,
                 stringResource(R.string.appearance_toolbar_lock_subtitle),
@@ -528,7 +591,7 @@ internal fun AppearanceToolbarSettings(
         }
         // The toolbox reads this as its own fallback, but it has a slider of
         // its own further down, so nothing is stranded by hiding the pair.
-        item(visible = toolbarOn && labelsOn) {
+        item(visible = toolbarOn && labelsOn, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_toolbar_label_size_title,
                 subtitle = stringResource(R.string.appearance_toolbar_label_size_subtitle),
@@ -538,7 +601,23 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.toolbarLabelSize.toFloat(),
             ) { scope.launch { repository.setToolbarLabelSize(it.roundToInt()) } }
         }
-        item {
+        item(visible = toolbarOn && labelsOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.appearance_toolbar_labels_fixed_title,
+                stringResource(R.string.appearance_toolbar_labels_fixed_subtitle),
+                settings.watch { it.toolbarBehavior.labelsFixedWidth },
+                default = SettingsDefaults.toolbarBehavior.labelsFixedWidth,
+            ) { scope.launch { repository.setToolbarLabelsFixedWidth(it) } }
+        }
+        item(visible = toolbarOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.appearance_toolbar_pinned_colors_title,
+                stringResource(R.string.appearance_toolbar_pinned_colors_subtitle),
+                settings.watch { it.toolbarBehavior.pinnedToolColors },
+                default = SettingsDefaults.toolbarBehavior.pinnedToolColors,
+            ) { scope.launch { repository.setToolbarPinnedToolColors(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.appearance_suggestion_text_size_title,
                 subtitle = stringResource(R.string.appearance_suggestion_text_size_subtitle),
@@ -549,7 +628,7 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.suggestionStrip.textScale,
             ) { scope.launch { repository.setSuggestionTextScale(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_suggestion_spacing_title,
                 subtitle = stringResource(R.string.appearance_suggestion_spacing_subtitle),
@@ -563,7 +642,7 @@ internal fun AppearanceToolbarSettings(
         // Beside the strip's other two appearance rows rather than on the
         // suggestions page it used to sit on (#114): it says what the strip
         // looks like, not what it offers.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ColorSetting(
                 R.string.appearance_suggestion_primary_color_title,
                 subtitle = stringResource(R.string.appearance_suggestion_primary_color_subtitle),
@@ -575,7 +654,7 @@ internal fun AppearanceToolbarSettings(
         item {
             ResetPinnedToolsSetting(repository, scope)
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val offLabel = stringResource(CommonR.string.common_off)
             SliderSetting(
                 R.string.appearance_tool_circle_title,
@@ -589,7 +668,7 @@ internal fun AppearanceToolbarSettings(
         }
         // The same shapes the keys and the popups use. It draws nothing while
         // the radius above is at 0, which is the setting for "no background".
-        item(visible = toolCircleOn) {
+        item(visible = toolCircleOn, level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.appearance_tool_shape_title,
                 subtitle = stringResource(R.string.appearance_tool_shape_subtitle),
@@ -600,21 +679,22 @@ internal fun AppearanceToolbarSettings(
         // Only the wide tools honour it — panel headers and grids keep the
         // fixed circle — and every wide one is drawn by the toolbar.
         if (toolbarOn) item {
-            val pinned = themePinSubtitle(settings) { it.toolWidthDp }
+            val pin = themePin(settings) { it.toolWidthDp }
             SliderSetting(
                 R.string.appearance_tool_width_title,
-                subtitle = pinned ?: stringResource(R.string.appearance_tool_width_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.appearance_tool_width_subtitle),
                 value = settings.watch { it.toolbarBehavior.toolWidthDp }.toFloat(),
                 range = 38f..64f,
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_tool_width_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.toolbarBehavior.toolWidthDp.toFloat(),
             ) { scope.launch { repository.setToolbarToolWidthDp(it.roundToInt()) } }
         }
         // Not gated on the toolbar: the toolbox grid draws the same buttons,
         // and it is still one tap away from the keyboard with the bar off.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.appearance_tool_icon_size_title,
                 subtitle = stringResource(R.string.appearance_tool_icon_size_subtitle),
@@ -627,7 +707,7 @@ internal fun AppearanceToolbarSettings(
         }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. Which tools are pinned is not a slider and stays.
-        item(visible = toolbarMoved) {
+        item(visible = toolbarMoved, level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.appearance_toolbar_reset_title,
                 subtitle = stringResource(R.string.appearance_toolbar_reset_subtitle),
@@ -645,6 +725,7 @@ internal fun AppearanceToolboxSettings(
 ) {
     val scope = rememberCoroutineScope()
     val spFormat = stringResource(R.string.values_sp)
+    val dpFormat = stringResource(R.string.typing_value_dp)
     // What decides which rows the group holds; each row reads its own value.
     val orderMoved = settings.watch { it.toolboxOrder != SettingsDefaults.toolboxOrder }
     val toolboxLayout = settings.watch { it.toolbox.layout }
@@ -658,7 +739,7 @@ internal fun AppearanceToolboxSettings(
         // The grid's own order. "Reset pinned tools" restored the bar and
         // nothing restored the grid, so a bad drag session there had no way
         // back. Drawn only once the order has actually been changed.
-        item(visible = orderMoved) {
+        item(visible = orderMoved, level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.appearance_reset_toolbox_order_title,
                 subtitle = stringResource(R.string.appearance_reset_toolbox_order_subtitle),
@@ -666,7 +747,17 @@ internal fun AppearanceToolboxSettings(
                 confirm = stringResource(R.string.appearance_reset_toolbox_order_confirm),
             ) { scope.launch { repository.resetToolboxOrder() } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                R.string.appearance_toolbox_sort_title,
+                subtitle = stringResource(R.string.appearance_toolbox_sort_subtitle),
+                options = toolboxSortOptions(),
+                selected = settings.watch { it.toolbox.sort },
+                info = stringResource(R.string.appearance_toolbox_sort_info),
+                default = SettingsDefaults.toolbox.sort,
+            ) { scope.launch { repository.setToolboxSort(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.appearance_toolbox_layout_title,
                 subtitle = stringResource(R.string.appearance_toolbox_layout_subtitle),
@@ -682,7 +773,7 @@ internal fun AppearanceToolboxSettings(
             ) { scope.launch { repository.setToolboxLayout(it) } }
         }
         if (toolboxLayout == ToolboxLayout.ICONS) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val perRow = stringResource(R.string.appearance_slider_per_row_value)
                 SliderSetting(
                     R.string.appearance_toolbox_columns_title,
@@ -695,7 +786,7 @@ internal fun AppearanceToolboxSettings(
                 ) { scope.launch { repository.setToolboxColumns(it.roundToInt()) } }
             }
         } else {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val perRow = stringResource(R.string.appearance_slider_per_row_value)
                 SliderSetting(
                     R.string.appearance_toolbox_pill_columns_title,
@@ -707,7 +798,7 @@ internal fun AppearanceToolboxSettings(
                     default = SettingsDefaults.toolbox.pillColumns.toFloat(),
                 ) { scope.launch { repository.setToolboxPillColumns(it.roundToInt()) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.appearance_toolbox_pill_filled_title,
                     stringResource(R.string.appearance_toolbox_pill_filled_subtitle),
@@ -717,7 +808,7 @@ internal fun AppearanceToolboxSettings(
                 ) { scope.launch { repository.setToolboxPillFilled(it) } }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.appearance_toolbox_paginate_title,
                 stringResource(R.string.appearance_toolbox_paginate_subtitle),
@@ -726,7 +817,7 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.paginate,
             ) { scope.launch { repository.setToolboxPaginate(it) } }
         }
-        item(visible = paginate) {
+        item(visible = paginate, level = SettingLevel.ADVANCED) {
             val perPage = stringResource(R.string.appearance_slider_per_page_value)
             SliderSetting(
                 R.string.appearance_toolbox_page_size_title,
@@ -738,7 +829,7 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.pageSize.toFloat(),
             ) { scope.launch { repository.setToolboxPageSize(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val followToolbar = stringResource(R.string.appearance_toolbox_label_size_follow)
             SliderSetting(
                 R.string.appearance_toolbox_label_size_title,
@@ -754,7 +845,17 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.labelSizeSp.toFloat(),
             ) { scope.launch { repository.setToolboxLabelSize(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_toolbox_cell_spacing_title,
+                subtitle = stringResource(R.string.appearance_toolbox_cell_spacing_subtitle),
+                value = settings.watch { it.toolbox.cellSpacingDp }.toFloat(),
+                range = 0f..16f,
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbox.cellSpacingDp.toFloat(),
+            ) { scope.launch { repository.setToolboxCellSpacing(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.appearance_toolbox_search_button_title,
                 stringResource(R.string.appearance_toolbox_search_button_subtitle),
@@ -763,7 +864,7 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.searchButton,
             ) { scope.launch { repository.setToolboxSearchButton(it) } }
         }
-        item(visible = searchButtonOn) {
+        item(visible = searchButtonOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.appearance_toolbox_search_at_end_title,
                 stringResource(R.string.appearance_toolbox_search_at_end_subtitle),
@@ -772,9 +873,19 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.searchAtEnd,
             ) { scope.launch { repository.setToolboxSearchAtEnd(it) } }
         }
+        item(visible = searchButtonOn, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.appearance_toolbox_search_sort_title,
+                subtitle = stringResource(R.string.appearance_toolbox_search_sort_subtitle),
+                options = toolboxSortOptions(),
+                selected = settings.watch { it.toolbox.searchSort },
+                info = stringResource(R.string.appearance_toolbox_search_sort_info),
+                default = SettingsDefaults.toolbox.searchSort,
+            ) { scope.launch { repository.setToolboxSearchSort(it) } }
+        }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. The order of the tools has its own reset above.
-        item(visible = toolboxMoved) {
+        item(visible = toolboxMoved, level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.appearance_toolbox_reset_title,
                 subtitle = stringResource(R.string.appearance_toolbox_reset_subtitle),
@@ -784,6 +895,15 @@ internal fun AppearanceToolboxSettings(
         }
     }
 }
+/** The orders the toolbox and its search can take. */
+@Composable
+private fun toolboxSortOptions(): List<Pair<ToolboxSort, String>> = listOf(
+    ToolboxSort.CUSTOM to stringResource(R.string.appearance_toolbox_sort_custom_label),
+    ToolboxSort.MOST_USED to stringResource(R.string.appearance_toolbox_sort_most_used_label),
+    ToolboxSort.RECENT to stringResource(R.string.appearance_toolbox_sort_recent_label),
+    ToolboxSort.ALPHABETICAL to stringResource(R.string.appearance_toolbox_sort_alphabetical_label),
+)
+
 // ---- layout & size ----
 
 /** The name the arrow order list gives [this] (issue #369). */
@@ -866,7 +986,7 @@ internal fun LayoutSettings(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.langemoji_lang_keymaps_title,
                 subtitle = if (customs.isEmpty()) {
@@ -881,6 +1001,7 @@ internal fun LayoutSettings(
         }
         // "Make one" and "get one" are the same question answered two ways.
         item { AddonStoreRow(AddonType.Layout, onNavigate) }
+        item { CommunityAddonsRow(AddonType.Layout, onNavigate) }
     }
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {
@@ -892,7 +1013,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.numberRow,
             ) { scope.launch { repository.setNumberRow(it) } }
         }
-        item(visible = numberRow) {
+        item(visible = numberRow, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.layout_number_row_height_title,
                 subtitle = stringResource(R.string.layout_number_row_height_subtitle),
@@ -903,7 +1024,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.numberRowHeightDp.toFloat(),
             ) { scope.launch { repository.setNumberRowHeightDp(it.toInt()) } }
         }
-        item(visible = numberRow) {
+        item(visible = numberRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_number_row_shift_symbols_title,
                 stringResource(R.string.layout_number_row_shift_symbols_subtitle),
@@ -912,7 +1033,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.numberRowShiftSymbols,
             ) { scope.launch { repository.setNumberRowShiftSymbols(it) } }
         }
-        item(visible = numberRow) {
+        item(visible = numberRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_number_row_in_symbols_title,
                 stringResource(R.string.layout_number_row_in_symbols_subtitle),
@@ -921,7 +1042,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.numberRowInSymbols,
             ) { scope.launch { repository.setNumberRowInSymbols(it) } }
         }
-        item(visible = numberRow) {
+        item(visible = numberRow, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_number_row_on_keypad_title,
                 stringResource(R.string.layout_number_row_on_keypad_subtitle),
@@ -934,7 +1055,7 @@ internal fun LayoutSettings(
     // Issue #369: the caret keys as a row of their own under the spacebar.
     val arrowRow = settings.watch { it.layoutBehavior.arrowRow }
     SettingsGroup(stringResource(R.string.layout_arrow_row_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_arrow_row_title,
                 stringResource(R.string.layout_arrow_row_subtitle),
@@ -943,7 +1064,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.arrowRow,
             ) { scope.launch { repository.setArrowRow(it) } }
         }
-        item(visible = arrowRow) {
+        item(visible = arrowRow, level = SettingLevel.ADVANCED) {
             ControlSetting(
                 R.string.layout_arrow_row_order_title,
                 subtitle = stringResource(R.string.layout_arrow_row_order_subtitle),
@@ -971,7 +1092,7 @@ internal fun LayoutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.layout_symbols_title)) {
+    SettingsGroup(stringResource(R.string.layout_symbols_title), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(
                 R.string.layout_symbols_return_title,
@@ -1020,7 +1141,7 @@ internal fun LayoutSettings(
         stringResource(R.string.layout_numerals_title),
         info = stringResource(R.string.layout_numerals_caption),
     ) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.layout_numeral_scope_title,
                 subtitle = stringResource(R.string.layout_numeral_scope_subtitle),
@@ -1056,8 +1177,11 @@ internal fun LayoutSettings(
 
 
 
+    // The rows that act on the 🌐 key go with it: hidden, it has nothing for
+    // them to change.
+    val globeShown = settings.watch { it.showGlobeKey }
     SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_comma_emoji_title,
                 stringResource(R.string.layout_comma_emoji_subtitle),
@@ -1069,7 +1193,7 @@ internal fun LayoutSettings(
         // The same switch as the one under Key press → Press and hold
         // shortcuts, here too because this is where the ways onto the emoji
         // panel from the bottom row are.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.keypress_enter_emoji_title,
                 stringResource(R.string.keypress_enter_emoji_subtitle),
@@ -1078,7 +1202,7 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.layoutBehavior.enterLongPressEmoji,
             ) { scope.launch { repository.setEnterLongPressEmoji(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Issue #423: Gboard's 1234 key on the symbols pages.
             ToggleSetting(
                 R.string.layout_symbols_numpad_key_title,
@@ -1092,14 +1216,14 @@ internal fun LayoutSettings(
             ToggleSetting(
                 R.string.layout_show_globe_title,
                 stringResource(R.string.layout_show_globe_subtitle),
-                settings.watch { it.showGlobeKey },
+                globeShown,
                 info = stringResource(R.string.layout_show_globe_info),
                 default = SettingsDefaults.showGlobeKey,
             ) { scope.launch { repository.setShowGlobeKey(it) } }
         }
-        // Not greyed out with the key hidden: a physical keyboard's language
-        // key follows it too.
-        item {
+        // Not hidden with the key: a physical keyboard's language key follows
+        // it too.
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_globe_recent_title,
                 stringResource(R.string.layout_globe_recent_subtitle),
@@ -1108,19 +1232,12 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.globeRecentOrder,
             ) { scope.launch { repository.setGlobeRecentOrder(it) } }
         }
-        item {
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             val offLabel = stringResource(CommonR.string.common_off)
             val msFormat = stringResource(R.string.typing_value_milliseconds)
-            val globeShown = settings.watch { it.showGlobeKey }
             SliderSetting(
                 R.string.layout_globe_guard_title,
-                subtitle = stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_guard_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                subtitle = stringResource(R.string.layout_globe_guard_subtitle),
                 value = settings.watch { it.layoutBehavior.globeTypingGuardMs }.toFloat(),
                 range = GlobeTypingGuardMsRange.first.toFloat()..GlobeTypingGuardMsRange.last.toFloat(),
                 // Steps of 50 ms: finer than that is not a difference a thumb
@@ -1131,61 +1248,33 @@ internal fun LayoutSettings(
                     if (ms == 0) offLabel else msFormat.format(ms)
                 },
                 info = stringResource(R.string.layout_globe_guard_info),
-                enabled = globeShown,
                 default = SettingsDefaults.layoutBehavior.globeTypingGuardMs.toFloat(),
             ) { scope.launch { repository.setGlobeTypingGuardMs((it / 50f).roundToInt() * 50) } }
         }
-        // The two rows below act on the 🌐 key, so with it hidden neither has
-        // anything to change. Greyed out rather than removed, so turning the key
-        // back on does not make two rows appear under the finger.
-        item {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown) {
             ToggleSetting(
                 R.string.layout_globe_emoji_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_emoji_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_globe_emoji_subtitle),
                 settings.watch { it.globeAsEmoji },
                 info = stringResource(R.string.layout_globe_emoji_info),
-                enabled = globeShown,
                 default = SettingsDefaults.globeAsEmoji,
             ) { scope.launch { repository.setGlobeAsEmoji(it) } }
         }
-        item {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_swap_comma_globe_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_swap_comma_globe_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_swap_comma_globe_subtitle),
                 settings.watch { it.swapCommaAndGlobe },
                 info = stringResource(R.string.layout_swap_comma_globe_info),
-                enabled = globeShown,
                 default = SettingsDefaults.swapCommaAndGlobe,
             ) { scope.launch { repository.setSwapCommaAndGlobe(it) } }
         }
-        item {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_globe_in_one_place_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_in_one_place_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_globe_in_one_place_subtitle),
                 settings.watch { it.layoutBehavior.globeInOnePlace },
                 info = stringResource(R.string.layout_globe_in_one_place_info),
-                enabled = globeShown,
                 default = SettingsDefaults.layoutBehavior.globeInOnePlace,
             ) { scope.launch { repository.setGlobeInOnePlace(it) } }
         }
@@ -1236,21 +1325,38 @@ internal fun LayoutSizeSettings(
     val shapeOverridden = settings.watch { s ->
         expandedVariant?.let { s.sizingOverrides[it] }?.let { !it.isEmpty } == true
     }
+    val preview = LocalKeyboardPreview.current
     SettingsGroup(stringResource(R.string.layout_size_position_title)) {
+        // The sliders below, dragged on the keyboard itself (#912): opens the
+        // test field and puts the keyboard that comes up into resize mode.
+        // Needs the test field, so not while its button is switched off.
+        item(visible = preview != null, level = SettingLevel.STANDARD) {
+            ActionRow(
+                title = R.string.layout_resize_drag_title,
+                subtitle = stringResource(R.string.layout_resize_drag_subtitle),
+                action = stringResource(R.string.layout_resize_drag_action),
+            ) {
+                preview?.let {
+                    it.resizeOnShow = true
+                    it.open = true
+                }
+            }
+        }
         item {
-            val pinned = themePinSubtitle(settings) { it.keyHeightDp }
+            val pin = themePin(settings) { it.keyHeightDp }
             SliderSetting(
                 R.string.layout_key_height_title,
-                subtitle = pinned ?: stringResource(R.string.layout_key_height_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.layout_key_height_subtitle),
                 value = settings.watch { it.keyHeightDp }.toFloat(),
                 range = 32f..100f,
                 display = { dpFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_key_height_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.keyHeightDp.toFloat(),
             ) { scope.launch { repository.setKeyHeightDp(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
             SliderSetting(
                 R.string.layout_bottom_row_height_title,
@@ -1262,48 +1368,51 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.layoutBehavior.bottomRowHeightDp.toFloat(),
             ) { scope.launch { repository.setBottomRowHeightDp(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // The legacy symmetric field pins both edges where a per-edge one
             // is unset, the way applyThemeOverrides reads them.
-            val pinned = themePinSubtitle(settings) { it.sidePadLeftScale ?: it.sidePadScale }
+            val pin = themePin(settings) { it.sidePadLeftScale ?: it.sidePadScale }
             SliderSetting(
                 R.string.layout_side_padding_left_title,
-                subtitle = pinned ?: stringResource(R.string.layout_side_padding_left_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.layout_side_padding_left_subtitle),
                 value = settings.watch { it.layoutBehavior.sidePadLeftScale },
                 range = SidePadScaleRange.start..SidePadScaleRange.endInclusive,
                 display = { percentFormat.format((it * 100).toInt()) },
                 info = stringResource(R.string.layout_side_padding_left_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.layoutBehavior.sidePadLeftScale,
             ) { scope.launch { repository.setSidePadLeftScale(it) } }
         }
-        item {
-            val pinned = themePinSubtitle(settings) { it.sidePadRightScale ?: it.sidePadScale }
+        item(level = SettingLevel.ADVANCED) {
+            val pin = themePin(settings) { it.sidePadRightScale ?: it.sidePadScale }
             SliderSetting(
                 R.string.layout_side_padding_right_title,
-                subtitle = pinned ?: stringResource(R.string.layout_side_padding_right_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.layout_side_padding_right_subtitle),
                 value = settings.watch { it.layoutBehavior.sidePadRightScale },
                 range = SidePadScaleRange.start..SidePadScaleRange.endInclusive,
                 display = { percentFormat.format((it * 100).toInt()) },
                 info = stringResource(R.string.layout_side_padding_right_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.layoutBehavior.sidePadRightScale,
             ) { scope.launch { repository.setSidePadRightScale(it) } }
         }
-        item {
-            val pinned = themePinSubtitle(settings) { it.keyGapScale }
+        item(level = SettingLevel.STANDARD) {
+            val pin = themePin(settings) { it.keyGapScale }
             SliderSetting(
                 R.string.layout_key_spacing_title,
-                subtitle = pinned ?: stringResource(R.string.layout_key_spacing_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.layout_key_spacing_subtitle),
                 value = settings.watch { it.keyGapScale },
                 range = 0f..2f,
                 display = { percentFormat.format((it * 100).toInt()) },
                 info = stringResource(R.string.layout_key_spacing_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.keyGapScale,
             ) { scope.launch { repository.setKeyGapScale(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Issue #530: a tap in a short row's side gap types the key at that end.
             ToggleSetting(
                 R.string.layout_extend_edge_keys_title,
@@ -1313,7 +1422,7 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.layoutBehavior.extendEdgeKeys,
             ) { scope.launch { repository.setExtendEdgeKeys(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val bottomPadding = settings.watch { it.bottomPaddingDp }
             SliderSetting(
                 R.string.layout_bottom_padding_title,
@@ -1331,7 +1440,7 @@ internal fun LayoutSizeSettings(
                 },
             ) { scope.launch { repository.setBottomPaddingDp(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Android has no way for a keyboard to ask for this before 16
             // (#582), and none at all where the bar is part of the system's
             // own navigation bar: three buttons, or a build that draws it
@@ -1353,10 +1462,21 @@ internal fun LayoutSizeSettings(
                 settings.watch { it.layoutBehavior.hideSystemKeyboardBar },
                 info = stringResource(R.string.layout_hide_system_keyboard_bar_info),
                 enabled = supported,
+                // Nothing in settings can lift this one: the reason is the
+                // subtitle's, and the hold only has it to say.
+                disabledReason = DisabledReason(
+                    stringResource(
+                        if (newEnough) {
+                            R.string.layout_hide_system_keyboard_bar_system_drawn
+                        } else {
+                            R.string.layout_hide_system_keyboard_bar_unsupported
+                        },
+                    ),
+                ),
                 default = SettingsDefaults.layoutBehavior.hideSystemKeyboardBar,
             ) { scope.launch { repository.setHideSystemKeyboardBar(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val square = stringResource(R.string.layout_board_corner_square)
             SliderSetting(
                 R.string.layout_board_corner_top_title,
@@ -1368,7 +1488,7 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.layoutBehavior.boardCornerTopDp.toFloat(),
             ) { scope.launch { repository.setBoardCornerTopDp(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val square = stringResource(R.string.layout_board_corner_square)
             SliderSetting(
                 R.string.layout_board_corner_bottom_title,
@@ -1382,7 +1502,7 @@ internal fun LayoutSizeSettings(
         }
         // Which corners only matters once one of the two is round.
         if (cornersRound) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 MultiChoiceSetting(
                     R.string.layout_board_corners_title,
                     subtitle = stringResource(R.string.layout_board_corners_subtitle),
@@ -1392,7 +1512,7 @@ internal fun LayoutSizeSettings(
                 ) { scope.launch { repository.setBoardCorners(it) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.layout_keyboard_width_title,
                 subtitle = stringResource(R.string.layout_keyboard_width_subtitle),
@@ -1403,7 +1523,7 @@ internal fun LayoutSizeSettings(
                 default = SettingsDefaults.keyboardWidthPercent.toFloat(),
             ) { scope.launch { repository.setKeyboardWidthPercent(it.toInt()) } }
         }
-        item(visible = narrowed) {
+        item(visible = narrowed, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.layout_keyboard_position_title,
                 info = stringResource(R.string.layout_keyboard_position_info),
@@ -1417,7 +1537,7 @@ internal fun LayoutSizeSettings(
         // Drawn only once something in the group has actually moved, like the
         // per-row reset controls: on an untouched screen it would be a button
         // that does nothing.
-        item(visible = sizingMoved) {
+        item(visible = sizingMoved, level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.layout_reset_sizing_title,
                 subtitle = stringResource(R.string.layout_reset_sizing_subtitle),
@@ -1428,6 +1548,7 @@ internal fun LayoutSizeSettings(
     }
     SettingsGroup(
         stringResource(R.string.layout_per_screen_title),
+        level = SettingLevel.ADVANCED,
         info = stringResource(R.string.layout_per_screen_caption),
     ) {
         for (variant in ScreenVariant.entries.filter { it.isOverride }) {
@@ -1477,7 +1598,7 @@ internal fun LayoutSizeSettings(
                 // and that override is what decides whether the row is drawn
                 // on this screen shape — so it, not the global switch, is what
                 // makes the height mean something here.
-                item(visible = shapeNumberRow) {
+                item(visible = shapeNumberRow, level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.layout_number_row_height_title,
                         value = settings.watch {
@@ -1491,7 +1612,7 @@ internal fun LayoutSizeSettings(
                         }
                     }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     SliderSetting(
                         R.string.layout_bottom_padding_title,
                         value = (
@@ -1502,7 +1623,7 @@ internal fun LayoutSizeSettings(
                         display = { dpFormat.format(it.toInt()) },
                     ) { scope.launch { repository.setVariantBottomPaddingDp(variant, it.toInt()) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     SliderSetting(
                         R.string.layout_keyboard_width_title,
                         value = settings.watch {
@@ -1520,7 +1641,7 @@ internal fun LayoutSizeSettings(
                         display = { multiplierFormat.format(it) },
                     ) { scope.launch { repository.setVariantFontScale(variant, it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     SliderSetting(
                         R.string.layout_key_spacing_title,
                         value = settings.watch { it.sizingValuesFor(variant).keyGapScale ?: it.keyGapScale },
@@ -1528,7 +1649,7 @@ internal fun LayoutSizeSettings(
                         display = { percentFormat.format((it * 100).toInt()) },
                     ) { scope.launch { repository.setVariantKeyGapScale(variant, it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.layout_side_padding_left_title,
                         value = settings.watch {
@@ -1538,7 +1659,7 @@ internal fun LayoutSizeSettings(
                         display = { percentFormat.format((it * 100).toInt()) },
                     ) { scope.launch { repository.setVariantSidePadLeftScale(variant, it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.layout_side_padding_right_title,
                         value = settings.watch {
@@ -1548,7 +1669,7 @@ internal fun LayoutSizeSettings(
                         display = { percentFormat.format((it * 100).toInt()) },
                     ) { scope.launch { repository.setVariantSidePadRightScale(variant, it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val followKeys = stringResource(R.string.layout_bottom_row_follow_keys_label)
                     SliderSetting(
                         R.string.layout_bottom_row_height_title,
@@ -1592,7 +1713,7 @@ internal fun LayoutSizeSettings(
                         settings.watch { it.splitAllowedOn(variant) },
                     ) { scope.launch { repository.setVariantAllowSplit(variant, it) } }
                 }
-                item(visible = shapeNarrowed) {
+                item(visible = shapeNarrowed, level = SettingLevel.ADVANCED) {
                     ChoiceSetting(
                         title = R.string.layout_keyboard_position_title,
                         options = KeyboardAlignment.entries.map { alignment ->
@@ -1717,7 +1838,7 @@ internal fun LayoutOneHandedSettings(
                 ) { scope.launch { repository.setOneHandedSide(landscape, it) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_split_title,
                 stringResource(R.string.layout_split_subtitle),
@@ -1726,7 +1847,7 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.splitKeyboard,
             ) { scope.launch { repository.setSplitKeyboard(it) } }
         }
-        item(visible = split) {
+        item(visible = split, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_split_large_only_title,
                 stringResource(R.string.layout_split_large_only_subtitle),
@@ -1735,18 +1856,20 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.layoutBehavior.splitOnlyOnLargeScreens,
             ) { scope.launch { repository.setSplitOnlyOnLargeScreens(it) } }
         }
-        item(visible = split) {
+        item(visible = split, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.layout_split_gap_title,
                 subtitle = stringResource(R.string.layout_split_gap_subtitle),
                 value = settings.watch { it.splitGapPercent }.toFloat(),
-                range = 5f..40f,
+                // Up to 60% (#952): a big tablet in landscape wants the halves
+                // right out at the edges, under the thumbs.
+                range = 5f..60f,
                 display = { percentFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_split_gap_info),
                 default = SettingsDefaults.splitGapPercent.toFloat(),
             ) { scope.launch { repository.setSplitGapPercent(it.toInt()) } }
         }
-        item(visible = split) {
+        item(visible = split, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_split_spacebar_title,
                 stringResource(R.string.layout_split_spacebar_subtitle),
@@ -1757,7 +1880,7 @@ internal fun LayoutOneHandedSettings(
         }
         // One switch per orientation (#584): each remembers its own, as the
         // toolbar tool and the dock button do for the one the phone is in.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_floating_title,
                 stringResource(R.string.layout_floating_subtitle),
@@ -1766,7 +1889,7 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.floatingKeyboard,
             ) { scope.launch { repository.setFloatingKeyboard(false, it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_floating_landscape_title,
                 stringResource(R.string.layout_floating_landscape_subtitle),
@@ -1776,7 +1899,7 @@ internal fun LayoutOneHandedSettings(
             ) { scope.launch { repository.setFloatingKeyboard(true, it) } }
         }
         // The platform's sideways text box over the app (#883).
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_landscape_fullscreen_title,
                 stringResource(R.string.layout_landscape_fullscreen_subtitle),
@@ -1785,7 +1908,7 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.layoutBehavior.landscapeFullscreen,
             ) { scope.launch { repository.setLandscapeFullscreen(it) } }
         }
-        item(visible = floating) {
+        item(visible = floating, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.layout_floating_handle_title,
                 subtitle = stringResource(R.string.layout_floating_handle_subtitle),
@@ -1798,7 +1921,7 @@ internal fun LayoutOneHandedSettings(
                 info = stringResource(R.string.layout_floating_handle_info),
             ) { scope.launch { repository.setFloatingHandle(it) } }
         }
-        item(visible = floating) {
+        item(visible = floating, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.layout_floating_width_title,
                 subtitle = stringResource(R.string.layout_floating_width_subtitle),
@@ -1809,7 +1932,7 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.floatingWidthDp.toFloat(),
             ) { scope.launch { repository.setFloatingWidthDp(it.toInt()) } }
         }
-        item(visible = floating) {
+        item(visible = floating, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.layout_floating_height_title,
                 subtitle = stringResource(R.string.layout_floating_height_subtitle),
@@ -1820,7 +1943,7 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.floatingHeightScale,
             ) { scope.launch { repository.setFloatingHeightScale(it) } }
         }
-        item(visible = floating) {
+        item(visible = floating, level = SettingLevel.ADVANCED) {
             val movedFloating = settings.watch { s ->
                 s.floatingWidthDp != SettingsDefaults.floatingWidthDp ||
                     s.floatingHeightScale != SettingsDefaults.floatingHeightScale ||
@@ -1835,7 +1958,7 @@ internal fun LayoutOneHandedSettings(
                 ) { scope.launch { repository.resetFloatingGeometry() } }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_persistent_title,
                 stringResource(R.string.layout_persistent_subtitle),

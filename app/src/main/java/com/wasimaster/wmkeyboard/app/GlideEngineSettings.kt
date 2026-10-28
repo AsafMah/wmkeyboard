@@ -131,7 +131,7 @@ private fun GlideEngineRow(settings: LiveSettings, repository: SettingsRepositor
             else -> Unit
         }
         // Where the build fetches the runtime rather than carrying it.
-        SpeechModuleBanner(settings, FeatureModules.executorch)
+        SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
     }
     if (asking) {
         FutoSwipeLicenceDialog { accepted ->
@@ -230,12 +230,17 @@ private fun GestureLibraryRows(settings: LiveSettings) {
             generation++
         }
     }
-    if (engine != GlideEngine.GOOGLE_LIBRARY && status == LatinImeLibrary.Status.Missing && result == null) return
+    // A library removed while loaded is still in memory (Android cannot
+    // unload one) but out of use, and there is no file left to remove: for
+    // these rows it is as good as missing, and the subtitle says the rest.
+    val gone = status == LatinImeLibrary.Status.Missing || status == LatinImeLibrary.Status.Removed
+    if (engine != GlideEngine.GOOGLE_LIBRARY && gone && result == null) return
     val abi = LatinImeLibrary.processAbi()
     val subtitle = when (status) {
         LatinImeLibrary.Status.Missing -> stringResource(R.string.typing_glide_library_missing, abi)
         LatinImeLibrary.Status.Imported -> stringResource(R.string.typing_glide_library_imported)
         LatinImeLibrary.Status.Loaded -> stringResource(R.string.typing_glide_library_loaded)
+        LatinImeLibrary.Status.Removed -> stringResource(R.string.typing_glide_library_removed)
         is LatinImeLibrary.Status.Failed -> when (status.reason) {
             LatinImeLibrary.Failure.CHANGED -> stringResource(R.string.typing_glide_library_failed_changed)
             LatinImeLibrary.Failure.CRASHED -> stringResource(R.string.typing_glide_library_failed_crashed)
@@ -247,7 +252,7 @@ private fun GestureLibraryRows(settings: LiveSettings) {
         R.string.typing_glide_library_title,
         subtitle = subtitle,
         action = stringResource(
-            if (status == LatinImeLibrary.Status.Missing) R.string.typing_glide_library_import else R.string.typing_glide_library_replace,
+            if (gone) R.string.typing_glide_library_import else R.string.typing_glide_library_replace,
         ),
     ) { picker.launch(arrayOf("*/*")) }
     result?.let { outcome ->
@@ -271,7 +276,7 @@ private fun GestureLibraryRows(settings: LiveSettings) {
             generation++
         }
     }
-    if (status != LatinImeLibrary.Status.Missing) {
+    if (!gone) {
         ActionRow(
             R.string.typing_glide_library_remove_title,
             subtitle = stringResource(R.string.typing_glide_library_remove_subtitle),

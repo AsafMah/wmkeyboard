@@ -112,4 +112,107 @@ class KeyGridFocusTest {
     fun `an empty grid moves nowhere`() {
         assertNull(nextKeyCell(emptyList(), topRow[0], 1, 0))
     }
+
+    @Test
+    fun `right from T9 segmentation stays on ABC instead of a nearer toolbar icon`() {
+        val segmentation = Rect(0f, 80f, 180f, 160f)
+        val abc = Rect(180f, 80f, 360f, 160f)
+        val toolbarIcon = Rect(180f, 0f, 220f, 60f)
+        assertEquals(abc, nextKeyCell(listOf(segmentation, abc, toolbarIcon), segmentation, 1, 0))
+    }
+
+    @Test
+    fun `left from ABC stays on segmentation instead of a nearer toolbar icon`() {
+        val segmentation = Rect(0f, 80f, 180f, 160f)
+        val abc = Rect(180f, 80f, 360f, 160f)
+        val toolbarIcon = Rect(140f, 0f, 180f, 60f)
+        assertEquals(segmentation, nextKeyCell(listOf(segmentation, abc, toolbarIcon), abc, -1, 0))
+    }
+
+    @Test
+    fun `horizontal travel in the toolbar does not fall into the T9 keys`() {
+        val mic = Rect(200f, 0f, 240f, 60f)
+        val emoji = Rect(400f, 0f, 440f, 60f)
+        val abc = Rect(240f, 80f, 420f, 160f)
+        assertEquals(emoji, nextKeyCell(listOf(mic, emoji, abc), mic, 1, 0))
+    }
+
+    @Test
+    fun `T9 row wraps instead of reaching a toolbar button beyond its edge`() {
+        val segmentation = Rect(0f, 80f, 180f, 160f)
+        val abc = Rect(180f, 80f, 360f, 160f)
+        val def = Rect(360f, 80f, 540f, 160f)
+        val toolbarIcon = Rect(560f, 0f, 600f, 60f)
+        assertEquals(segmentation, nextKeyCell(listOf(segmentation, abc, def, toolbarIcon), def, 1, 0))
+    }
+
+    @Test
+    fun `a toolbar row touching the key row is still a different row`() {
+        val segmentation = Rect(0f, 80f, 180f, 160f)
+        val abc = Rect(180f, 80f, 360f, 160f)
+        val toolbarIcon = Rect(180f, 0f, 220f, 80f)
+        assertEquals(abc, nextKeyCell(listOf(segmentation, abc, toolbarIcon), segmentation, 1, 0))
+    }
+
+    @Test
+    fun `T9 up and down keep columns and reach the toolbar above the first row`() {
+        val rows = (0..2).map { y -> (0..2).map { x ->
+            Rect(x * 180f, 80f + y * 80f, (x + 1) * 180f, 160f + y * 80f)
+        } }
+        val toolbar = (0..2).map { x -> Rect(x * 180f + 60f, 0f, x * 180f + 120f, 60f) }
+        val cells = rows.flatten() + toolbar
+        for (column in 0..2) {
+            assertEquals(rows[1][column], nextKeyCell(cells, rows[0][column], 0, 1))
+            assertEquals(rows[2][column], nextKeyCell(cells, rows[1][column], 0, 1))
+            assertEquals(rows[0][column], nextKeyCell(cells, rows[1][column], 0, -1))
+            assertEquals(toolbar[column], nextKeyCell(cells, rows[0][column], 0, -1))
+            assertEquals(rows[0][column], nextKeyCell(cells, toolbar[column], 0, 1))
+        }
+    }
+
+    @Test
+    fun `horizontal travel can still reach a taller key spanning the same row`() {
+        val key = Rect(0f, 80f, 100f, 160f)
+        val tallEnter = Rect(100f, 80f, 200f, 320f)
+        assertEquals(tallEnter, nextKeyCell(listOf(key, tallEnter), key, 1, 0))
+    }
+
+    @Test
+    fun `every QWERTY row traverses and wraps without entering its toolbar`() {
+        val rows = listOf(row(10, 1), row(9, 2, keyWidth / 2), row(7, 3, keyWidth))
+        val toolbar = (0..4).map { Rect(it * 200f, 0f, it * 200f + 44f, 44f) }
+        val cells = rows.flatten() + toolbar
+        for (keys in rows) {
+            for (index in keys.indices) {
+                assertEquals(keys[(index + 1) % keys.size], nextKeyCell(cells, keys[index], 1, 0))
+                assertEquals(keys[(index + keys.size - 1) % keys.size], nextKeyCell(cells, keys[index], -1, 0))
+            }
+        }
+    }
+
+    @Test
+    fun `QWERTY toolbar traverses its icons instead of nearby letters below`() {
+        val toolbar = (0..4).map { Rect(it * 200f, 0f, it * 200f + 44f, 44f) }
+        val cells = toolbar + row(10, 1) + row(9, 2, keyWidth / 2)
+        for (index in toolbar.indices) {
+            assertEquals(toolbar[(index + 1) % toolbar.size], nextKeyCell(cells, toolbar[index], 1, 0))
+            assertEquals(toolbar[(index + toolbar.size - 1) % toolbar.size], nextKeyCell(cells, toolbar[index], -1, 0))
+        }
+    }
+
+    @Test
+    fun `QWERTY wide space reaches its own row neighbours instead of letters above`() {
+        assertEquals(bottomRow[0], nextKeyCell(grid, space, -1, 0))
+        assertEquals(bottomRow[2], nextKeyCell(grid, space, 1, 0))
+    }
+
+    @Test
+    fun `QWERTY still moves vertically between toolbar letters and wide space`() {
+        val toolbar = Rect(200f, -60f, 300f, -10f)
+        val cells = grid + toolbar
+        assertEquals(toolbar, nextKeyCell(cells, topRow[2], 0, -1))
+        assertEquals(topRow[2], nextKeyCell(cells, toolbar, 0, 1))
+        assertEquals(homeRow[1], nextKeyCell(cells, topRow[2], 0, 1))
+        assertEquals(space, nextKeyCell(cells, homeRow[3], 0, 1))
+    }
 }

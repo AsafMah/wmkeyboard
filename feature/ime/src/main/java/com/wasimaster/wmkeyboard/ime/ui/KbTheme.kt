@@ -697,7 +697,7 @@ private fun blendOver(top: Color, base: Color, alpha: Float): Color =
     top.copy(alpha = alpha).compositeOver(base)
 
 /** WCAG-style contrast ratio between two (assumed opaque) colors. */
-private fun contrastRatio(a: Color, b: Color): Float {
+internal fun contrastRatio(a: Color, b: Color): Float {
     val la = a.luminance() + 0.05f
     val lb = b.luminance() + 0.05f
     return max(la, lb) / min(la, lb)

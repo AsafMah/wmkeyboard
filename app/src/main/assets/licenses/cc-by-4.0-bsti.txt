@@ -1,0 +1,30 @@
+Bangla BSTI Mobile
+==================
+
+The BSTI Bangla layout follows the National Keyboard Standard (Revised)
+BDS 1738:2018 of the Bangladesh Standards and Testing Institution, in the
+touch arrangement of Ekushey's Bangla BSTI Mobile layout
+(https://github.com/ekushey-org/bangla-bsti-mobile, c55d500, 2026-10-23),
+with Ekushey's Jatiya m17n input method
+(https://github.com/ekushey-org/bangla-bsti-m17n, 50747a1, 2026-10-23)
+as the reference for the desktop keys. Both are published under the
+Creative Commons Attribution 4.0 International licence.
+
+  Copyright (c) 2026 Ekushey (https://ekushey.org)
+
+Changes: the key assignments were re-entered as keyboard code rather than
+copied as files. Each key's long-press holds the base layer's alternate and
+then the shift layer's, since a phone key has one popup. The hasant and the
+full stop key also hold ZWNJ and ZWJ, হ holds ঽ, and the hasant holds ॥, as
+on the app's other fixed Bangla layouts.
+
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material for any purpose,
+  even commercially.
+
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made.
+
+Full license text: https://creativecommons.org/licenses/by/4.0/legalcode

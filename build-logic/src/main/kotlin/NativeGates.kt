@@ -39,10 +39,16 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
         val licence: String,
     )
 
-    /** When a gate exists in the build at all (the NPU, Google Home). */
+    /**
+     * When a gate exists in the build at all. A [flag] (the NPU) is read as a
+     * Gradle property, a local.properties line or an environment variable;
+     * a gate with no flag (Google Home) is on whenever its [requiresDir] is
+     * there, since having gone to the trouble of unpacking an SDK is the
+     * decision.
+     */
     data class EnabledBy(
-        val flag: String,
-        val env: String,
+        val flag: String?,
+        val env: String?,
         val default: Boolean,
         val buildConfig: String,
         val requiresDir: String?,
@@ -68,11 +74,13 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
         /** The distinct jniLibs directories of this gate's own libraries, in table order. */
         val dirs: List<String> get() = libraries.map { it.dir }.distinct()
 
-        fun enabled(project: Project): Boolean = enabled(project.rootDir) { project.wmkbFlag(it.flag, it.env) }
+        fun enabled(project: Project): Boolean =
+            enabled(project.rootDir) { by -> by.flag?.let { project.wmkbFlag(it, by.env.orEmpty()) } }
 
         fun enabled(rootDir: File, read: (EnabledBy) -> String?): Boolean {
             val by = enabledBy ?: return true
             if (by.requiresDir != null && !rootDir.resolve(by.requiresDir).isDirectory) return false
+            if (by.flag == null) return true
             return (read(by) ?: by.default.toString()).toBoolean()
         }
     }
@@ -100,9 +108,9 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
                         google = gate["google"] as Boolean? ?: false,
                         enabledBy = (gate["enabledBy"] as Map<*, *>?)?.let {
                             EnabledBy(
-                                flag = it["flag"] as String,
-                                env = it["env"] as String,
-                                default = it["default"] as Boolean,
+                                flag = it["flag"] as String?,
+                                env = it["env"] as String?,
+                                default = it["default"] as Boolean? ?: false,
                                 buildConfig = it["buildConfig"] as String,
                                 requiresDir = it["requiresDir"] as String?,
                             )

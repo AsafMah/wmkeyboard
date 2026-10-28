@@ -26,6 +26,7 @@
     <string name="common_default">ברירת מחדל</string>
     <string name="common_delete">מחק</string>
     <string name="common_disable">כבה</string>
+    <string name="common_disabled_open_setting">פתח את ההגדרה</string>
     <string name="common_disclosure_blocked_body">אנדרואיד לא מציג בקשה זו יותר, מכיוון שסירבת להרשאה בעבר. אתה עדיין יכול להפעיל אותה ממסך הגדרות האפליקציה.</string>
     <string name="common_disclosure_not_now">לא עכשיו</string>
     <string name="common_done">בוצע</string>
@@ -44,6 +45,7 @@
     <string name="common_install">התקן</string>
     <string name="common_installing">מתקין...</string>
     <string name="common_loading">טוען...</string>
+    <string name="common_more">עוד</string>
     <string name="common_next">הבא</string>
     <string name="common_none">ללא</string>
     <string name="common_notify_channel_backup_body">רק כאשר גיבוי אוטומטי נכשל. גיבויים מוצלחים מתבצעים בשקט.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">הצג התראות</string>
     <string name="common_permission_storage_body">בגרסאות Android 9 ומטה, המקלדת זקוקה להרשאת גישה לאחסון כדי לשמור תמונה בגלריה שלך. הרשאת ה-Android הישנה מכסה גם קריאה מהאחסון. המקלדת כותבת רק את התמונה שביקשת לשמור. המקלדת אינה קוראת דבר ואינה מעלה דבר. גרסאות Android חדשות יותר אינן זקוקות להרשאה זו.</string>
     <string name="common_permission_storage_title">גישה לאחסון כדי לשמור בגלריה שלך</string>
+    <string name="common_permission_tasks_body">מקלדת WM שומרת על רשימת המטלות שלה ועל רשימת משימות אחת באפליקציית המשימות מסונכרנות: המשימות, השלבים שלהן, הסימונים ותאריכי היעד, לשני הכיוונים. ההרשאה מכסה כל רשימת משימות באפליקציה. המקלדת קוראת את הרשימות של האפליקציה רק כדי שתוכל לבחור אחת, והיא קוראת וכותבת רק את הרשימה שבחרת. המקלדת לא שולחת דבר לשום מקום. DAVx5, אם אתה משתמש בו, מסנכרן את הרשימה הזו עם שרת ה-CalDAV שלך. ללא הרשאה זו, רשימת המטלות נשארת בטלפון זה בלבד.</string>
+    <string name="common_permission_tasks_opentasks_title">גישת OpenTasks לרשימת המטלות</string>
+    <string name="common_permission_tasks_tasks_org_title">גישת Tasks.org לרשימת המטלות</string>
+    <string name="common_preview_scale_desc">גודל תצוגה מקדימה</string>
+    <string name="common_preview_scale_larger">הגדל את התצוגה המקדימה</string>
+    <string name="common_preview_scale_smaller">הקטן את התצוגה המקדימה</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">הסר</string>
     <string name="common_reset">איפוס</string>
     <string name="common_reset_defaults">אפס לברירת מחדל</string>

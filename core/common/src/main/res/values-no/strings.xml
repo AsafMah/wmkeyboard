@@ -26,6 +26,7 @@
     <string name="common_default">Standard</string>
     <string name="common_delete">Slett</string>
     <string name="common_disable">Slå av</string>
+    <string name="common_disabled_open_setting">Åpne innstillingen</string>
     <string name="common_disclosure_blocked_body">Android viser ikke denne forespørselen lenger, fordi du har avslått tillatelsen tidligere. Du kan fortsatt slå den på fra appinnstillingene.</string>
     <string name="common_disclosure_not_now">Ikke nå</string>
     <string name="common_done">Ferdig</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installer</string>
     <string name="common_installing">Installerer...</string>
     <string name="common_loading">Laster inn…</string>
+    <string name="common_more">Mer</string>
     <string name="common_next">Neste</string>
     <string name="common_none">Ingen</string>
     <string name="common_notify_channel_backup_body">Bare når en automatisk sikkerhetskopi feiler. Vellykkede sikkerhetskopier er lydløse.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Vis varsler</string>
     <string name="common_permission_storage_body">På Android 9 og eldre trenger tastaturet lagringstillatelse for å lagre et bilde i galleriet ditt. Den gamle Android-tillatelsen dekker også lesing av lagringsplassen din. Tastaturet skriver bare bildet du ber det om å lagre. Tastaturet leser ingenting og laster opp ingenting. Nyere Android-versjoner trenger ikke denne tillatelsen.</string>
     <string name="common_permission_storage_title">Lagringstilgang for å lagre i galleriet ditt</string>
+    <string name="common_permission_tasks_body">WM Keyboard holder gjøremålslisten og én oppgaveliste i oppgave-appen synkronisert: oppgavene, trinnene deres, avkryssingene og forfallsdatoene, begge veier. Tillatelsen dekker alle oppgavelister i appen. Tastaturet leser appens lister kun slik at du kan velge én, og det leser og skriver kun listen du valgte. Tastaturet sender ingenting noe sted. DAVx5, hvis du bruker det, synkroniserer den listen med din egen CalDAV-server. Uten denne tillatelsen forblir gjøremålslisten på denne telefonen.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks-tilgang for gjøremålslisten</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org-tilgang for gjøremålslisten</string>
+    <string name="common_preview_scale_desc">Forhåndsvisningsstørrelse</string>
+    <string name="common_preview_scale_larger">Gjør forhåndsvisningen større</string>
+    <string name="common_preview_scale_smaller">Gjør forhåndsvisningen mindre</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Fjern</string>
     <string name="common_reset">Nullstill</string>
     <string name="common_reset_defaults">Nullstill til standardverdier</string>

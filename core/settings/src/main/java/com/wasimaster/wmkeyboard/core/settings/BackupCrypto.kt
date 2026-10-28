@@ -34,16 +34,17 @@ import javax.crypto.spec.SecretKeySpec
 object BackupCrypto {
 
     /**
-     * PBKDF2 rounds for a new file.
+     * PBKDF2-HMAC-SHA512 rounds for a new file: OWASP's figure for SHA-512.
      *
-     * Below OWASP's 210 000 for SHA-256, on purpose. The loop below is a
-     * `Mac` running in the JVM rather than a native one, and on a low-end
-     * 2018-era ARM core it manages roughly 60-100k rounds a second. 120 000 is
-     * about a second and a half there, which a background job can spend and a
-     * user waiting on a restore screen can just about tolerate. The number
-     * lives in the header, so raising it later does not invalidate old files.
+     * The loop below is a `Mac` running in the JVM rather than a native one.
+     * SHA-512 works in 64-bit words, so on the arm64 cores every supported
+     * phone has a round costs about what a SHA-256 one does, and a 2018-era
+     * low-end core still gets through this in two to three seconds. A
+     * background job can spend that, and a restore screen shows a spinner for
+     * it. The number lives in the header, so raising it later does not
+     * invalidate old files.
      */
-    const val DEFAULT_ITERATIONS = 120_000
+    const val DEFAULT_ITERATIONS = 210_000
 
     /**
      * A ceiling on what a *file* may ask for.
@@ -60,7 +61,9 @@ object BackupCrypto {
     private const val KEY_SIZE = 32
     private const val TAG_BITS = 128
 
+    /** What files written before SHA-512 carry. Still read, never written. */
     private const val KDF_PBKDF2_SHA256: Byte = 1
+    private const val KDF_PBKDF2_SHA512: Byte = 2
     private const val CIPHER_AES_GCM: Byte = 1
     private const val CONTAINER_VERSION: Byte = 1
 
@@ -79,7 +82,7 @@ object BackupCrypto {
      *   0   4  magic 'W' 'M' 'K' 'B'
      *   4   3  'E' 'N' 'C'
      *   7   1  container version
-     *   8   1  kdf id
+     *   8   1  kdf id: 2 PBKDF2-HMAC-SHA512, 1 PBKDF2-HMAC-SHA256 (older files)
      *   9   1  cipher id
      *  10   4  iterations, big-endian
      *  14   1  salt length
@@ -107,7 +110,13 @@ object BackupCrypto {
     private const val NONCE_OFFSET = 32
 
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
-    private const val MAC_ALGORITHM = "HmacSHA256"
+
+    /** The HMAC each kdf id runs PBKDF2 over. */
+    private fun macFor(kdf: Byte): String? = when (kdf) {
+        KDF_PBKDF2_SHA512 -> "HmacSHA512"
+        KDF_PBKDF2_SHA256 -> "HmacSHA256"
+        else -> null
+    }
 
     private val ENC: ByteArray = byteArrayOf('E'.code.toByte(), 'N'.code.toByte(), 'C'.code.toByte())
 
@@ -149,7 +158,7 @@ object BackupCrypto {
         val cipher = Cipher.getInstance(TRANSFORMATION).apply {
             init(
                 Cipher.ENCRYPT_MODE,
-                SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE), "AES"),
+                SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE, "HmacSHA512"), "AES"),
                 GCMParameterSpec(TAG_BITS, nonce),
             )
             updateAAD(header)
@@ -210,12 +219,13 @@ object BackupCrypto {
 
         val salt = header.copyOfRange(SALT_OFFSET, SALT_OFFSET + SALT_SIZE)
         val nonce = header.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + NONCE_SIZE)
+        val mac = macFor(header[KDF_OFFSET]) ?: return DecryptResult.UnsupportedVersion
 
         return try {
             val cipher = Cipher.getInstance(TRANSFORMATION).apply {
                 init(
                     Cipher.DECRYPT_MODE,
-                    SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE), "AES"),
+                    SecretKeySpec(pbkdf2(passphrase, salt, iterations, KEY_SIZE, mac), "AES"),
                     GCMParameterSpec(TAG_BITS, nonce),
                 )
                 updateAAD(header)
@@ -229,11 +239,11 @@ object BackupCrypto {
     }
 
     /**
-     * PBKDF2-HMAC-SHA256, by hand.
+     * PBKDF2 over [macAlgorithm] (`HmacSHA512` for new files), by hand.
      *
-     * `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` would be the
+     * `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")` would be the
      * obvious way and cannot be used: that algorithm only appears in the
-     * Android provider at API 26, and this app supports 24. `HmacSHA256` has
+     * Android provider at API 26, and this app supports 24. `HmacSHA512` has
      * been there since API 1, so building the loop on top of it is one
      * implementation on every device — and one that also runs on the plain-JVM
      * test source set, where it can be checked against the platform's own
@@ -245,9 +255,10 @@ object BackupCrypto {
         salt: ByteArray,
         iterations: Int,
         keyBytes: Int,
+        macAlgorithm: String = "HmacSHA256",
     ): ByteArray {
-        val mac = Mac.getInstance(MAC_ALGORITHM)
-        mac.init(SecretKeySpec(passphrase.utf8(), MAC_ALGORITHM))
+        val mac = Mac.getInstance(macAlgorithm)
+        mac.init(SecretKeySpec(passphrase.utf8(), macAlgorithm))
         val blockSize = mac.macLength
         val blocks = (keyBytes + blockSize - 1) / blockSize
         val derived = ByteArray(blocks * blockSize)
@@ -284,7 +295,7 @@ object BackupCrypto {
      */
     private fun isSupported(header: ByteArray): Boolean =
         header[VERSION_OFFSET] == CONTAINER_VERSION &&
-            header[KDF_OFFSET] == KDF_PBKDF2_SHA256 &&
+            macFor(header[KDF_OFFSET]) != null &&
             header[CIPHER_OFFSET] == CIPHER_AES_GCM &&
             header[SALT_LENGTH_OFFSET].toInt() == SALT_SIZE &&
             header[NONCE_LENGTH_OFFSET].toInt() == NONCE_SIZE
@@ -294,7 +305,7 @@ object BackupCrypto {
         System.arraycopy(MAGIC, 0, header, 0, MAGIC.size)
         System.arraycopy(ENC, 0, header, TAG_OFFSET, ENC.size)
         header[VERSION_OFFSET] = CONTAINER_VERSION
-        header[KDF_OFFSET] = KDF_PBKDF2_SHA256
+        header[KDF_OFFSET] = KDF_PBKDF2_SHA512
         header[CIPHER_OFFSET] = CIPHER_AES_GCM
         System.arraycopy(bigEndian(iterations), 0, header, ITERATIONS_OFFSET, Int.SIZE_BYTES)
         header[SALT_LENGTH_OFFSET] = SALT_SIZE.toByte()

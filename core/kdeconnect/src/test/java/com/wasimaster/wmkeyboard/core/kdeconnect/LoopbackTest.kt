@@ -290,6 +290,30 @@ class LoopbackTest {
     }
 
     @Test
+    fun `a paused computer gets no clipboard and its copies are not applied until resumed`() {
+        val phone = peer("Phone")
+        val pc = peer("PC")
+        pair(phone, pc)
+
+        phone.engine.configure(KdeEngineConfig(deviceName = "Phone", clipboardPauses = mapOf(pc.id to KdeClipboardPause.FOREVER)))
+        assertEquals(0, phone.engine.clipboard.localChanged("held back", isSensitive = false))
+        assertEquals(1, pc.engine.clipboard.localChanged("from the pc while paused", isSensitive = false))
+        Thread.sleep(300)
+        assertTrue(pc.events.none { it is KdeEvent.ClipboardReceived })
+        assertTrue(phone.events.none { it is KdeEvent.ClipboardReceived })
+
+        // The explicit "send this" still goes.
+        assertEquals(1, phone.engine.clipboard.push("on purpose", pc.id))
+        await("pushed") { pc.events.any { it is KdeEvent.ClipboardReceived } }
+
+        // A pause that has ended holds nothing, with no one having to lift it.
+        phone.engine.configure(KdeEngineConfig(deviceName = "Phone", clipboardPauses = mapOf(KdeClipboardPause.ALL to 1L)))
+        assertEquals(1, pc.engine.clipboard.localChanged("from the pc again", isSensitive = false))
+        await("phone applies it") { phone.events.any { it is KdeEvent.ClipboardReceived } }
+        assertEquals(1, phone.engine.clipboard.localChanged("shared again", isSensitive = false))
+    }
+
+    @Test
     fun `text links pings and commands all arrive`() {
         val phone = peer("Phone")
         val pc = peer("PC")

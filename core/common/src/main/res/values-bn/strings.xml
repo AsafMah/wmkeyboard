@@ -26,6 +26,7 @@
     <string name="common_default">ডিফল্ট</string>
     <string name="common_delete">মুছুন</string>
     <string name="common_disable">বন্ধ করুন</string>
+    <string name="common_disabled_open_setting">সেটিং খুলুন</string>
     <string name="common_disclosure_blocked_body">অ্যান্ড্রয়েড আর এই অনুরোধটি দেখাবে না, কারণ আপনি আগে অনুমতি প্রত্যাখ্যান করেছিলেন। আপনি এখনও অ্যাপ সেটিংস স্ক্রিন থেকে এটি চালু করতে পারেন।</string>
     <string name="common_disclosure_not_now">এখন নয়</string>
     <string name="common_done">সম্পন্ন</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ইনস্টল করুন</string>
     <string name="common_installing">ইনস্টল হচ্ছে…</string>
     <string name="common_loading">লোড হচ্ছে...</string>
+    <string name="common_more">আরও</string>
     <string name="common_next">পরবর্তী</string>
     <string name="common_none">কোনটিই নয়</string>
     <string name="common_notify_channel_backup_body">শুধুমাত্র যখন একটি স্বয়ংক্রিয় ব্যাকআপ ব্যর্থ হয়। সফল ব্যাকআপগুলি নীরব থাকে।</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">বিজ্ঞপ্তি দেখান</string>
     <string name="common_permission_storage_body">অ্যান্ড্রয়েড ৯ এবং তার আগের ভার্সনে, আপনার গ্যালারিতে ছবি সেভ করার জন্য কিবোর্ডের স্টোরেজ পারমিশন প্রয়োজন। পুরনো অ্যান্ড্রয়েড পারমিশন আপনার স্টোরেজ পড়ার বিষয়টিও কভার করে। কিবোর্ড শুধুমাত্র সেই ছবিটিই লেখে যা আপনি সেভ করতে বলেন। কিবোর্ড কিছুই পড়ে না এবং কিছুই আপলোড করে না। নতুন অ্যান্ড্রয়েড ভার্সনগুলোতে এই পারমিশনের প্রয়োজন হয় না।</string>
     <string name="common_permission_storage_title">আপনার গ্যালারিতে সেভ করার জন্য স্টোরেজ অ্যাক্সেস</string>
+    <string name="common_permission_tasks_body">WM কিবোর্ড তার টু-ডু তালিকা এবং টাস্ক অ্যাপের একটি টাস্ক তালিকাকে একই রাখে: টাস্ক, তাদের ধাপ, তাদের টিক এবং তাদের নির্ধারিত তারিখ, উভয় দিকেই। অনুমতিটি অ্যাপের প্রতিটি টাস্ক তালিকাকে কভার করে। কিবোর্ড শুধুমাত্র অ্যাপের তালিকাগুলো পড়ে যাতে আপনি একটি বেছে নিতে পারেন, এবং এটি শুধুমাত্র আপনার বেছে নেওয়া তালিকাটি পড়ে এবং লেখে। কিবোর্ড কোথাও কিছু পাঠায় না। DAVx5, যদি আপনি এটি ব্যবহার করেন, তবে সেই তালিকাটিকে আপনার নিজস্ব CalDAV সার্ভারের সাথে সিঙ্ক করে। এই অনুমতি ছাড়া, টু-ডু তালিকাটি এই ফোনেই থেকে যায়।</string>
+    <string name="common_permission_tasks_opentasks_title">টু-ডু তালিকার জন্য ওপেনটাস্কস (OpenTasks) অ্যাক্সেস</string>
+    <string name="common_permission_tasks_tasks_org_title">টু-ডু তালিকার জন্য Tasks.org অ্যাক্সেস</string>
+    <string name="common_preview_scale_desc">প্রিভিউয়ের আকার</string>
+    <string name="common_preview_scale_larger">প্রিভিউ বড় করুন</string>
+    <string name="common_preview_scale_smaller">প্রিভিউ ছোট করুন</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">সরান</string>
     <string name="common_reset">রিসেট</string>
     <string name="common_reset_defaults">ডিফল্টে রিসেট করুন</string>

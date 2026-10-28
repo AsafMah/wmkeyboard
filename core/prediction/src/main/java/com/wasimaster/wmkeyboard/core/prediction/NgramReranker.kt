@@ -51,6 +51,9 @@ class NgramReranker(
             null
         }
         val lowered = candidates.map { it.lowercase() }
+        // The context model has its say in score space before the strip is
+        // ranked (SuggestionEngine.blendContextModel); the rank-unit term the
+        // Rust reranker can carry stays off here, having measured worse.
         val order = PredictionNative.rerank(
             userLexicon.nativeHandle,
             ngramPack().nativeHandles(),
@@ -61,6 +64,8 @@ class NgramReranker(
             Array(lowered.size) { WordKey.of(lowered[it]) },
             IntArray(lowered.size) { seedBigrams.count(prev, lowered[it]) },
             BooleanArray(lowered.size) { lowered[it] in recent },
+            null,
+            0.0,
         ) ?: return null
         return order.map { candidates[it] }
     }

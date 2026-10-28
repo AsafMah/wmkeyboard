@@ -23,7 +23,7 @@ use crate::strict_math;
 use keymap::KeyMap;
 use loops::{is_joiner, is_non_word, LoopScan};
 use std::collections::HashMap;
-use workspace::{Workspace, MAX_IDEAL_POINTS, NO_LABEL, SAMPLE_POINTS, SHAPE_POINTS, SHORT_SAMPLES, UNREACHABLE};
+use workspace::{Workspace, MAX_IDEAL_POINTS, NO_LABEL, SAMPLE_POINTS, SHAPE_POINTS, UNREACHABLE};
 
 /// A touch point in pixels, with its time in milliseconds.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -33,7 +33,22 @@ pub struct Point {
     pub t: i64,
 }
 
-/// `GlideBeam.Tuning`. Defaults are the shipped ones.
+/// `GlideBeam.Tuning`. Defaults are the shipped ones, fitted on real swipes
+/// (`examples/glide_beam_eval`, `native/bench/futo-swipe/fit_glide.py`).
+/// `freq_weight` is the weight on `ln(1 + frequency)`, the one field a
+/// language profile moves (#966, `GlideLanguageProfiles` on the Kotlin
+/// side): every bound carries it too, so the walk's pruning stays sound
+/// at any value, and at 1.0 a decode is the unweighted one to the bit.
+/// `join_cost` is the charge, in nats, for each join of a compound read
+/// as two or three listed words in a row (#966 §5.2); infinite, the
+/// default, switches the joining off and the decode is the plain one to
+/// the bit. A language profile sets it where the list cannot hold the
+/// compounds people swipe. `join_min_part` is the letters every part must
+/// have, and `join_part_penalty` the nats each part a join goes on from
+/// pays per `ln(1 + frequency)` of its own: the guard that keeps two common
+/// short words (`hast` + `alt`) from outbidding the listed `haushalt`
+/// (#966, measured on 2,588 German swipes at 8 / 4 / 0.1). At their
+/// defaults, 3 and 0, a joined decode is the one before them to the bit.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -41,6 +56,7 @@ pub struct Tuning {
     pub gap_weight: f32,
     pub gap_window: f32,
     pub shape_weight: f64,
+    pub freq_weight: f64,
     pub repeat_cost: f32,
     pub unlooped_repeat: f32,
     pub dwell_full: f32,
@@ -62,42 +78,52 @@ pub struct Tuning {
     pub look_ahead_cost: f64,
     pub look_ahead_budget: i32,
     pub joiner_cost: f32,
+    pub join_cost: f64,
+    pub join_min_part: i32,
+    pub join_part_penalty: f64,
 }
 
 impl Default for Tuning {
     fn default() -> Self {
         Tuning {
             sigma: 0.42,
-            max_point_cost: 12.0,
-            gap_weight: 2.0,
-            gap_window: 14.0,
-            shape_weight: 2.5,
-            repeat_cost: 0.05,
+            max_point_cost: 18.0,
+            gap_weight: 1.33,
+            gap_window: 32.0,
+            shape_weight: 0.5,
+            freq_weight: 1.0,
+            repeat_cost: 0.8,
             unlooped_repeat: 0.1,
-            dwell_full: 3.0,
-            unclaimed_dwell: 2.0,
+            dwell_full: 2.0,
+            unclaimed_dwell: 0.9,
             loop_extent: 0.8,
             loop_min_arc: 1.0,
             loop_radius: 0.6,
             wiggle_extent: 0.0,
             wiggle_weight: 0.0,
             loop_exclusion: 1.5,
-            unclaimed_loop: 0.5,
+            unclaimed_loop: 1.1,
             learned_shape_gain: 0.15,
             shape_seeding: false,
-            shape_channel: 45.0,
+            shape_channel: 6.0,
             start_radius: 1.6,
-            end_radius: 1.6,
-            near_radius: 1.5,
+            end_radius: 2.0,
+            near_radius: 1.9,
             vocabulary_rank: 0,
             look_ahead_cost: 1.4,
             look_ahead_budget: 48,
             joiner_cost: 0.2,
+            join_cost: f64::INFINITY,
+            join_min_part: MIN_JOIN_PART,
+            join_part_penalty: 0.0,
         }
     }
 }
 
 const MIN_DWELL_FULL: f32 = 0.1;
+/// `GlideBeam.Tuning.SLACK_BASE`: the anchor radius past which the score
+/// forgives the distance as well as the gate admitting it.
+const SLACK_BASE: f32 = 1.6;
 
 impl Tuning {
     fn inv_two_sigma_sq(&self) -> f32 {
@@ -116,16 +142,26 @@ impl Tuning {
         self.loop_radius * self.loop_radius
     }
     fn start_slack(&self) -> f32 {
-        (self.start_radius - Tuning::default().start_radius).max(0.0)
+        (self.start_radius - SLACK_BASE).max(0.0)
     }
     fn end_slack(&self) -> f32 {
-        (self.end_radius - Tuning::default().end_radius).max(0.0)
+        (self.end_radius - SLACK_BASE).max(0.0)
     }
     fn dwell_scale(&self) -> f32 {
         if self.dwell_full > MIN_DWELL_FULL {
             self.dwell_full
         } else {
             MIN_DWELL_FULL
+        }
+    }
+    /// What `joins` joins cost: nothing for none, which keeps a plain
+    /// word's score the plain one even with the joining off (infinite
+    /// times zero is not zero).
+    fn join_charge(&self, joins: i32) -> f64 {
+        if joins > 0 {
+            self.join_cost * joins as f64
+        } else {
+            0.0
         }
     }
 }
@@ -196,11 +232,22 @@ impl Marks {
     }
 }
 
+/// Letters each part of a compound must have unless the tuning asks for
+/// more (#966): `an` + `halt` is not a reading of `anhalt`, it is a search
+/// of every short word against every other, and the charge alone would not
+/// keep that out of the pool. `Tuning::join_min_part`'s default.
+const MIN_JOIN_PART: i32 = 3;
+/// Most joins in one reading: three parts, `bundes`-`verfassungs`-`gericht`
+/// sized, and no further.
+const MAX_JOINS: i32 = 2;
 const MIN_STROKE_LENGTH: f32 = 0.5;
 const MIN_SAMPLES: usize = 3;
 const MIN_WORD_LENGTH: i32 = 2;
 const MIN_LOOKAHEAD_PREFIX: i32 = 3;
-const MAX_WORD_LENGTH: i32 = 24;
+/// Letters the walk spells at most. 24 until issue #966: a 26-letter
+/// compound ("Qualitätsmanagementsystem") could not be read at all.
+/// `MAX_IDEAL_POINTS` follows it.
+pub const MAX_WORD_LENGTH: i32 = 32;
 const MIN_SHAPE_SPREAD: f32 = 1e-4;
 const SHAPE_BYTE_LIMIT: i32 = 127;
 const DWELL_RADIUS: f32 = 0.8;
@@ -214,6 +261,18 @@ pub const SHAPE_QUANT: f32 = 10.0;
 
 fn ln1p(v: i32) -> f64 {
     strict_math::ln1p_count(v)
+}
+
+/// The frequency a compound's language-model term is read at: the least
+/// of its finished parts' (`cap`, `workspace::NO_PART` for none) and `f`, the current
+/// part's or its subtree's. `f` itself for a plain word, so the plain
+/// decode's arithmetic is untouched.
+fn lm_cap(cap: i32, f: i32) -> i32 {
+    if f < cap {
+        f
+    } else {
+        cap
+    }
 }
 
 fn by_score(a: &Candidate, b: &Candidate) -> std::cmp::Ordering {
@@ -260,11 +319,20 @@ pub struct Decoder {
     pub tuning: Tuning,
     pub ws: Workspace,
     scan: LoopScan,
+    /// How many of the path's leading samples are the walk up from the
+    /// spacebar (#968): a chained stroke's later word starts at the bar's
+    /// edge, not on a key. The first letter may stand anywhere on them and
+    /// the ones before it cost nothing. `0` for a stroke that started on a
+    /// key. Set before `decode`, read by every decode until changed.
+    pub open_head: usize,
+    /// The same for the trailing samples, the walk down to the bar from a
+    /// chained stroke's earlier word.
+    pub open_tail: usize,
 }
 
 impl Decoder {
     pub fn new(tuning: Tuning) -> Decoder {
-        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default() }
+        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default(), open_head: 0, open_tail: 0 }
     }
 
     /// `decode`, all of it: when the caller has its learned shapes at hand.
@@ -323,7 +391,8 @@ impl Decoder {
         let mut budget = self.tuning.look_ahead_budget;
         let mut floor = f64::NEG_INFINITY;
         let mut ordered: Vec<&Source> = sources.iter().collect();
-        let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
+        let fw = self.tuning.freq_weight;
+        let root_bound = |s: &Source| s.log_weight + fw * ln1p(s.walker.max_subtree(s.walker.root()));
         sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
             if root_bound(src) < floor - EPS {
@@ -582,10 +651,11 @@ impl Decoder {
         let key_count = keys.key_count();
         let min_frequency = src.min_frequency;
         let tuning = self.tuning.clone();
+        let join_on = tuning.join_cost.is_finite();
 
         self.ws.reset();
         let root = walker.root();
-        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + ln1p(walker.max_subtree(root)), 0);
+        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + tuning.freq_weight * ln1p(walker.max_subtree(root)), 0);
 
         let mut pops = 0;
         let mut children = std::mem::take(&mut self.ws.children);
@@ -601,14 +671,27 @@ impl Decoder {
             let extra = self.ws.extra[s];
             let last_key = self.ws.last_key[s];
 
-            let at_end = last_key >= 0
-                && self.ws.end_key[last_key as usize]
-                && self.ws.cols[self.ws.column_of(s) + n - 1] < UNREACHABLE;
+            let part_freq = self.ws.part_freq[s];
+            let part_from = self.ws.part_from[s];
+            let joins = self.ws.joins[s];
+            // The join charge plus the common-part penalties this state
+            // already earned; both 0.0 for a plain word.
+            let charge = tuning.join_charge(joins) + self.ws.join_penalty[s];
+
+            let total = self.terminal_cost(self.ws.column_of(s));
+            let at_end = last_key >= 0 && self.ws.end_key[last_key as usize] && total < UNREACHABLE;
             if at_end {
-                let total = self.ws.cols[self.ws.column_of(s) + n - 1];
                 let shape = total + extra + self.unclaimed_dwell(s, keys) + self.unclaimed_loop(s);
-                if length >= MIN_WORD_LENGTH && walker.is_word(node) && walker.frequency(node) >= min_frequency {
-                    let score = src.log_weight + ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
+                // A compound's last part is held to the same length as its
+                // first; `part_from` is 0 and `charge` 0.0 for a plain word.
+                if length >= MIN_WORD_LENGTH
+                    && length - part_from >= if joins > 0 { tuning.join_min_part } else { 0 }
+                    && walker.is_word(node)
+                    && walker.frequency(node) >= min_frequency
+                {
+                    let score = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, walker.frequency(node)))
+                        - tuning.shape_weight * shape as f64
+                        - charge;
                     if score > floor - EPS || results.len() < k {
                         let word = self.ws.materialize(s);
                         if !(src.tier == Tier::Dictionary && is_non_word(&word)) {
@@ -620,13 +703,49 @@ impl Decoder {
                     }
                 }
                 if let Some(ahead) = ahead.as_deref_mut() {
-                    if *budget > 0 && length >= MIN_LOOKAHEAD_PREFIX {
+                    if *budget > 0 && length - part_from >= MIN_LOOKAHEAD_PREFIX {
                         self.look_ahead(src, node, s, shape, min_frequency, ahead, budget);
                     }
                 }
             }
             if length >= MAX_WORD_LENGTH || length as usize >= n {
                 continue;
+            }
+
+            // A compound (#966 §5.2): a finished part of three letters or
+            // more may hand the rest of the stroke to a second word, read
+            // from the trie root on the same alignment column, as if the
+            // list held the joined spelling. The joined word scores on the
+            // rarest of its parts, `join_cost` the poorer per join, and
+            // the bound carries both, so a join never ranks above what the
+            // single-word bound allows and the walk's pruning stays exact.
+            // The part joined past pays `join_part_penalty` on its own
+            // frequency, so two common parts do not outbid a listed word;
+            // the last part is followed by no join and pays nothing.
+            if join_on
+                && joins < MAX_JOINS
+                && length - part_from >= tuning.join_min_part
+                && (length + tuning.join_min_part) as usize <= n
+                && walker.is_word(node)
+                && walker.frequency(node) >= min_frequency
+            {
+                let cap = lm_cap(part_freq, walker.frequency(node));
+                let floor_cost = self.ws.floor_cost[s];
+                let part_penalty = tuning.join_part_penalty * ln1p(walker.frequency(node));
+                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(cap, walker.max_subtree(root)))
+                    - tuning.shape_weight * (floor_cost + extra) as f64
+                    - tuning.join_charge(joins + 1)
+                    - self.ws.join_penalty[s]
+                    - part_penalty;
+                if bound >= floor - EPS {
+                    if let Some(id) = self.ws.push(root, s as i32, NO_LABEL, last_key, length, extra, floor_cost, bound, self.ws.letter_cp[s]) {
+                        self.ws.part_freq[id] = cap;
+                        self.ws.part_from[id] = length;
+                        self.ws.joins[id] = joins + 1;
+                        self.ws.join_penalty[id] = self.ws.join_penalty[s] + part_penalty;
+                        self.ws.copy_column(s, id);
+                    }
+                }
             }
 
             walker.children_into(node, &mut children);
@@ -681,7 +800,9 @@ impl Decoder {
                     }
                 }
 
-                let bound = src.log_weight + ln1p(subtree) - tuning.shape_weight * (min_col + child_extra) as f64;
+                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, subtree))
+                    - tuning.shape_weight * (min_col + child_extra) as f64
+                    - charge;
                 if bound < floor - EPS {
                     continue;
                 }
@@ -703,7 +824,10 @@ impl Decoder {
 
     #[allow(clippy::too_many_arguments)]
     fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
-        let bound = src.log_weight + ln1p(subtree) - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64;
+        let bound = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], subtree))
+            - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64
+            - self.tuning.join_charge(self.ws.joins[s])
+            - self.ws.join_penalty[s];
         if bound < floor - EPS {
             return true;
         }
@@ -760,8 +884,11 @@ impl Decoder {
             return;
         }
         let extra = (word.len() - prefix.len()) as i32;
-        let score =
-            src.log_weight + ln1p(best) - self.tuning.shape_weight * shape as f64 - self.tuning.look_ahead_cost * extra as f64;
+        let score = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], best))
+            - self.tuning.shape_weight * shape as f64
+            - self.tuning.look_ahead_cost * extra as f64
+            - self.tuning.join_charge(self.ws.joins[s])
+            - self.ws.join_penalty[s];
         let replace = match ahead.get(&word) {
             None => true,
             Some(existing) => score > existing.score,
@@ -775,12 +902,24 @@ impl Decoder {
         let n = self.ws.samples;
         let key_count = keys.key_count();
         let Some(prev_column) = prev_column else {
-            self.ws.scratch[0] = self.ws.point_cost[key];
-            for j in 1..n {
-                self.ws.scratch[j] = UNREACHABLE;
+            // The first letter stands on the first sample, or on any sample
+            // of an open head (#968): the walk up from the spacebar before
+            // it is nobody's letter.
+            let head_to = self.ws.open_head_to;
+            let mut best = UNREACHABLE;
+            for j in 0..n {
+                if j <= head_to {
+                    let at = self.ws.point_cost[j * key_count + key];
+                    self.ws.scratch[j] = at;
+                    let remain = self.ws.remain[j * key_count + key];
+                    if remain < UNREACHABLE && at + remain < best {
+                        best = at + remain;
+                    }
+                } else {
+                    self.ws.scratch[j] = UNREACHABLE;
+                }
             }
-            let remain = self.ws.remain[key];
-            return if remain >= UNREACHABLE { UNREACHABLE } else { self.ws.scratch[0] + remain };
+            return best;
         };
         let step = self.ws.arc_step;
         let span = keys.distance(prev_key as usize, key);
@@ -859,6 +998,13 @@ impl Decoder {
         for k in 0..key_count {
             self.ws.remain[last + k] = if self.ws.end_key[k] { 0.0 } else { UNREACHABLE };
         }
+        // An open tail (#968) ends on any of its samples at no further cost.
+        let tail_from = self.ws.open_tail_from.min(n - 1);
+        for j in tail_from..n - 1 {
+            for k in 0..key_count {
+                self.ws.remain[j * key_count + k] = 0.0;
+            }
+        }
         // The near keys' costs and remainders again, key by key in sample
         // order, for the band kernel to read in runs.
         for x in 0..count {
@@ -866,10 +1012,12 @@ impl Decoder {
             for j in 0..n {
                 self.ws.point_cost_t[k * SAMPLE_POINTS + j] = self.ws.point_cost[j * key_count + k];
             }
-            self.ws.remain_t[k * SAMPLE_POINTS + n - 1] = self.ws.remain[last + k];
+            for j in tail_from..n {
+                self.ws.remain_t[k * SAMPLE_POINTS + j] = self.ws.remain[j * key_count + k];
+            }
         }
         let (start_slack, end_slack) = (self.tuning.start_slack(), self.tuning.end_slack());
-        for j in (0..n - 1).rev() {
+        for j in (0..tail_from).rev() {
             let base = j * key_count;
             let arc_j = self.ws.arc_at[j];
             for a in 0..key_count {
@@ -939,7 +1087,7 @@ impl Decoder {
         if total_px / key_width < MIN_STROKE_LENGTH {
             return false;
         }
-        let n = if total_px / key_width >= workspace::LONG_STROKE { SAMPLE_POINTS } else { SHORT_SAMPLES };
+        let n = workspace::samples_for(total_px / key_width);
         self.ws.samples = n;
         let step = total_px / (n - 1) as f32;
         self.ws.arc_step = step / key_width;
@@ -984,7 +1132,51 @@ impl Decoder {
             self.ws.path_t[out] = last.t;
             out += 1;
         }
+        self.map_open_ends(path, total_px);
         true
+    }
+
+    /// Where the open head ends and the open tail begins on the resampled
+    /// stroke (#968): the raw sample counts in `open_head` and `open_tail`,
+    /// read off the path by arc length. At least one sample stays closed at
+    /// each end, and the two zones never meet.
+    fn map_open_ends(&mut self, path: &[Point], total_px: f32) {
+        let n = self.ws.samples;
+        self.ws.open_head_to = 0;
+        self.ws.open_tail_from = n - 1;
+        self.ws.open_ends = false;
+        if (self.open_head == 0 && self.open_tail == 0) || total_px <= 0.0 || path.len() < 2 {
+            return;
+        }
+        let at = |raw: usize| -> usize {
+            let mut arc = 0f32;
+            for i in 1..=raw.min(path.len() - 1) {
+                arc += distance(&path[i - 1], &path[i]);
+            }
+            ((arc / total_px) * (n - 1) as f32).round() as usize
+        };
+        if self.open_head > 0 {
+            self.ws.open_head_to = at(self.open_head.min(path.len() - 1)).min(n - 2);
+        }
+        if self.open_tail > 0 {
+            let raw = path.len() - 1 - self.open_tail.min(path.len() - 1);
+            self.ws.open_tail_from = at(raw).max(1).max(self.ws.open_head_to + 1).min(n - 1);
+        }
+        self.ws.open_ends = self.ws.open_head_to > 0 || self.ws.open_tail_from < n - 1;
+    }
+
+    /// The cost of a finished word on the column `col`: the last sample's,
+    /// or the least over an open tail (#968).
+    fn terminal_cost(&self, col: usize) -> f32 {
+        let n = self.ws.samples;
+        let mut best = self.ws.cols[col + n - 1];
+        for j in self.ws.open_tail_from..n - 1 {
+            let v = self.ws.cols[col + j];
+            if v < best {
+                best = v;
+            }
+        }
+        best
     }
 
     fn build_costs(&mut self, keys: &KeyMap) {
@@ -1011,6 +1203,19 @@ impl Decoder {
         anchor_mask(xn, yn, keys, &mut self.ws.end_key, self.tuning.end_radius_sq());
         self.anchor_slack(0, self.tuning.start_slack(), true, keys);
         self.anchor_slack(n - 1, self.tuning.end_slack(), false, keys);
+        // An open end (#968) is no anchor at all: the stroke's end sits at
+        // the spacebar's edge, and any key the walk passed may begin or end
+        // the word. The near set widens to every key the open zone passed.
+        if self.ws.open_head_to > 0 {
+            for k in 0..key_count {
+                self.ws.start_key[k] = true;
+            }
+        }
+        if self.ws.open_tail_from < n - 1 {
+            for k in 0..key_count {
+                self.ws.end_key[k] = true;
+            }
+        }
     }
 
     fn anchor_slack(&mut self, j: usize, slack: f32, start: bool, keys: &KeyMap) {
@@ -1302,7 +1507,10 @@ impl Decoder {
 
     fn rescore_shape(&mut self, ranked: Vec<Candidate>, keys: &KeyMap, shapes: Option<&LearnedShapes>) -> Vec<Candidate> {
         let weight = self.tuning.shape_channel;
-        if weight <= 0.0 || ranked.is_empty() {
+        // A stroke with an open end carries a walk to or from the spacebar
+        // that no word's ideal path has (#968): the drawn shape and the
+        // ideal cannot be compared, so the walk's ranking stands.
+        if weight <= 0.0 || ranked.is_empty() || self.ws.open_ends {
             return ranked;
         }
         self.drawn_shape();
@@ -1507,6 +1715,59 @@ fn java_max(a: f64, b: f64) -> f64 {
         b
     }
 }
+
+/// How many samples at one end of `path` are a straight walk to or from
+/// the spacebar (#968): from the bar end inward, every sample that lies
+/// below the next one inward (within [`OPEN_RUN_LEVEL`] of level: the bar
+/// is under the keys, so the walk descends toward it in a tail and climbs
+/// away from it in a head) and stays within [`OPEN_RUN_DRIFT`] key widths of
+/// the bar end's column. The run has to drop at least [`OPEN_RUN_DESCENT`]
+/// in all, so the shallow last leg of an ordinary word does not pass for
+/// one. The letter the walk left may sit on the run itself ("then": `n` is
+/// straight above the bar), which is why the run becomes optional for the
+/// decoder rather than cut. `0` for no run, and never more than leaves
+/// three samples closed.
+pub fn open_run(path: &[Point], key_width: f32, at_end: bool) -> usize {
+    let n = path.len();
+    if n < 4 || key_width <= 0.0 {
+        return 0;
+    }
+    let level = OPEN_RUN_LEVEL * key_width;
+    let drift = OPEN_RUN_DRIFT * key_width;
+    let bar_end = if at_end { path[n - 1] } else { path[0] };
+    let mut run = 0usize;
+    let max_run = n - 3;
+    while run < max_run {
+        // The next sample inward, and the one between it and the bar.
+        let (inner, outer) = if at_end { (path[n - 2 - run], path[n - 1 - run]) } else { (path[run + 1], path[run]) };
+        // The bar-side sample sits lower on the board than the one inward.
+        if outer.y < inner.y - level || (inner.x - bar_end.x).abs() > drift {
+            break;
+        }
+        run += 1;
+    }
+    if run < 2 {
+        return 0;
+    }
+    let innermost = if at_end { path[n - 1 - run] } else { path[run] };
+    if bar_end.y - innermost.y < OPEN_RUN_DESCENT * key_width {
+        return 0;
+    }
+    run
+}
+
+/// `open_run`: how much a sample may sit above the next one inward, in key
+/// widths, and still be part of the walk.
+pub const OPEN_RUN_LEVEL: f32 = 0.05;
+
+/// `open_run`: how far from the bar end's column the walk may wander, in key
+/// widths, and still be a straight walk.
+pub const OPEN_RUN_DRIFT: f32 = 0.6;
+
+/// `open_run`: the least the walk must descend toward the bar in all, in key
+/// widths. The bottom row's centre is about seven tenths of a key above
+/// the bar's edge.
+pub const OPEN_RUN_DESCENT: f32 = 0.5;
 
 fn distance(a: &Point, b: &Point) -> f32 {
     let dx = b.x - a.x;
@@ -1734,5 +1995,135 @@ mod kernel_parity {
         #[cfg(target_arch = "aarch64")]
         assert!(active().neon, "the kernels must have run");
         assert!(candidates > 1000, "{candidates} candidates");
+    }
+}
+
+#[cfg(test)]
+mod chained {
+    //! Open ends (#968): a segment of a glide that crossed the spacebar ends
+    //! or starts at the bar's edge, and the walk there is not a letter.
+
+    use super::*;
+    use crate::user_lexicon::UserTrie;
+
+    const ROWS: [(&str, f32); 3] = [("qwertyuiop", 0.0), ("asdfghjkl", 0.5), ("zxcvbnm", 1.5)];
+    const KEY_W: f32 = 60.0;
+    const KEY_H: f32 = 84.0;
+    /// The bar's top edge: right under the bottom row.
+    const BAR_TOP: f32 = 3.0 * KEY_H;
+
+    fn centre(c: char) -> (f32, f32) {
+        for (row, (letters, offset)) in ROWS.iter().enumerate() {
+            if let Some(i) = letters.find(c) {
+                return ((offset + i as f32 + 0.5) * KEY_W, (row as f32 + 0.5) * KEY_H);
+            }
+        }
+        unreachable!()
+    }
+
+    fn keymap() -> KeyMap {
+        let mut letters: Vec<char> = ROWS.iter().flat_map(|(l, _)| l.chars()).collect();
+        letters.sort();
+        let xs = letters.iter().map(|&c| centre(c).0 / KEY_W).collect();
+        let ys = letters.iter().map(|&c| centre(c).1 / KEY_W).collect();
+        let cps = letters.iter().map(|&c| c as i32).collect();
+        KeyMap::new(xs, ys, cps, (0..letters.len() as i32).collect())
+    }
+
+    /// A straight line from `from` to `to`, a sample every eighth of a key.
+    fn line(out: &mut Vec<Point>, from: (f32, f32), to: (f32, f32)) {
+        let len = ((to.0 - from.0).powi(2) + (to.1 - from.1).powi(2)).sqrt();
+        let steps = ((len / KEY_W) * 8.0).ceil().max(1.0) as usize;
+        let t0 = out.last().map_or(0, |p| p.t);
+        for s in 1..=steps {
+            let f = s as f32 / steps as f32;
+            out.push(Point { x: from.0 + (to.0 - from.0) * f, y: from.1 + (to.1 - from.1) * f, t: t0 + 4 * s as i64 });
+        }
+    }
+
+    /// The word drawn centre to centre, no jitter.
+    fn swipe(word: &str) -> Vec<Point> {
+        let mut out = vec![Point { x: centre(word.chars().next().unwrap()).0, y: centre(word.chars().next().unwrap()).1, t: 0 }];
+        let chars: Vec<char> = word.chars().collect();
+        for w in chars.windows(2) {
+            line(&mut out, centre(w[0]), centre(w[1]));
+        }
+        out
+    }
+
+    /// `word` then straight down to the bar's edge: a chained stroke's earlier segment.
+    fn walked_to_bar(word: &str) -> Vec<Point> {
+        let mut out = swipe(word);
+        let last = *out.last().unwrap();
+        line(&mut out, (last.x, last.y), (last.x, BAR_TOP));
+        out
+    }
+
+    /// Up from the bar's edge into `word`: a chained stroke's later segment.
+    fn begun_at_bar(word: &str) -> Vec<Point> {
+        let first = centre(word.chars().next().unwrap());
+        let mut out = vec![Point { x: first.0, y: BAR_TOP, t: 0 }];
+        line(&mut out, (first.0, BAR_TOP), first);
+        out.extend(swipe(word).into_iter().skip(1).map(|p| Point { t: p.t + 400, ..p }));
+        out
+    }
+
+    fn trie() -> UserTrie {
+        let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../app/dictionaries-src/en.txt")).unwrap();
+        let mut trie = UserTrie::new();
+        for (word, frequency) in crate::wordlist::parse(&text) {
+            trie.insert(&word, frequency);
+        }
+        trie
+    }
+
+    fn top(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Option<String> {
+        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+        decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0).first().map(|c| String::from_utf16_lossy(&c.word))
+    }
+
+    #[test]
+    fn the_walk_to_the_bar_is_an_open_run_and_a_plain_word_has_none() {
+        let walked = walked_to_bar("the");
+        let run = open_run(&walked, KEY_W, true);
+        // From e (top row) to the bar is a little over two and a half rows
+        // straight down: well over the twenty samples a two-row walk has.
+        assert!(run >= 20, "{run}");
+        assert_eq!(open_run(&swipe("the"), KEY_W, true), 0);
+        assert_eq!(open_run(&swipe("cat"), KEY_W, false), 0);
+        let begun = begun_at_bar("cat");
+        assert!(open_run(&begun, KEY_W, false) >= 4);
+    }
+
+    #[test]
+    fn words_walked_to_the_bar_read_with_an_open_tail() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        for word in ["the", "then", "want", "similar", "going"] {
+            let path = walked_to_bar(word);
+            decoder.open_tail = open_run(&path, KEY_W, true);
+            assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some(word), "{word} with an open tail");
+            decoder.open_tail = 0;
+        }
+    }
+
+    #[test]
+    fn words_begun_at_the_bar_read_with_an_open_head() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        for word in ["cat", "dog", "to", "understanding", "people"] {
+            let path = begun_at_bar(word);
+            decoder.open_head = open_run(&path, KEY_W, false);
+            assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some(word), "{word} with an open head");
+            decoder.open_head = 0;
+        }
+    }
+
+    #[test]
+    fn an_ordinary_stroke_is_unchanged_by_zero_open_ends() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        let path = swipe("keyboard");
+        assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some("keyboard"));
     }
 }

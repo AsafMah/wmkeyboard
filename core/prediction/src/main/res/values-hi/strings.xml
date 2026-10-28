@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">सबटाइटल और वेब टेक्स्ट से गिना गया। बहुत सारे शब्द, अधिक नामों, स्लैंग और टाइपो के साथ।</string>
     <string name="core_pred_wordlist_source_frequency_label">आवृत्ति</string>
+    <string name="core_pred_wordlist_variant_australia_label">ऑस्ट्रेलिया</string>
     <string name="core_pred_wordlist_variant_brazil_label">ब्राज़ील</string>
+    <string name="core_pred_wordlist_variant_canada_label">कनाडा</string>
     <string name="core_pred_wordlist_variant_europe_label">यूरोप</string>
     <string name="core_pred_wordlist_variant_uk_label">यूनाइटेड किंगडम</string>
     <string name="core_pred_wordlist_variant_us_label">संयुक्त राज्य अमेरिका</string>

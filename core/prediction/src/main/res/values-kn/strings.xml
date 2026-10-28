@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">ಸಬ್‌ಟೈಟಲ್‌ಗಳು ಮತ್ತು ವೆಬ್ ಪಠ್ಯದಿಂದ ಎಣಿಸಲಾಗಿದೆ. ಹೆಚ್ಚಿನ ಹೆಸರುಗಳು, ಆಡುಮಾತು ಮತ್ತು ಅಕ್ಷರ ದೋಷಗಳೊಂದಿಗೆ ಇನ್ನೂ ಅನೇಕ ಪದಗಳು.</string>
     <string name="core_pred_wordlist_source_frequency_label">ಆವರ್ತನ</string>
+    <string name="core_pred_wordlist_variant_australia_label">ಆಸ್ಟ್ರೇಲಿಯಾ</string>
     <string name="core_pred_wordlist_variant_brazil_label">ಬ್ರೆಜಿಲ್</string>
+    <string name="core_pred_wordlist_variant_canada_label">ಕೆನಡಾ</string>
     <string name="core_pred_wordlist_variant_europe_label">ಯುರೋಪ್</string>
     <string name="core_pred_wordlist_variant_uk_label">ಯುನೈಟೆಡ್ ಕಿಂಗ್‌ಡಮ್</string>
     <string name="core_pred_wordlist_variant_us_label">ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್</string>

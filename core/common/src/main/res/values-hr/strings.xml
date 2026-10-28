@@ -26,6 +26,7 @@
     <string name="common_default">Zadano</string>
     <string name="common_delete">Izbriši</string>
     <string name="common_disable">Isključi</string>
+    <string name="common_disabled_open_setting">Otvori postavku</string>
     <string name="common_disclosure_blocked_body">Android više ne prikazuje ovaj zahtjev jer ste prethodno odbili dopuštenje. I dalje ga možete uključiti na zaslonu postavki aplikacije.</string>
     <string name="common_disclosure_not_now">Ne sada</string>
     <string name="common_done">Gotovo</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Instaliraj</string>
     <string name="common_installing">Instaliranje...</string>
     <string name="common_loading">Učitavanje…</string>
+    <string name="common_more">Više</string>
     <string name="common_next">Dalje</string>
     <string name="common_none">Ništa</string>
     <string name="common_notify_channel_backup_body">Samo kada automatska sigurnosna kopija ne uspije. Uspješne sigurnosne kopije su tihe.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Prikaži obavijesti</string>
     <string name="common_permission_storage_body">Na Androidu 9 i starijima, tipkovnica treba dopuštenje za pohranu kako bi spremila sliku u vašu galeriju. Staro Android dopuštenje također obuhvaća čitanje vaše pohrane. Tipkovnica zapisuje samo sliku koju od nje zatražite da spremi. Tipkovnica ništa ne čita i ništa ne učitava. Novije verzije Androida ne trebaju ovo dopuštenje.</string>
     <string name="common_permission_storage_title">Pristup pohrani za spremanje u vašu galeriju</string>
+    <string name="common_permission_tasks_body">WM tipkovnica održava svoj popis obaveza i jedan popis zadataka u aplikaciji za zadatke usklađenima: zadatke, njihove korake, njihove kvačice i njihove rokove, u oba smjera. Dozvola pokriva svaki popis zadataka u aplikaciji. Tipkovnica čita popise aplikacije samo kako biste mogli odabrati jedan, a čita i piše samo popis koji ste odabrali. Tipkovnica ne šalje ništa nigdje. DAVx5, ako ga koristite, sinkronizira taj popis s vašim vlastitim CalDAV poslužiteljem. Bez ove dozvole, popis obaveza ostaje na ovom telefonu.</string>
+    <string name="common_permission_tasks_opentasks_title">Pristup OpenTasks za popis obaveza</string>
+    <string name="common_permission_tasks_tasks_org_title">Pristup Tasks.org za popis obaveza</string>
+    <string name="common_preview_scale_desc">Veličina pregleda</string>
+    <string name="common_preview_scale_larger">Povećaj pretpregled</string>
+    <string name="common_preview_scale_smaller">Smanji pregled</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Ukloni</string>
     <string name="common_reset">Poništi</string>
     <string name="common_reset_defaults">Vrati na zadano</string>

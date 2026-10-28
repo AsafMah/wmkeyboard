@@ -251,10 +251,22 @@ class GlideSpaceTest {
     }
 
     @Test
-    fun `a url field never spaces a glided word`() {
+    fun `a url field never spaces a glided word into an address`() {
         // An address has no spaces in it at all.
         assertFalse(spacesBeforeGlidedWord("example.", FieldKind.URI))
-        assertFalse(spacesBeforeGlidedWord("example", FieldKind.URI))
+        assertFalse(spacesBeforeGlidedWord("github.com/wasi", FieldKind.URI))
+        assertFalse(spacesBeforeGlidedWord("192", FieldKind.URI))
+        assertFalse(spacesBeforeGlidedWord("", FieldKind.URI))
+    }
+
+    @Test
+    fun `a url field spaces a glided word into a search`() {
+        // The address bar is a search box first (#974): a typed word, then a
+        // glided one, is two words of a search.
+        assertTrue(spacesBeforeGlidedWord("weather", FieldKind.URI))
+        assertTrue(spacesBeforeGlidedWord("weather in paris", FieldKind.URI))
+        // A search still keeps its own space.
+        assertFalse(spacesBeforeGlidedWord("weather ", FieldKind.URI))
     }
 
     // ---- glideCommitLength ----

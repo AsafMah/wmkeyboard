@@ -107,10 +107,53 @@ object VoicePunctuation {
         "সেমিকোলন" to ";" joined Join.AFTER,
     )
 
+    // The names Gboard answers to in Portuguese and Spanish. A bare "ponto"
+    // or "punto" is left out: both are everyday words ("ponto de ônibus").
+    private val PORTUGUESE = rules(
+        "novo parágrafo" to "\n\n" joined Join.BOTH,
+        "nova linha" to "\n" joined Join.BOTH,
+        "ponto de interrogação" to "?" joined Join.AFTER,
+        "interrogação" to "?" joined Join.AFTER,
+        "ponto de exclamação" to "!" joined Join.AFTER,
+        "exclamação" to "!" joined Join.AFTER,
+        "ponto final" to "." joined Join.AFTER,
+        "ponto e vírgula" to ";" joined Join.AFTER,
+        "vírgula" to "," joined Join.AFTER,
+        "dois pontos" to ":" joined Join.AFTER,
+        "reticências" to "…" joined Join.AFTER,
+        "abre aspas" to "\"" joined Join.BEFORE,
+        "fecha aspas" to "\"" joined Join.AFTER,
+        "abre parênteses" to "(" joined Join.BEFORE,
+        "fecha parênteses" to ")" joined Join.AFTER,
+        "hífen" to "-" joined Join.BOTH,
+        "travessão" to "—" joined Join.APART,
+        "arroba" to "@" joined Join.BOTH,
+    )
+
+    private val SPANISH = rules(
+        "nuevo párrafo" to "\n\n" joined Join.BOTH,
+        "nueva línea" to "\n" joined Join.BOTH,
+        "signo de interrogación" to "?" joined Join.AFTER,
+        "signo de exclamación" to "!" joined Join.AFTER,
+        "punto final" to "." joined Join.AFTER,
+        "punto y coma" to ";" joined Join.AFTER,
+        "coma" to "," joined Join.AFTER,
+        "dos puntos" to ":" joined Join.AFTER,
+        "puntos suspensivos" to "…" joined Join.AFTER,
+        "abrir comillas" to "\"" joined Join.BEFORE,
+        "cerrar comillas" to "\"" joined Join.AFTER,
+        "abrir paréntesis" to "(" joined Join.BEFORE,
+        "cerrar paréntesis" to ")" joined Join.AFTER,
+        "guion" to "-" joined Join.BOTH,
+        "arroba" to "@" joined Join.BOTH,
+    )
+
     /** The spoken names this pass knows for [languageTag]; none for a language it has no table for. */
     private fun tableFor(languageTag: String): List<Rule>? = when {
         languageTag.startsWith("en") -> ENGLISH
         languageTag.startsWith("bn") -> BENGALI
+        languageTag.startsWith("pt") -> PORTUGUESE
+        languageTag.startsWith("es") -> SPANISH
         else -> null
     }
 

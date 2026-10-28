@@ -3,6 +3,10 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.core.settings.TavilyDepth
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,13 +97,16 @@ internal fun providerHostTool(tool: ProviderTool): ToolbarTool? = when (tool) {
     ProviderTool.PHOTO_TRANSLATE -> ToolbarTool.CAMERA
     ProviderTool.AI -> ToolbarTool.AI
     ProviderTool.GRAMMAR -> ToolbarTool.GRAMMAR
-    ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE -> null
+    ProviderTool.MUSIC -> ToolbarTool.MUSIC_ID
+    ProviderTool.SPEED_TEST -> ToolbarTool.SPEED_TEST
+    ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE, ProviderTool.IMAGE_GEN -> null
 }
 
 /** The screen a list is drawn on. */
 internal fun providerHostRoute(tool: ProviderTool): String = providerHostTool(tool)?.let(::toolRoute) ?: when (tool) {
     ProviderTool.SYNONYMS -> "typing/suggestions"
     ProviderTool.PHOTOS -> PHOTO_HUB_ROUTE
+    ProviderTool.IMAGE_GEN -> STICKER_GENERATOR_ROUTE
     else -> "voice"
 }
 
@@ -133,6 +140,8 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.ER_API.id to listOf(ServiceEndpoint.ER_API),
     ProviderTypes.COINBASE.id to listOf(ServiceEndpoint.COINBASE),
     ProviderTypes.COINGECKO.id to listOf(ServiceEndpoint.COINGECKO),
+    ProviderTypes.CLOUDFLARE_SPEED.id to listOf(ServiceEndpoint.CLOUDFLARE_SPEED),
+    ProviderTypes.LIBRESPEED.id to listOf(ServiceEndpoint.LIBRESPEED_LIST),
     ProviderTypes.ANTHROPIC.id to listOf(ServiceEndpoint.ANTHROPIC),
     ProviderTypes.OPENAI.id to listOf(ServiceEndpoint.OPENAI),
     ProviderTypes.GEMINI.id to listOf(ServiceEndpoint.GEMINI),
@@ -233,7 +242,7 @@ internal fun ProviderPage(
         }
         // The kind's own settings: what used to be appended to the tool's page.
         ProviderOwnSettings(repository, settings, tool, type, row, onNavigate)
-        ServerFieldsGroup(repository, settings, endpoints = ProviderEndpoints[type.id].orEmpty())
+        ServerFieldsGroup(repository, settings, endpoints = ProviderEndpoints[type.id].orEmpty(), level = SettingLevel.ADVANCED)
         val usedBy = settings.watch { s ->
             row?.let { ProviderEdits.usedBy(s, it.entry.credentialKey, tool, env) }.orEmpty()
         }
@@ -340,6 +349,7 @@ internal fun ProviderOwnSettings(
         // ---- Media, search and words: groups the tools' pages drew under their lists.
         ProviderTypes.OFFLINE_GIFS.id -> OfflineGifPacksGroup()
         ProviderTypes.TAVILY.id -> TavilySettings(repository, settings)
+        ProviderTypes.SEARXNG.id -> SearxSettings(repository, settings, row)
         ProviderTypes.VOCAB_PACKS.id -> SettingsGroup {
             // The packs source is only as good as the packs installed (#665).
             item {
@@ -352,7 +362,11 @@ internal fun ProviderOwnSettings(
         }
         ProviderTypes.OFFLINE_WIKTIONARY.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.WIKTIONARY))
         ProviderTypes.OFFLINE_WORDNET.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.OEWN))
+        ProviderTypes.OFFLINE_BENGALI.id ->
+            OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.BENGALI_WIKTIONARY))
         ProviderTypes.IMPORTED_DICTIONARIES.id -> ImportedDictionariesGroup()
+        // ---- The speed test: a LibreSpeed row picks its server from the public list.
+        ProviderTypes.LIBRESPEED.id -> LibreSpeedServerSettings(repository, settings, row)
         // ---- AI: the model on the phone, and the headers a service is sent with (#648).
         ProviderTypes.ON_DEVICE_AI.id -> LocalLlmModelManager(repository, settings)
         else -> if (tool == ProviderTool.AI) {
@@ -383,6 +397,7 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
     SettingsGroup(
         stringResource(R.string.tooldetail_tavily_group),
         info = stringResource(R.string.tooldetail_tavily_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ChoiceSetting(
@@ -398,12 +413,54 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
     }
 }
 
+/**
+ * Which of a SearXNG instance's categories the search panel offers (#934).
+ * The list is the instance's own, from its `/config`; until it answers, or
+ * when it cannot, the usual ones stand in. A category chosen earlier stays
+ * listed even when the instance no longer names it, so it can be turned off.
+ */
+@Composable
+private fun SearxSettings(repository: SettingsRepository, settings: LiveSettings, row: ResolvedProvider?) {
+    val scope = rememberCoroutineScope()
+    val instance = row?.url.orEmpty()
+    val listed by produceState<List<String>?>(null, instance) {
+        value = if (instance.isBlank()) {
+            null
+        } else {
+            withContext(Dispatchers.IO) { runCatching { SearxClient.categories(instance) }.getOrNull() }
+                ?.takeIf { it.isNotEmpty() }
+        }
+    }
+    SettingsGroup(stringResource(R.string.tooldetail_searx_group), level = SettingLevel.STANDARD) {
+        item {
+            val chosen = settings.watch { it.webSearch.searxCategories }
+            val names = ((listed ?: SearxClient.USUAL_CATEGORIES) + chosen)
+                .distinct()
+                .filter { it != SearxClient.GENERAL && it != SearxClient.IMAGES }
+            MultiChoiceSetting(
+                R.string.tooldetail_searx_categories_title,
+                subtitle = stringResource(
+                    if (listed == null) R.string.tooldetail_searx_categories_fallback
+                    else R.string.tooldetail_searx_categories_subtitle,
+                ),
+                info = stringResource(R.string.tooldetail_searx_categories_info),
+                options = names.map { it to SearxClient.categoryLabel(it) },
+                selected = chosen.toSet(),
+                default = emptySet(),
+            ) { picked ->
+                // Kept in the list's order, which is the order the chips show in.
+                scope.launch { repository.setSearchSearxCategories(names.filter { it in picked }) }
+            }
+        }
+    }
+}
+
 /** The phone's recognizer: whether it may go online. */
 @Composable
 private fun SystemRecognizerSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.voice_system_on_device_title,
                 stringResource(R.string.voice_system_on_device_subtitle),
@@ -419,7 +476,7 @@ private fun SystemRecognizerSettings(repository: SettingsRepository, settings: L
 @Composable
 private fun WhisperOfflineSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
-    SettingsGroup(stringResource(R.string.voice_offline_group)) {
+    SettingsGroup(stringResource(R.string.voice_offline_group), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(
                 R.string.voice_translate_title,

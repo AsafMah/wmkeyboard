@@ -22,10 +22,7 @@ class OnboardingGraphTest {
     @Test
     fun `fresh run with unanswered quiz takes the short path`() {
         assertEquals(
-            listOf(
-                OnboardingPage.WELCOME, OnboardingPage.PERSONA, OnboardingPage.LOOK,
-                OnboardingPage.DISCOVER, OnboardingPage.TRY,
-            ),
+            listOf(OnboardingPage.WELCOME, OnboardingPage.PERSONA),
             pages(enabledLanguageCount = 1),
         )
     }
@@ -65,19 +62,36 @@ class OnboardingGraphTest {
 
     @Test
     fun `minimal persona skips the fine-tuning pages`() {
-        val result = pages(persona = OnboardingSettings(personaDepth = PersonaDepth.MINIMAL))
-        assertFalse(OnboardingPage.EMOJI in result)
-        assertFalse(OnboardingPage.FEEDBACK in result)
-        assertFalse(OnboardingPage.GESTURES in result)
-        assertFalse(OnboardingPage.TOOLS in result)
-        assertFalse(OnboardingPage.TOOL_SETUP in result)
+        val result = pages(
+            persona = OnboardingSettings(personaDepth = PersonaDepth.MINIMAL),
+            enabledLanguageCount = 1,
+        )
+        assertEquals(listOf(OnboardingPage.WELCOME, OnboardingPage.PERSONA), result)
     }
 
     @Test
-    fun `power persona gets the tools page`() {
+    fun `balanced persona gets feedback, gestures and the typing test only`() {
+        val result = pages(
+            persona = OnboardingSettings(personaDepth = PersonaDepth.BALANCED),
+            enabledLanguageCount = 1,
+        )
+        assertEquals(
+            listOf(
+                OnboardingPage.WELCOME, OnboardingPage.PERSONA, OnboardingPage.FEEDBACK,
+                OnboardingPage.GESTURES, OnboardingPage.TRY,
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `power persona gets the theme, the tour and the tools page`() {
         val result = pages(persona = OnboardingSettings(personaDepth = PersonaDepth.POWER))
+        assertTrue(OnboardingPage.LOOK in result)
+        assertTrue(OnboardingPage.DISCOVER in result)
         assertTrue(OnboardingPage.TOOLS in result)
         assertTrue(OnboardingPage.FEEDBACK in result)
+        assertTrue(OnboardingPage.TRY in result)
     }
 
     @Test
@@ -109,25 +123,6 @@ class OnboardingGraphTest {
         assertTrue(OnboardingPage.LANGUAGES in pages(persona = one, enabledLanguageCount = 2))
     }
 
-    // The emoji page is fine-tuning, not setup: the skin tone and the font
-    // repair are both asked again under Languages & emoji, so only the two
-    // deeper answers earn it a place in the wizard.
-    @Test
-    fun `emoji page needs a depth answer past keep-it-simple`() {
-        for (depth in listOf(PersonaDepth.UNSET, PersonaDepth.MINIMAL)) {
-            assertFalse(
-                "$depth kept the emoji page",
-                OnboardingPage.EMOJI in pages(persona = OnboardingSettings(personaDepth = depth)),
-            )
-        }
-        for (depth in listOf(PersonaDepth.BALANCED, PersonaDepth.POWER)) {
-            assertTrue(
-                "$depth lost the emoji page",
-                OnboardingPage.EMOJI in pages(persona = OnboardingSettings(personaDepth = depth)),
-            )
-        }
-    }
-
     @Test
     fun `replay hides welcome only while the keyboard is ready`() {
         assertFalse(OnboardingPage.WELCOME in pages(replay = true, imeReady = true))
@@ -136,20 +131,10 @@ class OnboardingGraphTest {
     }
 
     @Test
-    fun `app language page leads the wizard only when asked for`() {
-        assertFalse(OnboardingPage.APP_LANGUAGE in pages())
-        val asked = onboardingPages(
-            OnboardingSettings(), emptyList(), 1, replay = false, imeReady = false, askAppLanguage = true,
-        )
-        assertEquals(OnboardingPage.APP_LANGUAGE, asked.first())
-        assertEquals(OnboardingPage.WELCOME, asked[1])
-    }
-
-    @Test
     fun `a restored backup leaves only the welcome page`() {
         val power = OnboardingSettings(personaDepth = PersonaDepth.POWER, personaLanguages = PersonaLanguages.MANY)
         val restored = onboardingPages(
-            power, ToolbarTool.entries, 3, replay = false, imeReady = false, askAppLanguage = true, restored = true,
+            power, ToolbarTool.entries, 3, replay = false, imeReady = false, restored = true,
         )
         assertEquals(listOf(OnboardingPage.WELCOME), restored)
     }

@@ -1351,7 +1351,7 @@ object AiClient {
         // Left out entirely for "provider maximum": every OpenAI-shaped
         // service then applies its own default, which is what the user asked
         // for. Sending a huge number instead would be rejected by some.
-        if (maxTokens != null) put("max_tokens", maxTokens)
+        if (maxTokens != null) put(outputCeilingField(config), maxTokens)
         put("stream", true)
         // The chat's Reasoning switch off (#882): the least effort every
         // OpenAI reasoning model accepts. On leaves the model's default.
@@ -1364,6 +1364,26 @@ object AiClient {
             for (turn in turns) add(openAiMessage(turn))
         })
     }.toString()
+
+    /**
+     * The name of the output ceiling. OpenAI retired `max_tokens` for
+     * `max_completion_tokens`, and its reasoning models (o-series, GPT-5)
+     * refuse the old name outright; Groq and Azure OpenAI read the new one
+     * too. Every other OpenAI-shaped server (OpenRouter, DeepSeek, Ollama,
+     * LM Studio, llama.cpp) still reads `max_tokens`, so a custom address
+     * gets the new name only when it is one of those three hosts.
+     */
+    internal fun outputCeilingField(config: Config): String {
+        val newName = when (config.provider) {
+            AiProvider.OPENAI -> true
+            AiProvider.OPENAI_COMPATIBLE -> {
+                val host = runCatching { java.net.URI(config.baseUrl.trim()).host }.getOrNull()?.lowercase().orEmpty()
+                host == "api.openai.com" || host.endsWith(".openai.azure.com") || host == "api.groq.com"
+            }
+            else -> false
+        }
+        return if (newName) "max_completion_tokens" else "max_tokens"
+    }
 
     /** The `tools` array OpenAI, Ollama and everything OpenAI-shaped reads. */
     private fun openAiTools(tools: List<AiToolSpec>): JsonArray = buildJsonArray {

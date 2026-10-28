@@ -19,6 +19,8 @@ data class KdeEngineConfig(
     val autoConnect: Boolean = true,
     val clipboardReceive: Boolean = true,
     val clipboardSend: Boolean = true,
+    /** Clipboard sharing on hold, by device id or [KdeClipboardPause.ALL]: see [KdeClipboardPause]. */
+    val clipboardPauses: Map<String, Long> = emptyMap(),
     val remoteTyping: Boolean = true,
     val batteryReport: Boolean = true,
     /** Send one-time codes from the phone's notifications to the computer. */

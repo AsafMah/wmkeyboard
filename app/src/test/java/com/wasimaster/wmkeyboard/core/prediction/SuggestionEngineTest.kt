@@ -1171,6 +1171,35 @@ class SuggestionEngineTest {
         assertEquals("world", e.shouldAutocorrect("wprld"))
     }
 
+    // ---- a known word's slips (#979) ----
+
+    @Test fun `a known word keeps its nearest slip on the strip, below it`() {
+        val dictionary = Trie().apply {
+            insert("is", 9_000)
+            insert("us", 4_000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+        val s = e.suggest("is", previousWord = null)
+        assertEquals("is", s.first())
+        assertTrue("us offered in $s", "us" in s)
+        // The strip only: a known word is still never corrected.
+        assertNull(e.shouldAutocorrect("is"))
+    }
+
+    @Test fun `a secondary word one slip from a primary word reaches the strip`() {
+        val primary = Trie().apply { insert("kalb", 5_000) }
+        val secondary = Trie().apply { insert("kelb", 5_000) }
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            englishSources = false
+            primaryLanguageId = "ar"
+            customDictionary = primary
+            secondaryDictionaries = listOf(SecondaryDictionary("arz", secondary))
+        }
+        val s = e.suggest("kalb", previousWord = null)
+        assertEquals("kalb", s.first())
+        assertTrue("secondary kelb offered in $s", "kelb" in s)
+    }
+
     @Test fun `known words are never split`() {
         val e = engine().apply { autocorrectSplits = true }
         assertNull(e.shouldAutocorrect("hello"))

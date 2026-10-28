@@ -168,6 +168,18 @@ lexicon_fn!(read Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative
     }
 });
 
+// `lang` empty files the word under every language.
+lexicon_fn!(write Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexSetLanguage(key: JString, lang: JString) -> jboolean, JNI_FALSE, |env, lex| {
+    let key = string(env, &key)?;
+    let lang = string(env, &lang)?;
+    Some(truth(lex.set_language(&key, &lang)))
+});
+
+lexicon_fn!(read Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexIsLanguagePinned(key: JString) -> jboolean, JNI_FALSE, |env, lex| {
+    let key = string(env, &key)?;
+    Some(truth(lex.is_language_pinned(&key)))
+});
+
 lexicon_fn!(read Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexDisplayOf(key: JString) -> jstring, null_mut(), |env, lex| {
     let key = string(env, &key)?;
     match lex.display_of(&key) {

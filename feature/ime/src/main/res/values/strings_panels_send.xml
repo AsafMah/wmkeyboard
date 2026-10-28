@@ -187,6 +187,25 @@
     <string name="ime_send_direct_failed_not_found">Joined the Wi-Fi, but the phone did not answer.</string>
     <string name="ime_send_direct_failed_timeout">The other phone did not pair in time.</string>
     <string name="ime_send_direct_allow">Allow</string>
+    <!-- In a browser (#927): the other device needs only a browser and the same Wi-Fi -->
+    <string name="ime_send_browser_start">In a browser</string>
+    <plurals name="ime_send_browser_sharing">
+        <item quantity="one">Sharing %1$d file in a browser</item>
+        <item quantity="other">Sharing %1$d files in a browser</item>
+    </plurals>
+    <string name="ime_send_browser_receiving_only">Open in a browser to send files here</string>
+    <string name="ime_send_browser_stop">Stop</string>
+    <string name="ime_send_browser_uploads">Accept files</string>
+    <string name="ime_send_browser_hotspot">Use a hotspot</string>
+    <string name="ime_send_browser_open_hotspot">Open a hotspot</string>
+    <string name="ime_send_browser_failed_network">This phone is on no Wi-Fi. Join one, or open a hotspot.</string>
+    <string name="ime_send_browser_failed_server">Could not start the page on this phone.</string>
+    <string name="ime_send_browser_step_wifi">1 · Wi-Fi</string>
+    <string name="ime_send_browser_step_page">2 · Page</string>
+    <string name="ime_send_browser_next">Next</string>
+    <string name="ime_send_browser_scan_wifi">Scan with the other phone\'s camera to join this Wi-Fi</string>
+    <string name="ime_send_browser_scan_page">Scan to open the page in any browser</string>
+    <string name="ime_send_browser_scan_page_body">The other device must be on the same Wi-Fi. The page stops after 10 minutes with nobody on it.</string>
     <string name="ime_send_transfers">Transfers</string>
     <string name="ime_send_transfer_waiting">Waiting</string>
     <string name="ime_send_transfer_sending">Sending</string>

@@ -46,6 +46,8 @@
     <string name="automation_words_subtitle">Add words to your dictionary, or stop words in suggestions</string>
     <string name="automation_backup_title">Back up now</string>
     <string name="automation_backup_subtitle">Start a backup to the automatic backup destination</string>
+    <string name="automation_backup_pause_title">Pause and resume backups</string>
+    <string name="automation_backup_pause_subtitle">Pause or resume the scheduled backup and sync</string>
     <string name="automation_layout_events_title">Announce layout changes</string>
     <string name="automation_layout_events_subtitle">Tell all apps that listen when the language or layout changes</string>
     <string name="automation_type_text_title">Type text</string>

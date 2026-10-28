@@ -26,6 +26,7 @@
     <string name="common_default">Vaikeväärtus</string>
     <string name="common_delete">Kustuta</string>
     <string name="common_disable">Lülita välja</string>
+    <string name="common_disabled_open_setting">Ava seade</string>
     <string name="common_disclosure_blocked_body">Android ei kuva seda päringut enam, kuna keeldusid sellest loast varem. Saad selle siiski rakenduse seadete ekraanilt sisse lülitada.</string>
     <string name="common_disclosure_not_now">Mitte praegu</string>
     <string name="common_done">Valmis</string>
@@ -44,6 +45,7 @@
     <string name="common_install">Installi</string>
     <string name="common_installing">Installimine...</string>
     <string name="common_loading">Laadimine...</string>
+    <string name="common_more">Veel</string>
     <string name="common_next">Järgmine</string>
     <string name="common_none">Puudub</string>
     <string name="common_notify_channel_backup_body">Ainult siis, kui automaatne varundamine ebaõnnestub. Edukad varundamised on vaiksed.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">Kuva teavitused</string>
     <string name="common_permission_storage_body">Android 9 ja vanemates versioonides vajab klaviatuur pildi galeriisse salvestamiseks salvestusruumi luba. Vana Androidi luba hõlmab ka salvestusruumi lugemist. Klaviatuur kirjutab ainult pildi, mille palute salvestada. Klaviatuur ei loe ega laadi üles midagi muud. Uuemad Androidi versioonid seda luba ei vaja.</string>
     <string name="common_permission_storage_title">Salvestusruumi juurdepääs galeriisse salvestamiseks</string>
+    <string name="common_permission_tasks_body">WM Keyboard hoiab oma ülesannete loendit ja ühte tegumirakenduse ülesannete loendit sünkroonis: ülesanded, nende sammud, märked ja tähtajad liiguvad mõlemas suunas. See luba hõlmab kõiki rakenduses leiduvaid ülesannete loendeid. Klaviatuur loeb rakenduse loendeid ainult selleks, et saaksite ühe valida, ning loeb ja kirjutab ainult teie valitud loendit. Klaviatuur ei saada andmeid kuhugi mujale. DAVx5 (kui te seda kasutate) sünkroonib selle loendi teie CalDAV-serveriga. Ilma selle loata jäävad ülesanded ainult sellesse seadmesse.</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasksi juurdepääs ülesannete loendile</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org juurdepääs ülesannete loendile</string>
+    <string name="common_preview_scale_desc">Eelvaate suurus</string>
+    <string name="common_preview_scale_larger">Tee eelvaade suuremaks</string>
+    <string name="common_preview_scale_smaller">Tee eelvaade väiksemaks</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">Eemalda</string>
     <string name="common_reset">Lähtesta</string>
     <string name="common_reset_defaults">Lähtesta vaikesätetele</string>

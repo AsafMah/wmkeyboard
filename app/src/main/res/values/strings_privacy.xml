@@ -89,6 +89,12 @@
     <string name="privacy_incognito_subtitle">Pause learning and clipboard capture</string>
     <string name="privacy_incognito_info">While this setting is on, the keyboard learns nothing from your typing and keeps no clipboard history. The words that it learned before stay as they are.</string>
 
+    <string name="privacy_incognito_apps_title">Incognito by app</string>
+    <string name="privacy_incognito_apps_info">Follow private browsing goes by what each text field asks for. Add an app here to decide for it instead: every field in an app set to always incognito is incognito, and no field in an app set to never is, whatever it asks. Tap an app to switch between the two.</string>
+    <string name="privacy_incognito_apps_always">Always incognito</string>
+    <string name="privacy_incognito_apps_never">Never incognito</string>
+    <string name="privacy_incognito_apps_add">Add an app</string>
+    <string name="privacy_incognito_apps_remove_desc">Remove</string>
     <string name="privacy_auto_incognito_title">Follow private browsing</string>
     <string name="privacy_auto_incognito_subtitle">Turn incognito mode on by itself in private tabs and fields</string>
     <string name="privacy_auto_incognito_info">An app can mark a text field as a field that the keyboard must not learn from. Chrome does this for every field in an incognito tab. Other browsers and password managers do the same on their private screens. While such a field has the focus, the keyboard turns incognito mode on for it, and the incognito badge shows next to the toolbar. When you leave the field, typing goes back to normal. The keyboard cannot detect an app that never sends this mark. This setting does not work for a private mode of that kind.</string>

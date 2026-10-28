@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -74,6 +75,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -141,6 +143,7 @@ import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import kotlin.math.roundToInt
@@ -148,6 +151,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -354,12 +358,17 @@ private fun Modifier.leadingGapReveal(reveal: IconReveal): Modifier = layout { m
 internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "typing" to Color(0xFF42A5F5),
     "typing/corrections" to Color(0xFF42A5F5),
+    "typing/writing" to Color(0xFF42A5F5),
     "typing/suggestions" to Color(0xFF42A5F5),
     "typing/autopilot" to Color(0xFF42A5F5),
     "typing/octopus" to Color(0xFF29B6F6),
     "typing/chips" to Color(0xFF42A5F5),
     "typing/codes" to Color(0xFF42A5F5),
     "typing/gestures" to Color(0xFF42A5F5),
+    "typing/gestures/glide" to Color(0xFF42A5F5),
+    "typing/gestures/glide/checkup" to Color(0xFF42A5F5),
+    "typing/gestures/spacebar" to Color(0xFF42A5F5),
+    "typing/gestures/flicks" to Color(0xFF42A5F5),
     "typing/hardware" to Color(0xFF42A5F5),
     "keypress" to Color(0xFF7E57C2),
     "keypress/haptics" to Color(0xFF7E57C2),
@@ -393,8 +402,12 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "modes" to Color(0xFFFFA726),
     "emoji" to Color(0xFFFFB300),
     "emoji/panel" to Color(0xFFFFB300),
+    "emoji/mixes" to Color(0xFFFFCA28),
     "voice" to Color(0xFF7E57C2),
     "clipboard" to Color(0xFF42A5F5),
+    "clipboard/history" to Color(0xFF42A5F5),
+    "clipboard/chips" to Color(0xFF42A5F5),
+    "clipboard/rules" to Color(0xFF42A5F5),
     // The Snippets tool's own teal: the screen and the tool page it is opened
     // from are the same feature.
     "expander" to Color(0xFF26A69A),
@@ -411,6 +424,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "notes" to Color(0xFFFBC02D),
     "notes/tags" to Color(0xFFFBC02D),
     "notes/trash" to Color(0xFFFBC02D),
+    // The To-do tool's own green, see ToolColors.
+    "todo" to Color(0xFF43A047),
     // The editor is opened from a pack, so it keeps the pack screens' pink.
     "sticker_editor" to Color(0xFFF06292),
     "plugins" to Color(0xFF06B6D4),
@@ -431,8 +446,11 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "selection_macros/ai" to Color(0xFF5E6BC0),
     "selection_macros/zones" to Color(0xFF5E6BC0),
     "advanced" to Color(0xFF8D6E63),
+    "extensions" to Color(0xFF26A69A),
+    *Extension.entries.map { extensionRoute(it) to extensionAccent(it) }.toTypedArray(),
     // A child of Advanced, so it keeps the parent's brown.
     FloatingButtonRoute to Color(0xFF8D6E63),
+    ShareSheetRoute to Color(0xFF8D6E63),
     "backup" to Color(0xFF78909C),
     "backup/auto" to Color(0xFF78909C),
     "backup/sync" to Color(0xFF78909C),
@@ -459,6 +477,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     // per-category grid under it takes the default: its destination is
     // "emojiorder/{category}", and the screen names itself by the literal.
     "emojicategories" to Color(0xFFFFB300),
+    "emojiadded" to Color(0xFFFFB300),
     // The kaomoji library and its two lists, children of the emoji panel.
     "kaomoji" to Color(0xFFFFB300),
     "kaomoji/faces" to Color(0xFFFFB300),
@@ -870,6 +889,12 @@ private val GroupTailSpace = 16.dp
 internal val LocalScreenReveal = compositionLocalOf<ScreenReveal?> { null }
 
 /**
+ * [WmScreen]'s scroll, published around its column so a row can tell the
+ * user's own drag from the page moving under it; null anywhere else.
+ */
+internal val LocalScreenScroll = compositionLocalOf<ScrollState?> { null }
+
+/**
  * Whether a group of [rowCount] rows should compose yet. True everywhere
  * outside a [WmScreen] body, and inside one from the frame the screen's
  * entrance can spare it. A group asks once — the answer's only moving part is
@@ -1156,6 +1181,9 @@ internal fun Modifier.focusOncePlaced(
  * [swipeActions] puts buttons behind the row that a swipe toward the start
  * shows, and [fullSwipe] one a long swipe runs outright — see
  * [SwipeActionsRow], including why a row with them must be keyed.
+ *
+ * [disabledReason] is what a long press on the row says while [enabled] is
+ * off; see [DisabledReason]. Ignored while the row is enabled.
  */
 @Composable
 internal fun WmRow(
@@ -1174,6 +1202,7 @@ internal fun WmRow(
     flightTo: String? = null,
     subtitleFlies: Boolean = false,
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     @StringRes highlightKey: Int = 0,
     swipeActions: List<SwipeAction> = emptyList(),
     fullSwipe: SwipeAction? = null,
@@ -1201,14 +1230,19 @@ internal fun WmRow(
                 flightTo = flightTo,
                 subtitleFlies = subtitleFlies,
                 enabled = enabled,
+                disabledReason = disabledReason,
                 highlightKey = highlightKey,
                 onClick = onClick,
             )
         }
         return
     }
-    if (highlightKey != 0) {
-        HighlightableRow(title, highlightKey) {
+    // A greyed-out row with a reason takes the long press of any named row,
+    // so the hold can say why. Without a key it matches a search on its drawn
+    // title, as every title-only row does.
+    val reason = disabledReason.takeUnless { enabled }
+    if (highlightKey != 0 || reason != null) {
+        HighlightableRow(title, highlightKey, disabledReason = reason) {
             WmRow(
                 title = title,
                 modifier = modifier,
@@ -1671,10 +1705,20 @@ internal fun ResetSetting(
  * showing leaves no hole in the stack. Callers put the reset last: it is the
  * one that comes and goes, and last it appears in the free slot nearest the
  * switch instead of shuffling the "?" and the link into new places.
+ *
+ * At the Simple depth a row is its name and its control (SETTINGS_REDESIGN.md,
+ * section 5): the "?" and the link button compose nothing under
+ * [LocalRowExtrasBare], and the row's long press offers what they did, as
+ * "What is this?" and the copied link (see `RowHoldMenu`). The reset stays,
+ * since it is only there on a row that was changed.
  */
 @Composable
 internal fun RowExtras(stack: Boolean = true, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+    val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentSize provides 0.dp,
+        LocalRowExtrasBare provides bare,
+    ) {
         Layout(content) { measurables, constraints ->
             val loose = constraints.copy(minWidth = 0, minHeight = 0)
             val all = measurables.map { it.measure(loose) }
@@ -1701,6 +1745,18 @@ internal fun RowExtras(stack: Boolean = true, content: @Composable () -> Unit) {
 }
 
 private const val ROW_EXTRAS_PER_COLUMN = 2
+
+/**
+ * True inside a [RowExtras] at the Simple depth, where a row's "?" and link
+ * button are not drawn: `InfoButton` and `SettingLinkButton` read it and
+ * compose nothing. A heading's controls sit outside any RowExtras and keep
+ * theirs.
+ */
+internal val LocalRowExtrasBare = compositionLocalOf { false }
+
+/** Whether a row's "?" is drawn on the row at this depth, for the rows that budget their own width. */
+@Composable
+internal fun rowInfoButtonShown(): Boolean = LocalSettingsDepth.current.depth != SettingsDepth.SIMPLE
 
 /** The width [RowExtras] takes for [count] controls, stacked, for the rows that budget their own width. */
 internal fun rowExtrasWidth(count: Int): Dp =
@@ -1759,7 +1815,7 @@ internal fun ColorSetting(
     onChange: (Long?) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         WmRow(
             title = title,
             subtitle = subtitle,
@@ -1802,9 +1858,18 @@ internal fun ColorSetting(
 
 // ---- collapsing app bar ----
 
-/** Bar geometry. Material's large-bar heights, so the rest of the layout still fits. */
+/**
+ * Bar geometry. The collapsed strip is Material's. The expanded bar is
+ * Material's medium bar on every page below Home: a heading is one line and a
+ * tile, and the 48 dp under the strip hold that; the 40 dp the large bar
+ * added were air between the heading and the first row, and with the path
+ * strip under it a second-level page spent 208 dp before its first setting
+ * (SETTINGS_REDESIGN.md, section 5). Home keeps the large bar, since it has a
+ * badge above its heading to make room for.
+ */
 private val CollapsedBarHeight = 64.dp
-private val ExpandedBarHeight = 152.dp
+private val ExpandedBarHeight = 112.dp
+private val BadgedBarHeight = 152.dp
 
 /** Title inset: 16dp on its own, cleared past the navigation icon when there is one. */
 private val TitleInset = 16.dp
@@ -1922,14 +1987,20 @@ private const val TitleTrackingRatio = -0.018f
  *
  * The steps are the app's display face at its display sizes (see
  * [WmTypography]): a short title gets the full 33sp, and each band below it
- * trades size for room. Manrope Bold sets wider than the Roboto these numbers
- * were first chosen for, hence the extra band rather than a straight scale-up.
+ * trades size for room. The bands were fitted by measuring every screen title
+ * in Manrope Bold against the 276 dp a 360 dp phone leaves beside a heading
+ * tile: the widest title of each length sets where its band ends, so
+ * "Phone number formats" (20) takes 24sp, "Image sizes and templates" (25)
+ * 21sp and "One-handed, split and floating" (30) 19sp, each just inside the
+ * width. Longer than 25 was 21sp before and overflowed; 19sp is the smallest
+ * step, since a heading smaller than that reads as a row.
  */
 private fun expandedTitleSp(title: String): Float = when {
     title.length <= 14 -> 33f
-    title.length <= 20 -> 28f
-    title.length <= 26 -> 24f
-    else -> 21f
+    title.length <= 18 -> 28f
+    title.length <= 22 -> 24f
+    title.length <= 25 -> 21f
+    else -> 19f
 }
 
 /**
@@ -2201,7 +2272,7 @@ internal fun WmCollapsingTopBar(
     // from the bottom, so the title itself does not move. A badge sits above
     // instead, so its band is pure extra height: the bar grows downward from a
     // fixed top, which is what makes room over the heading.
-    val barHeight = ExpandedBarHeight +
+    val barHeight = (if (badge != null) BadgedBarHeight else ExpandedBarHeight) +
         (if (subtitle != null) SubtitleBand + subtitleExtra else 0.dp) +
         (if (badge != null) BadgeBand else 0.dp)
     val expandedPx = with(density) { barHeight.toPx() }
@@ -2230,7 +2301,9 @@ internal fun WmCollapsingTopBar(
     val keepIcon = iconShare > 0f && iconInBar
 
     val expandedSp = expandedTitleSp(title)
-    val collapsedScale = CollapsedTitleSp / expandedSp
+    // A title that started below the collapsed size stays its size: growing
+    // into the strip would read as the bar pushing the heading about.
+    val collapsedScale = minOf(CollapsedTitleSp, expandedSp) / expandedSp
     // Where the expanded title's left edge sits: past the heading icon when
     // there is one, at the plain inset otherwise.
     val iconSize = if (iconTile) IconTileSize else HeaderBareIconSize
@@ -2526,7 +2599,7 @@ internal fun WmScreen(
                 reveal.wave++
             }
         }
-        CompositionLocalProvider(LocalScreenReveal provides reveal) {
+        CompositionLocalProvider(LocalScreenReveal provides reveal, LocalScreenScroll provides scrollState) {
             Column(
                 modifier = Modifier
                     .padding(padding)
@@ -2735,7 +2808,12 @@ private fun WmScreenFrame(
                             subtitleMaxLines = subtitleMaxLines,
                             badge = badge,
                             badgeInBar = badgeInBar,
-                            actions = actions,
+                            actions = {
+                                // Ahead of the screen's own, so an overflow
+                                // menu keeps the bar's last place (#898).
+                                FavouritesButton(crumbTitle ?: title)
+                                actions()
+                            },
                         )
                         // Below the bar rather than inside it: the bar measures
                         // itself to the collapse, and a second line in there would

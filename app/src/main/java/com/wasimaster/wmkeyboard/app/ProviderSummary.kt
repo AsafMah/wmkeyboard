@@ -197,6 +197,7 @@ private fun kindSummary(row: ResolvedProvider, type: ProviderType, settings: Key
         ProviderTypes.WHISPER.id, ProviderTypes.WHISTLE.id, ProviderTypes.ASR4ALL.id, ProviderTypes.PARAKEET.id,
         ProviderTypes.MOONSHINE.id, ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id, ProviderTypes.NLLB.id,
         ProviderTypes.ON_DEVICE_AI.id, ProviderTypes.OFFLINE_WIKTIONARY.id, ProviderTypes.OFFLINE_WORDNET.id,
+        ProviderTypes.OFFLINE_BENGALI.id,
         ProviderTypes.ML_KIT.id, ProviderTypes.BERGAMOT.id, ProviderTypes.OFFLINE_GIFS.id,
         ProviderTypes.IMPORTED_DICTIONARIES.id, ProviderTypes.VOCAB_PACKS.id,
         -> facts?.let(::factsSummary)
@@ -451,6 +452,7 @@ internal fun rememberProviderFacts(kinds: Set<String>, settings: LiveSettings): 
     val dictionaries = listOf(
         ProviderTypes.OFFLINE_WIKTIONARY.id to OfflineDictionaryCatalog.WIKTIONARY,
         ProviderTypes.OFFLINE_WORDNET.id to OfflineDictionaryCatalog.OEWN,
+        ProviderTypes.OFFLINE_BENGALI.id to OfflineDictionaryCatalog.BENGALI_WIKTIONARY,
     ).filter { it.first in kinds }
     if (dictionaries.isNotEmpty()) {
         val states by OfflineDictionaryDownloads.states.collectAsState()

@@ -71,10 +71,14 @@ object EmojiOrder {
         catalog: List<EmojiEntry>,
         order: List<String> = emptyList(),
         hidden: Set<String> = emptySet(),
+        emojiOrder: Map<String, List<String>> = emptyMap(),
     ): List<String> {
         val ordered = merge(order, catalogCategories(catalog))
-        if (hidden.isEmpty()) return ordered
-        return ordered.filterNot { it in hidden }.ifEmpty { ordered }
+        // A tab whose every emoji moved to another one has nothing to page;
+        // drawn, it would be a blank page the user cannot fill from the panel.
+        val filled = if (emojiOrder.isEmpty()) ordered else layout(catalog, emojiOrder).keys
+        val shown = ordered.filter { it in filled && it !in hidden }
+        return shown.ifEmpty { ordered }
     }
 
     /**
@@ -91,11 +95,70 @@ object EmojiOrder {
         .map { it.emoji }
         .toList()
 
-    /** [catalogEmoji] in the user's [order] for that category. */
+    /** The emoji the [category] tab draws, in order: its entry in [layout]. */
     fun emoji(
         catalog: List<EmojiEntry>,
         category: String,
-        order: List<String> = emptyList(),
+        orders: Map<String, List<String>> = emptyMap(),
         excluded: Set<String> = emptySet(),
-    ): List<String> = merge(order, catalogEmoji(catalog, category, excluded))
+    ): List<String> =
+        if (orders.isEmpty()) {
+            catalogEmoji(catalog, category, excluded)
+        } else {
+            layout(catalog, orders, excluded)[category].orEmpty()
+        }
+
+    /**
+     * Every tab's emoji, keyed by catalog category, with the stored per-tab
+     * [orders] laid over the catalog. A tab nothing lands in has no key.
+     *
+     * A tab's stored order may list emoji the catalog files under another
+     * category, and when it does they move there: that is how an arrangement
+     * copied from another keyboard puts plants beside the animals and the
+     * weather among the places, as Unicode's own groups do, when the catalog
+     * keeps both in "nature". The emoji's own category wins a tie, and a tab
+     * the catalog does not have claims nothing, since nothing would draw it.
+     *
+     * An emoji no stored order lists follows its nearest listed neighbour of
+     * the same catalog category, the one before it or else the one after, to
+     * that neighbour's tab; [merge] then seats it beside it. So with nothing
+     * moved every emoji stays home, exactly as before tabs could swap emoji,
+     * and an emoji a newer catalog adds to a category whose emoji all moved
+     * goes with them rather than reviving a hidden tab.
+     */
+    fun layout(
+        catalog: List<EmojiEntry>,
+        orders: Map<String, List<String>>,
+        excluded: Set<String> = emptySet(),
+    ): Map<String, List<String>> {
+        val bases = catalog.filter { it.parent == null && it.emoji !in excluded }
+        val home = HashMap<String, String>(bases.size)
+        bases.forEach { home.putIfAbsent(it.emoji, it.category) }
+        val tabs = home.values.toHashSet()
+        val claim = HashMap<String, String>()
+        for ((tab, order) in orders) {
+            if (tab !in tabs) continue
+            for (id in order) {
+                val own = home[id] ?: continue
+                val held = claim[id]
+                if (held == null || (tab == own && held != own)) claim[id] = tab
+            }
+        }
+        val tabOf = HashMap<String, String>(home.size)
+        for ((category, members) in bases.groupBy { home.getValue(it.emoji) }) {
+            var current = members.firstNotNullOfOrNull { claim[it.emoji] } ?: category
+            for (entry in members) {
+                if (entry.emoji in tabOf) continue
+                claim[entry.emoji]?.let { current = it }
+                tabOf[entry.emoji] = current
+            }
+        }
+        // Grouped in catalog order, so every tab's members reach merge ranked
+        // the way the catalog ranks them, whichever category they came from.
+        val byTab = LinkedHashMap<String, LinkedHashSet<String>>()
+        for (entry in bases) {
+            byTab.getOrPut(tabOf.getValue(entry.emoji)) { LinkedHashSet() } += entry.emoji
+        }
+        return byTab.mapValues { (tab, members) -> merge(orders[tab].orEmpty(), members.toList()) }
+    }
 }

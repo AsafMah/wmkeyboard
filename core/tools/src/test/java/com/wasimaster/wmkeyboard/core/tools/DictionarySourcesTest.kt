@@ -22,6 +22,7 @@ class DictionarySourcesTest {
             DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET, enabled = false),
             DictionarySourceChoice(DictionarySource.WIKTIONARY_REST, enabled = false),
             DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
+            DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI, enabled = false),
         )
         assertEquals(DictionarySource.entries.size, choices.size)
         assertEquals(choices, DictionarySources.decode(DictionarySources.encode(choices)))
@@ -37,6 +38,7 @@ class DictionarySourcesTest {
                 DictionarySourceChoice(DictionarySource.WIKTIONARY_REST),
                 DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
                 DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET),
+                DictionarySourceChoice(DictionarySource.OFFLINE_BENGALI),
                 DictionarySourceChoice(DictionarySource.IMPORTED),
             ),
             DictionarySources.decode("dictionary_api,-bogus,-wiktionary,dictionary_api"),
@@ -49,7 +51,10 @@ class DictionarySourcesTest {
         assertEquals(DictionarySource.VOCAB_PACKS, order.first())
         assertEquals(DictionarySource.DICTIONARY_API, order.last { it.online })
         assertEquals(
-            listOf(DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET, DictionarySource.IMPORTED),
+            listOf(
+                DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET,
+                DictionarySource.OFFLINE_BENGALI, DictionarySource.IMPORTED,
+            ),
             order.dropWhile { it != DictionarySource.DICTIONARY_API }.drop(1),
         )
         assertTrue(DictionarySources.DEFAULT.all { it.enabled })

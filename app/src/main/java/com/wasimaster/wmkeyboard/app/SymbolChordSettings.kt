@@ -60,6 +60,7 @@ internal fun SymbolChordSettings(
             item(visible = on, key = "chord-$token") {
                 NavRow(
                     title = stringResource(R.string.typing_symbol_chord_row_title, token.uppercase()),
+                    icon = SettingsRowIcons[R.string.typing_symbol_chord_row_title],
                     value = fingerSwipeBindingName(binding, layouts, modes),
                 ) { picking = token }
             }

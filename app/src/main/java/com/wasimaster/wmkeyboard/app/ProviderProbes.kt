@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.grammar.LanguageToolClient
+import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageGen
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
@@ -48,7 +49,10 @@ import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsBackend
 import com.wasimaster.wmkeyboard.core.smarthome.switchbot.SwitchBotBackend
 import com.wasimaster.wmkeyboard.core.smarthome.tuya.TuyaBackend
 import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.providerCredential
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -68,6 +72,26 @@ internal object ProviderProbes {
     ): (suspend () -> Unit)? {
         // The key the provider would be asked with: the typed one, else the build's.
         val key = credential.apiKey.ifBlank { type.builtInKey }
+        // A sticker engine: a request that lists models or reads the account, so nothing is drawn or paid for.
+        if (tool == ProviderTool.IMAGE_GEN) {
+            if (!OnlineImageGen.probes(type.id)) return null
+            return {
+                withContext(Dispatchers.IO) {
+                    // A blank key borrows the one typed for the kind's AI service, as the generator would.
+                    val asked = key.ifBlank {
+                        type.keyFrom?.let { from ->
+                            SettingsRepository(context.applicationContext).settings.first().providerCredential(from)?.apiKey?.trim()
+                        }.orEmpty()
+                    }
+                    OnlineImageGen.probe(
+                        ResolvedProvider(
+                            ProviderEntry(type.id, credential.id), type, credential,
+                            apiKey = asked, url = credential.url, model = credential.model, problem = null,
+                        ),
+                    )
+                }
+            }
+        }
         val sticker = tool == ProviderTool.STICKER
         val call: (() -> Unit)? = when (type.id) {
             ProviderTypes.KLIPY.id -> {

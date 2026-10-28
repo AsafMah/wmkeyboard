@@ -26,6 +26,7 @@
     <string name="common_default">ค่าเริ่มต้น</string>
     <string name="common_delete">ลบ</string>
     <string name="common_disable">ปิดการใช้งาน</string>
+    <string name="common_disabled_open_setting">เปิดการตั้งค่า</string>
     <string name="common_disclosure_blocked_body">Android จะไม่แสดงคำขอนี้อีกต่อไปเนื่องจากคุณปฏิเสธการอนุญาตไปก่อนหน้านี้ คุณยังสามารถเปิดใช้งานได้จากหน้าการตั้งค่าแอป</string>
     <string name="common_disclosure_not_now">ไม่ตอนนี้</string>
     <string name="common_done">เสร็จสิ้น</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ติดตั้ง</string>
     <string name="common_installing">กำลังติดตั้ง...</string>
     <string name="common_loading">กำลังโหลด...</string>
+    <string name="common_more">เพิ่มเติม</string>
     <string name="common_next">ถัดไป</string>
     <string name="common_none">ไม่มี</string>
     <string name="common_notify_channel_backup_body">เฉพาะเมื่อการสำรองข้อมูลอัตโนมัติล้มเหลว การสำรองข้อมูลที่สำเร็จจะไม่มีการแจ้งเตือน</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">แสดงการแจ้งเตือน</string>
     <string name="common_permission_storage_body">บน Android 9 และเก่ากว่า แป้นพิมพ์ต้องการสิทธิ์การเข้าถึงที่เก็บข้อมูลเพื่อบันทึกรูปภาพลงในแกลเลอรีของคุณ สิทธิ์ Android แบบเก่านี้ยังครอบคลุมถึงการอ่านที่เก็บข้อมูลของคุณด้วย แป้นพิมพ์จะเขียนเฉพาะรูปภาพที่คุณขอให้บันทึกเท่านั้น แป้นพิมพ์ไม่อ่านและไม่อัปโหลดข้อมูลใดๆ Android เวอร์ชันใหม่กว่าไม่จำเป็นต้องใช้สิทธิ์นี้</string>
     <string name="common_permission_storage_title">การเข้าถึงที่เก็บข้อมูลเพื่อบันทึกลงในแกลเลอรีของคุณ</string>
+    <string name="common_permission_tasks_body">WM Keyboard จะเก็บรายการสิ่งที่ต้องทำและรายการงานหนึ่งรายการในแอปงานให้ตรงกัน ทั้งงาน ขั้นตอน การติ๊กถูก และวันครบกำหนด ทั้งสองทาง การอนุญาตนี้ครอบคลุมรายการงานทุกรายการในแอป แป้นพิมพ์จะอ่านรายการของแอปเพื่อให้คุณเลือกได้เท่านั้น และจะอ่านและเขียนเฉพาะรายการที่คุณเลือก แป้นพิมพ์จะไม่ส่งข้อมูลใดๆ ไปที่ไหน หากคุณใช้ DAVx5 มันจะซิงค์รายการนั้นกับเซิร์ฟเวอร์ CalDAV ของคุณเอง หากไม่มีการอนุญาตนี้ รายการสิ่งที่ต้องทำจะคงอยู่ในโทรศัพท์เครื่องนี้เท่านั้น</string>
+    <string name="common_permission_tasks_opentasks_title">การเข้าถึง OpenTasks สำหรับรายการสิ่งที่ต้องทำ</string>
+    <string name="common_permission_tasks_tasks_org_title">การเข้าถึง Tasks.org สำหรับรายการสิ่งที่ต้องทำ</string>
+    <string name="common_preview_scale_desc">ขนาดตัวอย่าง</string>
+    <string name="common_preview_scale_larger">ขยายภาพตัวอย่างให้ใหญ่ขึ้น</string>
+    <string name="common_preview_scale_smaller">ทำให้พรีวิวเล็กลง</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">นำออก</string>
     <string name="common_reset">รีเซ็ต</string>
     <string name="common_reset_defaults">รีเซ็ตเป็นค่าเริ่มต้น</string>

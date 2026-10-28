@@ -55,10 +55,71 @@ object ClockNotifications {
             wanted += NotificationIds.CLOCK_STOPWATCH
             postStopwatch(context, data.stopwatch)
         }
+        postAlarmNotices(context, data, wanted)
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val active = runCatching { manager.activeNotifications.map { it.id } }.getOrDefault(emptyList())
-        active.filter { (NotificationIds.isTimer(it) || it == NotificationIds.CLOCK_STOPWATCH) && it !in wanted }
+        active.filter {
+            (NotificationIds.isTimer(it) || NotificationIds.isAlarmNotice(it) || it == NotificationIds.CLOCK_STOPWATCH) &&
+                it !in wanted
+        }
             .forEach { WmNotifications.cancel(context, it) }
+    }
+
+    /**
+     * An alarm's notice (#970): while it is snoozed, the time it rings again
+     * and a button that ends the snooze; in the minutes before it rings, when
+     * [ClockConfig.upcomingNoticeMinutes] asks, the time and a button that
+     * skips it. Not while it rings: the ring has a notification of its own.
+     */
+    private fun postAlarmNotices(context: Context, data: ClockData, wanted: MutableSet<Int>) {
+        val config = ClockPrefs.get(context)
+        val now = System.currentTimeMillis()
+        val zone = java.util.TimeZone.getDefault()
+        val hour24 = android.text.format.DateFormat.is24HourFormat(context)
+        val window = config.upcomingNoticeMinutes * 60_000L
+        for (alarm in data.alarms) {
+            if (data.ringing.any { it.kind == RingKind.ALARM && it.ref == alarm.id }) continue
+            val snoozed = alarm.enabled && alarm.snoozedUntil > now
+            val next = if (snoozed || window <= 0) null else AlarmMath.nextFire(alarm, now, zone)
+            val coming = next != null && next - now <= window
+            if (!(snoozed && config.snoozedNotice) && !coming) continue
+            val id = NotificationIds.forAlarmNotice(alarm.id)
+            wanted += id
+            val at = if (snoozed) alarm.snoozedUntil else next!!
+            val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
+            val time = ClockFormats.time(at, zone, hour24)
+            WmNotifications.post(context, NotificationKind.CLOCK, id) {
+                setContentTitle(title)
+                setContentText(
+                    context.getString(
+                        if (snoozed) R.string.core_tools_clock_snoozed_until else R.string.core_tools_clock_coming_at,
+                        time,
+                    ),
+                )
+                setOnlyAlertOnce(true)
+                setSilent(true)
+                setOngoing(snoozed)
+                setContentIntent(openClock(context, "alarms"))
+                setTimeoutAfter((at - now).coerceAtLeast(0) + TIMEOUT_GRACE_MS)
+                if (snoozed) {
+                    addAction(0, context.getString(R.string.core_tools_clock_dismiss), action(context, ClockReceiver.ACTION_END_SNOOZE, alarm.id))
+                } else {
+                    addAction(0, context.getString(R.string.core_tools_clock_skip), action(context, ClockReceiver.ACTION_SKIP_COMING, alarm.id))
+                }
+            }
+        }
+    }
+
+    /** An alarm that rang with nobody there (#970): it stays in the shade until it is swiped away. */
+    fun postMissed(context: Context, ring: Ringing) {
+        val title = ring.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
+        val time = ClockFormats.time(ring.since, java.util.TimeZone.getDefault(), android.text.format.DateFormat.is24HourFormat(context))
+        WmNotifications.post(context, NotificationKind.CLOCK, NotificationIds.forMissedAlarm(ring.ref)) {
+            setContentTitle(context.getString(R.string.core_tools_clock_missed_title, title))
+            setContentText(context.getString(R.string.core_tools_clock_missed_at, time))
+            setAutoCancel(true)
+            setContentIntent(openClock(context, "history"))
+        }
     }
 
     private fun postTimer(context: Context, t: RunningTimer, id: Int) {

@@ -13,7 +13,8 @@ import com.wasimaster.wmkeyboard.prediction.R
 enum class WordlistSource(@StringRes val labelRes: Int, @StringRes val detailRes: Int) {
     /**
      * AOSP LatinIME's own lists (Apache-2.0), for the 23 languages Android's
-     * keyboard shipped one for. Curated rather than counted: a couple of
+     * keyboard shipped one for, plus Canadian and Australian English respelled
+     * from them. Curated rather than counted: a couple of
      * hundred thousand words with the names, typos and subtitle noise of a
      * counted list mostly gone. Their frequencies are AOSP's 0..255 log scale,
      * which the downloader turns back into counts
@@ -591,6 +592,18 @@ object DictionaryCatalog {
         aosp(
             "en_gb_aosp", "en", "en", 157_423, 734_107L,
             variantRes = R.string.core_pred_wordlist_variant_uk_label, fileStem = "en_gb_aosp",
+        ),
+        // AOSP has no Canadian or Australian list. These are its en_US and
+        // LineageOS's en_GB-based en_AU, respelled with the English Speller
+        // Database's regional spellings and AOSP's frequencies kept
+        // (wmkeyboard-data scripts/import_aosp_regional_en.py).
+        aosp(
+            "en_ca_aosp", "en", "en", 160_541, 748_592L,
+            variantRes = R.string.core_pred_wordlist_variant_canada_label, fileStem = "en_ca_aosp",
+        ),
+        aosp(
+            "en_au_aosp", "en", "en", 157_418, 732_940L,
+            variantRes = R.string.core_pred_wordlist_variant_australia_label, fileStem = "en_au_aosp",
         ),
         aosp("es_aosp", "es", "es", 236_193, 977_769L),
         aosp("fi_aosp", "fi", "fi", 223_363, 1_093_376L),

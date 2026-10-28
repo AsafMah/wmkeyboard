@@ -26,10 +26,36 @@ export function amountOf(amount, currency) {
 	}
 }
 
+/** A coffee's price in each currency SupportKori takes; tips are whole coffees. */
+const COFFEE_BDT = 300;
+const COFFEE_USD = 5;
+/** Roughly what SupportKori converts at, in taka per dollar. */
+const BDT_PER_USD = 122;
+/** How far a converted amount may drift from whole dollar coffees (rate moves, fees). */
+const TOLERANCE = 0.1;
+
+/**
+ * A tip as the supporter paid it. Someone paying in dollars reaches us as
+ * SupportKori's conversion to taka, ৳618 rather than $5, which no number of
+ * ৳300 coffees adds up to. Such an amount is shown as the dollar coffees it is
+ * closest to, when it is close enough; anything else is left as it came.
+ */
+export function paidAs(amount, currency) {
+	if (currency !== 'BDT' || typeof amount !== 'number' || amount % COFFEE_BDT === 0) {
+		return { amount, currency };
+	}
+	const usd = amount / BDT_PER_USD;
+	const coffees = Math.round(usd / COFFEE_USD);
+	if (coffees < 1) return { amount, currency };
+	const target = coffees * COFFEE_USD;
+	return Math.abs(usd - target) <= target * TOLERANCE ? { amount: target, currency: 'USD' } : { amount, currency };
+}
+
 /** "Tip · ৳300 · 12 Oct 2026", leaving out whatever is not known. */
 export function metaOf(s) {
 	const parts = [s.kind === 'member' ? 'Member' : 'Tip'];
-	const amount = amountOf(s.amount, s.currency);
+	const paid = s.kind === 'member' ? s : paidAs(s.amount, s.currency);
+	const amount = amountOf(paid.amount, paid.currency);
 	if (amount) parts.push(s.kind === 'member' ? `${amount} a month` : amount);
 	parts.push(dateOf(s.at));
 	return parts.join(' · ');

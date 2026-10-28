@@ -1062,10 +1062,13 @@ private fun OcrResultView(
                 }
                 Spacer(Modifier.height(6.dp))
             }
+            // Each pill takes no more than its share of the row, so a large
+            // font shortens their labels rather than squeezing the last one
+            // to a sliver (#945).
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
                 CaptureActionButton(
@@ -1073,6 +1076,7 @@ private fun OcrResultView(
                     label = stringResource(CommonR.string.common_copy),
                     accent = false,
                     focused = focusedAction == 2,
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
                     feedback()
                     copySelected()
@@ -1084,6 +1088,7 @@ private fun OcrResultView(
                     label = stringResource(R.string.ime_scanner_translate_action),
                     accent = false,
                     focused = focusedAction == 3,
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
                     val text = selectedText()
                     if (text.isNotEmpty()) onTranslate(text)
@@ -1093,6 +1098,7 @@ private fun OcrResultView(
                     label = stringResource(R.string.ime_scanner_insert_action),
                     accent = true,
                     focused = focusedAction == 4,
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
                     val text = selectedText()
                     if (text.isNotEmpty()) onInsert(text)

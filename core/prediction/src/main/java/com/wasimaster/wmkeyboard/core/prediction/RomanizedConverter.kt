@@ -18,7 +18,9 @@ import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
  * stop.
  *
  * Backward, a known word takes the most readable spelling the map has for
- * it, and anything else goes through the scheme's romanizer. The inverted map
+ * it, then the caller's own spelling when it has one ([toRoman]'s
+ * `respelled`, a neural model's for romanized dictation), and anything else
+ * goes through the scheme's romanizer. The inverted map
  * is built once, lazily, on whichever thread first asks; the service asks
  * from a background one.
  */
@@ -50,8 +52,12 @@ class RomanizedConverter(
         return if (changed) out.toString() else null
     }
 
-    /** [text] with every word of the scheme's script in Latin letters, or null when nothing changed. */
-    fun toRoman(text: String): String? {
+    /**
+     * [text] with every word of the scheme's script in Latin letters, or null
+     * when nothing changed. A word the maps do not know takes its spelling
+     * from [respelled] (keyed as [unmapped] gives them) before the rules.
+     */
+    fun toRoman(text: String, respelled: Map<String, String> = emptyMap()): String? {
         val norm = scheme.normalize(text)
         val out = StringBuilder(norm.length)
         var changed = false
@@ -63,7 +69,7 @@ class RomanizedConverter(
                     var j = i
                     while (j < norm.length && scheme.isNative(norm[j])) j++
                     val word = norm.substring(i, j)
-                    out.append(inverted[word] ?: scheme.romanizeWord(word))
+                    out.append(inverted[word] ?: respelled[word] ?: scheme.romanizeWord(word))
                     changed = true
                     i = j
                 }
@@ -75,6 +81,37 @@ class RomanizedConverter(
             }
         }
         return if (changed) out.toString() else null
+    }
+
+    /**
+     * The words of the scheme's script in [text] the maps have no spelling
+     * for, as [toRoman] sees them (normalised): the ones the rules would
+     * spell, which a caller may [toRoman]'s `respelled` instead.
+     */
+    fun unmapped(text: String): List<String> {
+        val norm = scheme.normalize(text)
+        val out = ArrayList<String>()
+        var i = 0
+        while (i < norm.length) {
+            if (scheme.isNative(norm[i])) {
+                var j = i
+                while (j < norm.length && scheme.isNative(norm[j])) j++
+                val word = norm.substring(i, j)
+                if (word !in inverted) out += word
+                i = j
+            } else {
+                i++
+            }
+        }
+        return out
+    }
+
+    /**
+     * Builds the inverted map now rather than on the first [toRoman], so a
+     * caller on the main thread does not pay for it.
+     */
+    fun prepare() {
+        inverted
     }
 
     private fun wordToNative(word: String): String {

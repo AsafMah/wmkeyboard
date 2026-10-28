@@ -3,7 +3,18 @@
     <!-- Settings › Stickers › Create stickers: on-device image generation from a prompt. -->
     <string name="stickergen_title">Create stickers</string>
     <string name="stickergen_entry_title">Create from a prompt</string>
-    <string name="stickergen_entry_subtitle">Describe a sticker and this phone draws it, offline</string>
+    <string name="stickergen_entry_subtitle">Describe a sticker and this phone, or an image service you pick, draws it</string>
+
+    <string name="stickergen_engine_title">Engine</string>
+    <string name="stickergen_engine_on_device">Draws on this phone. Nothing you type leaves it.</string>
+    <string name="stickergen_engine_online">Sends your prompt, in English, to %1$s.</string>
+    <string name="stickergen_engine_online_transparent">Sends your prompt, in English, to %1$s, which draws on a transparent background.</string>
+    <string name="stickergen_engine_fallback">Tries %1$s, in that order, until one draws.</string>
+    <string name="stickergen_engine_none">Every engine is off or not set up. Switch one on under Engines below.</string>
+    <string name="stickergen_engines_title">Engines</string>
+    <string name="stickergen_engines_info">Who draws the stickers. On this phone, nothing leaves it. An online service gets the prompt in English and sends the pictures back; Pollinations and AI Horde need no key, the others use your own. Pick one above the prompt, or set the list to fall back from one to the next.</string>
+    <string name="stickergen_metered_ask">Data saver is on for this connection. Tap Generate again to send the prompt anyway.</string>
+    <string name="stickergen_metered_blocked">Data saver keeps online AI off this connection, so only the phone\'s model can draw. Its Cloud AI row decides this.</string>
 
     <string name="stickergen_model_title">Model</string>
     <string name="stickergen_model_info">The model runs on this phone, in a process of its own, and nothing you type leaves it unless the prompt needs an online translator. SDXS draws in one step on any phone. Stable Diffusion 1.5 (NPU) runs on the Snapdragon 8 Gen 3, 8 Elite and 8 Elite Gen 5 neural processors and takes a negative prompt and guidance.</string>
@@ -57,7 +68,11 @@
     <string name="stickergen_status_starting">Starting…</string>
     <string name="stickergen_status_loading">Loading the model…</string>
     <string name="stickergen_status_drawing">Drawing %1$d of %2$d…</string>
+    <string name="stickergen_status_asking">Asking %1$s…</string>
+    <string name="stickergen_status_queue">In %1$s\'s queue, %2$d ahead…</string>
+    <string name="stickergen_status_queue_time">In %1$s\'s queue, %2$d ahead, about %3$d s…</string>
     <string name="stickergen_failed">The generator stopped: %1$s</string>
+    <string name="stickergen_failed_named">%1$s: %2$s</string>
 
     <string name="stickergen_results_title">Results</string>
     <string name="stickergen_results_hint">Tap one to cut it out and save it to a pack.</string>
@@ -89,4 +104,6 @@
     <string name="stickergen_cutout_unsupported">This build has no background remover; the editor\'s eraser still works</string>
     <string name="stickergen_safety_title">Safety filter</string>
     <string name="stickergen_safety_subtitle">Check every picture with an on-device classifier and hold back unsafe ones. Prompts are always checked.</string>
+    <string name="stickergen_safety_subtitle_online">Ask the service to hold back unsafe pictures, where it has a switch for that. Prompts are always checked first.</string>
+    <string name="stickergen_negative_online">Not every service reads one: Gemini, GPT Image and Grok Imagine leave it out.</string>
 </resources>

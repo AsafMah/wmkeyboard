@@ -215,6 +215,7 @@ export const ROUTES: RouteSpec[] = [
 	},
 	{ pattern: 'notes/tags', label: 'Note tags', group: 'Tools' },
 	{ pattern: 'notes/trash', label: 'Notes trash', group: 'Tools' },
+	{ pattern: 'todo', label: 'To-do list', group: 'Tools' },
 	{ pattern: 'voice', label: 'Voice typing', group: 'Tools' },
 	{ pattern: 'expander', label: 'Text expansion', group: 'Tools' },
 	{
@@ -273,6 +274,7 @@ export const ROUTES: RouteSpec[] = [
 
 	{ pattern: 'advanced', label: 'Advanced', group: 'Advanced' },
 	{ pattern: 'floating_button', label: 'Floating button', group: 'Advanced' },
+	{ pattern: 'share_sheet', label: 'Share sheet', group: 'Advanced' },
 	{ pattern: 'modes', label: 'Keyboard modes', group: 'Advanced' },
 	{
 		pattern: 'mode_edit/{modeId}',
@@ -363,7 +365,7 @@ export const TOOL_NAMES = [
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
 	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK', 'HOME_ASSISTANT', 'GALLERY', 'LANGUAGE',
-	'TEXT_REPEAT', 'SEND_FILES',
+	'TEXT_REPEAT', 'SEND_FILES', 'TODO',
 ];
 
 /**

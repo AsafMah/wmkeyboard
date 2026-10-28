@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import java.io.File
 import java.security.MessageDigest
@@ -100,6 +101,13 @@ object InkPackImports {
         /** Kept, and waiting on the other packs its model needs. */
         data class Waiting(override val fileName: String) : Result
 
+        /**
+         * Kept, its model's packs all here, but the recogniser's library is
+         * not (#946): the offline build cannot fetch it, so the model installs
+         * once the library is imported ([installWaiting]).
+         */
+        data class NeedsLibrary(override val fileName: String) : Result
+
         /** The right name and size with the wrong contents. */
         data class Mismatch(override val fileName: String) : Result
 
@@ -129,6 +137,16 @@ object InkPackImports {
             }
         }
         if (kept.isEmpty()) return results
+        // Installing waits on the library, which an offline phone would wait
+        // for forever and then report as a failed file.
+        if (!FeatureModules.handwriting.installed) {
+            val mapping = withContext(Dispatchers.IO) { HandwritingModelSizes.packMapping(context) }
+            for ((name, pack) in kept) {
+                val complete = mapping.any { (tag, names) -> pack.name in names && covers(context, tag) }
+                results += if (complete) Result.NeedsLibrary(name) else Result.Waiting(name)
+            }
+            return results
+        }
         val installed = installCompleted(context)
         for ((name, pack) in kept) {
             val tags = installed.filterValues { pack.name in it.first }
@@ -139,6 +157,19 @@ object InkPackImports {
             }
         }
         return results
+    }
+
+    /**
+     * Installs the models whose packs were kept while the recogniser's
+     * library was missing ([Result.NeedsLibrary]), now that it is here; the
+     * tags installed, and whether each made it. Nothing when the library is
+     * still missing or no packs wait.
+     */
+    suspend fun installWaiting(context: Context): Map<String, Boolean> {
+        if (!FeatureModules.handwriting.installed) return emptyMap()
+        val waiting = withContext(Dispatchers.IO) { directory(context).list()?.isNotEmpty() == true }
+        if (!waiting) return emptyMap()
+        return installCompleted(context).mapValues { it.value.second }
     }
 
     /**
@@ -178,11 +209,13 @@ object InkPackImports {
     /**
      * The links to fetch [tag]'s packs from, as ML Kit itself would. Blocking.
      * A zinnia model is one file, which the offline import installs as the CJK
-     * pack it is.
+     * pack it is; a PaddleOCR one is two, its graph and its character list.
      */
     fun packUrls(context: Context, tag: String): List<String> =
         if (ZinniaModels.isTag(tag)) {
             listOfNotNull(ZinniaModels.packUrl(tag))
+        } else if (InkOcrModels.isTag(tag)) {
+            InkOcrModels.packUrls(tag)
         } else {
             runCatching { HandwritingModelSizes.packs(context, tag) }.getOrDefault(emptyList()).map { it.url }
         }

@@ -49,6 +49,43 @@ Dropped: pause and wiggle marks (charging words that skip a paused key cost
 itself), the broad loop charge GlideBeam uses (+0.6 on looped doubles but
 −1 to −9 points on stray loops), and learned-shape seeding (.9564 to .9552).
 
+## GlideBeam on German strokes (#966)
+
+The built-in decoder on real German swipes, for the per-language tuning
+profile. Two public corpora, both with the key geometry they were drawn on:
+FUTO's `swipe-5` (MIT; Wikipedia sentences, common words) and HeliBoard's
+gesture data (CC BY-SA 4.0; rare words). Word lists from FrequencyWords
+(MIT). Nothing here is committed.
+
+```bash
+curl -L -o swipe5.jsonl https://huggingface.co/datasets/futo-org/swipe.futo.org/resolve/main/swipe-5/swipe5.jsonl
+curl -L -o german.json  https://huggingface.co/datasets/futo-org/swipe.futo.org/resolve/main/swipe-5/layouts/german.json
+curl -L -o de_full.txt  https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/de/de_full.txt
+head -n 150000 de_full.txt > de_150k.txt
+# HeliBoard's German records (zstd JSON; each carries its own key boxes):
+# https://codeberg.org/eclexic/heliboard-gesture-data, compressed/batch_1/de/
+```
+
+Pick the German single-finger strokes out of `swipe5.jsonl` into one jsonl
+of the harness's shape, then from `native/wm-engine`:
+
+```bash
+COLS=11 RESULTS=6 ALL=1 DUMP=/tmp/de_shipped.tsv \
+  cargo run --release --example glide_beam_eval -- de_swipes.jsonl german.json de_150k.txt < /dev/null
+echo 'freq_weight=0.5 gap_weight=2' | COLS=11 RESULTS=6 ALL=1 DUMP=/tmp/de_profile.tsv \
+  cargo run --release --example glide_beam_eval -- de_swipes.jsonl german.json de_150k.txt
+```
+
+`ALL=1` counts a stroke whose word the list lacks as a miss (success per
+swipe); the two dumps diffed are the regression set, the strokes right
+before and wrong after. Measured by the issue's reporter on 2,588 FUTO and
+10,908 HeliBoard strokes, success per swipe, shipped against the German
+profile (`freq_weight` 0.5, `gap_weight` 2.0): 71.41 to 74.27 and 21.95 to
+32.51; the same profile on 2,129 English test strokes 81.49 to 80.41. The
+error radii, `sigma` and the result cap were swept too and sit at their
+optimum for German as well; `GlideLanguageProfiles` in `:core:prediction`
+holds the table.
+
 ## GlideBeam on the same strokes
 
 `GlideRealSwipeEval` in `:app`'s tests runs the built-in decoder over the

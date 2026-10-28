@@ -109,6 +109,7 @@
     <string name="fonts_tool_send_files_desc">Send a file to anyone as an encrypted link that expires, or straight to a phone nearby, and receive both kinds</string>
     <string name="fonts_tool_gallery_desc">Your photos and videos inside the keyboard: albums, picks, a viewer and an editor, and a send that gives the app only a copy</string>
     <string name="fonts_tool_location_desc">Put your position or a saved place into the text as a map link, an address or coordinates</string>
+    <string name="fonts_tool_music_id_desc">Listen for ten seconds and name the song through a recognition service of your choice, then type it or send its cover as a picture</string>
     <string name="fonts_tool_calendar_desc">Month view with your events and two calendars of your choice</string>
     <string name="fonts_tool_incognito_desc">One press pauses learning and clipboard capture</string>
     <string name="fonts_tool_power_saving_desc">Turn off features that use battery power, on demand or when the battery is low</string>
@@ -127,6 +128,7 @@
     <!-- KLIPY and GIPHY are the names of the services that supply the GIFs. -->
     <string name="fonts_tool_gif_desc">Search for GIFs (KLIPY, GIPHY) and send them from the keyboard</string>
     <string name="fonts_tool_sticker_desc">Search for stickers. They are transparent and ready for a chat</string>
+    <string name="fonts_tool_emoji_mix_desc">Put two emoji together as one sticker, from a source you add</string>
     <!-- Brave is the name of the search service. -->
     <string name="fonts_tool_web_search_desc">Search the web and images, and insert a link or a picture</string>
     <string name="fonts_tool_image_search_desc">Opens web search on its Images tab</string>
@@ -176,7 +178,9 @@
 
     <string name="fonts_tool_vocabulary_desc">Word cards, nudges and flashcards from downloadable vocabulary packs</string>
     <string name="fonts_tool_notes_desc">Write and keep notes in the keyboard, with tags, checklists, pins and a trash</string>
+    <string name="fonts_tool_todo_desc">A to-do list in the keyboard, with steps under each task. Can sync with a CalDAV task list through DAVx5</string>
     <string name="fonts_tool_find_replace_desc">Search the text you are writing and replace matches, with match case, whole word and regular expressions</string>
     <string name="fonts_tool_learn_from_text_desc">List the words in what you have written that the keyboard does not know yet, and add them to your personal dictionary</string>
-
+    <string name="fonts_tool_speed_test_title">Internet speed test</string>
+    <string name="fonts_tool_speed_test_desc">Measure download, upload and ping, and send the result as a picture</string>
 </resources>

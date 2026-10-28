@@ -42,6 +42,10 @@
 //! when a non-BMP character (an emoji) sits inside a word, where this one is
 //! the saner of the two.
 //!
+//! Khipro is updated on a rolling basis, so the app can [`install`] a newer
+//! spec set from its data repository over the bundled one, once [`check`]
+//! has run each spec against its own conformance table (#909).
+//!
 //! Upstream: rank-coder/khipro-m17n, KhiproTeam/khipro-mim-touchscreen,
 //! KhiproTeam/khipro-dark-m17n and KhiproTeam/khipro-dark-mim-touchscreen
 //! (all MIT, © 2024 rank_coder); `scripts/update-khipro.sh` refreshes them.
@@ -49,7 +53,8 @@
 //! KhiproTeam), and m17n-lib's own for the marker commands only Dark uses.
 
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, OnceLock, RwLock};
 
 use crate::sexp::Sexp;
 use crate::sort;
@@ -112,16 +117,45 @@ impl Variant {
         String::from_utf8(text).expect("bundled Khipro spec is UTF-8")
     }
 
-    fn spec(self) -> &'static Spec {
-        static SPECS: [OnceLock<Spec>; 4] = [
+    fn bundled(self) -> &'static Arc<Spec> {
+        static SPECS: [OnceLock<Arc<Spec>>; 4] = [
             OnceLock::new(),
             OnceLock::new(),
             OnceLock::new(),
             OnceLock::new(),
         ];
-        SPECS[self as usize]
-            .get_or_init(|| Spec::parse(&self.source()).expect("bundled Khipro spec parses"))
+        SPECS[self as usize].get_or_init(|| {
+            Arc::new(Spec::parse(&self.source()).expect("bundled Khipro spec parses"))
+        })
     }
+
+    /// The spec keys are read against: one [`install`]ed at run time, or the
+    /// bundled one.
+    fn spec(self) -> Arc<Spec> {
+        let installed = INSTALLED[self as usize]
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone();
+        installed.unwrap_or_else(|| self.bundled().clone())
+    }
+}
+
+/// Specs installed at run time over the bundled ones, by [`Variant`] ordinal.
+/// Khipro is updated on a rolling basis, and the app fetches newer specs from
+/// its data repository rather than waiting for a release to carry them.
+static INSTALLED: [RwLock<Option<Arc<Spec>>>; 4] =
+    [RwLock::new(None), RwLock::new(None), RwLock::new(None), RwLock::new(None)];
+
+/// Moves on every [`install`] and [`reset`], for what is derived from a spec
+/// (the glide romanizer's tables) to know it is stale.
+static GENERATION: AtomicU64 = AtomicU64::new(0);
+
+/// When the bundled specs were taken from upstream, as an RFC 3339 UTC time
+/// (`data/khipro/REVISION`, written by `scripts/update-khipro.sh`). A
+/// published set is newer than the bundled one when its revision sorts after
+/// this.
+pub fn bundled_revision() -> &'static str {
+    include_str!("../data/khipro/REVISION").trim()
 }
 
 /// The Bengali `roman` spells under `variant`. Empty in, empty out.
@@ -136,6 +170,78 @@ pub fn convert(roman: &str, variant: Variant) -> String {
 /// Parses `variant`'s spec now rather than on the first keystroke.
 pub fn warm(variant: Variant) {
     variant.spec();
+}
+
+/// Reads `variant`'s keys against `text`, an m17n spec, from now on in
+/// place of the bundled one. Refused, leaving the spec in use as it was,
+/// when `text` does not parse or reads none of the method's basic words;
+/// run [`check`] against the spec's own conformance table first.
+pub fn install(variant: Variant, text: &str) -> Result<(), String> {
+    let spec = Spec::parse(text)?;
+    spec.sane()?;
+    *INSTALLED[variant as usize]
+        .write()
+        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(Arc::new(spec));
+    GENERATION.fetch_add(1, Ordering::Relaxed);
+    Ok(())
+}
+
+/// Goes back to the bundled spec for `variant`.
+pub fn reset(variant: Variant) {
+    let was = INSTALLED[variant as usize]
+        .write()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .take();
+    if was.is_some() {
+        GENERATION.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+/// Whether `variant` reads against an [`install`]ed spec.
+pub fn is_installed(variant: Variant) -> bool {
+    INSTALLED[variant as usize]
+        .read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .is_some()
+}
+
+/// See [`GENERATION`].
+pub fn generation() -> u64 {
+    GENERATION.load(Ordering::Relaxed)
+}
+
+/// Runs `text`, an m17n spec, against `cases`, a Khipro conformance table
+/// (a header line, then `input<TAB>expected` per line), without installing
+/// it. `skip` is a table of the same shape listing cases upstream has left
+/// stale, passed over when both columns match. Returns how many cases ran,
+/// or why the spec is refused: it does not parse, the table holds too few
+/// cases to vouch for it, or some differ (the first few are named).
+pub fn check(text: &str, cases: &str, skip: &str) -> Result<usize, String> {
+    let spec = Spec::parse(text)?;
+    spec.sane()?;
+    spec.conforms(&parse_cases(cases), &parse_cases(skip))
+}
+
+/// Fewer cases than this cannot vouch for a spec: every upstream table has
+/// about a hundred.
+const MIN_CASES: usize = 50;
+
+/// Failures named in a [`check`] refusal; the count covers the rest.
+const NAMED_FAILURES: usize = 8;
+
+/// The `input<TAB>expected` rows of a conformance table, past its header.
+fn parse_cases(text: &str) -> Vec<(String, String)> {
+    text.lines()
+        .skip(1)
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let mut parts = line.split('\t');
+            (
+                parts.next().unwrap_or("").trim().to_string(),
+                parts.next().unwrap_or("").trim().to_string(),
+            )
+        })
+        .collect()
 }
 
 const INITIAL: &str = "init";
@@ -347,6 +453,48 @@ impl<'a> Run<'a> {
 }
 
 impl Spec {
+    /// Words every edition and form of Khipro has always typed the same way.
+    /// A file that parses but reads none of them is not a Khipro spec at all
+    /// (an HTML error page parses as atoms).
+    fn sane(&self) -> Result<(), String> {
+        const WORDS: [(&str, &str); 3] = [("ami", "আমি"), ("tumi", "তুমি"), ("baxla", "বাংলা")];
+        if !self.states.contains_key(INITIAL) {
+            return Err("no init state".to_string());
+        }
+        for (input, expected) in WORDS {
+            let actual = self.convert(input);
+            if actual != expected {
+                return Err(format!("{input}: expected {expected}, got {actual}"));
+            }
+        }
+        Ok(())
+    }
+
+    /// Runs `cases` (see [`check`]) through this spec.
+    fn conforms(&self, cases: &[(String, String)], skip: &[(String, String)]) -> Result<usize, String> {
+        if cases.len() < MIN_CASES {
+            return Err(format!("{} conformance cases, fewer than {MIN_CASES}", cases.len()));
+        }
+        let failures: Vec<String> = cases
+            .iter()
+            .filter(|case| !skip.contains(case))
+            .filter_map(|(input, expected)| {
+                let actual = self.convert(input);
+                (&actual != expected).then(|| format!("{input}: expected {expected}, got {actual}"))
+            })
+            .collect();
+        if failures.is_empty() {
+            Ok(cases.len())
+        } else {
+            Err(format!(
+                "{} of {} cases differ:\n{}",
+                failures.len(),
+                cases.len(),
+                failures.iter().take(NAMED_FAILURES).cloned().collect::<Vec<_>>().join("\n")
+            ))
+        }
+    }
+
     /// Runs the roman tape `input` through the method.
     pub fn convert(&self, input: &str) -> String {
         let input: Vec<char> = input.chars().collect();
@@ -649,20 +797,6 @@ mod tests {
         }
     }
 
-    fn cases(text: &str) -> Vec<(String, String)> {
-        text.lines()
-            .skip(1)
-            .filter(|line| !line.trim().is_empty())
-            .map(|line| {
-                let mut parts = line.split('\t');
-                (
-                    parts.next().unwrap().trim().to_string(),
-                    parts.next().unwrap_or("").trim().to_string(),
-                )
-            })
-            .collect()
-    }
-
     /// Cases upstream's table still has from before a spec change that
     /// overturned them, as (input, the stale expectation). Matched on the
     /// expectation too, so a case runs again once upstream corrects it.
@@ -671,26 +805,19 @@ mod tests {
     /// consonants to `fusion_possible`, where `/` fuses them (`cnd/r/bindu/`
     /// in the same table relies on it), so it is now ক্স, not কসঁ; the table
     /// was last touched 2026-10-14.
-    const STALE_UPSTREAM: &[(&str, &str)] = &[("kso/", "কসঁ")];
+    ///
+    /// `........`: the touch table of 2026-10-20 expects a run of full stops
+    /// to lose one, as a run of commas does, but the touchscreen spec shipped
+    /// with it sets `overflow` only from `,,,`: no rule in it reads a dot
+    /// run, so every dot stays a dot.
+    const STALE_UPSTREAM: &[(&str, &str)] = &[("kso/", "কসঁ"), ("........", ".......")];
 
     fn assert_conforms(name: &str, text: &str, variant: Variant) {
-        let cases = cases(text);
-        assert!(cases.len() > 50, "no cases read from {FIXTURES}{name}");
-        let failures: Vec<String> = cases
-            .iter()
-            .filter(|(input, expected)| !STALE_UPSTREAM.contains(&(input.as_str(), expected.as_str())))
-            .filter_map(|(input, expected)| {
-                let actual = convert(input, variant);
-                (&actual != expected).then(|| format!("{input}: expected {expected}, got {actual}"))
-            })
-            .collect();
-        assert!(
-            failures.is_empty(),
-            "{} of {} cases differ:\n{}",
-            failures.len(),
-            cases.len(),
-            failures.join("\n")
-        );
+        let skip: Vec<(String, String)> =
+            STALE_UPSTREAM.iter().map(|(input, expected)| (input.to_string(), expected.to_string())).collect();
+        if let Err(why) = variant.spec().conforms(&parse_cases(text), &skip) {
+            panic!("{FIXTURES}{name}: {why}");
+        }
     }
 
     #[test]
@@ -790,6 +917,51 @@ mod tests {
     fn an_emoji_inside_a_word_is_one_character_to_the_cursor() {
         // Non-BMP input: written through as itself, and the method restarts.
         assert_eq!("আমি😀আমি", convert("ami😀ami", Variant::Touchscreen));
+    }
+
+    #[test]
+    fn a_spec_is_checked_against_its_own_table_before_it_is_trusted() {
+        let spec = include_str!("../data/khipro/bn-khipro-touchscreen.mim");
+        let table = include_str!("../data/khipro/tests/khipro-testcases-touch.tsv");
+        let skip = "input\texpected\n........\t.......\n";
+        assert!(check(spec, table, skip).unwrap() > 50);
+        // The stale case is a real difference, so without the skip it is refused.
+        assert!(check(spec, table, "").unwrap_err().contains("........"));
+        // The desktop table expects Bengali digits the touch spec leaves alone.
+        let desktop = include_str!("../data/khipro/tests/khipro-testcases.tsv");
+        assert!(check(spec, desktop, "").is_err());
+        // A table too short to vouch for anything.
+        assert!(check(spec, "input\texpected\nami\tআমি\n", "").is_err());
+        // Not a spec: an error page parses, but types nothing.
+        assert!(check("<html>404: Not Found</html>", table, "").is_err());
+        assert!(check("(map (unclosed", table, "").is_err());
+    }
+
+    #[test]
+    fn an_installed_spec_replaces_the_bundled_one_until_reset() {
+        // Dark desktop only, which no other test installs over, and the bundled
+        // text itself, so the conformance test reading the same variant
+        // meanwhile types the same whichever copy it meets.
+        let variant = Variant::DarkDesktop;
+        let bundled = include_str!("../data/khipro/bn-khipro-dark.mim");
+        assert!(!is_installed(variant));
+        assert!(install(variant, "<html>404</html>").is_err());
+        assert!(!is_installed(variant), "a refused spec leaves the bundled one in use");
+        let before = generation();
+        install(variant, bundled).unwrap();
+        assert!(is_installed(variant));
+        assert!(generation() > before);
+        assert_eq!("আমি", convert("ami", variant));
+        reset(variant);
+        assert!(!is_installed(variant));
+        assert_eq!("আমি", convert("ami", variant));
+    }
+
+    #[test]
+    fn the_bundled_revision_is_a_utc_time() {
+        let revision = bundled_revision();
+        assert_eq!(20, revision.len(), "{revision}");
+        assert!(revision.ends_with('Z') && revision.as_bytes()[10] == b'T', "{revision}");
     }
 
     #[test]

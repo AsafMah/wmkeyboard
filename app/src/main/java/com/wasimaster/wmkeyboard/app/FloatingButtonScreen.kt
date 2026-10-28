@@ -14,15 +14,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -31,28 +41,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.settings.DefaultFloatingMenu
+import com.wasimaster.wmkeyboard.core.settings.FLOATING_CATEGORY_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonIdleRange
+import com.wasimaster.wmkeyboard.core.settings.FloatingButtonShape
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonSizeRange
 import com.wasimaster.wmkeyboard.core.settings.FloatingButtonStyle
+import com.wasimaster.wmkeyboard.core.settings.FloatingCategory
+import com.wasimaster.wmkeyboard.core.settings.FloatingMenuAnimation
+import com.wasimaster.wmkeyboard.core.settings.FloatingMenuGapRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_FLOATING_MENU_ITEMS
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.categoryById
+import com.wasimaster.wmkeyboard.core.settings.categoryItems
+import com.wasimaster.wmkeyboard.core.settings.fitsCategory
 import com.wasimaster.wmkeyboard.core.settings.fitsMenu
 import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
+import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_LABEL_DP
@@ -61,6 +89,7 @@ import com.wasimaster.wmkeyboard.ime.floating.FloatingMenuItem
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionIcon
 import com.wasimaster.wmkeyboard.ime.floating.floatingActionLabel
 import com.wasimaster.wmkeyboard.ime.floating.floatingFan
+import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -94,6 +123,11 @@ internal fun FloatingButtonSettingsScreen(
         KeyboardControls.host?.syncSummonButton()
     }
     var picking by remember { mutableStateOf<FloatingPick?>(null) }
+    // The gesture or the menu an app picker answers for (#922), once "Open an app" is chosen.
+    var pickingApp by remember { mutableStateOf<FloatingPick?>(null) }
+    // The category whose page is open (#923), by id.
+    var editingCategory by remember { mutableStateOf<String?>(null) }
+    val newCategoryName = stringResource(R.string.floating_button_category_default_name)
     val defaults = SettingsDefaults.summonButton
     val percentFormat = stringResource(R.string.typing_value_percent)
     val dpFormat = stringResource(R.string.typing_value_dp)
@@ -141,12 +175,12 @@ internal fun FloatingButtonSettingsScreen(
                 picking = FloatingPick.TAP
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_double_tap_title, value = floatingActionLabel(button.doubleTap)) {
                 picking = FloatingPick.DOUBLE_TAP
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_hold_title, value = floatingActionLabel(button.hold)) {
                 picking = FloatingPick.HOLD
             }
@@ -159,6 +193,7 @@ internal fun FloatingButtonSettingsScreen(
     SettingsGroup(
         stringResource(R.string.floating_button_typing_group),
         info = stringResource(R.string.floating_button_typing_info),
+        level = SettingLevel.ADVANCED,
     ) {
         item(visible = button.whileTyping) {
             NavRow(
@@ -192,7 +227,9 @@ internal fun FloatingButtonSettingsScreen(
         item {
             FloatingMenuEditor(
                 items = button.menu,
+                categories = button.categories,
                 onChange = { scope.launch { repository.setFloatingButtonMenu(it) } },
+                onEditCategory = { editingCategory = it },
             )
         }
         item {
@@ -206,13 +243,31 @@ internal fun FloatingButtonSettingsScreen(
                 },
             ) { if (!full) picking = FloatingPick.MENU_ADD }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_menu_labels_title,
                 stringResource(R.string.floating_button_menu_labels_subtitle),
                 button.menuLabels,
                 default = defaults.menuLabels,
             ) { scope.launch { repository.setFloatingButtonMenuLabels(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.floating_button_menu_gap_title,
+                subtitle = stringResource(R.string.floating_button_menu_gap_subtitle),
+                value = button.menuGapDp.toFloat(),
+                range = FloatingMenuGapRange.first.toFloat()..FloatingMenuGapRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = defaults.menuGapDp.toFloat(),
+            ) { scope.launch { repository.setFloatingButtonMenuGap(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.floating_button_menu_animation_title,
+                options = FloatingMenuAnimation.entries.map { it to stringResource(animationLabel(it)) },
+                selected = button.menuAnimation,
+                default = defaults.menuAnimation,
+            ) { scope.launch { repository.setFloatingButtonMenuAnimation(it) } }
         }
         item(visible = button.menu != DefaultFloatingMenu) {
             NavRow(
@@ -223,13 +278,22 @@ internal fun FloatingButtonSettingsScreen(
     }
 
     SettingsGroup(stringResource(R.string.floating_button_look_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.floating_button_style_title,
                 options = FloatingButtonStyle.entries.map { it to stringResource(styleLabel(it)) },
                 selected = button.style,
                 default = defaults.style,
             ) { scope.launch { repository.setFloatingButtonStyle(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.floating_button_shape_title,
+                subtitle = stringResource(R.string.floating_button_shape_subtitle),
+                options = FloatingButtonShape.entries.map { it to stringResource(shapeLabel(it)) },
+                selected = button.shape,
+                default = defaults.shape,
+            ) { scope.launch { repository.setFloatingButtonShape(it) } }
         }
         item {
             SliderSetting(
@@ -251,7 +315,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.opacity,
             ) { scope.launch { repository.setFloatingButtonOpacity(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val never = stringResource(R.string.floating_button_idle_never)
             val seconds = stringResource(R.string.floating_button_idle_seconds)
             SliderSetting(
@@ -264,7 +328,7 @@ internal fun FloatingButtonSettingsScreen(
                 typed = false,
             ) { scope.launch { repository.setFloatingButtonIdleFade(it.roundToInt()) } }
         }
-        item(visible = button.idleFadeSeconds > 0) {
+        item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.floating_button_idle_opacity_title,
                 subtitle = stringResource(R.string.floating_button_idle_opacity_subtitle),
@@ -274,7 +338,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.idleOpacity,
             ) { scope.launch { repository.setFloatingButtonIdleOpacity(it) } }
         }
-        item(visible = button.idleFadeSeconds > 0) {
+        item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_tuck_title,
                 stringResource(R.string.floating_button_tuck_subtitle),
@@ -285,7 +349,7 @@ internal fun FloatingButtonSettingsScreen(
     }
 
     SettingsGroup(stringResource(R.string.floating_button_behaviour_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_while_typing_title,
                 stringResource(R.string.floating_button_while_typing_subtitle),
@@ -293,7 +357,15 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.whileTyping,
             ) { scope.launch { repository.setFloatingButtonWhileTyping(it) } }
         }
-        item {
+        item(visible = button.whileTyping, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.floating_button_over_keyboard_title,
+                stringResource(R.string.floating_button_over_keyboard_subtitle),
+                button.overKeyboard,
+                default = defaults.overKeyboard,
+            ) { scope.launch { repository.setFloatingButtonOverKeyboard(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_landscape_title,
                 stringResource(R.string.floating_button_landscape_subtitle),
@@ -301,7 +373,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.hideInLandscape,
             ) { scope.launch { repository.setFloatingButtonHideInLandscape(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_haptics_title,
                 stringResource(R.string.floating_button_haptics_subtitle),
@@ -314,6 +386,22 @@ internal fun FloatingButtonSettingsScreen(
                 R.string.floating_button_reset_position_title,
                 subtitle = stringResource(R.string.floating_button_reset_position_subtitle),
             ) { scope.launch { repository.resetSummonButtonPosition() } }
+        }
+    }
+
+    /** What a pick answers: the gesture's binding, or a slot added to the menu. */
+    fun answer(pick: FloatingPick, action: FloatingAction?) {
+        scope.launch {
+            // Only the keyboard-up gestures offer "Same as", the one null.
+            when {
+                pick == FloatingPick.TAP_TYPING -> repository.setFloatingButtonTapTyping(action)
+                pick == FloatingPick.DOUBLE_TAP_TYPING -> repository.setFloatingButtonDoubleTapTyping(action)
+                action == null -> Unit
+                pick == FloatingPick.TAP -> repository.setFloatingButtonTap(action)
+                pick == FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
+                pick == FloatingPick.HOLD -> repository.setFloatingButtonHold(action)
+                else -> repository.setFloatingButtonMenu(button.menu + action)
+            }
         }
     }
 
@@ -350,21 +438,55 @@ internal fun FloatingButtonSettingsScreen(
             forMenu = pick == FloatingPick.MENU_ADD,
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = done,
+            onPickApp = {
+                done()
+                pickingApp = pick
+            },
+            onNewCategory = if (pick == FloatingPick.MENU_ADD) {
+                {
+                    done()
+                    scope.launch { editingCategory = repository.addFloatingButtonCategory(newCategoryName) }
+                }
+            } else {
+                null
+            },
             onPick = { action ->
                 done()
-                scope.launch {
-                    // Only the keyboard-up gestures offer "Same as", the one null.
-                    when {
-                        pick == FloatingPick.TAP_TYPING -> repository.setFloatingButtonTapTyping(action)
-                        pick == FloatingPick.DOUBLE_TAP_TYPING -> repository.setFloatingButtonDoubleTapTyping(action)
-                        action == null -> Unit
-                        pick == FloatingPick.TAP -> repository.setFloatingButtonTap(action)
-                        pick == FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
-                        pick == FloatingPick.HOLD -> repository.setFloatingButtonHold(action)
-                        else -> repository.setFloatingButtonMenu(button.menu + action)
-                    }
-                }
+                answer(pick, action)
             },
+        )
+    }
+
+    pickingApp?.let { pick ->
+        FloatingAppPicker(
+            current = when (pick) {
+                FloatingPick.TAP -> button.tap
+                FloatingPick.DOUBLE_TAP -> button.doubleTap
+                FloatingPick.HOLD -> button.hold
+                FloatingPick.TAP_TYPING -> button.tapTyping
+                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
+                FloatingPick.MENU_ADD -> null
+            },
+            already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
+            onDismiss = { pickingApp = null },
+            onPick = { app ->
+                pickingApp = null
+                answer(pick, app)
+            },
+        )
+    }
+
+    editingCategory?.let { id ->
+        // Null for the moment between a new category's write and its reading back.
+        val category = button.categories.categoryById(id) ?: return@let
+        FloatingCategoryPage(
+            category = category,
+            onChange = { scope.launch { repository.setFloatingButtonCategory(it) } },
+            onRemove = {
+                editingCategory = null
+                scope.launch { repository.setFloatingButtonMenu(button.menu - FloatingAction.Category(id)) }
+            },
+            onDismiss = { editingCategory = null },
         )
     }
 }
@@ -374,6 +496,27 @@ private fun styleLabel(style: FloatingButtonStyle): Int = when (style) {
     FloatingButtonStyle.DARK -> R.string.floating_button_style_dark
     FloatingButtonStyle.LIGHT -> R.string.floating_button_style_light
     FloatingButtonStyle.ACCENT -> R.string.floating_button_style_accent
+}
+
+private fun shapeLabel(shape: FloatingButtonShape): Int = when (shape) {
+    FloatingButtonShape.CIRCLE -> R.string.floating_button_shape_circle
+    FloatingButtonShape.SQUIRCLE -> R.string.floating_button_shape_squircle
+    FloatingButtonShape.ROUNDED_SQUARE -> R.string.floating_button_shape_rounded_square
+    FloatingButtonShape.OVAL -> R.string.floating_button_shape_oval
+    FloatingButtonShape.DIAMOND -> R.string.floating_button_shape_diamond
+    FloatingButtonShape.PENTAGON -> R.string.floating_button_shape_pentagon
+    FloatingButtonShape.HEXAGON -> R.string.floating_button_shape_hexagon
+    FloatingButtonShape.OCTAGON -> R.string.floating_button_shape_octagon
+    FloatingButtonShape.STAR -> R.string.floating_button_shape_star
+    FloatingButtonShape.HEART -> R.string.floating_button_shape_heart
+}
+
+private fun animationLabel(animation: FloatingMenuAnimation): Int = when (animation) {
+    FloatingMenuAnimation.SPRING -> R.string.floating_button_menu_animation_spring
+    FloatingMenuAnimation.POP -> R.string.floating_button_menu_animation_pop
+    FloatingMenuAnimation.SWEEP -> R.string.floating_button_menu_animation_sweep
+    FloatingMenuAnimation.FADE -> R.string.floating_button_menu_animation_fade
+    FloatingMenuAnimation.NONE -> R.string.floating_button_menu_animation_none
 }
 
 /**
@@ -418,14 +561,14 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                 if (onLeft) edge + half else widthPx - edge - half,
                 heightPx * 0.55f,
             )
-            val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc) {
+            val centers = remember(slots.size, widthPx, heightPx, anchor, button.menuLabels, disc, button.menuGapDp) {
                 with(density) {
                     floatingFan(
                         count = slots.size,
                         anchor = anchor,
                         width = widthPx,
                         height = heightPx,
-                        radius = (disc.dp / 2 + 22.dp + (FLOATING_MENU_ITEM_DP.dp / 2)).toPx(),
+                        radius = (disc.dp / 2 + button.menuGapDp.dp + (FLOATING_MENU_ITEM_DP.dp / 2)).toPx(),
                         spacing = (if (button.menuLabels) 86.dp else 64.dp).toPx(),
                         margin = (FLOATING_MENU_ITEM_DP.dp / 2 + 8.dp + if (button.menuLabels) 18.dp else 0.dp).toPx(),
                     )
@@ -437,8 +580,10 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
                 val center = centers.getOrNull(i) ?: return@forEachIndexed
                 FloatingMenuItem(
                     icon = floatingActionIcon(action),
-                    label = floatingActionLabel(action),
+                    image = rememberFloatingAppIcon((action as? FloatingAction.App)?.packageName, FLOATING_MENU_ITEM_DP),
+                    label = floatingActionLabel(action, categories = button.categories),
                     style = button.style,
+                    shape = button.shape,
                     showLabel = button.menuLabels,
                     hovered = i == 0,
                     modifier = Modifier.offset {
@@ -448,7 +593,9 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
             }
             FloatingButtonFace(
                 icon = floatingActionIcon(button.tap),
+                image = rememberFloatingAppIcon((button.tap as? FloatingAction.App)?.packageName, disc),
                 style = button.style,
+                shape = button.shape,
                 sizeDp = disc,
                 modifier = Modifier
                     .offset { IntOffset((anchor.x - half).roundToInt(), (anchor.y - half).roundToInt()) }
@@ -460,8 +607,8 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
             if (button.enabled) {
                 stringResource(
                     R.string.floating_button_preview_caption,
-                    floatingActionLabel(button.tap),
-                    floatingActionLabel(button.hold),
+                    floatingActionLabel(button.tap, categories = button.categories),
+                    floatingActionLabel(button.hold, categories = button.categories),
                 )
             } else {
                 stringResource(R.string.floating_button_preview_off)
@@ -474,19 +621,29 @@ private fun FloatingButtonPreview(button: SummonButtonSettings) {
     }
 }
 
-/** The quick menu's slots, to reorder by their handles and remove by their bins. */
+/**
+ * The quick menu's slots, or a category's, to reorder by their handles and
+ * remove by their bins. A category's slot has a pencil that opens its page
+ * (#923); an app's shows the app's own icon (#922).
+ */
 @Composable
-private fun FloatingMenuEditor(items: List<FloatingAction>, onChange: (List<FloatingAction>) -> Unit) {
+private fun FloatingMenuEditor(
+    items: List<FloatingAction>,
+    categories: List<FloatingCategory>,
+    onChange: (List<FloatingAction>) -> Unit,
+    onEditCategory: ((String) -> Unit)? = null,
+    @StringRes empty: Int = R.string.floating_button_menu_empty,
+) {
     if (items.isEmpty()) {
         Text(
-            stringResource(R.string.floating_button_menu_empty),
+            stringResource(empty),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
         )
         return
     }
-    val names = items.associateWith { floatingActionLabel(it) }
+    val names = items.associateWith { floatingActionLabel(it, categories = categories) }
     ReorderableColumn(
         items = items,
         label = { names[it].orEmpty() },
@@ -494,23 +651,206 @@ private fun FloatingMenuEditor(items: List<FloatingAction>, onChange: (List<Floa
         onDelete = { gone -> onChange(items - gone) },
         keepLast = false,
     ) { action ->
+        FloatingActionGlyph(action, Modifier.size(22.dp))
+        Spacer(Modifier.width(14.dp))
+        Text(names[action].orEmpty(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        val category = (action as? FloatingAction.Category)?.let { categories.categoryById(it.id) }
+        if (category != null && onEditCategory != null) {
+            IconButton(onClick = { onEditCategory(category.id) }) {
+                Icon(
+                    Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.floating_button_category_edit, names[action].orEmpty()),
+                )
+            }
+        }
+    }
+}
+
+/** An action's glyph in a list: an app's own icon (#922), else the glyph the button draws. */
+@Composable
+private fun FloatingActionGlyph(action: FloatingAction, modifier: Modifier = Modifier) {
+    val app = rememberFloatingAppIcon((action as? FloatingAction.App)?.packageName, 24)
+    if (app != null) {
+        androidx.compose.foundation.Image(app, contentDescription = null, modifier = modifier)
+    } else {
         Icon(
             floatingActionIcon(action),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(22.dp),
+            modifier = modifier,
         )
-        Spacer(Modifier.width(14.dp))
-        Text(names[action].orEmpty(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
     }
+}
+
+/**
+ * A category's page (#923): its name, its actions in the order its ring
+ * fans them out, and a way to add more, up to [MAX_FLOATING_MENU_ITEMS].
+ * Every change is written as it is made.
+ */
+@Composable
+private fun FloatingCategoryPage(
+    category: FloatingCategory,
+    onChange: (FloatingCategory) -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember(category.id) { mutableStateOf(category.name) }
+    var adding by remember { mutableStateOf(false) }
+    var addingApp by remember { mutableStateOf(false) }
+    val fallback = stringResource(R.string.floating_button_category_default_name)
+    fun commitName() {
+        val kept = name.trim().ifEmpty { fallback }
+        if (kept != category.name) onChange(category.copy(name = kept))
+    }
+    fun add(action: FloatingAction) = onChange(category.copy(items = categoryItems(category.items + action)))
+    val close = {
+        commitName()
+        onDismiss()
+    }
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.fillMaxSize().imePadding()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = close) {
+                        Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_close))
+                    }
+                    Text(
+                        name.ifBlank { fallback },
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = close) { Text(stringResource(R.string.floating_button_category_done)) }
+                }
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it.replace('\n', ' ').take(FLOATING_CATEGORY_NAME_MAX) },
+                        label = { Text(stringResource(R.string.floating_button_category_name_label)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                    Text(
+                        stringResource(R.string.floating_button_category_count, category.items.size, MAX_FLOATING_MENU_ITEMS),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    )
+                    FloatingMenuEditor(
+                        items = category.items,
+                        categories = emptyList(),
+                        onChange = { onChange(category.copy(items = categoryItems(it))) },
+                        empty = R.string.floating_button_category_empty,
+                    )
+                    val full = category.items.size >= MAX_FLOATING_MENU_ITEMS
+                    NavRow(
+                        R.string.floating_button_category_add_title,
+                        subtitle = if (full) {
+                            stringResource(R.string.floating_button_menu_full_subtitle)
+                        } else {
+                            stringResource(R.string.floating_button_menu_add_subtitle, MAX_FLOATING_MENU_ITEMS)
+                        },
+                    ) { if (!full) adding = true }
+                    NavRow(
+                        R.string.floating_button_category_remove_title,
+                        subtitle = stringResource(R.string.floating_button_category_remove_subtitle),
+                        icon = Icons.Outlined.Delete,
+                    ) { onRemove() }
+                }
+            }
+        }
+    }
+    if (adding) {
+        FloatingActionPicker(
+            title = stringResource(R.string.floating_button_category_add_pick_title, name.ifBlank { fallback }),
+            current = null,
+            forMenu = true,
+            forCategory = true,
+            already = category.items.toSet(),
+            onDismiss = { adding = false },
+            onPickApp = {
+                adding = false
+                addingApp = true
+            },
+            onPick = { action ->
+                adding = false
+                if (action != null) add(action)
+            },
+        )
+    }
+    if (addingApp) {
+        FloatingAppPicker(
+            current = null,
+            already = category.items.toSet(),
+            onDismiss = { addingApp = false },
+            onPick = { app ->
+                addingApp = false
+                add(app)
+            },
+        )
+    }
+}
+
+/**
+ * Picks the app an action opens (#922): every app with a launcher entry,
+ * the list the app launcher tool shows, searchable by name or package.
+ */
+@Composable
+private fun FloatingAppPicker(
+    current: FloatingAction?,
+    already: Set<FloatingAction>,
+    onDismiss: () -> Unit,
+    onPick: (FloatingAction.App) -> Unit,
+) {
+    val context = LocalContext.current
+    val apps by produceState<List<com.wasimaster.wmkeyboard.ime.LauncherApp>?>(null, context) {
+        value = AppCatalog.loadApps(context.packageManager).filter { it.packageName != context.packageName }
+    }
+    val loaded = apps ?: return
+    val rows = loaded.map { FloatingAction.App(it.packageName) to it }
+        .filter { (action, _) -> action !in already }
+        .map { (action, app) ->
+            PickerRow(
+                key = app.packageName,
+                title = app.label,
+                subtitle = app.packageName,
+                selected = current == action,
+                leading = { FloatingActionGlyph(action, Modifier.size(32.dp)) },
+                onPick = { onPick(action) },
+            )
+        }
+    ActionPickerPage(
+        memoryKey = "floating-app",
+        title = stringResource(R.string.floating_button_app_picker_title),
+        groups = if (rows.isEmpty()) {
+            listOf(
+                PickerGroup(
+                    "empty",
+                    null,
+                    listOf(PickerRow("empty", stringResource(R.string.floating_button_app_picker_empty), onPick = onDismiss)),
+                ),
+            )
+        } else {
+            listOf(PickerGroup("apps", stringResource(R.string.floating_button_app_picker_group), rows))
+        },
+        onDismiss = onDismiss,
+    )
 }
 
 /**
  * Picks what a gesture does, or what the quick menu gains: the button's own
  * actions first, then every tool, grouped as the Tools screen groups them.
  * [forMenu] leaves out what a menu slot cannot be ([fitsMenu]) and what the
- * menu [already] holds. With [sameAs], a keyboard-up gesture's picker (#626),
- * the first row hands the gesture back to the one it names, as null.
+ * menu [already] holds; [forCategory], what a category's cannot ([fitsCategory]).
+ * With [sameAs], a keyboard-up gesture's picker (#626), the first row hands
+ * the gesture back to the one it names, as null.
+ *
+ * Two rows open something else instead of answering: "Open an app" hands
+ * over to [onPickApp] (#922), and with [onNewCategory] "New category" makes
+ * one (#923).
  */
 @Composable
 private fun FloatingActionPicker(
@@ -520,10 +860,14 @@ private fun FloatingActionPicker(
     already: Set<FloatingAction>,
     onDismiss: () -> Unit,
     onPick: (FloatingAction?) -> Unit,
+    onPickApp: () -> Unit,
     @StringRes sameAs: Int? = null,
     keyboardUp: Boolean = false,
+    forCategory: Boolean = false,
+    onNewCategory: (() -> Unit)? = null,
 ) {
-    fun offered(action: FloatingAction) = (!forMenu || action.fitsMenu()) && action !in already
+    fun offered(action: FloatingAction) =
+        (!forMenu || action.fitsMenu()) && (!forCategory || action.fitsCategory()) && action !in already
     val own = listOf(
         FloatingAction.Keyboard to R.string.floating_button_pick_keyboard_subtitle,
         FloatingAction.AskAi to R.string.floating_button_pick_ai_subtitle,
@@ -543,6 +887,25 @@ private fun FloatingActionPicker(
             onPick = { onPick(null) },
         )
     }
+    val appRow = PickerRow(
+        key = "app",
+        title = stringResource(R.string.floating_button_pick_app),
+        // Bound to one already, the row says which.
+        subtitle = (current as? FloatingAction.App)?.let { floatingActionLabel(it) }
+            ?: stringResource(R.string.floating_button_pick_app_subtitle),
+        selected = current is FloatingAction.App,
+        leading = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
+        onPick = onPickApp,
+    )
+    val categoryRow = onNewCategory?.let { make ->
+        PickerRow(
+            key = "category",
+            title = stringResource(R.string.floating_button_pick_category_new),
+            subtitle = stringResource(R.string.floating_button_pick_category_new_subtitle),
+            leading = { Icon(Icons.Outlined.Folder, contentDescription = null) },
+            onPick = make,
+        )
+    }
     val ownRows = listOfNotNull(sameRow) + own.map { (action, subtitle) ->
         PickerRow(
             key = action.token,
@@ -552,9 +915,10 @@ private fun FloatingActionPicker(
             leading = { Icon(floatingActionIcon(action), contentDescription = null) },
             onPick = { onPick(action) },
         )
-    }
+    } + listOfNotNull(appRow, categoryRow)
     val supported = ToolbarTool.entries.filter { isSupportedTool(it) && offered(FloatingAction.Tool(it)) }.toSet()
-    val grouped = ToolGroups.map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }
+    val grouped = ToolGroups.withExtensions(LocalExtensions.current)
+        .map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }
     val placed = grouped.flatMapTo(HashSet()) { it.second }
     val leftovers = supported.filter { it !in placed }
     @Composable
@@ -579,7 +943,11 @@ private fun FloatingActionPicker(
         }
     }
     ActionPickerPage(
-        memoryKey = if (forMenu) "floating-menu" else "floating-gesture",
+        memoryKey = when {
+            forCategory -> "floating-category"
+            forMenu -> "floating-menu"
+            else -> "floating-gesture"
+        },
         title = title,
         groups = groups,
         onDismiss = onDismiss,

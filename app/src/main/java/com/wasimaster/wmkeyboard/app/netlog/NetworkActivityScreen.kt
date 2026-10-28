@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.netlog
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import android.content.Intent
@@ -927,12 +928,7 @@ private suspend fun export(context: Context, rows: List<NetEntry>, looks: Map<Ne
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching {
-        context.startActivity(
-            Intent.createChooser(intent, context.getString(R.string.netlog_export_chooser))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
+    AppShareSheet.start(context, intent, context.getString(R.string.netlog_export_chooser))
 }
 
 internal fun csv(rows: List<NetEntry>, looks: Map<NetSource, NetSourceLook>, context: Context): String = buildString {

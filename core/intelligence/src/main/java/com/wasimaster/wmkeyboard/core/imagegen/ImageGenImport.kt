@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.imagegen
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import java.io.File
 import java.io.InputStream
 import java.security.MessageDigest
@@ -17,11 +18,31 @@ import org.json.JSONObject
  * process: each network must load and declare the tensors the generator
  * feeds it, in the shapes `wmimage.json` promises. Nothing is converted on
  * the phone.
+ *
+ * A Qualcomm AI Hub build comes the same way, as the zip it was downloaded
+ * as or its files picked together: its three context binaries and
+ * `metadata.json`, plus the CLIP tokenizer it does not ship. It carries no
+ * `wmimage.json` — its schedule is the catalog's own — so it is recognised
+ * by [NPU] before the MNN names, checked only as far as this phone's chip,
+ * and left to the NPU to refuse a build compiled for another one. This is
+ * the offline build's way to the NPU model, whose catalog download needs
+ * the network it does not have.
  */
 object ImageGenImport {
 
     /** The files a bundle needs, by the end of their names. */
     val REQUIRED = listOf("text_encoder.mnn", "unet.mnn", "vae_decoder.mnn", "merges.txt", "wmimage.json")
+
+    /** A Qualcomm build's own files, by the end of their names. */
+    val NPU = listOf(
+        ImageGenModels.NPU_TEXT,
+        ImageGenModels.NPU_UNET,
+        ImageGenModels.NPU_VAE,
+        ImageGenModels.NPU_METADATA,
+    )
+
+    /** Every name an import keeps: an MNN bundle's or a Qualcomm build's. */
+    private val ACCEPTED = REQUIRED + NPU
 
     data class Imported(val id: String, val name: String, val bytes: Long)
 
@@ -41,8 +62,14 @@ object ImageGenImport {
         ImageGenModels.importedRoot(context.noBackupFilesDir).listFiles().orEmpty()
             .filter { it.isDirectory && !it.name.endsWith(".part") }
             .mapNotNull { dir ->
-                val json = MnnBackend.find(dir, "wmimage.json")?.readText() ?: return@mapNotNull null
-                val spec = ModelSpec.parse(dir.name, json) ?: return@mapNotNull null
+                // A Qualcomm build has no wmimage.json of its own: it runs on
+                // the catalog's schedule, so only its name has to be read back.
+                val spec = if (File(dir, ImageGenModels.NPU_UNET).isFile) {
+                    ImageGenModels.npuSpec(dir.name)
+                } else {
+                    val json = MnnBackend.find(dir, "wmimage.json")?.readText() ?: return@mapNotNull null
+                    ModelSpec.parse(dir.name, json) ?: return@mapNotNull null
+                }
                 Imported(dir.name, spec.name, dir.walkTopDown().filter { it.isFile }.sumOf { it.length() })
             }
             .sortedBy { it.name.lowercase() }
@@ -63,10 +90,13 @@ object ImageGenImport {
                 resolver.openInputStream(uris.single())?.use { unzip(it, staging) } ?: return Result.Failed("could not read the file")
             } else {
                 for ((uri, name) in uris.zip(names)) {
-                    if (REQUIRED.none { name.endsWith(it) }) continue
+                    if (ACCEPTED.none { name.endsWith(it) }) continue
                     resolver.openInputStream(uri)?.use { input -> File(staging, name).outputStream().use { input.copyTo(it) } }
                 }
             }
+            // A Qualcomm build carries no wmimage.json, so it is told apart
+            // from an MNN bundle by its UNet — the one file no MNN bundle has.
+            if (MnnBackend.find(staging, ImageGenModels.NPU_UNET) != null) return importNpu(context, staging, root)
             val missing = REQUIRED.filter { suffix -> MnnBackend.find(staging, suffix) == null }
             if (missing.isNotEmpty()) return Result.Missing(missing)
             val json = MnnBackend.find(staging, "wmimage.json")!!.readText()
@@ -77,7 +107,7 @@ object ImageGenImport {
             val target = File(root, id)
             target.deleteRecursively()
             if (!staging.renameTo(target)) return Result.Failed("could not move the model into place")
-            ImageGenDownloads.ensureSafety(context)
+            ensureSafety(context)
             return Result.Ok(Imported(id, spec.name, target.walkTopDown().filter { it.isFile }.sumOf { it.length() }))
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             return Result.Failed(e.message ?: e.javaClass.simpleName)
@@ -85,6 +115,64 @@ object ImageGenImport {
             staging.deleteRecursively()
         }
     }
+
+    /**
+     * A Qualcomm AI Hub build brought by hand: its three context binaries and
+     * `metadata.json`, plus the CLIP tokenizer the zip does not carry. It is
+     * kept as an imported model and run on this phone's NPU.
+     *
+     * There is nothing here to [ImageGen.verify]: a QNN context binary has no
+     * tensors to read without loading it, and loading one is the first
+     * picture's own business, exactly as it is for the catalog's download.
+     */
+    private suspend fun importNpu(context: Context, staging: File, root: File): Result {
+        val missing = (NPU + "merges.txt").filter { MnnBackend.find(staging, it) == null }
+        if (missing.isNotEmpty()) return Result.Missing(missing)
+        val soc = NpuSupport.soc ?: return Result.Invalid("this phone has no supported NPU")
+        val metadata = MnnBackend.find(staging, ImageGenModels.NPU_METADATA)!!.readText()
+        wrongSoc(metadata, soc)?.let { return Result.Invalid("that build is for $it, this phone's chip is $soc") }
+        val name = ImageGenModels.Catalog.SD15_NPU.displayName
+        val id = idFor(name, MnnBackend.find(staging, ImageGenModels.NPU_UNET)!!)
+        val target = File(root, id)
+        target.deleteRecursively()
+        if (!staging.renameTo(target)) return Result.Failed("could not move the model into place")
+        ensureSafety(context)
+        return Result.Ok(Imported(id, name, target.walkTopDown().filter { it.isFile }.sumOf { it.length() }))
+    }
+
+    /**
+     * The chip a Qualcomm build's own `metadata.json` names, when it names one
+     * this app knows and it is not [soc]; null when the file says nothing
+     * readable (or agrees), so the build is taken at its word and the NPU
+     * refuses a wrong one when it loads.
+     */
+    private fun wrongSoc(metadata: String, soc: String): String? {
+        val upper = metadata.uppercase()
+        val named = CHIPS.entries.firstOrNull { (token, _) -> token in upper }?.value ?: return null
+        return named.takeIf { it != soc }
+    }
+
+    /**
+     * The picture filter is fetched over the network. A build with no internet
+     * (the offline build) or a download that fails still has a working model
+     * without it, so this is never what turns an import away.
+     */
+    private suspend fun ensureSafety(context: Context) {
+        runCatching { ImageGenDownloads.ensureSafety(context) }
+    }
+
+    /**
+     * A chip token Qualcomm's own metadata may name, to the catalog's SoC id.
+     * Ordered: the 8 Elite Gen 5's name contains the plain 8 Elite's.
+     */
+    private val CHIPS = linkedMapOf(
+        "SM8650" to "SM8650",
+        "SM8750" to "SM8750",
+        "SM8850" to "SM8850",
+        "SNAPDRAGON_8GEN3" to "SM8650",
+        "SNAPDRAGON_8_ELITE_GEN5" to "SM8850",
+        "SNAPDRAGON_8_ELITE" to "SM8750",
+    )
 
     /**
      * Checks a bundle's three networks against [spec]; null when they fit,
@@ -142,7 +230,7 @@ object ImageGenImport {
             while (true) {
                 val entry = zip.nextEntry ?: break
                 val name = entry.name.substringAfterLast('/')
-                if (entry.isDirectory || REQUIRED.none { name.endsWith(it) }) continue
+                if (entry.isDirectory || ACCEPTED.none { name.endsWith(it) }) continue
                 File(into, name).outputStream().use { zip.copyTo(it) }
             }
         }

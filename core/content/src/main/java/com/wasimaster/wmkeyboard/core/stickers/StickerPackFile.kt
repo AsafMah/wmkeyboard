@@ -214,6 +214,8 @@ object StickerPackFile {
     /**
      * Reads a pack out of [input] and registers it with [store] under a fresh
      * id, so importing the same file twice can never collide with itself.
+     * Every sticker in it is kept: this is [stage] with nobody to ask, for the
+     * add-on store and for tests.
      *
      * [defaultName] names a pack whose own file gives no name. The caller
      * passes it because the import runs off the main thread with no context of
@@ -232,44 +234,73 @@ object StickerPackFile {
         normalize: (ByteArray) -> ProcessedSticker? = { bytes ->
             (StickerImage.process(bytes) as? StickerImage.Result.Ok)?.sticker
         },
-    ): StickerImportResult {
-        val staging = store.stagingDir() ?: return StickerImportResult.Failed
+    ): StickerImportResult = when (val staged = stage(input, store, defaultName, now)) {
+        is StickerStageResult.Ready -> staged.pack.adopt(store, staged.pack.everything(), now, normalize)
+        is StickerStageResult.Done -> staged.result
+    }
+
+    /**
+     * Reads a pack out of [input] as far as its pictures, for the user to pick
+     * from before anything is converted (#965). Blocking.
+     *
+     * A file that is not a pack, or one whose manifest names no picture the
+     * archive holds, comes back [StickerStageResult.Done] with the result an
+     * import would have had; there is nothing to pick from.
+     */
+    fun stage(
+        input: InputStream,
+        store: StickerPackStore,
+        defaultName: String,
+        now: Long = System.currentTimeMillis(),
+    ): StickerStageResult {
+        val staging = store.stagingDir() ?: return StickerStageResult.Done(StickerImportResult.Failed)
+        // Handed to the staged pack on success, which deletes it then; any
+        // other way out deletes it here.
+        var handedOver = false
         try {
             val unpacked = StickerArchive.unpack(input, staging, texts = setOf(MANIFEST))
             val manifestText = unpacked.texts[MANIFEST]
-            if (!unpacked.read && manifestText == null) return StickerImportResult.Failed
+            if (!unpacked.read && manifestText == null) return StickerStageResult.Done(StickerImportResult.Failed)
             val staged = unpacked.files
 
             val envelope = manifestText
                 ?.let { runCatching { json.decodeFromString<ReadEnvelope>(it) }.getOrNull() }
-                ?: return StickerImportResult.NotAStickerPack
-            if (envelope.format != FORMAT) return StickerImportResult.NotAStickerPack
+                ?: return StickerStageResult.Done(StickerImportResult.NotAStickerPack)
+            if (envelope.format != FORMAT) return StickerStageResult.Done(StickerImportResult.NotAStickerPack)
 
-            val incoming = envelope.declared.map { declared ->
+            val stickers = envelope.declared.map { declared ->
                 val source = declared.source
-                StickerPackAdoption.Incoming(
-                    label = declared.label(),
-                    name = declared.name,
-                    emojis = (declared.emojis + declared.keywords).distinct(),
-                    addedAt = declared.addedAt,
-                    problem = if (source.isEmpty()) {
-                        ContentText(R.string.core_content_sticker_repair_no_image_named)
-                    } else {
-                        null
-                    },
-                    read = { staged.lookUp(source)?.readBytes() },
+                val file = if (source.isEmpty()) null else staged.lookUp(source)
+                StagedStickerPack.Sticker(
+                    incoming = StickerPackAdoption.Incoming(
+                        label = declared.label(),
+                        name = declared.name,
+                        emojis = (declared.emojis + declared.keywords).distinct(),
+                        addedAt = declared.addedAt,
+                        problem = if (source.isEmpty()) {
+                            ContentText(R.string.core_content_sticker_repair_no_image_named)
+                        } else {
+                            null
+                        },
+                        read = { file?.readBytes() },
+                    ),
+                    file = file,
                 )
             }
-            return StickerPackAdoption.adopt(
-                store = store,
+            val pack = StagedStickerPack(
                 name = envelope.pack.name.trim().ifBlank { defaultName },
-                incoming = incoming,
-                now = now,
+                author = "",
                 source = envelope.pack.source.trim().take(StickerPack.MAX_SOURCE_LENGTH),
-                normalize = normalize,
+                stickers = stickers,
+                staging = staging,
             )
+            handedOver = true
+            // Nothing to show means nothing to ask: the adoption's report
+            // says why every sticker was dropped.
+            if (pack.pickable.isEmpty()) return StickerStageResult.Done(pack.adopt(store, emptySet(), now))
+            return StickerStageResult.Ready(pack)
         } finally {
-            staging.deleteRecursively()
+            if (!handedOver) staging.deleteRecursively()
         }
     }
 

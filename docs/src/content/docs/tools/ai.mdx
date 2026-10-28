@@ -428,6 +428,24 @@ Nothing goes to a server until the model calls one of its tools, or you press Co
 - **Every tool costs prompt space.** The name, description and input format of each tool that isn't **Off** go with every request, so 30 tools can cost more than the text you asked about. The server list warns you past 20. Turn off the tools you don't need.
 - **Text only.** Images, audio and links a tool sends back aren't shown to the model. It is told that something was there.
 
+## Suggestions in the strip
+
+<SettingsPath path="Tools / AI writing tools" />
+
+Off by default. Turn on **AI suggestions** and the provider you set up here offers one short continuation of what you're typing, as a chip in front of the word suggestions. The chip carries a sparkle and an accent outline, so it never passes for a dictionary word. The word suggestions stay where they are, and a [smart chip](/smart/chips/) still wins the strip when one comes up.
+
+A request goes only after a word ends (a space or a punctuation mark) and you stop typing for about 0.6 seconds. Any key you press cancels it. The answer has 1.5 seconds to arrive; after that the chip doesn't appear and nothing tells you, since a late suggestion is for text you've already moved past. The chip shows an answer only if it is one line of at most 48 characters that doesn't just repeat your text.
+
+Tap the chip to insert the continuation after your text, with a space in front where one is missing. Hold it to hide AI suggestions until you move to a different field.
+
+What each request carries:
+
+- **Text to send**: the last 120 characters before the cursor by default, cut forward to a whole word. The slider goes from 40 to 500.
+- **Send only the last word**: sends that word and nothing else. Less goes out, and the suggestions get worse.
+- A short system prompt asking for a continuation in the same language, with no explanation and no quotes.
+
+No request is made at all in a password field, in a field that turns suggestions off, in [incognito](/privacy/incognito/), when no provider is set up, or while [Data saver](/privacy/data-saver/) holds cloud AI back. With an **On-device** model the text stays on the phone. A phone model can't be stopped part way, so no new request starts while one is still running, or while the AI panel is using the model. The first request also has to load the model, which can take longer than the 1.5 seconds.
+
 ## Chatting instead of transforming
 
 <SettingsPath path="Tools / AI writing tools / Chat with the model" />
@@ -436,7 +454,7 @@ The panel's actions all do the same shape of thing: take the text in a field, ha
 
 The same chats open full-screen in the settings app, at the path above or from a launcher shortcut of their own. Both places share one list of saved conversations. See [AI chat](/tools/ai-chat/).
 
-Two more ways in work from any app. The [floating button](/reference/settings/floating-button/#asking-the-ai-about-the-screen), set to **Ask AI about this screen**, opens a chat as a sheet over the screen you're on, with that screen's text attached when screen reading is on. **Ask AI** in the text selection menu opens the same sheet with the selected text; **Ask AI in the selection menu** below takes it out of that menu.
+Two more ways in work from any app. The [floating button](/reference/settings/floating-button/#asking-the-ai-about-the-screen), set to **Ask AI about this screen**, opens a chat as a sheet over the screen you're on, with that screen's text attached when screen reading is on. **Ask AI** in the text selection menu opens the same sheet with the selected text; **Ask AI in the selection menu** below takes it out of that menu. **WM Keyboard** in the same menu runs your actions on the selected text directly (Explain, Summarize, Shorter and the rest) and can put the answer in place of the selection; see [In any app's selection menu](/smart/selection-actions/#in-any-apps-selection-menu).
 
 ## Memory
 
@@ -478,6 +496,7 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 - **Show model reasoning**: off by default. Turning it on streams a reasoning model's raw `<think>` passages instead of the step-by-step progress readout. It's for the panel's actions only: the [AI chat](/tools/ai-chat/#reasoning-and-tool-calls) always keeps reasoning in a folded step over the answer.
 - **Model picker on the panel**: on by default. Adds a horizontally-scrolling row to the panel itself for switching between every configured provider and downloaded local model in one tap. It's hidden automatically whenever there are fewer than two to choose from.
 - **Show a changes view**: on by default, see [Seeing what changed](#seeing-what-changed). **Open a result on the changes** below it is off.
+- **AI suggestions** (under **Suggestion strip**): off by default. With it on, **Send only the last word** (off) and **Text to send** (120 characters) set what each request carries. See [Suggestions in the strip](#suggestions-in-the-strip).
 - **Let the model search the web**: on by default, and only shown once a search service is set up. **Let the model read a web page** below it is off, and **Lookups per answer** defaults to 3. See [Letting the model look things up](#letting-the-model-look-things-up).
 - **Keyboard tools**: Run, Ask or Off for each of the keyboard's own tools the model can use, see [The keyboard's own tools](#the-keyboards-own-tools). The information tools start on Run.
 - **MCP servers**: the servers whose tools the model can use, see [MCP servers](#mcp-servers). None are set up to start with.
@@ -492,7 +511,7 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 
 <SettingsPath path="Tools / AI writing tools / History" />
 
-One more row lives on the History screen, under a **Downloading models** heading. Model downloads on a metered connection are set in [Data saver](/privacy/data-saver/) now, on the **Downloads** row, which starts at **Ask each time**: the size-keyed prompt (500 MB for a language model, 150 MB for a Whisper one) still fires on top, so a smaller model asks too rather than coming down without a word. Set the row to **Turn off** and no model downloads on mobile data at all.
+One more row lives on the History screen, under a **Carry-on actions** heading. Up to 0.6.3 that heading read **Downloading models**, left over from a Wi-Fi switch that has since moved: model downloads on a metered connection are set in [Data saver](/privacy/data-saver/), on the **Downloads** row, which starts at **Ask each time**: the size-keyed prompt (500 MB for a language model, 150 MB for a Whisper one) still fires on top, so a smaller model asks too rather than coming down without a word. Set the row to **Turn off** and no model downloads on mobile data at all.
 
 - **How much the AI reads back**: 4,000 characters by default, anywhere from 500 to 32,000. This is how far back from the cursor a carry-on action such as **Continue** reads. More characters give the model more of your writing to follow, and cost more tokens and more time on every run. It has no effect when you've selected something, because a selection is always sent as it is.
 
@@ -524,6 +543,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 
 - **On-device**: the text you run an action on never leaves the phone. Response length is bounded by the local model's own context window instead of a server-side limit.
 - **Any other provider** (cloud or self-hosted): the text you run an action on is sent to that provider, only at the moment you tap the action. API keys and server addresses are stored on the device, not in any WM Keyboard service. See [Privacy at a glance](/privacy/overview/) for how this fits the keyboard's broader per-tool approach to anything that leaves the device.
+- **AI suggestions, when [Suggestions in the strip](#suggestions-in-the-strip) is on**: every time you stop typing after a word, the last 120 characters before the cursor (or the number you set, or only the last word) go to the same provider, with no tap. Never from a password field, a field that turns suggestions off, or incognito. Off by default, and an on-device model keeps it on the phone.
 - **Dictation, when [Tidy dictation with AI](/tools/voice/#tidying-dictation-with-ai) is on**: each phrase you dictate goes to the same provider as soon as it lands, with no tap, to have its filler words taken out. Its text only, never the audio. Off by default, and an on-device model keeps it on the phone like any other action.
 - **Report**: builds a draft in your mail app and hands it over. The app has no reporting server and sends nothing itself, so a report only exists if you send the mail. API keys are never part of it.
 - **AI memory**: with an on-device model, goes nowhere. With a cloud or self-hosted provider, the saved facts picked for a run go with it only once you've turned on **Use with cloud models**, which starts off. Incognito fields never send them. See [AI memory](/tools/ai-memory/).

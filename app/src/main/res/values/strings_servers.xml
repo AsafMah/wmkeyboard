@@ -36,6 +36,7 @@
     <string name="servers_section_weather">Weather</string>
     <string name="servers_section_maps">Maps and addresses</string>
     <string name="servers_section_currency">Currency rates</string>
+    <string name="servers_section_music">Song recognition</string>
     <string name="servers_section_ai">AI providers</string>
     <string name="servers_section_updates">Update check</string>
 
@@ -61,6 +62,11 @@
     <string name="servers_open_meteo">Open-Meteo forecast</string>
     <string name="servers_open_meteo_geocoding">Open-Meteo place search</string>
     <string name="servers_nominatim">OpenStreetMap Nominatim</string>
+    <string name="servers_audd" translatable="false">AudD</string>
+    <string name="servers_audiotag" translatable="false">AudioTag</string>
+    <string name="servers_rapidapi_shazam">Shazam via RapidAPI</string>
+    <string name="servers_itunes_search">iTunes Search (cover art)</string>
+    <string name="servers_deezer_api">Deezer (cover art)</string>
     <string name="servers_currency_api">currency-api</string>
     <string name="servers_currency_api_mirror">currency-api, second server</string>
     <string name="servers_frankfurter">Frankfurter</string>
@@ -81,6 +87,7 @@
     <string name="servers_repo_data">Language data</string>
     <string name="servers_repo_addons">Add-on repository</string>
     <string name="servers_repo_sounds">Key sound repository</string>
+    <string name="servers_repo_community">Community addon repository</string>
     <string name="servers_repo_espanso_hub">Espanso Hub</string>
 
     <!-- The fields that say where one repository is. -->
@@ -108,4 +115,7 @@
     <string name="servers_repo_current">Files come from %1$s</string>
     <string name="servers_repo_incomplete">Some fields are empty, so the keyboard uses the default repository</string>
     <string name="servers_repo_reset">Use the default repository</string>
+    <string name="servers_section_speed_test">Speed test</string>
+    <string name="servers_cloudflare_speed">Cloudflare speed test</string>
+    <string name="servers_librespeed_list">LibreSpeed server list</string>
 </resources>

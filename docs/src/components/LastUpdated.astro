@@ -1,0 +1,40 @@
+---
+/**
+ * "Last updated" with a way to see what changed (#970): the page's history on
+ * GitHub, one commit per change, each with the lines it touched. The date
+ * alone said that something changed, not what.
+ *
+ * The history address is the edit link's with `/commits/` for `/edit/`, so the
+ * two can never point at different files.
+ */
+import Default from '@astrojs/starlight/components/LastUpdated.astro';
+
+const { editUrl, lastUpdated } = Astro.locals.starlightRoute;
+const history = editUrl ? String(editUrl).replace('/edit/', '/commits/') : undefined;
+---
+
+<div class="wm-last-updated">
+	<Default />
+	{
+		lastUpdated && history && (
+			<a href={history} class="print:hidden">
+				See what changed
+			</a>
+		)
+	}
+</div>
+
+<style>
+	.wm-last-updated {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 0.75rem;
+	}
+	.wm-last-updated a {
+		color: var(--sl-color-gray-3);
+	}
+	.wm-last-updated a:hover {
+		color: var(--sl-color-white);
+	}
+</style>

@@ -75,7 +75,7 @@ As soon as something is picked, a bar rises from the bottom:
 - **The size chip.** **Original**, **HD** (2560 px on the long side), **SD** (1280 px) or **Small** (800 px), with an estimate of the total under it. Tap to step through them. The starting size is **Picture size** in settings. Videos always go at their own size.
 - **Send.** Hold it for the other ways out: **Send at full size**, **Send without the caption**, **Share to this app**, **Share to another app**, **Copy to the clipboard**, **Save a copy to the gallery** and **Clear the selection**.
 
-Each item goes into the text box in turn, a moment apart, so the chat app has time to take each one. If you switch to another text box partway, the rest stop.
+Each item goes into the text box in turn, a moment apart, so the chat app has time to take each one. Some apps, WhatsApp and Signal among them, answer the first picture by opening a send screen of their own, which takes the text box away. The keyboard waits a moment after the first picture to see whether that happens, and if it does, the rest go to the same app together through its share screen, where you pick the chat again. Before 0.6.4 those pictures were dropped.
 
 ### When the app does not take pictures
 
@@ -84,6 +84,8 @@ Some text boxes accept pictures from a keyboard and some do not, and fewer accep
 - **Share them to that app** (the default): Android's share screen opens for the app you were typing in, with the pictures and the caption. Most chat apps then ask which chat they go to.
 - **Copy them to the clipboard**, to paste yourself.
 - **Ask each time**, with Share and Copy on a card.
+
+A picture tapped in the [clipboard](/tools/clipboard/) that the box refuses follows the same setting.
 
 ## The viewer
 
@@ -143,4 +145,9 @@ The library is read only while the panel is open. Nothing is uploaded: the tool 
 
 ## Settings
 
-Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, and the privacy switches. The Play Store build shows only the ones that apply to the picker.
+Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Folders**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, and the privacy switches. The Play Store build shows only the ones that apply to the picker.
+
+**Folders** lists the folders on the phone that hold photos or videos, each with a tick. Untick one and its photos leave the gallery altogether: its own album goes from the list, and nothing from it shows in **Recents**, **Favorites** or any other collection, or in a search. A folder of saved receipts or a messaging app's downloads can stay out of the way. Tick it again to bring it back.
+
+The gallery and the camera are the **Camera and gallery** bundle on [Extensions](/reference/settings/extensions/). Off there, both tools leave the toolbar, the toolbox and the Tools list until the bundle is switched back on.
+

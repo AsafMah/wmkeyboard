@@ -254,6 +254,26 @@ object PermissionDisclosures {
         titleRes = R.string.common_permission_ankidroid_title,
         bodyRes = R.string.common_permission_ankidroid_body,
     )
+
+    /**
+     * OpenTasks' own pair (#920): the To-do list syncs with the one task list
+     * the user picks, which DAVx5 keeps in step with a CalDAV server. The
+     * grant covers every list in the app, which the copy says.
+     */
+    val TASKS_OPENTASKS = PermissionDisclosure(
+        permission = "org.dmfs.permission.READ_TASKS",
+        titleRes = R.string.common_permission_tasks_opentasks_title,
+        bodyRes = R.string.common_permission_tasks_body,
+        alsoRequests = listOf("org.dmfs.permission.WRITE_TASKS"),
+    )
+
+    /** Tasks.org's copy of the same provider, under its own permissions. */
+    val TASKS_TASKS_ORG = PermissionDisclosure(
+        permission = "org.tasks.permission.READ_TASKS",
+        titleRes = R.string.common_permission_tasks_tasks_org_title,
+        bodyRes = R.string.common_permission_tasks_body,
+        alsoRequests = listOf("org.tasks.permission.WRITE_TASKS"),
+    )
 }
 
 /**

@@ -13,6 +13,7 @@ internal object SettingsAssistantGate {
 
     const val ROUTE = "settings_assistant"
 
+    /** Its own switch (#830). */
     fun offered(settings: KeyboardSettings): Boolean = settings.appUi.settingsAssistant
 
     /** A search result that would lead to the assistant: its row, or its route. */

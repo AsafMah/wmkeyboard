@@ -43,7 +43,7 @@ internal object PredictionNative {
     external fun ngramIdOf(handle: Long, word: String): Int
 
     // The fuzzy correction walk (FuzzyBeamSearch) and the models it reads.
-    external fun proximityOpen(rows: Array<String>): Long
+    external fun proximityOpen(rows: Array<String>, carried: CharArray): Long
     external fun proximityClose(handle: Long)
 
     @Suppress("LongParameterList")
@@ -108,6 +108,9 @@ internal object PredictionNative {
     @Suppress("LongParameterList")
     external fun lexAddWord(handle: Long, key: String, caseEvidence: Boolean, surface: String?, boost: Int, pinCase: Boolean)
     external fun lexLanguageOf(handle: Long, key: String): String?
+    /** `lang` empty files the word under every language (#930). */
+    external fun lexSetLanguage(handle: Long, key: String, lang: String): Boolean
+    external fun lexIsLanguagePinned(handle: Long, key: String): Boolean
     external fun lexDisplayOf(handle: Long, key: String): String?
     external fun lexIsAddedByHand(handle: Long, key: String): Boolean
 
@@ -163,7 +166,53 @@ internal object PredictionNative {
         candidates: Array<String>,
         seeds: IntArray,
         recent: BooleanArray,
+        lm: FloatArray?,
+        /** The model's rerank weight; 0 or less takes the shipped one. */
+        lmWeight: Double,
     ): IntArray?
+
+    /** The shipped weight of the context model's rank-unit rerank term, `rerank.rs`'s `LM_WEIGHT`: off, the score-space blend carries it. */
+    const val LM_WEIGHT = 0.0
+
+    // The neural context model (lm.rs), behind [ContextModel]: a mapped
+    // `.wmlm` and a session on it that keeps the context last read.
+    external fun lmOpen(path: String): Long
+    external fun lmClose(handle: Long)
+
+    /** `[name, languages joined by commas, vocabulary size, context length]`. */
+    external fun lmInfo(handle: Long): Array<String>
+    external fun lmKnows(handle: Long, word: String): Boolean
+    external fun lmSessionOpen(model: Long): Long
+    external fun lmSessionClose(handle: Long)
+
+    /** The words before the caret, oldest first; register 0 neutral, 1 casual, 2 formal; field 0 other, 1 chat, 2 email, 3 search. */
+    external fun lmSetContext(session: Long, register: Int, field: Int, lang: Int, words: Array<String>)
+
+    /** ln P(word next) per word, NaN where the model has no opinion. */
+    external fun lmScores(session: Long, words: Array<String>): FloatArray
+
+    /**
+     * The learned gate's view of the typed spelling: `[ln P(typed) if listed,
+     * rank of typed among next words, entropy of the distribution in nats,
+     * ln P(typed) spelled in pieces]`; the first two NaN when the vocabulary
+     * does not list the word, the last NaN when it does.
+     */
+    external fun lmGateView(session: Long, typed: String): FloatArray
+
+    /** `[Array<String> words, FloatArray logprobs]`: the likeliest next words, best first. */
+    external fun lmTop(session: Long, k: Int, minLogprob: Float): Array<Any>
+
+    /** `[Array<String> words, FloatArray(1) joint logprob]`: a greedy continuation; the context is put back after. */
+    external fun lmGenerate(session: Long, n: Int, minProb: Float): Array<Any>
+
+    /**
+     * For each of [candidates] standing where the word before [followers]
+     * stands, after [context]: ln P(candidate | context) plus the
+     * log-probability of each follower in turn with the candidate in place,
+     * NaN where the model cannot read a word. The session's context is put
+     * back after.
+     */
+    external fun lmRevise(session: Long, register: Int, field: Int, lang: Int, context: Array<String>, candidates: Array<String>, followers: Array<String>): FloatArray
 
     // The stores autocorrect learns from: CorrectionMemory (cm*) and
     // CorrectionStats (cs*). Spellings arrive folded.
@@ -220,7 +269,9 @@ internal object PredictionNative {
      * (1 for user) and look-ahead in `ints`. Phase 1 returns every word the
      * shape channel will score, readings first, with the reading count in
      * the last int, for [glideFinish] on the same thread. Null when the
-     * stroke is no decode at all.
+     * stroke is no decode at all. [openHead] and [openTail] count the
+     * leading and trailing samples that are a walk from or to the spacebar
+     * (#968), 0 for a stroke that began and ended on keys.
      */
     @Suppress("LongParameterList")
     external fun glideDecode(
@@ -238,6 +289,8 @@ internal object PredictionNative {
         limit: Int,
         lookAhead: Int,
         phase: Int,
+        openHead: Int,
+        openTail: Int,
     ): Array<Any>?
 
     /** The last phase-1 [glideDecode] on this thread, finished with [shapes] per word and the seeding's [seeds]. */

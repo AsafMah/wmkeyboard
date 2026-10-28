@@ -64,6 +64,15 @@ data class LanguageDef(
      * without the "Apostrophe in a glide" setting having to name a key.
      */
     val apostropheIsLetter: Boolean = false,
+    /**
+     * The marks at the end of the letters page's period key popup, in place of
+     * the script's [ScriptDef.periodAlternates]; null takes the script's.
+     *
+     * Issue #972: Sorani is written in Arabic script but never with the
+     * harakat, which only got in the way of the marks a Kurdish typist reaches
+     * the key for.
+     */
+    val periodAlternates: List<String>? = null,
 ) {
     /** English-language convenience, preserving the old `InputMode.isEnglish` reads. */
     val isEnglish: Boolean get() = id == "en"
@@ -125,6 +134,7 @@ object LanguageRegistry {
                 BuiltInLayouts.KHIPRO_DARK_ID,
                 BuiltInLayouts.PROBHAT_ID,
                 BuiltInLayouts.JATIYA_ID,
+                BuiltInLayouts.BSTI_ID,
                 AssetLayouts.BN_BAISHAKHI_ID,
                 AssetLayouts.BN_BORNONA_ID,
                 AssetLayouts.BN_INSCRIPT_ID,
@@ -569,7 +579,10 @@ object LanguageRegistry {
                 AssetLayouts.CKB_FOUR_ROWS_ID,
                 AssetLayouts.CKB_T9_ID,
             ),
-            numeralSystem = NumeralSystem.PERSIAN,
+            // Issue #972: Iraqi Kurdistan writes ٠-٩, as Arabic does; the
+            // Persian ۴ ۵ ۶ are not used for Sorani.
+            numeralSystem = NumeralSystem.ARABIC_INDIC,
+            periodAlternates = emptyList(),
         ),
         LanguageDef(
             id = "hy",

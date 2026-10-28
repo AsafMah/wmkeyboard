@@ -28,6 +28,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
     SettingsGroup(
         stringResource(R.string.lookup_settings_group),
         info = stringResource(R.string.lookup_settings_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ToggleSetting(
@@ -61,7 +62,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 ) { style -> scope.launch { repository.updateLookup { it.copy(cardStyle = style) } } }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.lookup_settings_anki_title,
                 subtitle = stringResource(R.string.lookup_settings_anki_subtitle),
@@ -85,7 +86,7 @@ internal fun LookupSettingsGroup(repository: SettingsRepository, settings: LiveS
                 },
             ) { mode -> scope.launch { repository.updateLookup { it.copy(ankiMode = mode) } } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             TextFieldSetting(
                 label = stringResource(R.string.lookup_settings_deck_title),
                 value = settings.watch { it.lookup.ankiDeck },

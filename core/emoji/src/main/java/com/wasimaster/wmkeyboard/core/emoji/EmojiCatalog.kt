@@ -52,4 +52,69 @@ object EmojiCatalog {
         }
         return entries
     }
+
+    /**
+     * [emoji] as the catalog is matched by: without U+FE0F, which a paste or
+     * an older file may carry or drop where the catalog does the opposite.
+     */
+    fun matchKey(emoji: String): String = emoji.replace("\uFE0F", "")
+
+    /** The catalog entry for [emoji], ignoring presentation selectors, or null. */
+    fun find(catalog: List<EmojiEntry>, emoji: String): EmojiEntry? {
+        val key = matchKey(emoji)
+        return catalog.firstOrNull { matchKey(it.emoji) == key }
+    }
+
+    /**
+     * [catalog] with the user's hand-added emoji ([added]) folded in: the way a
+     * face from a newer Unicode release reaches the panel before a build ships
+     * it.
+     *
+     * An emoji the catalog lacks is appended, so it lands at the end of its
+     * category in the grid (see `EmojiOrder.catalogEmoji`) and after every
+     * bundled emoji in search ties. One the catalog already has, which is what
+     * a hand-added emoji becomes once an update ships it, only lends its
+     * keywords to the bundled entry: the face is not drawn twice, and nothing
+     * the user typed for it stops working.
+     *
+     * Runs before the keyword packs are merged, so a pack generated against a
+     * newer Unicode version names the added emoji in its language too.
+     * Returns [catalog] itself when there is nothing to add, keeping the
+     * identity [EmojiNames] caches against.
+     */
+    fun withAdded(catalog: List<EmojiEntry>, added: List<EmojiEntry>): List<EmojiEntry> {
+        if (added.isEmpty()) return catalog
+        val positions = HashMap<String, Int>(catalog.size)
+        catalog.forEachIndexed { index, entry -> positions.putIfAbsent(matchKey(entry.emoji), index) }
+        val out = catalog.toMutableList()
+        for (entry in added) {
+            val key = matchKey(entry.emoji)
+            val at = positions[key]
+            if (at == null) {
+                positions[key] = out.size
+                out.add(entry.copy(parent = null))
+            } else {
+                val existing = out[at]
+                out[at] = existing.copy(
+                    keywords = (existing.keywords + entry.keywords).distinct(),
+                    name = existing.name ?: entry.name,
+                )
+            }
+        }
+        return out
+    }
+
+    /**
+     * One hand-added emoji as a catalog entry. The name is indexed as a
+     * keyword, whole and (by [EmojiSearch]) word by word, the way the bundled
+     * catalog carries each Unicode name among its English keywords.
+     */
+    fun addedEntry(emoji: String, category: String, name: String, keywords: List<String>): EmojiEntry {
+        val cleanName = name.trim()
+        val words = (keywords + cleanName)
+            .map { it.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+        return EmojiEntry(emoji.trim(), category, words, parent = null, name = cleanName.ifEmpty { null })
+    }
 }

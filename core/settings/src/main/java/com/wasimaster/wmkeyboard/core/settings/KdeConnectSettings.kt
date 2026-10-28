@@ -47,6 +47,14 @@ data class KdeConnectSettings(
     /** Text copied on the phone is sent to the computer. Sensitive clips never are, by themselves. */
     val clipboardSend: Boolean = true,
     /**
+     * Clipboard sharing on hold (#918): wall-clock end time by computer id,
+     * `*` for all of them, `Long.MAX_VALUE` until turned back on. Ended
+     * pauses may linger here until the next pause or resume rewrites it; the
+     * engine compares against the time now. A `kde_` key, so it never syncs
+     * to another phone.
+     */
+    val clipboardPauses: Map<String, Long> = emptyMap(),
+    /**
      * Minutes a password or code received from the computer stays on the
      * phone's clipboard before it is cleared (#704); 0 leaves it there. The
      * computer's copy is wanted for one paste, and every app can read the

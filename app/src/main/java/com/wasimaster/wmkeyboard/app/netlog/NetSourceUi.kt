@@ -111,6 +111,8 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.LANGUAGETOOL -> R.string.netlog_source_languagetool to R.string.netlog_sent_languagetool
     NetSource.GIF -> R.string.netlog_source_gif to R.string.netlog_sent_gif
     NetSource.STICKER -> R.string.netlog_source_sticker to R.string.netlog_sent_sticker
+    NetSource.IMAGE_GEN -> R.string.netlog_source_image_gen to R.string.netlog_sent_image_gen
+    NetSource.EMOJI_MIX -> R.string.netlog_source_emoji_mix to R.string.netlog_sent_emoji_mix
     NetSource.WEB_SEARCH -> R.string.netlog_source_web_search to R.string.netlog_sent_web_search
     NetSource.IMAGE_SEARCH -> R.string.netlog_source_image_search to R.string.netlog_sent_image_search
     NetSource.PHOTO_SEARCH -> R.string.netlog_source_photo_search to R.string.netlog_sent_photo_search
@@ -120,6 +122,13 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.AI_TOOLS -> R.string.netlog_source_ai_tools to R.string.netlog_sent_ai_tools
     NetSource.AI_MCP -> R.string.netlog_source_ai_mcp to R.string.netlog_sent_ai_mcp
     NetSource.TRANSCRIPTION -> R.string.netlog_source_transcription to R.string.netlog_sent_transcription
+    NetSource.MUSIC_AUDD -> R.string.netlog_source_music_audd to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_ACRCLOUD -> R.string.netlog_source_music_acrcloud to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_AUDIOTAG -> R.string.netlog_source_music_audiotag to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_RAPIDAPI -> R.string.netlog_source_music_rapidapi to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_SERVER -> R.string.netlog_source_music_server to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_METADATA -> R.string.netlog_source_music_metadata to R.string.netlog_sent_music_metadata
+    NetSource.SPEED_TEST -> R.string.netlog_source_speed_test to R.string.netlog_sent_speed_test
     NetSource.WIKIPEDIA -> R.string.netlog_source_wikipedia to R.string.netlog_sent_wikipedia
     NetSource.DICTIONARY -> R.string.netlog_source_dictionary to R.string.netlog_sent_dictionary
     NetSource.VOCABULARY -> R.string.netlog_source_vocabulary to R.string.netlog_sent_vocabulary
@@ -144,6 +153,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_FONT -> R.string.netlog_source_download_font to R.string.netlog_sent_download
     NetSource.DOWNLOAD_CUTOUT -> R.string.netlog_source_download_cutout to R.string.netlog_sent_download
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_HANDWRITING -> R.string.netlog_source_download_handwriting to R.string.netlog_sent_download
     NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
     NetSource.DOWNLOAD_IMAGEGEN -> R.string.netlog_source_download_imagegen to R.string.netlog_sent_download
     NetSource.DOWNLOAD_UPSCALE -> R.string.netlog_source_download_upscale to R.string.netlog_sent_download

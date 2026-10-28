@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.app.updates.GithubReleases
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.LanguagePackResources
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -32,6 +33,7 @@ internal object LanguagePackDownloads {
     /** Whether this build fetches its interface languages (the standard GitHub build, Android 11+). */
     val active: Boolean get() = BuildConfig.LANGUAGE_PACKS && LanguagePackResources.supported
     private const val MAX_BYTES = 16L * 1024 * 1024
+    private const val TAG = "LanguagePacks"
 
     /** English is the APK's own: no pack. */
     fun isEnglish(tag: String): Boolean = LanguagePackResources.qualifierOf(tag).substringBefore('-') == "en"
@@ -124,7 +126,11 @@ internal object LanguagePackDownloads {
 
     /** Checks [staged] and moves it to [target], reloading the packs. */
     private fun install(context: Context, staged: File, target: File): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || !trusted(context, staged)) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+        if (!trusted(context, staged)) {
+            DebugLog.w(TAG, "${target.name} is not this version's pack, or not signed by us")
+            return false
+        }
         target.delete()
         if (!staged.renameTo(target)) return false
         LanguagePackResources.reload(context)
@@ -139,6 +145,8 @@ internal object LanguagePackDownloads {
     @RequiresApi(Build.VERSION_CODES.R)
     private fun trusted(context: Context, file: File): Boolean {
         val pm = context.packageManager
+        // Null for a split APK too ("Expected base APK"), which is why the
+        // packs carry a base manifest (.github/scripts/language-pack-finish.sh).
         val pack = pm.getPackageArchiveInfo(file.path, PackageManager.GET_SIGNING_CERTIFICATES) ?: return false
         if (pack.packageName != context.packageName) return false
         if (pack.longVersionCode / VERSION_DIGIT != com.wasimaster.wmkeyboard.config.BuildConfig.VERSION_CODE.toLong()) return false

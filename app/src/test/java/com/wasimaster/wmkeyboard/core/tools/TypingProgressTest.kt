@@ -145,6 +145,22 @@ class TypingProgressTest {
     }
 
     @Test
+    fun `kept autocorrects and the clean run are achievements of their own`() {
+        val totals = totals(words = 10).copy(autocorrectsKept = 250, bestCleanRun = 30)
+        val kept = TypingProgress.state(TypingProgress.Achievement.AUTOCORRECTS_KEPT, totals)
+        assertEquals(250, kept.value)
+        assertEquals(2, kept.steps)
+        assertEquals(1_000, kept.target)
+        val clean = TypingProgress.state(TypingProgress.Achievement.CLEAN_RUN, totals)
+        assertEquals(30, clean.value)
+        assertEquals(2, clean.steps)
+        assertEquals(50, clean.target)
+        // Four steps, none of them words the keyboard helped with.
+        assertEquals(10 + 4 * TypingProgress.STEP_XP, TypingProgress.xp(totals))
+        assertEquals(TypingProgress.Achievement.entries.size, TypingProgress.achievements(totals).size)
+    }
+
+    @Test
     fun `levels start at growing thresholds and the closed form agrees`() {
         assertEquals(0, TypingProgress.levelStart(1))
         assertEquals(500, TypingProgress.levelStart(2))

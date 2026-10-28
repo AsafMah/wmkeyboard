@@ -154,17 +154,38 @@ needs that directory too (`python3 native/gates.py scandelete` lists it).
 
 The Mozc engine for Japanese adds `native/mozc-jni` (Mozc's converter, into
 `core/input/src/mozc/jniLibs`), and with it the first library that builds
-with Bazel rather than CMake or Cargo: Mozc supports no other build. The
-script fetches bazelisk from its GitHub release and Bazel 9.0.2 through it,
-both checked against SHA-256 values in the script, and Bazel fetches Mozc's
+with Bazel rather than CMake or Cargo: Mozc supports no other build. F-Droid
+does not take a prebuilt Bazel, which is what the script first fetched
+(bazelisk from its GitHub release, Bazel 9.0.2 through it; [#964](https://github.com/wasi-master/wmkeyboard/issues/964)).
+Debian has no usable one either: trixie's `bazel-bootstrap` is 4.2.3 and
+Mozc wants 9. So on Linux the script builds Bazel 9.0.2 from source first,
+the way Debian builds its own package: it fetches Bazel's distribution
+archive (`bazel-9.0.2-dist.zip`, the one archive Bazel publishes for
+bootstrapping, checked against the SHA-256 releases.bazel.build publishes),
+and runs its `compile.sh`, which compiles a first Bazel with `javac` and the
+real one with that. The archive carries every dependency of that build, so
+nothing is fetched. The Bazel that comes out embeds no JDK and runs on the
+machine's (`--server_javabase`), and Mozc's build is told to use that JDK
+and the machine's `python3` for its code generators
+(`--tool_java_runtime_version=local_jdk`,
+`--extra_toolchains=@rules_python//python/runtime_env_toolchains:all`), so
+no prebuilt toolchain is downloaded there either. Bazel still fetches Mozc's
 module dependencies (Abseil, Protocol Buffers, the rules) from the Bazel
-Central Registry, each checked against the registry's hash. Bazel itself is a
-prebuilt binary, as Gradle's distribution is; whether F-Droid accepts that
-for a native build step is for the merge request to settle. The next entry's
-`scandelete` needs `core/input/src/mozc/jniLibs` added, beside
-`core/input/src/main/jniLibs` (librime). The dictionary Mozc converts with is
-not in the APK or the library: it is a CJK pack download, like the built-in
-engine's.
+Central Registry as source archives, each checked against the registry's
+hash, as it fetches Mozc itself. The bootstrap is the slow part, about
+twenty minutes on a four-core machine, and the buildserver keeps nothing
+between builds, so every entry pays it. fdroiddata's own CI is different: its
+`fdroid build` job builds every new entry of a merge request one after the
+other on one machine, under GitLab.com's three-hour cap on hosted runners
+(a project timeout above that is ignored), and three entries at over an
+hour each did not fit. So the script keeps the bootstrapped binary under
+`~/.cache/wmkeyboard` and the second and third entries find it there. The
+0.6.3 merge request predates that and its pipeline shows the cap: entries
+381 and 382 built, 383 was cut off.
+The next entry's `scandelete` needs `core/input/src/mozc/jniLibs` added,
+beside `core/input/src/main/jniLibs` (librime). The dictionary Mozc converts
+with is not in the APK or the library: it is a CJK pack download, like the
+built-in engine's.
 
 From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 (llama.cpp at a pinned release tag, CMake, with its libmtmd for vision
@@ -265,6 +286,12 @@ Gradle installs anyway.
 
 **`xz-utils`** in `sudo` (from 0.6.3): librime's script unpacks Boost's
 `.tar.xz`, and the image has no `xz`.
+
+**`openjdk-21-jdk-headless` and `zip`** in `sudo` (from 0.6.3's re-cut):
+what Bazel's bootstrap needs beyond the image. Bazel 9 is built with a JDK
+21, and the image's `JAVA_HOME` is 17, so the script looks for Debian's
+`java-21-openjdk` itself and leaves the Gradle build's JDK alone; `compile.sh`
+also wants `zip` beside the `unzip` the image has.
 
 **Three entries per version, and `VercodeOperation`** (from 0.6.2): one
 APK per ABI ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).

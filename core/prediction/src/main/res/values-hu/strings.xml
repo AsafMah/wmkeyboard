@@ -15,7 +15,9 @@
     <string name="core_pred_wordlist_source_aosp_label">AOSP</string>
     <string name="core_pred_wordlist_source_frequency_detail">Feliratokból és webes szövegekből számolva. Sokkal több szó, több névvel, szlenggel és elírással.</string>
     <string name="core_pred_wordlist_source_frequency_label">Gyakoriság</string>
+    <string name="core_pred_wordlist_variant_australia_label">Ausztrália</string>
     <string name="core_pred_wordlist_variant_brazil_label">Brazília</string>
+    <string name="core_pred_wordlist_variant_canada_label">Kanada</string>
     <string name="core_pred_wordlist_variant_europe_label">Európa</string>
     <string name="core_pred_wordlist_variant_uk_label">Egyesült Királyság</string>
     <string name="core_pred_wordlist_variant_us_label">Egyesült Államok</string>

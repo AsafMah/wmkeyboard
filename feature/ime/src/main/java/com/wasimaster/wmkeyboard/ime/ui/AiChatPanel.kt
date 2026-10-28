@@ -102,6 +102,11 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
+import com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat
+import com.wasimaster.wmkeyboard.core.tools.AiChatMode
+import com.wasimaster.wmkeyboard.core.tools.AiFollowUps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.ime.AiChatAction
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -286,14 +291,20 @@ internal fun AiChatPanel(
                     onChat = onChat,
                     modifier = Modifier.weight(1f),
                 )
+                // Deep research needs a model that calls tools and a search
+                // provider; the line over the box says which is missing.
+                val researchBlock = remember(chat.mode, choice, state.settings.ai, state.settings.providers) {
+                    if (AiChatMode.of(chat.mode) == AiChatMode.RESEARCH) AiChatController.researchBlock(state.settings, choice) else null
+                }
                 Composer(
                     state = state,
                     generating = run != null,
                     reasoning = reasoning,
                     // Pictures alone are a message, as on the chat screen.
-                    canSend = choice != null && run == null &&
+                    canSend = choice != null && run == null && researchBlock == null &&
                         (chat.draft.isNotBlank() || chat.images.isNotEmpty() || chat.files.isNotEmpty()),
                     onChat = onChat,
+                    notice = researchBlock,
                 )
             }
         }
@@ -469,6 +480,8 @@ private fun Transcript(
                         onReport = { onChat(AiChatAction.Report(index)) },
                         onChat = onChat,
                         onUndoMemory = { use -> onChat(AiChatAction.UndoMemory(index, use)) },
+                        onShare = { onChat(AiChatAction.Share(index)) },
+                        followUps = if (newest && !busy) message.followUps else emptyList(),
                     )
                 }
             }
@@ -499,6 +512,9 @@ private fun MessageBubble(
     onReport: () -> Unit,
     onChat: (AiChatAction) -> Unit,
     onUndoMemory: (Int) -> Unit,
+    onShare: () -> Unit = {},
+    /** Questions the model suggested asking next; a tap puts one in the composer. */
+    followUps: List<String> = emptyList(),
 ) {
     val kb = LocalKbTheme.current
     val fromUser = message.role == AiChatMessage.ROLE_USER
@@ -570,7 +586,18 @@ private fun MessageBubble(
             }
         }
         if (actionsOut) {
-            MessageActions(message, copied, canRegenerate, canEdit, focusedAction, onCopy, onReport, onChat)
+            MessageActions(message, copied, canRegenerate, canEdit, focusedAction, onCopy, onReport, onChat, onShare)
+        }
+        if (followUps.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier.padding(top = 3.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                followUps.forEach { question ->
+                    ToolPanelChip(question) { onChat(AiChatAction.Starter(question, attach = false)) }
+                }
+            }
         }
     }
 }
@@ -590,6 +617,7 @@ private fun MessageActions(
     onCopy: (String) -> Unit,
     onReport: () -> Unit,
     onChat: (AiChatAction) -> Unit,
+    onShare: () -> Unit = {},
 ) {
     val fromUser = message.role == AiChatMessage.ROLE_USER
     Row(
@@ -630,6 +658,10 @@ private fun MessageActions(
         }
         if (canEdit) {
             MessageAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) { onChat(AiChatAction.EditLast) }
+        }
+        // Out to another app as a Markdown file: a report keeps its sources.
+        if (!fromUser && message.content.isNotBlank()) {
+            MessageAction(Icons.Outlined.Share, stringResource(R.string.ime_ai_chat_share)) { onShare() }
         }
         // Play asks for a way to report generated content on every surface that
         // shows it; the other channels have no such rule, as on the chat screen.
@@ -735,7 +767,7 @@ private fun StreamingBubble(run: AiChatController.ChatRun, onChat: (AiChatAction
             when {
                 // The answer as markdown, so its tables and maths take shape
                 // while it streams.
-                parts.output.isNotBlank() -> ChatMarkdown(parts.output, colors)
+                AiFollowUps.visible(parts.output).isNotBlank() -> ChatMarkdown(AiFollowUps.visible(parts.output), colors)
                 // The steps above already say what is happening: the model is
                 // reasoning, or a tool is running.
                 parts.thinking || toolRunning -> Unit
@@ -874,10 +906,11 @@ private class ComposerSlots(state: KeyboardUiState, reasoning: Boolean) {
     val field = 0
     val reasoning = if (reasoning) 1 else -1
     private val shift = if (reasoning) 1 else 0
-    val plus = 1 + shift
-    val send = 2 + shift
+    val options = 1 + shift
+    val plus = 2 + shift
+    val send = 3 + shift
     val menu: List<AttachItem> = if (state.aiChat.attachMenu) attachItems(state) else emptyList()
-    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 3 + shift + it }
+    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 4 + shift + it }
 }
 
 /** What Enter does on each of the composer's ring slots. Mirrors [ComposerSlots]. */
@@ -890,6 +923,7 @@ private fun composerTargets(
     val slots = ComposerSlots(state, reasoning)
     add { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) }
     if (slots.reasoning >= 0) add { onChat(AiChatAction.ToggleReasoning) }
+    add { onChat(AiChatAction.ToggleOptions) }
     add { onChat(AiChatAction.ToggleAttachMenu) }
     add { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
     slots.menu.forEach { item -> add { onChat(attachAction(item)) } }
@@ -1093,18 +1127,34 @@ private fun Composer(
     reasoning: Boolean,
     canSend: Boolean,
     onChat: (AiChatAction) -> Unit,
+    /** Why the next message cannot be sent in this mode, as a string resource. */
+    notice: Int? = null,
 ) {
     val kb = LocalKbTheme.current
     val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
     val slots = ComposerSlots(state, reasoning)
     val shape = kb.cardShape()
+    val mode = AiChatMode.of(chat.mode)
+    val format = AiAnswerFormat.of(chat.format)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 5.dp),
     ) {
         if (chat.attachMenu) AttachMenu(state, slots, onChat)
+        if (chat.optionsMenu) OptionsMenu(mode, format, onChat)
+        notice?.let {
+            Text(
+                stringResource(it),
+                color = kb.accent,
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
+            )
+        }
         // Shown wherever they were picked: a picture already chosen is not taken
         // back because the field behind turned into a password.
         if (chat.images.isNotEmpty()) {
@@ -1170,7 +1220,7 @@ private fun Composer(
                     modifier = Modifier.padding(bottom = 3.dp, end = 5.dp),
                 )
             }
-            val hint = stringResource(R.string.ime_ai_chat_composer_hint)
+            val hint = stringResource(mode.hintRes)
             if (chat.composing) {
                 // The caret, and a tap that moves it, come from the capture
                 // ladder's own editor; this field is one of its buffers.
@@ -1208,6 +1258,30 @@ private fun Composer(
                     ) { onChat(AiChatAction.ToggleReasoning) }
                 }
                 Spacer(Modifier.weight(1f))
+                // The mode and format, named on the button while either is
+                // not the plain chat's, so a research run is never a surprise.
+                val custom = mode != AiChatMode.CHAT || format != AiAnswerFormat.AUTO
+                if (custom) {
+                    Text(
+                        listOfNotNull(
+                            stringResource(mode.labelRes).takeIf { mode != AiChatMode.CHAT },
+                            stringResource(format.labelRes).takeIf { format != AiAnswerFormat.AUTO },
+                        ).joinToString(" · "),
+                        color = kb.accent,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp),
+                    )
+                }
+                ChatIconButton(
+                    if (mode == AiChatMode.CHAT) Icons.Outlined.Tune else mode.icon,
+                    stringResource(R.string.ime_ai_chat_mode_desc),
+                    active = chat.optionsMenu || custom,
+                    modifier = Modifier.focusRing(focused == slots.options, CircleShape),
+                ) { onChat(AiChatAction.ToggleOptions) }
+                Spacer(Modifier.width(6.dp))
                 ChatIconButton(
                     Icons.Outlined.Add,
                     stringResource(R.string.ime_ai_chat_attach_menu_desc),
@@ -1222,6 +1296,31 @@ private fun Composer(
                     enabled = generating || canSend,
                     modifier = Modifier.focusRing(focused == slots.send, CircleShape),
                 ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+            }
+        }
+    }
+}
+
+/**
+ * The row of modes and answer formats over the composer, in place of a
+ * popup for the reason [AttachMenu] gives: chips that scroll sideways, the
+ * mode's first, the one in force lit.
+ */
+@Composable
+private fun OptionsMenu(mode: AiChatMode, format: AiAnswerFormat, onChat: (AiChatAction) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(bottom = 5.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            items(AiChatMode.entries) { option ->
+                ToolPanelChip(stringResource(option.labelRes), selected = option == mode) {
+                    onChat(AiChatAction.SetChatMode(option.id))
+                }
+            }
+        }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            items(AiAnswerFormat.entries) { option ->
+                ToolPanelChip(stringResource(option.labelRes), selected = option == format) {
+                    onChat(AiChatAction.SetAnswerFormat(option.id))
+                }
             }
         }
     }

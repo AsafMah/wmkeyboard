@@ -26,6 +26,7 @@
     <string name="common_default">డిఫాల్ట్</string>
     <string name="common_delete">తొలగించు</string>
     <string name="common_disable">ఆపివేయి</string>
+    <string name="common_disabled_open_setting">సెట్టింగ్‌ను తెరవండి</string>
     <string name="common_disclosure_blocked_body">మీరు గతంలో అనుమతిని నిరాకరించినందున, Android ఇకపై ఈ అభ్యర్థనను చూపదు. మీరు యాప్ సెట్టింగ్‌ల స్క్రీన్ నుండి దీన్ని ఇంకా ఆన్ చేయవచ్చు.</string>
     <string name="common_disclosure_not_now">ఇప్పుడు వద్దు</string>
     <string name="common_done">పూర్తయింది</string>
@@ -44,6 +45,7 @@
     <string name="common_install">ఇన్‌స్టాల్ చేయి</string>
     <string name="common_installing">ఇన్‌స్టాల్ అవుతోంది…</string>
     <string name="common_loading">లోడ్ అవుతోంది...</string>
+    <string name="common_more">మరిన్ని</string>
     <string name="common_next">తర్వాత</string>
     <string name="common_none">ఏదీ లేదు</string>
     <string name="common_notify_channel_backup_body">ఆటోమేటిక్ బ్యాకప్ విఫలమైనప్పుడు మాత్రమే. విజయవంతమైన బ్యాకప్‌లు నిశ్శబ్దంగా ఉంటాయి.</string>
@@ -102,6 +104,13 @@
     <string name="common_permission_notifications_title">నోటిఫికేషన్‌లను చూపించు</string>
     <string name="common_permission_storage_body">Android 9 మరియు అంతకంటే పాత వెర్షన్‌లలో, మీ గ్యాలరీకి చిత్రాన్ని సేవ్ చేయడానికి కీబోర్డ్‌కు స్టోరేజ్ అనుమతి అవసరం. పాత Android అనుమతి మీ స్టోరేజ్‌ను చదవడం కూడా కవర్ చేస్తుంది. కీబోర్డ్ మీరు సేవ్ చేయమని కోరిన చిత్రాన్ని మాత్రమే వ్రాస్తుంది. కీబోర్డ్ ఏమీ చదవదు మరియు ఏమీ అప్‌లోడ్ చేయదు. కొత్త Android వెర్షన్‌లకు ఈ అనుమతి అవసరం లేదు.</string>
     <string name="common_permission_storage_title">మీ గ్యాలరీలో సేవ్ చేయడానికి స్టోరేజ్ యాక్సెస్</string>
+    <string name="common_permission_tasks_body">WM కీబోర్డ్ తన చేయవలసిన పనుల జాబితాను మరియు టాస్క్ యాప్‌లోని ఒక టాస్క్ జాబితాను ఒకేలా ఉంచుతుంది: పనులు, వాటి అంచెలు, వాటి గుర్తులు మరియు వాటి గడువు తేదీలు, రెండింటి వైపులా. ఈ అనుమతి యాప్‌లోని ప్రతి టాస్క్ జాబితాకు వర్తిస్తుంది. మీరు ఒకదాన్ని ఎంచుకోవడానికి మాత్రమే కీబోర్డ్ యాప్ యొక్క జాబితాలను చదువుతుంది మరియు మీరు ఎంచుకున్న జాబితాను మాత్రమే చదువుతుంది మరియు వ్రాయగలదు. కీబోర్డ్ దేనినీ ఎక్కడికీ పంపదు. మీరు DAVx5ని ఉపయోగిస్తుంటే, అది ఆ జాబితాను మీ స్వంత CalDAV సర్వర్‌తో సమకాలీకరిస్తుంది. ఈ అనుమతి లేకపోతే, చేయవలసిన పనుల జాబితా ఈ ఫోన్‌లోనే ఉంటుంది.</string>
+    <string name="common_permission_tasks_opentasks_title">టు-డూ లిస్ట్ కోసం ఓపెన్ టాస్క్ యాక్సెస్</string>
+    <string name="common_permission_tasks_tasks_org_title">టూ-డూ లిస్ట్ కోసం Tasks.org యాక్సెస్</string>
+    <string name="common_preview_scale_desc">ప్రివ్యూ పరిమాణం</string>
+    <string name="common_preview_scale_larger">ప్రివ్యూను పెద్దదిగా చేయండి</string>
+    <string name="common_preview_scale_smaller">ప్రివ్యూను చిన్నదిగా చేయండి</string>
+    <string name="common_preview_scale_value">%1$d%%</string>
     <string name="common_remove">తొలగించు</string>
     <string name="common_reset">రీసెట్</string>
     <string name="common_reset_defaults">డిఫాల్ట్‌లకు రీసెట్ చేయండి</string>

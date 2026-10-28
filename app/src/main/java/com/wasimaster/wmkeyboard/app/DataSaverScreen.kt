@@ -84,7 +84,7 @@ internal fun DataSaverSettingsScreen(
     // every policy below resolves to "allowed" before it is read. The two
     // groups vanish together rather than listing a dozen dead answers.
     val active = settings.watch { it.dataSaver.manual || it.dataSaver.trigger != DataSaverTrigger.OFF }
-    SettingsGroup(stringResource(R.string.datasaver_background_group)) {
+    SettingsGroup(stringResource(R.string.datasaver_background_group), level = SettingLevel.STANDARD) {
         if (!active) return@SettingsGroup
         item {
             policyRow(
@@ -145,6 +145,7 @@ internal fun DataSaverSettingsScreen(
     SettingsGroup(
         stringResource(R.string.datasaver_ondemand_group),
         info = stringResource(R.string.datasaver_info),
+        level = SettingLevel.STANDARD,
     ) {
         if (!active) return@SettingsGroup
         item {
@@ -208,6 +209,22 @@ internal fun DataSaverSettingsScreen(
         }
         item {
             policyRow(
+                R.string.datasaver_music_title,
+                R.string.datasaver_music_subtitle,
+                settings.watch { it.dataSaver.cloudMusic },
+                SettingsDefaults.dataSaver.cloudMusic,
+            ) { scope.launch { repository.setDataSaverCloudMusic(it) } }
+        }
+        item {
+            policyRow(
+                R.string.datasaver_speed_test_title,
+                R.string.datasaver_speed_test_subtitle,
+                settings.watch { it.dataSaver.speedTest },
+                SettingsDefaults.dataSaver.speedTest,
+            ) { scope.launch { repository.setDataSaverSpeedTest(it) } }
+        }
+        item {
+            policyRow(
                 R.string.datasaver_send_title,
                 R.string.datasaver_send_subtitle,
                 settings.watch { it.dataSaver.fileSend },
@@ -219,7 +236,7 @@ internal fun DataSaverSettingsScreen(
     // Not data saving: what the server-backed tools do with no connection at
     // all (#452). Shown whether or not data saving is on.
     SettingsGroup(stringResource(R.string.datasaver_offline_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.datasaver_offline_fallback_title,
                 stringResource(R.string.datasaver_offline_fallback_subtitle),

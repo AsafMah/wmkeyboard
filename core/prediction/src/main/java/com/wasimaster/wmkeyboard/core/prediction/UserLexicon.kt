@@ -81,10 +81,24 @@ class UserLexicon(private val storageFile: File?) {
     }
 
     /**
-     * Language id [word] was last learned under, or null for untagged words
-     * (settings-app additions, legacy files) — untagged means "any language".
+     * Language id [word] was last learned under, or the one the user filed it
+     * under ([setLanguage]), or null for untagged words (settings-app
+     * additions, legacy files) — untagged means "any language".
      */
     fun languageOf(word: String): String? = PredictionNative.lexLanguageOf(native, WordKey.of(word))
+
+    /**
+     * Files [word] under [langId], or under every language when it is null,
+     * from the personal dictionary screen (#930). The choice is pinned:
+     * typing the word under another language later does not move it, as an
+     * unpinned word moves to wherever it was last typed. Returns whether
+     * anything changed; false for a word the store does not have.
+     */
+    fun setLanguage(word: String, langId: String?): Boolean =
+        PredictionNative.lexSetLanguage(native, WordKey.of(word), langId?.takeIf { it.isNotBlank() }.orEmpty())
+
+    /** Whether [word]'s language was chosen by hand (#930); see [setLanguage]. */
+    fun isLanguagePinned(word: String): Boolean = PredictionNative.lexIsLanguagePinned(native, WordKey.of(word))
 
     /**
      * The spelling [word] should be written in — "Boston" for a key of

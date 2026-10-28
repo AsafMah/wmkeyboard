@@ -65,6 +65,9 @@
     <!-- Only asked for on Android 9 and older, where saving to the gallery needs it. -->
     <string name="common_permission_storage_title">Storage access to save to your gallery</string>
     <string name="common_permission_ankidroid_title">AnkiDroid access for Look up</string>
+    <string name="common_permission_tasks_opentasks_title">OpenTasks access for the to-do list</string>
+    <string name="common_permission_tasks_tasks_org_title">Tasks.org access for the to-do list</string>
+    <string name="common_permission_tasks_body">WM Keyboard keeps its to-do list and one task list in the task app the same: the tasks, their steps, their ticks and their due dates, both ways. The permission covers every task list in the app. The keyboard reads the app\'s lists only so you can pick one, and it reads and writes only the list you picked. The keyboard sends nothing anywhere. DAVx5, if you use it, syncs that list with your own CalDAV server. Without this permission, the to-do list stays on this phone.</string>
     <string name="common_permission_ankidroid_body">WM Keyboard adds the words you send from the Look up card to a deck in AnkiDroid: the word, its reading, its meaning and the sentence it was in. AnkiDroid\'s permission covers your whole AnkiDroid collection. The keyboard uses it only to make its own deck and note type, to check whether a word is already there, and to add the word you asked for. Nothing leaves your device. Without this permission, the card opens AnkiDroid\'s note editor for you to save the note there.</string>
     <string name="common_permission_storage_body">On Android 9 and older, the keyboard needs storage permission to save an image to your gallery. The old Android permission also covers reading your storage. The keyboard writes only the image that you ask it to save. The keyboard reads nothing and uploads nothing. Newer Android versions do not need this permission.</string>
 
@@ -126,5 +129,18 @@
     <!-- "Copy" and "Share" name the buttons on this screen: keep them the same
          as common_copy and common_share. -->
     <string name="common_crash_email_error">This device has no mail app. Use Copy or Share instead.</string>
+
+    <!-- ================================================================== -->
+    <!-- Resize grips on the keyboard preview in the theme and layout       -->
+    <!-- editors. Dragging a corner makes the whole preview smaller.        -->
+    <!-- ================================================================== -->
+
+    <!-- Read by TalkBack for each of the two corner grips. -->
+    <string name="common_preview_scale_desc">Preview size</string>
+    <!-- How big the preview is now, as a share of its full size. Shown while dragging. -->
+    <string name="common_preview_scale_value">%1$d%%</string>
+    <!-- Accessibility actions on the grips. -->
+    <string name="common_preview_scale_smaller">Make preview smaller</string>
+    <string name="common_preview_scale_larger">Make preview larger</string>
 
 </resources>

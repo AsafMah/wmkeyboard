@@ -2,16 +2,15 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -53,7 +52,6 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.content.R as ContentR
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -70,9 +68,7 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerKeywords
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
-import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.util.readBytesCapped
-import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.rememberMediaImageLoader
 import java.io.File
@@ -140,32 +136,20 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
     }
 
+    // The file being imported, from reading it through picking its stickers
+    // (#965) to the report. The row takes a WhatsApp pack as well as one of
+    // the app's own: see [stageStickerFile].
+    var importing by remember { mutableStateOf<Uri?>(null) }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        // Names a pack whose own file gives no name.
-        val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-        scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                val own = runCatching {
-                    context.contentResolver.requireInputStream(uri)
-                        .use { StickerPackFile.import(it, store, fallbackName) }
-                }.getOrDefault(StickerImportResult.Failed)
-                // Not one of ours: the same row takes a WhatsApp pack, which
-                // has no manifest to fail on, so the archive is read again as
-                // one. Only when it is neither does the message say so.
-                if (own != StickerImportResult.NotAStickerPack) {
-                    own
-                } else {
-                    runCatching {
-                        context.contentResolver.requireInputStream(uri)
-                            .use { WaStickersFile.import(it, store, fallbackName) }
-                    }.getOrDefault(StickerImportResult.Failed)
-                }
-            }
+        if (uri != null) importing = uri
+    }
+    importing?.let { uri ->
+        StickerFileImport(uri) { report ->
+            importing = null
             revision++
-            message = result.describe(context)
+            message = report
         }
     }
 
@@ -427,6 +411,10 @@ internal fun StickerPackScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<CustomSticker?>(null) }
     var renaming by remember { mutableStateOf<String?>(null) }
+    // A long press starts selecting stickers to delete together (#965); a
+    // sticker that went meanwhile leaves the selection with it.
+    var picked by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var confirmBulk by remember { mutableStateOf(false) }
 
     val pickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK),
@@ -466,6 +454,21 @@ internal fun StickerPackScreen(
         if (openPicker && !pickerOpened && pack != null) {
             pickerOpened = true
             pickLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+    }
+
+    val selected = pack?.stickers.orEmpty().mapNotNullTo(HashSet()) { it.id.takeIf { id -> id in picked } }
+    val selecting = selected.isNotEmpty()
+    BackHandler(enabled = selecting) { picked = emptySet() }
+    if (selecting && pack != null) {
+        RegisterDock {
+            StickerSelectionBar(
+                count = selected.size,
+                allPicked = selected.size == pack.stickers.size,
+                onClear = { picked = emptySet() },
+                onSelectAll = { picked = pack.stickers.mapTo(HashSet()) { it.id } },
+                onDelete = { confirmBulk = true },
+            )
         }
     }
 
@@ -540,6 +543,7 @@ internal fun StickerPackScreen(
         // rather than in every cell of the grid.
         val unnamedSticker = stringResource(R.string.import_sticker_desc_fallback)
         val reduceMotion = LocalReduceMotion.current
+        if (pack.stickers.size > 1) CaptionText(stringResource(R.string.import_stickers_select_hint))
         LazyVerticalGrid(
             columns = GridCells.Adaptive(96.dp),
             modifier = Modifier
@@ -553,12 +557,15 @@ internal fun StickerPackScreen(
                 // Deleting, moving out or nudging a sticker along moves the
                 // cells after it; they slide to their new places rather than
                 // the grid redrawing in the new order.
-                Box(
-                    modifier = gridItemMotion(reduceMotion)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { editing = sticker },
+                // While selecting, a press ticks the sticker instead of
+                // opening it, the way a long press started the selection.
+                StickerPickCell(
+                    checked = if (selecting) sticker.id in selected else null,
+                    onClick = {
+                        if (selecting) picked = selected.withToggled(sticker.id) else editing = sticker
+                    },
+                    onLongClick = { picked = selected.withToggled(sticker.id) },
+                    modifier = gridItemMotion(reduceMotion),
                 ) {
                     AsyncImage(
                         model = store.fileFor(packId, sticker),
@@ -567,18 +574,42 @@ internal fun StickerPackScreen(
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    Icon(
-                        Icons.Outlined.MoreVert,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(2.dp)
-                            .size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (!selecting) {
+                        Icon(
+                            Icons.Outlined.MoreVert,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(2.dp)
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    if (confirmBulk) {
+        val count = selected.size
+        AlertDialog(
+            onDismissRequest = { confirmBulk = false },
+            title = { Text(pluralStringResource(R.plurals.import_stickers_delete_selected_title, count, count)) },
+            text = { Text(stringResource(R.string.import_stickers_delete_selected_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    store.removeStickers(packId, selected)
+                    picked = emptySet()
+                    confirmBulk = false
+                    revision++
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulk = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
     }
 
     renaming?.let { draft ->

@@ -47,6 +47,34 @@ data class LocalDay(val year: Int, val month: Int, val day: Int) : Comparable<Lo
     }.timeInMillis
 
     companion object {
+        /**
+         * A date typed by hand: `17/5/2004`, `17-05-2004`, `17.5.04` or
+         * `2004-05-17`. Four digits first is year, month, day; otherwise the
+         * day comes first unless [monthFirst] (as the US writes it), and the
+         * other order is tried when that one is no date. A two-digit year is
+         * this century's up to [twoDigitPivot], the last century's above it.
+         * Null for anything that is not a real calendar day.
+         */
+        fun parse(text: String, monthFirst: Boolean = false, twoDigitPivot: Int = 50): LocalDay? {
+            val parts = text.trim().split('/', '-', '.', ' ').filter { it.isNotEmpty() }
+            if (parts.size != 3 || parts.any { p -> p.any { !it.isDigit() } || p.length > 4 }) return null
+            val n = parts.map { it.toInt() }
+            fun year(i: Int): Int = if (parts[i].length <= 2) {
+                n[i] + if (n[i] <= twoDigitPivot) 2000 else 1900
+            } else {
+                n[i]
+            }
+            fun valid(y: Int, m: Int, d: Int): LocalDay? =
+                LocalDay(y, m, d).takeIf { m in 1..12 && d in 1..31 && ofEpochDay(civilToDays(y, m, d)) == it }
+            if (parts[0].length == 4) return valid(n[0], n[1], n[2])
+            val y = year(2)
+            return if (monthFirst) {
+                valid(y, n[0], n[1]) ?: valid(y, n[1], n[0])
+            } else {
+                valid(y, n[1], n[0]) ?: valid(y, n[0], n[1])
+            }
+        }
+
         fun of(at: Long, zone: TimeZone): LocalDay {
             val c = Calendar.getInstance(zone).apply { timeInMillis = at }
             return LocalDay(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH))

@@ -229,7 +229,9 @@ class PluginFileTest {
 
     @Test
     fun `a plugin file is named after the plugin`() {
-        assertEquals("Demo.wmplugin", PluginFile.fileName(manifest()))
+        assertEquals("Demo-1.0.0.wmplugin", PluginFile.fileName(manifest()))
+        assertEquals("Demo.wmplugin", PluginFile.fileName(manifest().copy(pluginVersion = "")))
+        assertEquals("Demo-2.wmplugin", PluginFile.fileName(manifest().copy(pluginVersion = "../2/")))
         assertNull(PluginPermission.parse("network:example.com"))
     }
 

@@ -172,8 +172,111 @@
         <item quantity="one">%1$s letter</item>
         <item quantity="other">%1$s letters</item>
     </plurals>
-    <string name="statistics_correction_title">Corrections</string>
+    <string name="statistics_correction_title">Taken back</string>
     <string name="statistics_correction_subtitle">Backspaces for each 100 characters you type</string>
+
+    <!-- typos -->
+
+    <string name="statistics_typos_section">Typos</string>
+    <string name="statistics_typos_info">Autocorrects are the words the keyboard replaced, by itself or from the chip you tapped. Fixed by hand are the words you went back and repaired yourself. Trust is how often a correction stood once you typed on, shown after 20 have been judged. Only counts are kept, never the words.</string>
+    <string name="statistics_autocorrects_label">Autocorrects</string>
+    <string name="statistics_hand_fixes_label">Fixed by hand</string>
+    <string name="statistics_typo_rate_label">Typos per 100 words</string>
+    <string name="statistics_trust_label">Autocorrect trust</string>
+    <!-- A percentage. %1$d is the number. -->
+    <string name="statistics_percent_value" tools:ignore="PluralsCandidate">%1$d%%</string>
+    <string name="statistics_clean_run_title">Best clean run</string>
+    <string name="statistics_clean_run_subtitle">Most words in a row with no backspace, autocorrect or fix</string>
+    <string name="statistics_offers_taken_title">Fixes you accepted</string>
+    <string name="statistics_offers_taken_subtitle">Near-miss corrections taken from the chip</string>
+    <string name="statistics_slips_section">Your signature slips</string>
+    <string name="statistics_slips_info">The slips your hand makes most and the words you fix most, read from what the keyboard learned from your own fixes. They stay in that list, not in the statistics, and go when you delete it.</string>
+    <!-- How many times the user fixed one typed word the same way. -->
+    <plurals name="statistics_fix_pair_times">
+        <item quantity="one">Fixed by hand %1$d time</item>
+        <item quantity="other">Fixed by hand %1$d times</item>
+    </plurals>
+    <string name="statistics_learned_corrections_action">All learned corrections</string>
+    <!-- The chart counts typos: autocorrects and hand fixes together. -->
+    <string name="statistics_chart_typos_label">Typos</string>
+    <string name="statistics_achievement_kept_title">Saved by autocorrect</string>
+    <string name="statistics_achievement_kept_subtitle">Corrections that stood once you typed on</string>
+    <string name="statistics_achievement_clean_title">Clean run</string>
+    <string name="statistics_achievement_clean_subtitle">Your best run of words with no typo</string>
+
+    <!-- who you are when you type: badges read off the counts -->
+
+    <string name="statistics_persona_section">Who you are when you type</string>
+    <string name="statistics_persona_info">Badges worked out from the counts on this screen: when you type, how much you take back, how you end a sentence. They change as your habits do, and need a few thousand keystrokes before they appear.</string>
+    <string name="statistics_persona_night_owl">Night owl</string>
+    <string name="statistics_persona_night_owl_reason">More than a third of your typing happens between 10 pm and 4 am</string>
+    <string name="statistics_persona_early_bird">Early bird</string>
+    <string name="statistics_persona_early_bird_reason">Nearly a third of your typing happens between 5 and 9 in the morning</string>
+    <string name="statistics_persona_lunch">Lunch typist</string>
+    <string name="statistics_persona_lunch_reason">Nearly a third of your typing happens between noon and 2 pm</string>
+    <string name="statistics_persona_weekend">Weekend typist</string>
+    <string name="statistics_persona_weekend_reason">Saturday and Sunday hold 40% or more of your keystrokes</string>
+    <string name="statistics_persona_weekday">Weekday typist</string>
+    <string name="statistics_persona_weekday_reason">The weekend holds a tenth of your keystrokes or fewer</string>
+    <string name="statistics_persona_careful">Careful</string>
+    <string name="statistics_persona_careful_reason">Fewer than 5 backspaces for every 100 characters</string>
+    <string name="statistics_persona_fearless">Fearless</string>
+    <string name="statistics_persona_fearless_reason">More than 15 backspaces for every 100 characters</string>
+    <string name="statistics_persona_shouter">Shouter</string>
+    <string name="statistics_persona_shouter_reason">At least 5 of every 100 words are in CAPITALS</string>
+    <string name="statistics_persona_exclaimer">Exclaimer</string>
+    <string name="statistics_persona_exclaimer_reason">Most of your sentences end in !</string>
+    <string name="statistics_persona_questioner">Questioner</string>
+    <string name="statistics_persona_questioner_reason">Most of your sentences end in ?</string>
+    <string name="statistics_persona_full_stop">Full stop</string>
+    <string name="statistics_persona_full_stop_reason">Nine in ten of your sentences end in a plain full stop</string>
+    <string name="statistics_persona_ellipsis">Trailing off</string>
+    <string name="statistics_persona_ellipsis_reason">Most of your sentences end in …</string>
+
+    <!-- punctuation -->
+
+    <string name="statistics_punctuation_section">Punctuation</string>
+    <string name="statistics_punctuation_info">Every mark typed as a key of its own, by its share of all of them. Three full stops in a row count as one ellipsis. Words shouted are the words you typed in capitals.</string>
+    <string name="statistics_mark_exclamation">Exclamation mark</string>
+    <string name="statistics_mark_question">Question mark</string>
+    <string name="statistics_mark_full_stop">Full stop</string>
+    <string name="statistics_mark_comma">Comma</string>
+    <string name="statistics_mark_semicolon">Semicolon</string>
+    <string name="statistics_mark_colon">Colon</string>
+    <string name="statistics_mark_ellipsis">Ellipsis</string>
+    <string name="statistics_mark_apostrophe">Apostrophe</string>
+    <string name="statistics_mark_quote">Quotation mark</string>
+    <string name="statistics_shouted_title">Words shouted</string>
+    <string name="statistics_shouted_subtitle">Words you typed in CAPITALS</string>
+
+    <!-- the record book -->
+
+    <string name="statistics_records_section">Record book</string>
+    <string name="statistics_longest_word_title">Longest word</string>
+    <string name="statistics_longest_word_subtitle">Letters in the longest word you typed, picked or glided. Only the length is kept.</string>
+    <string name="statistics_longest_glide_title">Longest glide</string>
+    <string name="statistics_longest_glide_subtitle">Letters in the longest word drawn in one stroke</string>
+    <string name="statistics_longest_session_title">Longest stretch</string>
+    <!-- %1$d is a number of seconds. -->
+    <string name="statistics_longest_session_subtitle" tools:ignore="PluralsCandidate">Typing with no pause longer than %1$d seconds</string>
+    <!-- A duration under one hour. %1$d is minutes, %2$d seconds. -->
+    <string name="statistics_duration_minutes_seconds">%1$dm %2$ds</string>
+    <string name="statistics_backspace_run_title">Longest backspace run</string>
+    <string name="statistics_backspace_run_subtitle">Backspaces in a row</string>
+    <string name="statistics_words_deleted_title">Words deleted whole</string>
+    <string name="statistics_words_deleted_subtitle">Words a delete swipe took in one go</string>
+    <string name="statistics_emoji_title">Emoji sent</string>
+    <!-- %1$s is a number with one decimal, for example 2.5. -->
+    <string name="statistics_emoji_subtitle">%1$s for every 100 words</string>
+
+    <!-- languages -->
+
+    <string name="statistics_languages_section">Languages</string>
+    <string name="statistics_languages_info">Each word goes to the language the keyboard was on when you finished it. Only the language and a count are kept.</string>
+    <plurals name="statistics_languages_count">
+        <item quantity="one">You have typed in %1$d language</item>
+        <item quantity="other">You have typed in %1$d languages</item>
+    </plurals>
 
     <!-- the counts as things to picture -->
 

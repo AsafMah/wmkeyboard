@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordFacts
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.RankControl
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
@@ -598,11 +599,20 @@ data class LayoutSet(
      * claim whatever a layout does, and emitted once: exactly one key on the board
      * means an apostrophe, and two would blur both of them. Null (the default)
      * leaves the grid exactly as it was.
+     *
+     * [carriers] are the keys that type no letter themselves but carry one on
+     * Shift, in the corner or behind a hold (#970), each at its measured
+     * centre: a number-row digit with a letter on its hold, a symbol whose
+     * shifted form is a letter. Emitted after every letter key's passes, and
+     * only for a letter nothing on the grid claims yet, so a letter key always
+     * keeps its own letters and a carrier whose letters are all taken adds no
+     * key at all (see [carriedGlideSpellings]).
      */
     fun glideKeys(
         apostropheCenter: Pair<Float, Float>? = null,
         /** Non-letter keys the composer spells through, by character, at their centres (Khipro's `/`). */
         extraCenters: List<Pair<Int, Pair<Float, Float>>> = emptyList(),
+        carriers: List<Pair<Key, Pair<Float, Float>>> = emptyList(),
         centerOf: (Int) -> Pair<Float, Float>?,
     ): List<KeyCenter> {
         val out = ArrayList<KeyCenter>(letters.rows.sumOf { it.size } * 2)
@@ -651,6 +661,18 @@ data class LayoutSet(
                         SHIFT_PASS -> emit(key.shiftLabel, x, y)
                         else -> for (alternate in key.longPress) emit(alternate, x, y)
                     }
+                }
+            }
+        }
+        if (carriers.isNotEmpty()) {
+            val claimed = out.mapTo(HashSet()) { Character.toLowerCase(it.codePoint) }
+            for ((key, center) in carriers) {
+                for (spelling in key.carriedGlideSpellings()) {
+                    val letters = keySpelling(spelling) ?: continue
+                    if (letters.all { it in claimed }) continue
+                    val before = out.size
+                    emit(spelling, center.first, center.second)
+                    for (i in before until out.size) claimed.add(Character.toLowerCase(out[i].codePoint))
                 }
             }
         }
@@ -758,6 +780,16 @@ enum class PanelMode {
      */
     AI_REPLY,
 
+    /** Emoji mixes: two emoji put together, beside emoji, GIFs and stickers. See [EmojiMixUi]. */
+    EMOJI_MIX,
+
+    /**
+     * The internet speed test: a run against the chosen server, then the
+     * result as a card to send. Its state is the controller's, see
+     * `ime.speedtest.SpeedTestUi`.
+     */
+    SPEED_TEST,
+
     /**
      * The Location tool (#350): the phone's position or a saved place, to
      * insert as a map link, an address, coordinates or a Plus code. Its state
@@ -771,6 +803,13 @@ enum class PanelMode {
      * text box takes the keys through the `CLOCK_*` capture targets.
      */
     CLOCK,
+
+    /**
+     * The To-do tool (#920): tasks and their steps. Its state is the
+     * controller's, see `ime.todo.TodoUi`; its text box takes the keys
+     * through [CaptureTarget.TODO_TEXT].
+     */
+    TODO,
 
     /**
      * The Home Assistant tool: the house's entities as tiles, live from the
@@ -802,6 +841,19 @@ enum class PanelMode {
      * capture targets.
      */
     SEND_FILES,
+
+    /**
+     * The Music ID tool: listens, names the song, types it or sends it as a
+     * picture. Its state is the controller's, see `ime.music.MusicUi`.
+     */
+    MUSIC_ID,
+
+    /**
+     * The keyboard's own share sheet (#970): every share the keyboard makes
+     * opens here, not as a tool of its own. Its state is the controller's,
+     * see `ime.share.ShareUi`; the search box types into [KeyboardUiState.mediaQuery].
+     */
+    SHARE,
 }
 
 /**
@@ -821,6 +873,7 @@ val PanelMode.layoutKind: PanelKind?
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
         PanelMode.NUMPAD -> PanelKind.NUMPAD
         PanelMode.HANDWRITING -> PanelKind.HANDWRITING
+        PanelMode.EMOJI_MIX -> PanelKind.EMOJI_MIX
         else -> null
     }
 
@@ -832,7 +885,7 @@ val PanelMode.hasMediaSearch: Boolean
     get() = this == PanelMode.GIF || this == PanelMode.STICKER ||
         this == PanelMode.WEB_SEARCH || this == PanelMode.IMAGE_SEARCH ||
         this == PanelMode.WIKIPEDIA || this == PanelMode.TRANSLATE ||
-        this == PanelMode.APP_LAUNCHER ||
+        this == PanelMode.APP_LAUNCHER || this == PanelMode.SHARE ||
         // The vocabulary panel's Browse tab searches the installed packs locally.
         this == PanelMode.VOCABULARY ||
         // QR generator reuses the buffer as its own editable content, so it
@@ -913,6 +966,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
         FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.CATEGORIES, FocusRegion.RESULTS,
     )
     PanelMode.SYMBOLS -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS)
+    // The two emoji and their mix, every mix of the first, then the emoji to pick.
+    PanelMode.EMOJI_MIX -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS, FocusRegion.CHIPS)
     // Chips switch between the grids; the fonts grid adds a second chip row
     // for the script whose font it is showing. Listed whether or not that tab
     // is open, the same way the GIF panel lists a row only its default view
@@ -973,6 +1028,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The task rows; the header's chips are touch, and typing reaches the box.
+    PanelMode.TODO -> listOf(FocusRegion.RESULTS)
     // The room tabs, the tiles, then the open tile's controls.
     PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.
@@ -1004,6 +1061,10 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // nobody, and the shutter is a pointer affordance.
     PanelMode.CAMERA, PanelMode.QR_SCAN -> listOf(FocusRegion.ACTIONS)
     PanelMode.OCR -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS)
+    // The tab chips, then the result card's insert chips.
+    PanelMode.MUSIC_ID -> listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS)
+    // The search, Copy/Open/More, the pinned and recent row, then every app.
+    PanelMode.SHARE -> listOf(FocusRegion.SEARCH, FocusRegion.ACTIONS, FocusRegion.CHIPS, FocusRegion.RESULTS)
     // Panels with nothing to drive. The sensor trio has zero controls at all;
     // TEXT_EDIT/NUMPAD duplicate keys a physical keyboard already sends to
     // the field directly (ringing a d-pad that itself moves the caret would
@@ -1012,6 +1073,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // TRACKPAD is a pointing surface and nothing else.
     PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.TRACKPAD, PanelMode.COMPASS, PanelMode.LEVEL,
     PanelMode.MOON_PHASE, PanelMode.NUMPAD, PanelMode.HANDWRITING, PanelMode.CUSTOM_LAYOUTS,
+    // The speed test's chips are touch targets with no [PanelFocusTarget]
+    // yet; a ring here would be an empty one. Add the regions with the targets.
+    PanelMode.SPEED_TEST,
     // AI reply publishes no ring yet (#234): its three bands are all touch
     // targets and none of them has a [PanelFocusTarget], so a ring here would
     // be an empty one. Add the regions with the targets, not before.
@@ -1037,6 +1101,16 @@ data class LauncherDetailUi(
     val app: LauncherApp,
     val activities: List<LauncherActivity> = emptyList(),
     val loading: Boolean = true,
+)
+
+/**
+ * Where the app-launcher grid is (#919): [folderOpen] is the id of the open
+ * folder, or null for the whole grid, and [nameDraft] the folder's name while
+ * the keys are typing a new one into it.
+ */
+data class LauncherUi(
+    val folderOpen: String? = null,
+    val nameDraft: String? = null,
 )
 
 /**
@@ -1160,6 +1234,12 @@ data class VoiceUi(
      */
     val secondsLeft: Int = 0,
     /**
+     * The [clipBased] recording has picked up speech (#921). A clip has no
+     * words to show until it is transcribed, so this is what tells the
+     * surfaces there is a phrase in hand for Undo to take back.
+     */
+    val clipHeard: Boolean = false,
+    /**
      * The keyboard-owned field this dictation types into (#353), as its
      * [KeyboardUiState.captureKey], or null when it types into the app's field.
      * Set by the microphone on that field's strip and kept until the field
@@ -1253,7 +1333,19 @@ fun VoiceBarSettings.armed(): Boolean = enabled && mode == VoiceBarSettings.MODE
  * keeps the row, since it is the session's status and its way out.
  */
 fun KeyboardUiState.voiceStripShown(): Boolean =
-    voice.strip && !(voice.status == VoiceStatus.IDLE && composingPreview.isNotEmpty())
+    voice.strip && !(voice.status == VoiceStatus.IDLE && (composingPreview.isNotEmpty() || wordComposing))
+
+/** A Chinese or Cantonese layout converting a reading: the boards #973's two settings speak for. */
+fun KeyboardUiState.hanReading(): Boolean =
+    composer.isConversion && (language.id == "zh" || language.id == "yue")
+
+/**
+ * The reading being converted is drawn at the start of the candidate strip and
+ * kept out of the app's field (#973), as fcitx5 has it. A keyboard-owned field
+ * composes in its own box, which is the keyboard already, so it never applies.
+ */
+fun KeyboardUiState.readingInKeyboard(): Boolean =
+    !settings.cjk.readingInField && hanReading() && captureTarget() == null
 
 fun KeyboardUiState.voiceChipOnly(): Boolean =
     settings.voiceBar.interactiveTyping() &&
@@ -1416,6 +1508,11 @@ sealed interface PwSettingAction {
     data class Separator(val value: String) : PwSettingAction
     data class Capitalize(val on: Boolean) : PwSettingAction
     data class IncludeDigit(val on: Boolean) : PwSettingAction
+
+    /** The PIN tab (#899); the other two tabs send [PassphraseMode], which leaves it. */
+    data object PinMode : PwSettingAction
+    data class PinLength(val value: Int) : PwSettingAction
+    data class PinAvoidWeak(val on: Boolean) : PwSettingAction
 }
 
 /** One change made from the sound & haptics quick panel. */
@@ -1484,6 +1581,8 @@ sealed interface WebSearchUi {
         val loadingMore: Boolean = false,
         /** The last further page brought nothing new: More results goes. */
         val noMore: Boolean = false,
+        /** The SearXNG category these came from (#934); null, the general search. */
+        val category: String? = null,
     ) : WebSearchUi
 }
 
@@ -1829,6 +1928,16 @@ data class AiChatUi(
      */
     val renaming: Long = -1L,
     val renameDraft: String = "",
+    /**
+     * The next message's mode and answer format, by
+     * [com.wasimaster.wmkeyboard.core.tools.AiChatMode.id] and
+     * [com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat.id]. Kept from
+     * one message to the next, like the app's message box.
+     */
+    val mode: String = "chat",
+    val format: String = "auto",
+    /** The row of modes and formats is up over the composer, in place of the "+" menu. */
+    val optionsMenu: Boolean = false,
 )
 
 /**
@@ -1902,6 +2011,18 @@ sealed interface AiChatAction {
     data class AddPicture(val fromClipboard: Boolean) : AiChatAction
     /** Takes a picture back off the next message. */
     data class RemovePicture(val name: String) : AiChatAction
+
+    /** Shows or hides the row of modes and answer formats over the composer. */
+    data object ToggleOptions : AiChatAction
+
+    /** The next message's mode, by `AiChatMode.id`. */
+    data class SetChatMode(val id: String) : AiChatAction
+
+    /** The next message's answer format, by `AiAnswerFormat.id`. */
+    data class SetAnswerFormat(val id: String) : AiChatAction
+
+    /** The answer at [index] of the conversation, shared as a Markdown file. */
+    data class Share(val index: Int) : AiChatAction
 
     /**
      * Ask AI from another tool (#352): the AI panel opens on a new chat with
@@ -2113,6 +2234,10 @@ sealed interface KdeAction {
     data class HostEntry(val open: Boolean) : KdeAction
     data object SubmitHost : KdeAction
     data object SendClipboard : KdeAction
+
+    /** Hold clipboard sharing with [deviceId], or every computer when null, for [minutes]; 0 until resumed (#918). */
+    data class PauseClipboard(val deviceId: String?, val minutes: Int) : KdeAction
+    data class ResumeClipboard(val deviceId: String?) : KdeAction
 
     /** The selection if there is one, otherwise the whole field. */
     data object SendFieldText : KdeAction
@@ -2478,6 +2603,9 @@ sealed interface StripOfferAction {
 
     /** The Zawgyi button beside the words on a Burmese layout, the same kind of button as [ToggleAnsi]. */
     data object ToggleZawgyi : StripOfferAction
+
+    /** The 繁 button beside the candidates on a Chinese or Cantonese layout (#962), the same kind of button as [ToggleAnsi]. */
+    data object ToggleTraditional : StripOfferAction
 }
 
 /**
@@ -2544,6 +2672,12 @@ sealed interface WordMenuAction {
 
     /** Look up synonyms for [word] and offer them in its place (#321). */
     data class Synonyms(val word: String) : WordMenuAction
+
+    /**
+     * Set [word]'s rank adjustment to [steps], one up or down from where the
+     * menu found it (#970): the word card's rank, without opening the card.
+     */
+    data class RankStep(val word: String, val steps: Int) : WordMenuAction
 }
 
 /** What the word card can ask of the service, once open (#99). */
@@ -2674,6 +2808,12 @@ data class WordCard(
      * because it is a switch the user flips and must not arrive late (#138).
      */
     val casePinned: Boolean = false,
+    /**
+     * Opened by the selection bar's Edit word rather than by a hold on the
+     * strip. The bar hosts that card, since the strip may not be drawn while
+     * text is selected, and the card closes with the selection.
+     */
+    val fromSelection: Boolean = false,
 )
 
 /**
@@ -3024,6 +3164,11 @@ data class StickerOffer(
     val stickers: List<StickerOfferItem>,
     val expanded: Boolean = false,
     val inEmojiPanel: Boolean = false,
+    /**
+     * Emoji mixes rather than the user's stickers: the text ended in emoji, or
+     * one was picked in the panel. [trigger] is then the emoji themselves.
+     */
+    val mix: Boolean = false,
 )
 
 /**
@@ -3186,6 +3331,13 @@ data class KeyboardUiState(
     val moreSuggestions: List<String> = emptyList(),
     val suggestions: List<String> = emptyList(),
     /**
+     * The word being typed, as typed, beside [suggestions] it was ranked for,
+     * so the strip can draw it first ([com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.typedWordFirst]).
+     * Null between words, and on a board that composes something other than
+     * its keys (Hangul, transliteration), where the keys are not the word.
+     */
+    val stripTyped: String? = null,
+    /**
      * What the next undecided syllable of a conversion reading could be, for a
      * reading column to offer (`Composer.readings`, issue #635). Empty for every
      * composer but T9 pinyin, and once every syllable is settled.
@@ -3238,8 +3390,10 @@ data class KeyboardUiState(
      *
      * The one chip on that slot that undoes rather than rewrites, and the only
      * one that outlives the commit it belongs to: it stands until the sentence
-     * ends. Null whenever the last correction was too plainly right to be
-     * worth mentioning, or the chip is switched off.
+     * ends. It names the newest of a short chain of corrections, and a tap
+     * moves it on to the one before. Null whenever no correction in the
+     * sentence was doubtful enough to be worth mentioning, or the chip is
+     * switched off.
      */
     val correctionUndo: String? = null,
     /** Spacing form of the dead-key accent waiting for a letter, if any. */
@@ -3340,6 +3494,14 @@ data class KeyboardUiState(
     val sentenceOpeners: List<String> = emptyList(),
     val composingPreview: String = "",
     /**
+     * A word is being typed into the service's own buffer: the Latin path,
+     * which composes in the field and so leaves [composingPreview] empty.
+     * Read by [voiceStripShown], which hands the strip back from the compact
+     * dictation bar while a word is being typed (#910); a reading being
+     * converted shows up in [composingPreview] instead.
+     */
+    val wordComposing: Boolean = false,
+    /**
      * The roman buffer [composingPreview] was transliterated from, mirrored
      * here for the key hints on a transliterating layout: what a key writes
      * depends on the letters already typed, so the grid has to know them
@@ -3428,6 +3590,16 @@ data class KeyboardUiState(
     val emojiRecents: List<String> = emptyList(),
     val emojiFrequents: List<String> = emptyList(),
     val emojiFavourites: List<String> = emptyList(),
+    /**
+     * Tools by use, for the toolbox's orders by use
+     * ([com.wasimaster.wmkeyboard.core.settings.ToolboxSort]): latest
+     * first, and most runs first. Published as the toolbox opens, so a tool
+     * tapped inside it never moves its neighbours under the finger.
+     */
+    val toolsRecent: List<ToolbarTool> = emptyList(),
+    val toolsMostUsed: List<ToolbarTool> = emptyList(),
+    /** Every tool by its name in the keyboard's language, for the toolbox's A to Z order. */
+    val toolsAlphabetical: List<ToolbarTool> = emptyList(),
     /** Palette-grid base emoji → the skin-tone/gender variant it renders as. */
     val emojiVariantPrefs: Map<String, String> = emptyMap(),
     /**
@@ -3481,8 +3653,16 @@ data class KeyboardUiState(
      * chip over the suggestion strip.
      */
     val smart: SmartSuggest.SmartHit? = null,
+    /**
+     * A continuation of the text before the cursor from the AI provider (#944),
+     * offered as a marked chip beside the word candidates. Null with the
+     * setting off, in a field it may not read, or while nothing came back.
+     */
+    val aiSuggest: String? = null,
     /** Stickers of the user's own that the text before the cursor asks for (#329). */
     val stickerOffer: StickerOffer? = null,
+    /** The emoji mixes panel; see [EmojiMixUi]. */
+    val emojiMix: com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi = com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi(),
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
     /** The Text repeat panel's text, boxes and undo; see [TextRepeatUi]. */
@@ -3727,7 +3907,7 @@ data class KeyboardUiState(
      * region put there is invisible until something ends it. Typing "echo"
      * showed nothing until the space after it, which then dumped the whole word
      * at once. Nothing composes in such a field
-     * ([composesForSuggestions]) and none of the prose rules run in it
+     * ([composesWords]) and none of the prose rules run in it
      * ([allowsTypingIntelligence]): a shell prompt is not prose, and a space
      * the keyboard types after a comma is a changed command line.
      *
@@ -3763,7 +3943,7 @@ data class KeyboardUiState(
      * keeps all of those. The
      * "Suggestions in every field" setting can override this for text and URL
      * fields; in a URL field the strip it shows is also what lets the words
-     * typed there compose ([composesForSuggestions]).
+     * typed there compose ([composesWords]).
      */
     val fieldNoSuggestions: Boolean = false,
     /**
@@ -3815,6 +3995,11 @@ data class KeyboardUiState(
      * label. The rest of the panel's state is the controller's.
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
+    /**
+     * The To-do panel's text box while it has the keys: a new task, a new
+     * step, or a task's words being edited (#920).
+     */
+    val todoText: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? = null,
     /**
      * The Home Assistant panel's text box while it has the keys: a search, an
      * Assist sentence, a lock code, a text entity's value. The rest of the
@@ -3949,6 +4134,11 @@ data class KeyboardUiState(
      */
     val searchTab: SearchTab = SearchTab.ALL,
     /**
+     * The SearXNG category chip picked on the All tab (#934), or null for
+     * the general search. Its results take the All tab's place.
+     */
+    val searchCategory: String? = null,
+    /**
      * The camera was opened from the search panel's camera button
      * (#349): its confirm step offers Search in place of Send, and its back
      * button returns to image search. Set by [WMKeyboardService.onPanelChange]
@@ -3989,12 +4179,16 @@ data class KeyboardUiState(
     /** The AI reply tool's own state (#234); the run itself is on [ai]. */
     val aiReply: AiReplyUi = AiReplyUi(),
     val typingTest: TypingTestUi = TypingTestUi(),
+    /** The internet speed test panel; see [com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi]. */
+    val speedTest: com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi = com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi(),
     /** Launchable apps for the app-launcher panel; empty until first opened. */
     val launcherApps: List<LauncherApp> = emptyList(),
     /** First enumeration in flight — the panel shows its loading state. */
     val launcherLoading: Boolean = false,
     /** The app whose activity list is open, or null for the grid. */
     val launcherDetail: LauncherDetailUi? = null,
+    /** The open app folder and its name box (#919). */
+    val launcherView: LauncherUi = LauncherUi(),
     /**
      * The caret in whichever keyboard-owned field has the keys (#161).
      *
@@ -4028,6 +4222,14 @@ data class KeyboardUiState(
      * keys again without anything having to remember to clear this.
      */
     val captureToApp: String? = null,
+    /**
+     * The tool field whose key rows were put down (#961), as its
+     * [panelFieldKey], or null while every focused field has its keys up.
+     * The field keeps its text and its caret, and the panel gets the rows'
+     * height back to show what it holds; a tap on the field brings the keys
+     * up again. Keyed to the field for the same reason as [captureToApp].
+     */
+    val captureLowered: String? = null,
 ) {
     /**
      * Whether incognito is in force right now, from either source: the
@@ -4119,7 +4321,7 @@ data class KeyboardUiState(
      * Whether to run the full typing engine — autocorrect, apostrophe fixes,
      * phonetic (Avro) composing and lexicon learning. (Gesture typing and word
      * completion have their own, slightly wider gates: [allowsGestureTyping]
-     * and [composesForSuggestions].) These
+     * and [composesWords].) These
      * belong to prose entry, so they apply to plain text fields only and are
      * deliberately independent of [fieldNoSuggestions]: an app that hides the
      * suggestion strip (Instagram, Google Keep) must not also lose autocorrect
@@ -4160,8 +4362,12 @@ data class KeyboardUiState(
         get() = !secureField && !nullField && (fieldKind == FieldKind.TEXT || fieldKind == FieldKind.URI)
 
     /**
-     * Whether the letters typed here are gathered into a word for the strip to
-     * complete. Plain text fields, and a URL bar once "Suggestions in every
+     * Whether the letters typed here are gathered into a word, for the strip to
+     * complete or autocorrect to fix. Autocorrect reads nothing but this
+     * buffer, so in a text field it composes with the strip switched off too:
+     * gated on the strip alone, turning suggestions off silently turned
+     * autocorrect, apostrophe fixes and learning off with it. Plain text
+     * fields, and a URL bar once "Suggestions in every
      * field" has put the strip on it (#98): a browser's address bar is typed
      * as a search box as often as an address box, the same reading #37 gave
      * [allowsGestureTyping]. The word composed there feeds the strip and
@@ -4176,10 +4382,10 @@ data class KeyboardUiState(
      * the strip is doing: there the buffer is not merely unhelpful, it is
      * text the user typed and cannot see (issue #220).
      */
-    val composesForSuggestions: Boolean
-        get() = settings.suggestions && !secureField && !nullField && (
-            fieldKind == FieldKind.TEXT ||
-                (fieldKind == FieldKind.URI && !fieldNoSuggestions)
+    val composesWords: Boolean
+        get() = !secureField && !nullField && (
+            fieldKind == FieldKind.TEXT && (settings.suggestions || settings.correction.enabledFor(language.id)) ||
+                (fieldKind == FieldKind.URI && settings.suggestions && !fieldNoSuggestions)
             )
 
     /**
@@ -4193,7 +4399,7 @@ data class KeyboardUiState(
      * corrections that do stay on [allowsTypingIntelligence].
      */
     val resumesWords: Boolean
-        get() = allowsTypingIntelligence || (fieldKind == FieldKind.URI && composesForSuggestions)
+        get() = allowsTypingIntelligence || (fieldKind == FieldKind.URI && composesWords)
 
     /**
      * Whether the focused field takes any image at all through commitContent.
@@ -4329,6 +4535,10 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the To-do panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val todoTypingActive: Boolean
+        get() = panel == PanelMode.TODO && todoText != null
+
     /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val haTypingActive: Boolean
         get() = panel == PanelMode.HOME_ASSISTANT && haText != null
@@ -4444,6 +4654,7 @@ data class KeyboardUiState(
             } else {
                 CaptureTarget.CLOCK_LABEL
             }
+        todoTypingActive -> CaptureTarget.TODO_TEXT
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
@@ -4478,6 +4689,7 @@ data class KeyboardUiState(
             else -> CaptureTarget.KAOMOJI_SEARCH
         }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
+        panel == PanelMode.APP_LAUNCHER && launcherView.nameDraft != null -> CaptureTarget.LAUNCHER_FOLDER_NAME
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH
@@ -4513,6 +4725,14 @@ data class KeyboardUiState(
     val captureHandedToApp: Boolean
         get() = captureToApp != null && captureToApp == panelFieldKey()
 
+    /**
+     * The open tool's field has had its key rows put down (#961): no rows
+     * under the panel, which takes their height back. Only the layout asks;
+     * the field is still the one a physical keyboard types into.
+     */
+    val captureKeysLowered: Boolean
+        get() = captureLowered != null && captureLowered == panelFieldKey()
+
     /** What is in the focused keyboard-owned buffer right now. */
     fun captureBuffer(): String = when (captureTarget()) {
         null -> ""
@@ -4543,6 +4763,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.TODO_TEXT -> todoText?.text.orEmpty()
         CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
@@ -4553,6 +4774,7 @@ data class KeyboardUiState(
         CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> sendText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
+        CaptureTarget.LAUNCHER_FOLDER_NAME -> launcherView.nameDraft.orEmpty()
         CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
             kaomojiText?.text.orEmpty()
     }
@@ -4725,6 +4947,27 @@ fun Key.glideAnchor(): Int? {
     if (action != KeyAction.Text) return null
     letters?.takeIf { it.isNotEmpty() }?.let { return Character.toLowerCase(it.codePointAt(0)) }
     return keySpelling(label)?.first()
+}
+
+/**
+ * What a key that types no letter carries in letters (#970): its shifted label,
+ * its corner hint and its long presses, each one that [keySpelling] reads as a
+ * letter. A number row's `8` with `i` behind its hold, an Arabic layout's
+ * punctuation key with a letter on Shift. Empty for a letter key, whose own
+ * passes in [LayoutSet.glideKeys] already cover every one of these, and for a
+ * key that carries nothing a word could hold.
+ *
+ * The test the renderer puts a key through before measuring it for the glide
+ * grid, so it has to be cheap on the common key: one anchor check, then three
+ * short lists.
+ */
+fun Key.carriedGlideSpellings(): List<String> {
+    if (action != KeyAction.Text || glideAnchor() != null) return emptyList()
+    val out = ArrayList<String>(0)
+    for (spelling in listOfNotNull(shiftLabel, hint) + longPress) {
+        if (keySpelling(spelling) != null && spelling !in out) out.add(spelling)
+    }
+    return out
 }
 
 /**

@@ -24,7 +24,7 @@ SAKURA = Image.open(CAPS / "theme-sakura.jpg")
 
 gen.KB_TOP.update({id(AI): 1212, id(CLIP): 1212, id(TOOLBOX): 1212,
                    id(CALC): 1212, id(TH_ALT): 1216, id(EMOJI): 850,
-                   id(DICT): 1216, id(SAKURA): 1216})
+                   id(DICT): 0, id(SAKURA): 1216})
 
 W, H = 1080, 2400
 

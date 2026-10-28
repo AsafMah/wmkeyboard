@@ -77,5 +77,11 @@ data class MacroGates(
     /** The host app is in [ChatSyntax]'s table. */
     val chatSyntax: ChatMarkup? = null,
     val ttsAvailable: Boolean = true,
+    /**
+     * The selection is one word, punctuation around it aside, so the word
+     * card has a word to open on. Answered by the service, which owns the
+     * keyboard's own rule for what a word is.
+     */
+    val oneWord: Boolean = false,
     val content: ContentFlags = ContentFlags.NONE,
 )

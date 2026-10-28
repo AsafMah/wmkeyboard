@@ -75,7 +75,7 @@ Once a location is saved, the rose turns to true north rather than magnetic nort
 
 **Moon phase** is arithmetic rather than a lookup. The panel computes the current phase from a fixed synodic-month constant and a reference new moon, with nothing fetched over the network. It's accurate to within a few hours, which is plenty for "is it worth looking up tonight" and not built for precise astronomical prediction.
 
-The panel shows a painted lit/dark disc, one of eight phase names (New moon, Waxing crescent, First quarter, Waxing gibbous, Full moon, Waning gibbous, Last quarter, Waning crescent), the percentage illuminated, how many days into the roughly 30-day cycle you are, and the dates of the next full and new moon.
+The panel shows a painted lit/dark disc, one of eight phase names (New moon, Waxing crescent, First quarter, Waxing gibbous, Full moon, Waning gibbous, Last quarter, Waning crescent), the percentage illuminated, and how many days into the roughly 30-day cycle you are. Under that is a short timetable of the four main phases (new moon, first quarter, full moon and last quarter), each with its day and time: the one that has just passed, in a dimmer color, then the next three.
 
 <PhoneFrame caption="Moon phase: the current lit fraction, phase name, and next full and new moon dates, all computed on-device.">
   <Shot id="tools/moon-phase-panel" alt="Moon phase: the current lit fraction, phase name, and next full/new moon dates, computed on-device." />
@@ -85,6 +85,7 @@ The panel shows a painted lit/dark disc, one of eight phase names (New moon, Wax
 
 <SettingsPath path="Tools / Moon phase" />
 
+- **Arabic names too** (off): shows each phase's Arabic name as well, under the name in your language and beside each phase in the timetable: محاق, هلال, تربيع أول, أحدب متزايد, بدر, أحدب متناقص, تربيع ثانٍ and هلال متناقص.
 - **Southern hemisphere**: read off your phone's region, so it starts on in Australia, Brazil or South Africa and off in Bangladesh or the UK. It mirrors the lit disc the way the moon actually looks south of the equator. Only the drawing changes, never the phase name, dates or illumination percentage.
 
 ## Weather
@@ -113,6 +114,8 @@ Once a location is set, the panel shows an emoji and short description for the c
 - **How often to check**: how long a reading is reused before the tool fetches again. 1 to 180 minutes, default 15. The panel's refresh button still forces a fetch whatever this says.
 
 Those four rows are the whole screen. The settings screen carries its own privacy note underneath: "The weather and the place search both use Open-Meteo, only when you use them. The keyboard makes no other network requests." Weather is the only one of the five instruments that reaches the network at all. The one exception to that note is **Use my location** with the Location tool's address lookup on, which asks the address server for the city's name once. See [network policy](/privacy/network/) for what every network-touching feature sends and when.
+
+The flashlight, the compass, the bubble level and the moon phase are the **Instruments** bundle on [Extensions](/reference/settings/extensions/), and weather is part of **Weather and location**. A bundle that is off takes its tools off the toolbar, the toolbox and the Tools list until it is switched back on.
 
 ## Details & edge cases
 

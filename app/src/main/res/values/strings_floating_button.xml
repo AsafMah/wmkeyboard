@@ -42,6 +42,36 @@
     <string name="floating_button_menu_labels_subtitle">Each action\'s name under its icon. Off, only the one under your finger is named</string>
     <string name="floating_button_menu_reset_title">Reset the menu</string>
     <string name="floating_button_menu_reset_subtitle">Voice typing, Ask AI, clipboard, emoji and the keyboard</string>
+    <!-- How far the rings stand off the button, and how they come out (#923). -->
+    <string name="floating_button_menu_gap_title">Distance from the button</string>
+    <string name="floating_button_menu_gap_subtitle">How far out the actions sit, in the quick menu and in every category</string>
+    <string name="floating_button_menu_animation_title">Opening animation</string>
+    <string name="floating_button_menu_animation_spring">Spring</string>
+    <string name="floating_button_menu_animation_pop">Pop</string>
+    <string name="floating_button_menu_animation_sweep">Sweep</string>
+    <string name="floating_button_menu_animation_fade">Fade</string>
+    <string name="floating_button_menu_animation_none">None</string>
+
+    <!-- Categories: a quick menu action that opens a ring of its own (#923). -->
+    <string name="floating_button_pick_category_new">New category</string>
+    <string name="floating_button_pick_category_new_subtitle">An action that opens a ring of up to 8 more</string>
+    <string name="floating_button_category_default_name">Category</string>
+    <string name="floating_button_category_edit">Edit %1$s</string>
+    <string name="floating_button_category_count">%1$d of %2$d actions</string>
+    <string name="floating_button_category_name_label">Name</string>
+    <string name="floating_button_category_empty">Nothing in this category yet. An empty category opens nothing.</string>
+    <string name="floating_button_category_add_title">Add an action</string>
+    <string name="floating_button_category_add_pick_title">Add to %1$s</string>
+    <string name="floating_button_category_remove_title">Remove the category</string>
+    <string name="floating_button_category_remove_subtitle">Takes it and its actions out of the quick menu</string>
+    <string name="floating_button_category_done">Done</string>
+
+    <!-- Opening an app (#922). -->
+    <string name="floating_button_pick_app">Open an app</string>
+    <string name="floating_button_pick_app_subtitle">Pick an app for this to open</string>
+    <string name="floating_button_app_picker_title">Pick an app</string>
+    <string name="floating_button_app_picker_group">Apps</string>
+    <string name="floating_button_app_picker_empty">No apps found</string>
 
     <string name="floating_button_look_group">Look</string>
     <string name="floating_button_style_title">Colours</string>
@@ -49,6 +79,19 @@
     <string name="floating_button_style_dark">Dark</string>
     <string name="floating_button_style_light">Light</string>
     <string name="floating_button_style_accent">Accent</string>
+    <!-- The button's outline (#933). -->
+    <string name="floating_button_shape_title">Shape</string>
+    <string name="floating_button_shape_subtitle">The outline of the button and of its actions</string>
+    <string name="floating_button_shape_circle">Circle</string>
+    <string name="floating_button_shape_squircle">Squircle</string>
+    <string name="floating_button_shape_rounded_square">Rounded square</string>
+    <string name="floating_button_shape_oval">Oval</string>
+    <string name="floating_button_shape_diamond">Diamond</string>
+    <string name="floating_button_shape_pentagon">Pentagon</string>
+    <string name="floating_button_shape_hexagon">Hexagon</string>
+    <string name="floating_button_shape_octagon">Octagon</string>
+    <string name="floating_button_shape_star">Star</string>
+    <string name="floating_button_shape_heart">Heart</string>
     <string name="floating_button_size_title">Size</string>
     <string name="floating_button_size_subtitle">How large the button is</string>
     <string name="floating_button_opacity_title">Opacity</string>
@@ -65,6 +108,9 @@
     <string name="floating_button_behaviour_group">Behaviour</string>
     <string name="floating_button_while_typing_title">Show while typing</string>
     <string name="floating_button_while_typing_subtitle">Stay on screen above the open keyboard, where a tap on the keyboard action closes it</string>
+    <!-- Over the keys rather than lifted clear of them (#926). -->
+    <string name="floating_button_over_keyboard_title">Float over the keyboard</string>
+    <string name="floating_button_over_keyboard_subtitle">Stay where you put it, even over the keys. Only the button takes a touch; the keys around it still type</string>
     <string name="floating_button_landscape_title">Hide in landscape</string>
     <string name="floating_button_landscape_subtitle">Keep games and videos clear of the button</string>
     <string name="floating_button_haptics_title">Vibrate on touch</string>

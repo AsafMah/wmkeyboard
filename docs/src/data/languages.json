@@ -3650,7 +3650,7 @@
   "id": "ae",
   "name": "Avestan",
   "english": "Avestan",
-  "script": "Latin",
+  "script": "Avestan",
   "keyman": true
  },
  {
@@ -3685,7 +3685,7 @@
   "id": "aho",
   "name": "Ahom",
   "english": "Ahom",
-  "script": "Latin",
+  "script": "Ahom",
   "keyman": true
  },
  {
@@ -3741,21 +3741,21 @@
   "id": "arc-Hatr",
   "name": "Official Aramaic (700-300 BCE) (Hatran)",
   "english": "Official Aramaic (700-300 BCE) (Hatran)",
-  "script": "Latin",
+  "script": "Hatran",
   "keyman": true
  },
  {
   "id": "arc-Nbat",
   "name": "Official Aramaic (700-300 BCE) (Nabataean)",
   "english": "Official Aramaic (700-300 BCE) (Nabataean)",
-  "script": "Latin",
+  "script": "Nabataean",
   "keyman": true
  },
  {
   "id": "arc-Palm",
   "name": "Official Aramaic (700-300 BCE) (Palmyrene)",
   "english": "Official Aramaic (700-300 BCE) (Palmyrene)",
-  "script": "Latin",
+  "script": "Palmyrene",
   "keyman": true
  },
  {
@@ -3846,14 +3846,14 @@
   "id": "bap-Krai",
   "name": "Bantawa (Kirat Rai)",
   "english": "Bantawa (Kirat Rai)",
-  "script": "Latin",
+  "script": "Kirat Rai",
   "keyman": true
  },
  {
   "id": "bax",
   "name": "Bamun",
   "english": "Bamun",
-  "script": "Latin",
+  "script": "Bamum",
   "keyman": true
  },
  {
@@ -3930,7 +3930,7 @@
   "id": "bho-Kthi",
   "name": "Bhojpuri (Kaithi)",
   "english": "Bhojpuri (Kaithi)",
-  "script": "Latin",
+  "script": "Kaithi",
   "keyman": true
  },
  {
@@ -4000,14 +4000,14 @@
   "id": "bn-IN",
   "name": "Bengali (India)",
   "english": "Bengali (India)",
-  "script": "Latin",
+  "script": "Bengali",
   "keyman": true
  },
  {
   "id": "bo-Marc",
   "name": "Tibetan (Marchen)",
   "english": "Tibetan (Marchen)",
-  "script": "Latin",
+  "script": "Marchen",
   "keyman": true
  },
  {
@@ -4077,7 +4077,7 @@
   "id": "bsq",
   "name": "Bassa",
   "english": "Bassa",
-  "script": "Latin",
+  "script": "Bassa Vah",
   "keyman": true
  },
  {
@@ -4140,7 +4140,7 @@
   "id": "ccp",
   "name": "Chakma",
   "english": "Chakma",
-  "script": "Latin",
+  "script": "Chakma",
   "keyman": true
  },
  {
@@ -4245,14 +4245,14 @@
   "id": "cmg",
   "name": "Classical Mongolian",
   "english": "Classical Mongolian",
-  "script": "Latin",
+  "script": "Soyombo",
   "keyman": true
  },
  {
   "id": "cmg-Zanb",
   "name": "Classical Mongolian (Zanabazar Square)",
   "english": "Classical Mongolian (Zanabazar Square)",
-  "script": "Latin",
+  "script": "Zanabazar Square",
   "keyman": true
  },
  {
@@ -4364,7 +4364,7 @@
   "id": "ctd",
   "name": "Tedim Chin",
   "english": "Tedim Chin",
-  "script": "Latin",
+  "script": "Pau Cin Hau",
   "keyman": true
  },
  {
@@ -4427,7 +4427,7 @@
   "id": "dmf",
   "name": "Medefaidrin",
   "english": "Medefaidrin",
-  "script": "Latin",
+  "script": "Medefaidrin",
   "keyman": true
  },
  {
@@ -4441,7 +4441,7 @@
   "id": "doi-Dogr",
   "name": "Dogri (macrolanguage) (Dogra)",
   "english": "Dogri (macrolanguage) (Dogra)",
-  "script": "Latin",
+  "script": "Dogra",
   "keyman": true
  },
  {
@@ -4462,7 +4462,7 @@
   "id": "dv-Diak",
   "name": "Dhivehi (Dives Akuru)",
   "english": "Dhivehi (Dives Akuru)",
-  "script": "Latin",
+  "script": "Dives Akuru",
   "keyman": true
  },
  {
@@ -4476,7 +4476,7 @@
   "id": "dz-BT",
   "name": "Dzongkha (Bhutan)",
   "english": "Dzongkha (Bhutan)",
-  "script": "Latin",
+  "script": "Tibetan",
   "keyman": true
  },
  {
@@ -4490,7 +4490,7 @@
   "id": "ecy",
   "name": "Eteocypriot",
   "english": "Eteocypriot",
-  "script": "Latin",
+  "script": "Cypriot",
   "keyman": true
  },
  {
@@ -4525,14 +4525,14 @@
   "id": "en-Brai",
   "name": "English (Braille)",
   "english": "English (Braille)",
-  "script": "Latin",
+  "script": "Braille",
   "keyman": true
  },
  {
   "id": "en-Dsrt",
   "name": "English (Deseret)",
   "english": "English (Deseret)",
-  "script": "Latin",
+  "script": "Deseret",
   "keyman": true
  },
  {
@@ -4560,7 +4560,7 @@
   "id": "eo-Shaw",
   "name": "Esperanto (Shavian)",
   "english": "Esperanto (Shavian)",
-  "script": "Latin",
+  "script": "Shavian",
   "keyman": true
  },
  {
@@ -4581,7 +4581,7 @@
   "id": "ett",
   "name": "Etruscan",
   "english": "Etruscan",
-  "script": "Latin",
+  "script": "Old Italic",
   "keyman": true
  },
  {
@@ -4602,7 +4602,7 @@
   "id": "fub",
   "name": "Adamawa Fulfulde",
   "english": "Adamawa Fulfulde",
-  "script": "Latin",
+  "script": "Arabic",
   "keyman": true
  },
  {
@@ -4637,21 +4637,21 @@
   "id": "gmy",
   "name": "Mycenaean Greek",
   "english": "Mycenaean Greek",
-  "script": "Latin",
+  "script": "Linear B",
   "keyman": true
  },
  {
   "id": "gon-Gonm",
   "name": "Gondi (Masaram Gondi)",
   "english": "Gondi (Masaram Gondi)",
-  "script": "Devanagari",
+  "script": "Masaram Gondi",
   "keyman": true
  },
  {
   "id": "got-Goth",
   "name": "Gothic (Gothic)",
   "english": "Gothic (Gothic)",
-  "script": "Latin",
+  "script": "Gothic",
   "keyman": true
  },
  {
@@ -4756,28 +4756,28 @@
   "id": "hi-Mahj",
   "name": "Hindi (Mahajani)",
   "english": "Hindi (Mahajani)",
-  "script": "Latin",
+  "script": "Mahajani",
   "keyman": true
  },
  {
   "id": "hii",
   "name": "Hinduri",
   "english": "Hinduri",
-  "script": "Latin",
+  "script": "Takri",
   "keyman": true
  },
  {
   "id": "hmd",
   "name": "Large Flowery Miao",
   "english": "Large Flowery Miao",
-  "script": "Latin",
+  "script": "Miao",
   "keyman": true
  },
  {
   "id": "hmd-Hmng",
   "name": "Large Flowery Miao (Pahawh Hmong)",
   "english": "Large Flowery Miao (Pahawh Hmong)",
-  "script": "Latin",
+  "script": "Pahawh Hmong",
   "keyman": true
  },
  {
@@ -4791,7 +4791,7 @@
   "id": "hnj",
   "name": "Hmong Njua",
   "english": "Hmong Njua",
-  "script": "Latin",
+  "script": "Nyiakeng Puachue Hmong",
   "keyman": true
  },
  {
@@ -4952,7 +4952,7 @@
   "id": "kaw-Kawi",
   "name": "Kawi (Kawi)",
   "english": "Kawi (Kawi)",
-  "script": "Latin",
+  "script": "Kawi",
   "keyman": true
  },
  {
@@ -5078,14 +5078,14 @@
   "id": "kmr-Yezi",
   "name": "Northern Kurdish (Yezidi)",
   "english": "Northern Kurdish (Yezidi)",
-  "script": "Latin",
+  "script": "Yezidi",
   "keyman": true
  },
  {
   "id": "kn-Nand",
   "name": "Kannada (Nandinagari)",
   "english": "Kannada (Nandinagari)",
-  "script": "Latin",
+  "script": "Nandinagari",
   "keyman": true
  },
  {
@@ -5099,7 +5099,7 @@
   "id": "koi-Perm",
   "name": "Komi-Permyak (Old Permic)",
   "english": "Komi-Permyak (Old Permic)",
-  "script": "Latin",
+  "script": "Old Permic",
   "keyman": true
  },
  {
@@ -5127,7 +5127,7 @@
   "id": "ks-Shrd",
   "name": "Kashmiri (Sharada)",
   "english": "Kashmiri (Sharada)",
-  "script": "Latin",
+  "script": "Sharada",
   "keyman": true
  },
  {
@@ -5281,7 +5281,7 @@
   "id": "lpo",
   "name": "Lipo",
   "english": "Lipo",
-  "script": "Latin",
+  "script": "Miao",
   "keyman": true
  },
  {
@@ -5330,21 +5330,21 @@
   "id": "mai-Tirh",
   "name": "Maithili (Tirhuta)",
   "english": "Maithili (Tirhuta)",
-  "script": "Latin",
+  "script": "Tirhuta",
   "keyman": true
  },
  {
   "id": "mak-Maka",
   "name": "Makasar (Makasar)",
   "english": "Makasar (Makasar)",
-  "script": "Latin",
+  "script": "Makasar",
   "keyman": true
  },
  {
   "id": "men-Mend",
   "name": "Mende (Sierra Leone) (Mende Kikakui)",
   "english": "Mende (Sierra Leone) (Mende Kikakui)",
-  "script": "Latin",
+  "script": "Mende Kikakui",
   "keyman": true
  },
  {
@@ -5407,7 +5407,7 @@
   "id": "mr-Modi",
   "name": "Marathi (Modi)",
   "english": "Marathi (Modi)",
-  "script": "Latin",
+  "script": "Modi",
   "keyman": true
  },
  {
@@ -5428,7 +5428,7 @@
   "id": "mro",
   "name": "Mru",
   "english": "Mru",
-  "script": "Latin",
+  "script": "Mro",
   "keyman": true
  },
  {
@@ -5582,14 +5582,14 @@
   "id": "ohu-Hung",
   "name": "Old Hungarian (Old Hungarian)",
   "english": "Old Hungarian (Old Hungarian)",
-  "script": "Latin",
+  "script": "Old Hungarian",
   "keyman": true
  },
  {
   "id": "oj",
   "name": "Ojibwa",
   "english": "Ojibwa",
-  "script": "Latin",
+  "script": "Canadian Aboriginal Syllabics",
   "keyman": true
  },
  {
@@ -5603,7 +5603,7 @@
   "id": "ojs",
   "name": "Severn Ojibwa",
   "english": "Severn Ojibwa",
-  "script": "Latin",
+  "script": "Canadian Aboriginal Syllabics",
   "keyman": true
  },
  {
@@ -5659,7 +5659,7 @@
   "id": "osa",
   "name": "Osage",
   "english": "Osage",
-  "script": "Latin",
+  "script": "Osage",
   "keyman": true
  },
  {
@@ -5680,28 +5680,28 @@
   "id": "oty",
   "name": "Old Tamil",
   "english": "Old Tamil",
-  "script": "Latin",
+  "script": "Grantha",
   "keyman": true
  },
  {
   "id": "oui",
   "name": "Old Uighur",
   "english": "Old Uighur",
-  "script": "Latin",
+  "script": "Old Uyghur",
   "keyman": true
  },
  {
   "id": "pal",
   "name": "Pahlavi",
   "english": "Pahlavi",
-  "script": "Latin",
+  "script": "Inscriptional Pahlavi",
   "keyman": true
  },
  {
   "id": "pal-Phlp",
   "name": "Pahlavi (Psalter Pahlavi)",
   "english": "Pahlavi (Psalter Pahlavi)",
-  "script": "Latin",
+  "script": "Psalter Pahlavi",
   "keyman": true
  },
  {
@@ -5715,7 +5715,7 @@
   "id": "peo",
   "name": "Old Persian (ca. 600-400 B.C.)",
   "english": "Old Persian (ca. 600-400 B.C.)",
-  "script": "Latin",
+  "script": "Old Persian",
   "keyman": true
  },
  {
@@ -5743,7 +5743,7 @@
   "id": "phn",
   "name": "Phoenician",
   "english": "Phoenician",
-  "script": "Latin",
+  "script": "Phoenician",
   "keyman": true
  },
  {
@@ -5827,7 +5827,7 @@
   "id": "rhg",
   "name": "Rohingya",
   "english": "Rohingya",
-  "script": "Latin",
+  "script": "Hanifi Rohingya",
   "keyman": true
  },
  {
@@ -5841,21 +5841,21 @@
   "id": "sa-Bhks",
   "name": "Sanskrit (Bhaiksuki)",
   "english": "Sanskrit (Bhaiksuki)",
-  "script": "Latin",
+  "script": "Bhaiksuki",
   "keyman": true
  },
  {
   "id": "sa-Brah",
   "name": "Sanskrit (Brahmi)",
   "english": "Sanskrit (Brahmi)",
-  "script": "Latin",
+  "script": "Brahmi",
   "keyman": true
  },
  {
   "id": "sa-Khar",
   "name": "Sanskrit (Kharoshthi)",
   "english": "Sanskrit (Kharoshthi)",
-  "script": "Latin",
+  "script": "Kharoshthi",
   "keyman": true
  },
  {
@@ -5876,7 +5876,7 @@
   "id": "sa-Sidd",
   "name": "Sanskrit (Siddham)",
   "english": "Sanskrit (Siddham)",
-  "script": "Latin",
+  "script": "Siddham",
   "keyman": true
  },
  {
@@ -5939,14 +5939,14 @@
   "id": "sd-Khoj",
   "name": "Sindhi (Khojki)",
   "english": "Sindhi (Khojki)",
-  "script": "Latin",
+  "script": "Khojki",
   "keyman": true
  },
  {
   "id": "sd-Sind",
   "name": "Sindhi (Khudawadi)",
   "english": "Sindhi (Khudawadi)",
-  "script": "Latin",
+  "script": "Khudawadi",
   "keyman": true
  },
  {
@@ -6009,7 +6009,7 @@
   "id": "skr-Mult",
   "name": "Saraiki (Multani)",
   "english": "Saraiki (Multani)",
-  "script": "Latin",
+  "script": "Multani",
   "keyman": true
  },
  {
@@ -6023,49 +6023,49 @@
   "id": "so-Osma",
   "name": "Somali (Osmanya)",
   "english": "Somali (Osmanya)",
-  "script": "Latin",
+  "script": "Osmanya",
   "keyman": true
  },
  {
   "id": "sog",
   "name": "Sogdian",
   "english": "Sogdian",
-  "script": "Latin",
+  "script": "Sogdian",
   "keyman": true
  },
  {
   "id": "sog-Mani",
   "name": "Sogdian (Manichaean)",
   "english": "Sogdian (Manichaean)",
-  "script": "Latin",
+  "script": "Manichaean",
   "keyman": true
  },
  {
   "id": "sog-Sogo",
   "name": "Sogdian (Old Sogdian)",
   "english": "Sogdian (Old Sogdian)",
-  "script": "Latin",
+  "script": "Old Sogdian",
   "keyman": true
  },
  {
   "id": "sq-Elba",
   "name": "Albanian (Elbasan)",
   "english": "Albanian (Elbasan)",
-  "script": "Latin",
+  "script": "Elbasan",
   "keyman": true
  },
  {
   "id": "sq-Todr",
   "name": "Albanian (Todhri)",
   "english": "Albanian (Todhri)",
-  "script": "Latin",
+  "script": "Todhri",
   "keyman": true
  },
  {
   "id": "sq-Vith",
   "name": "Albanian (Vithkuqi)",
   "english": "Albanian (Vithkuqi)",
-  "script": "Latin",
+  "script": "Vithkuqi",
   "keyman": true
  },
  {
@@ -6086,7 +6086,7 @@
   "id": "srb-Sora",
   "name": "Sora (Sora Sompeng)",
   "english": "Sora (Sora Sompeng)",
-  "script": "Latin",
+  "script": "Sora Sompeng",
   "keyman": true
  },
  {
@@ -6366,7 +6366,7 @@
   "id": "txo",
   "name": "Toto",
   "english": "Toto",
-  "script": "Latin",
+  "script": "Toto",
   "keyman": true
  },
  {
@@ -6401,7 +6401,7 @@
   "id": "uga",
   "name": "Ugaritic",
   "english": "Ugaritic",
-  "script": "Latin",
+  "script": "Ugaritic",
   "keyman": true
  },
  {
@@ -6429,7 +6429,7 @@
   "id": "unr-Nagm",
   "name": "Mundari (Nag Mundari)",
   "english": "Mundari (Nag Mundari)",
-  "script": "Latin",
+  "script": "Nag Mundari",
   "keyman": true
  },
  {
@@ -6450,7 +6450,7 @@
   "id": "vai",
   "name": "Vai",
   "english": "Vai",
-  "script": "Latin",
+  "script": "Vai",
   "keyman": true
  },
  {
@@ -6492,14 +6492,14 @@
   "id": "wsg",
   "name": "Adilabad Gondi",
   "english": "Adilabad Gondi",
-  "script": "Latin",
+  "script": "Gunjala Gondi",
   "keyman": true
  },
  {
   "id": "wsg-Gong",
   "name": "Adilabad Gondi (Gunjala Gondi)",
   "english": "Adilabad Gondi (Gunjala Gondi)",
-  "script": "Latin",
+  "script": "Gunjala Gondi",
   "keyman": true
  },
  {
@@ -6527,21 +6527,21 @@
   "id": "xag",
   "name": "Aghwan",
   "english": "Aghwan",
-  "script": "Latin",
+  "script": "Caucasian Albanian",
   "keyman": true
  },
  {
   "id": "xlc",
   "name": "Lycian",
   "english": "Lycian",
-  "script": "Latin",
+  "script": "Lycian",
   "keyman": true
  },
  {
   "id": "xld",
   "name": "Lydian",
   "english": "Lydian",
-  "script": "Latin",
+  "script": "Lydian",
   "keyman": true
  },
  {
@@ -6562,7 +6562,7 @@
   "id": "xmr",
   "name": "Meroitic",
   "english": "Meroitic",
-  "script": "Latin",
+  "script": "Meroitic Hieroglyphs",
   "keyman": true
  },
  {
@@ -6576,14 +6576,14 @@
   "id": "xnr-Takr",
   "name": "Kangri (Takri)",
   "english": "Kangri (Takri)",
-  "script": "Latin",
+  "script": "Takri",
   "keyman": true
  },
  {
   "id": "xpr",
   "name": "Parthian",
   "english": "Parthian",
-  "script": "Latin",
+  "script": "Inscriptional Parthian",
   "keyman": true
  },
  {
@@ -6597,7 +6597,7 @@
   "id": "xsa-Sarb",
   "name": "Sabaean (Old South Arabian)",
   "english": "Sabaean (Old South Arabian)",
-  "script": "Latin",
+  "script": "Old South Arabian",
   "keyman": true
  },
  {
@@ -6625,7 +6625,7 @@
   "id": "ygp",
   "name": "Gepo",
   "english": "Gepo",
-  "script": "Latin",
+  "script": "Miao",
   "keyman": true
  },
  {
@@ -6646,7 +6646,7 @@
   "id": "ywq",
   "name": "Wuding-Luquan Yi",
   "english": "Wuding-Luquan Yi",
-  "script": "Latin",
+  "script": "Miao",
   "keyman": true
  },
  {

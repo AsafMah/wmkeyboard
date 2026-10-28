@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ShortText
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoFixHigh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Verified
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MilitaryTech
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Straighten
@@ -431,6 +433,8 @@ private fun achievementTitle(a: TypingProgress.Achievement): Int = when (a) {
     TypingProgress.Achievement.GLIDE_DISTANCE -> R.string.statistics_achievement_distance_title
     TypingProgress.Achievement.TWO_THUMB_WORDS -> R.string.statistics_achievement_two_thumb_title
     TypingProgress.Achievement.VOICE_WORDS -> R.string.statistics_achievement_voice_title
+    TypingProgress.Achievement.AUTOCORRECTS_KEPT -> R.string.statistics_achievement_kept_title
+    TypingProgress.Achievement.CLEAN_RUN -> R.string.statistics_achievement_clean_title
 }
 
 private fun achievementSubtitle(a: TypingProgress.Achievement): Int = when (a) {
@@ -442,6 +446,8 @@ private fun achievementSubtitle(a: TypingProgress.Achievement): Int = when (a) {
     TypingProgress.Achievement.GLIDE_DISTANCE -> R.string.statistics_achievement_distance_subtitle
     TypingProgress.Achievement.TWO_THUMB_WORDS -> R.string.statistics_achievement_two_thumb_subtitle
     TypingProgress.Achievement.VOICE_WORDS -> R.string.statistics_achievement_voice_subtitle
+    TypingProgress.Achievement.AUTOCORRECTS_KEPT -> R.string.statistics_achievement_kept_subtitle
+    TypingProgress.Achievement.CLEAN_RUN -> R.string.statistics_achievement_clean_subtitle
 }
 
 private fun achievementIcon(a: TypingProgress.Achievement): ImageVector = when (a) {
@@ -453,6 +459,8 @@ private fun achievementIcon(a: TypingProgress.Achievement): ImageVector = when (
     TypingProgress.Achievement.GLIDE_DISTANCE -> Icons.Outlined.Straighten
     TypingProgress.Achievement.TWO_THUMB_WORDS -> Icons.Outlined.Swipe
     TypingProgress.Achievement.VOICE_WORDS -> Icons.Outlined.Mic
+    TypingProgress.Achievement.AUTOCORRECTS_KEPT -> Icons.Outlined.AutoFixHigh
+    TypingProgress.Achievement.CLEAN_RUN -> Icons.Outlined.Verified
 }
 
 private val RingSize = 32.dp

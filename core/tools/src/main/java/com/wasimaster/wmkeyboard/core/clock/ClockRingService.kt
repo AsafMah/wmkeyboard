@@ -137,7 +137,7 @@ class ClockRingService : Service() {
 
         if (sound != "") play(sound, fadeSeconds)
         if (vibrate) vibrate()
-        handler.postDelayed({ ClockEngine.missedAll(this) }, silenceMs)
+        handler.postDelayed({ ClockEngine.unansweredAll(this) }, silenceMs)
     }
 
     private fun play(sound: String?, fadeSeconds: Int) {

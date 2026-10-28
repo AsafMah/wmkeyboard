@@ -37,6 +37,8 @@ object SyncKeys {
         // What is installed or downloaded here.
         "emoji_font_installed_id", "whisper_model_id", "whisper_model_by_lang", "ai_local_model_id",
         "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents",
+        "share_sheet_pinned", "share_sheet_recents",
+        "launcher_folders",
         // Current state rather than a choice.
         "active_layout_id", "input_mode", "incognito", "data_saver_manual", "power_saving_manual",
         "recent_layout_ids", "globe_recent_order", "symbol_recents", "unit_convert_last",
@@ -93,6 +95,14 @@ object SyncKeys {
             ),
             emptyList(),
         ),
+
+        /**
+         * The theme in use, light and dark, and when it switches (#935). The
+         * Themes section carries the user's own themes, the library; which
+         * one is on is a setting, and a phone and a tablet often want
+         * different ones.
+         */
+        THEME("theme", setOf("keyboard_theme_id", "theme_mode"), listOf("auto_theme_")),
         ;
 
         fun holds(key: String): Boolean = key in names || prefixes.any { key.startsWith(it) }
@@ -110,6 +120,7 @@ object SyncKeys {
         if (key in SettingsBackup.THEME_KEYS) return false
         if (!includeSecrets && key in SettingsBackup.SECRET_KEYS) return false
         if (key in LOCAL_KEYS) return false
+        if (key in com.wasimaster.wmkeyboard.core.settings.TodoPrefs.LOCAL_KEYS) return false
         return LOCAL_PREFIXES.none { key.startsWith(it) }
     }
 }

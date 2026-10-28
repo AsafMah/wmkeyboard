@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.delay
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * Media-control tool: album art, track metadata, a seek bar and the play /
@@ -292,6 +293,7 @@ internal fun NowPlaying(
                     kb, Icons.Outlined.SkipPrevious,
                     stringResource(R.string.ime_media_control_previous_desc),
                     size = 44.dp, enabled = track.canPrev, focused = focused == 0,
+                    disabledReason = DisabledReason(stringResource(R.string.ime_disabled_media_app_blocks)),
                     onClick = onPrevious,
                 )
                 MediaButton(
@@ -308,6 +310,7 @@ internal fun NowPlaying(
                     kb, Icons.Outlined.SkipNext,
                     stringResource(R.string.ime_media_control_next_desc),
                     size = 44.dp, enabled = track.canNext, focused = focused == 2,
+                    disabledReason = DisabledReason(stringResource(R.string.ime_disabled_media_app_blocks)),
                     onClick = onNext,
                 )
             }
@@ -409,36 +412,41 @@ private fun MediaButton(
     accent: Boolean = false,
     enabled: Boolean = true,
     focused: Boolean = false,
+    // Held while greyed out, says why (and names the button); see [IconHint].
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(if (accent) kb.accent else kb.toolCircle)
-            .focusRing(focused, CircleShape)
-            .alpha(if (enabled) 1f else 0.35f)
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        val tint = if (accent) kb.toolCircleActiveIcon else kb.toolbarIcon
-        if (LocalKbTheme.current.motion.any) {
-            // Play turning into pause shrinks one glyph out as the other grows
-            // in; the button itself, and its tap, never move.
-            AnimatedContent(
-                targetState = icon,
-                transitionSpec = {
-                    (fadeIn(tween(ICON_SWAP_MS)) + scaleIn(tween(ICON_SWAP_MS), initialScale = ICON_SWAP_SCALE)) togetherWith
-                        (fadeOut(tween(ICON_SWAP_OUT_MS)) + scaleOut(tween(ICON_SWAP_OUT_MS), targetScale = ICON_SWAP_SCALE)) using
-                        null
-                },
-                contentAlignment = Alignment.Center,
-                label = "mediaIcon",
-            ) { shown ->
-                Icon(shown, contentDescription = description, tint = tint, modifier = Modifier.size(size * 0.5f))
+    val reason = disabledReason.takeUnless { enabled }
+    IconHint(description.takeIf { reason != null }, disabledReason = reason) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(if (accent) kb.accent else kb.toolCircle)
+                .focusRing(focused, CircleShape)
+                .alpha(if (enabled) 1f else 0.35f)
+                .clickable(enabled = enabled) { onClick() },
+            contentAlignment = Alignment.Center,
+        ) {
+            val tint = if (accent) kb.toolCircleActiveIcon else kb.toolbarIcon
+            if (LocalKbTheme.current.motion.any) {
+                // Play turning into pause shrinks one glyph out as the other grows
+                // in; the button itself, and its tap, never move.
+                AnimatedContent(
+                    targetState = icon,
+                    transitionSpec = {
+                        (fadeIn(tween(ICON_SWAP_MS)) + scaleIn(tween(ICON_SWAP_MS), initialScale = ICON_SWAP_SCALE)) togetherWith
+                            (fadeOut(tween(ICON_SWAP_OUT_MS)) + scaleOut(tween(ICON_SWAP_OUT_MS), targetScale = ICON_SWAP_SCALE)) using
+                            null
+                    },
+                    contentAlignment = Alignment.Center,
+                    label = "mediaIcon",
+                ) { shown ->
+                    Icon(shown, contentDescription = description, tint = tint, modifier = Modifier.size(size * 0.5f))
+                }
+            } else {
+                Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(size * 0.5f))
             }
-        } else {
-            Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(size * 0.5f))
         }
     }
 }

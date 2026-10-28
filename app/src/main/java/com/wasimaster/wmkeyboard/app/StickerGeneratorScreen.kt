@@ -74,8 +74,20 @@ import com.wasimaster.wmkeyboard.core.imagegen.ImageGenModels
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenRequest
 import com.wasimaster.wmkeyboard.core.imagegen.ImageRuntime
 import com.wasimaster.wmkeyboard.core.imagegen.ModelSpec
+import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageGen
+import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageRequest
 import com.wasimaster.wmkeyboard.core.imagegen.PromptSafety
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
+import com.wasimaster.wmkeyboard.core.settings.DeviceNetworkState
+import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.providerMode
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.SubjectCutout
 import java.io.ByteArrayOutputStream
@@ -90,16 +102,38 @@ import kotlinx.coroutines.withContext
 internal const val STICKER_GENERATOR_ROUTE = "sticker_generator"
 
 /**
- * Type a prompt, get stickers: the model runs on this phone (its own process,
- * see ImageGenService), the prompt is translated to English when it is not,
- * and a picked result goes through the background remover into the sticker
- * editor, from where it is saved into a pack like any sticker.
+ * Type a prompt, get stickers: an engine from the generator's provider list
+ * draws them, either the model on this phone (its own process, see
+ * ImageGenService) or an image service online (OnlineImageGen). The prompt
+ * is translated to English when it is not, and a picked result goes through
+ * the background remover (unless the service drew it on a transparent
+ * background) into the sticker editor, from where it is saved into a pack
+ * like any sticker.
  */
 @Composable
-internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onNavigate: (String) -> Unit) {
+@Suppress("detekt.LongMethod", "detekt.CyclomaticComplexMethod")
+internal fun StickerGeneratorScreen(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    packId: String?,
+    onNavigate: (String) -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+
+    // The engines: the rows of the list that are on and set up. In pick mode
+    // the chips choose one; in fallback mode a tap walks them in order.
+    val env = rememberProviderEnv(ProviderTool.IMAGE_GEN)
+    val engines = settings.watch { it.resolveProviders(ProviderTool.IMAGE_GEN, env, grouped = true) }
+    val fallback = settings.watch { it.providerMode(ProviderTool.IMAGE_GEN, env) } == ChainMode.FALLBACK
+    var enginePick by remember { mutableStateOf(prefs.getString(KEY_ENGINE, null).orEmpty()) }
+    val engine = engines.firstOrNull { it.key == enginePick } ?: engines.firstOrNull()
+    val onDeviceListed = engines.any { it.typeId == ProviderTypes.ON_DEVICE_IMAGE.id }
+    val online = engine != null && engine.typeId != ProviderTypes.ON_DEVICE_IMAGE.id
+    // A yes to Data saver's question, for this screen's life.
+    var meteredGranted by remember { mutableStateOf(false) }
+    var meteredAsked by remember { mutableStateOf(false) }
     val states by ImageGenDownloads.states.collectAsState()
     var imported by remember { mutableStateOf(ImageGenImport.installed(context)) }
     LaunchedEffect(Unit) { ImageGenDownloads.refresh(context) }
@@ -177,17 +211,59 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
         }
     }
 
+    /**
+     * Whether Data saver lets the prompt go to an online engine now. ASK is
+     * answered by pressing Generate again: the screen says so, and the second
+     * press is the yes.
+     */
+    fun meteredAllows(): Boolean {
+        val s = settings.value
+        val status = DataSaverStatus(
+            active = s.dataSaver.appliesTo(DeviceNetworkState(metered = isMeteredNow(context))),
+            settings = s.dataSaver,
+            grants = if (meteredGranted) setOf(MeteredFeature.CLOUD_AI) else emptySet(),
+        )
+        return when (status.decide(MeteredFeature.CLOUD_AI)) {
+            MeteredDecision.ALLOWED -> true
+            MeteredDecision.ASK -> if (meteredAsked) {
+                meteredGranted = true
+                true
+            } else {
+                meteredAsked = true
+                message = context.getString(R.string.stickergen_metered_ask)
+                false
+            }
+            MeteredDecision.BLOCKED -> {
+                message = context.getString(R.string.stickergen_metered_blocked)
+                false
+            }
+        }
+    }
+
     fun generate() {
-        val current = spec ?: return
         val typed = prompt.trim()
         if (typed.isEmpty()) return
         PromptSafety.blocked(typed)?.let {
             message = context.getString(R.string.stickergen_prompt_blocked)
             return
         }
-        results.clear()
+        // Fallback walks every engine that is on; pick mode draws with the chosen one.
+        // A second key of a kind set to back the first up comes after it.
+        var walk = if (fallback) engines else engine?.withBackups.orEmpty()
+        if (walk.isEmpty()) {
+            message = context.getString(R.string.stickergen_engine_none)
+            return
+        }
+        if (walk.size == 1 && walk.first().typeId == ProviderTypes.ON_DEVICE_IMAGE.id && spec == null) return
         message = null
+        if (walk.any { it.typeId != ProviderTypes.ON_DEVICE_IMAGE.id } && !meteredAllows()) {
+            // Held by Data saver: only the phone's model can still draw.
+            walk = walk.filter { it.typeId == ProviderTypes.ON_DEVICE_IMAGE.id }
+            if (walk.isEmpty()) return
+        }
+        results.clear()
         job?.cancel()
+        val usable = walk
         val launched = scope.launch {
             status = context.getString(R.string.stickergen_status_translating)
             val en = if (englishFor == typed && english != null) english!! else StickerPrompt.toEnglish(context, settings.value, typed)
@@ -200,53 +276,102 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
             }
             if (en.failed) message = context.getString(R.string.stickergen_translate_failed)
             if (!seedLocked) seed = Random.nextLong(0, MAX_SEED)
-            val count = variants.takeIf { it in 1..ImageGenEngine.MAX_VARIANTS }
-                ?: ImageGenEngine.defaultVariants(context, current.runtime)
-            val request = ImageGenRequest(
-                modelId = modelId,
-                prompt = en.text + style.suffix,
-                negative = negative.trim(),
-                size = size.takeIf { it in current.sizes } ?: current.sizes.min(),
-                steps = steps,
-                guidance = guidance,
-                seed = seed,
-                variants = count,
-                safetyFilter = safety,
-            )
-            repeat(count) { results.add(Result.Pending) }
-            status = context.getString(R.string.stickergen_status_starting)
-            ImageGen.generate(context, request).collect { event ->
-                when (event) {
-                    ImageGenEvent.Loading -> status = context.getString(R.string.stickergen_status_loading)
-                    is ImageGenEvent.Progress -> {
-                        progress = (event.variant + event.step.toFloat() / event.steps) / count
-                        status = context.getString(R.string.stickergen_status_drawing, event.variant + 1, count)
-                        val preview = event.preview?.let { withContext(Dispatchers.IO) { decode(it) } }
-                        if (preview != null && event.variant in results.indices) results[event.variant] = Result.Preview(preview)
-                    }
-                    is ImageGenEvent.Image -> {
-                        val image = withContext(Dispatchers.IO) { decode(event.file) }
-                        if (image != null && event.variant in results.indices) {
-                            results[event.variant] = Result.Done(image, event.file, event.seed)
-                        }
-                        progress = (event.variant + 1f) / count
-                    }
-                    is ImageGenEvent.Blocked -> {
-                        if (event.variant == ImageGenEngine.PROMPT) {
-                            message = context.getString(R.string.stickergen_prompt_blocked)
-                            results.clear()
-                        } else if (event.variant in results.indices) {
-                            results[event.variant] = Result.Blocked
-                        }
-                    }
-                    is ImageGenEvent.Failed -> message = context.getString(R.string.stickergen_failed, event.message)
-                    ImageGenEvent.Done -> Unit
+            val failures = mutableListOf<String>()
+            for (step in usable) {
+                val onPhone = step.typeId == ProviderTypes.ON_DEVICE_IMAGE.id
+                val current = spec
+                if (onPhone && current == null) {
+                    failures += context.getString(R.string.stickergen_need_model)
+                    continue
                 }
+                val count = variants.takeIf { it in 1..ImageGenEngine.MAX_VARIANTS }
+                    ?: if (onPhone) ImageGenEngine.defaultVariants(context, current!!.runtime) else ONLINE_DEFAULT_VARIANTS
+                val name = providerTitle(context, step)
+                val events = if (onPhone) {
+                    ImageGen.generate(
+                        context,
+                        ImageGenRequest(
+                            modelId = modelId,
+                            prompt = en.text + style.suffix,
+                            negative = negative.trim(),
+                            size = size.takeIf { it in current!!.sizes } ?: current!!.sizes.min(),
+                            steps = steps,
+                            guidance = guidance,
+                            seed = seed,
+                            variants = count,
+                            safetyFilter = safety,
+                        ),
+                    )
+                } else {
+                    OnlineImageGen.generate(
+                        context,
+                        step,
+                        OnlineImageRequest(
+                            prompt = en.text + style.suffix,
+                            negative = negative.trim(),
+                            seed = seed,
+                            count = count,
+                            safety = safety,
+                        ),
+                    )
+                }
+                results.clear()
+                repeat(count) { results.add(Result.Pending) }
+                status = if (onPhone) {
+                    context.getString(R.string.stickergen_status_starting)
+                } else {
+                    context.getString(R.string.stickergen_status_asking, name)
+                }
+                var drawn = false
+                var failed: String? = null
+                events.collect { event ->
+                    when (event) {
+                        ImageGenEvent.Loading -> status = context.getString(R.string.stickergen_status_loading)
+                        is ImageGenEvent.Waiting -> status = if (event.seconds > 0) {
+                            context.getString(R.string.stickergen_status_queue_time, name, event.position, event.seconds)
+                        } else {
+                            context.getString(R.string.stickergen_status_queue, name, event.position)
+                        }
+                        is ImageGenEvent.Progress -> {
+                            progress = (event.variant + event.step.toFloat() / event.steps) / count
+                            status = context.getString(R.string.stickergen_status_drawing, event.variant + 1, count)
+                            val preview = event.preview?.let { withContext(Dispatchers.IO) { decode(it) } }
+                            if (preview != null && event.variant in results.indices) results[event.variant] = Result.Preview(preview)
+                        }
+                        is ImageGenEvent.Image -> {
+                            drawn = true
+                            val image = withContext(Dispatchers.IO) { decode(event.file) }
+                            if (image != null) {
+                                // A service may send more pictures than were asked for.
+                                while (event.variant >= results.size) results.add(Result.Pending)
+                                results[event.variant] = Result.Done(image, event.file, event.seed, transparent = !onPhone && OnlineImageGen.transparent(step))
+                            }
+                            progress = (event.variant + 1f) / count
+                        }
+                        is ImageGenEvent.Blocked -> {
+                            drawn = true
+                            if (event.variant == ImageGenEngine.PROMPT) {
+                                message = context.getString(R.string.stickergen_prompt_blocked)
+                                results.clear()
+                            } else {
+                                while (event.variant >= results.size) results.add(Result.Pending)
+                                results[event.variant] = Result.Blocked
+                            }
+                        }
+                        is ImageGenEvent.Failed -> failed = event.message
+                        ImageGenEvent.Done -> Unit
+                    }
+                }
+                // Places nothing ever filled (a cancel, a failure) go.
+                results.removeAll { it == Result.Pending }
+                if (drawn) break
+                failed?.let { failures += if (usable.size > 1) context.getString(R.string.stickergen_failed_named, name, it) else it }
             }
             status = null
             progress = 0f
-            // Places nothing ever filled (a cancel, a failure) go.
-            results.removeAll { it == Result.Pending }
+            if (results.isEmpty() && failures.isNotEmpty()) {
+                message = context.getString(R.string.stickergen_failed, failures.joinToString("\n"))
+            }
         }
         job = launched
         // Only the run that is still the current one clears it: a cancelled
@@ -254,8 +379,50 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
         launched.invokeOnCompletion { if (job === launched) job = null }
     }
 
+    // --- Engine --------------------------------------------------------------
+    SettingsGroup(stringResource(R.string.stickergen_engine_title)) {
+        if (!fallback && engines.size > 1) {
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    for (row in engines) {
+                        FilterChip(
+                            selected = row.key == engine?.key,
+                            onClick = {
+                                enginePick = row.key
+                                prefs.edit().putString(KEY_ENGINE, row.key).apply()
+                            },
+                            label = { Text(providerTitle(context, row)) },
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            CaptionText(
+                when {
+                    engine == null -> stringResource(R.string.stickergen_engine_none)
+                    fallback && engines.size > 1 -> stringResource(
+                        R.string.stickergen_engine_fallback,
+                        engines.joinToString(", ") { providerTitle(context, it) },
+                    )
+                    !online -> stringResource(R.string.stickergen_engine_on_device)
+                    OnlineImageGen.transparent(engine) -> stringResource(R.string.stickergen_engine_online_transparent, OnlineImageGen.host(engine))
+                    else -> stringResource(R.string.stickergen_engine_online, OnlineImageGen.host(engine))
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    }
+
     // --- Model ---------------------------------------------------------------
-    SettingsGroup(
+    // The phone's models, while the phone is the engine (or one the list falls back to).
+    if (onDeviceListed && (fallback || !online)) SettingsGroup(
         stringResource(R.string.stickergen_model_title),
         info = stringResource(R.string.stickergen_model_info),
     ) {
@@ -330,8 +497,9 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
                     maxLines = 5,
                 )
                 // Counted on what the model will read: the English, with the style.
-                val counted = remember(prompt, english, englishFor, style, tokenizer) {
-                    val t = tokenizer ?: return@remember null
+                // An online model reads far more than 77 tokens, so only the phone's counts.
+                val counted = remember(prompt, english, englishFor, style, tokenizer, online) {
+                    val t = tokenizer?.takeIf { !online } ?: return@remember null
                     val text = (if (englishFor == prompt.trim()) english?.text else null) ?: prompt.trim()
                     if (text.isEmpty()) null else t.prompt(text + style.suffix)
                 }
@@ -384,7 +552,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
                     if (job == null) {
                         Button(
                             onClick = { generate() },
-                            enabled = spec != null && prompt.isNotBlank(),
+                            enabled = (online || (fallback && engines.size > 1) || spec != null) && prompt.isNotBlank(),
                         ) { Text(stringResource(R.string.stickergen_generate)) }
                     } else {
                         OutlinedButton(onClick = { job?.cancel() }) { Text(stringResource(CommonR.string.common_cancel)) }
@@ -407,7 +575,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
                         ) { Text(stringResource(if (rewriting) R.string.stickergen_rewriting else R.string.stickergen_rewrite)) }
                     }
                 }
-                if (spec == null && !modelReady) {
+                if (!online && engine != null && spec == null && !modelReady) {
                     CaptionText(stringResource(R.string.stickergen_need_model), modifier = Modifier.padding(top = 4.dp))
                 }
                 status?.let {
@@ -445,7 +613,8 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
 
     // --- Advanced ------------------------------------------------------------
     SettingsGroup(stringResource(R.string.stickergen_advanced_title), foldKey = "advanced") {
-        val current = spec
+        // The diffusion settings are the phone's model's; an online engine has its own.
+        val current = spec?.takeIf { !online }
         if (current != null && current.sizes.size > 1) {
             item {
                 ChoiceChips(
@@ -459,7 +628,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
             }
         }
         item {
-            val auto = ImageGenEngine.defaultVariants(context, current?.runtime ?: ImageRuntime.MNN)
+            val auto = if (online) ONLINE_DEFAULT_VARIANTS else ImageGenEngine.defaultVariants(context, current?.runtime ?: ImageRuntime.MNN)
             ChoiceChips(
                 title = stringResource(R.string.stickergen_variants_title),
                 options = listOf(0 to stringResource(R.string.stickergen_variants_auto, auto)) +
@@ -483,7 +652,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_seed_lock_title),
+                title = R.string.stickergen_seed_lock_title,
                 subtitle = stringResource(R.string.stickergen_seed_lock_subtitle),
                 checked = seedLocked,
             ) { seedLocked = it }
@@ -498,7 +667,20 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
                 ) { steps = it }
             }
         }
-        if (current != null && current.takesGuidance) {
+        if (online) {
+            item {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    OutlinedTextField(
+                        value = negative,
+                        onValueChange = { negative = it },
+                        label = { Text(stringResource(R.string.stickergen_negative_label)) },
+                        supportingText = { Text(stringResource(R.string.stickergen_negative_online)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3,
+                    )
+                }
+            }
+        } else if (current != null && current.takesGuidance) {
             item {
                 ChoiceChips(
                     title = stringResource(R.string.stickergen_guidance_title),
@@ -528,7 +710,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_cutout_title),
+                title = R.string.stickergen_cutout_title,
                 subtitle = stringResource(
                     if (SubjectCutout.supported) R.string.stickergen_cutout_subtitle else R.string.stickergen_cutout_unsupported,
                 ),
@@ -541,8 +723,8 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_safety_title),
-                subtitle = stringResource(R.string.stickergen_safety_subtitle),
+                title = R.string.stickergen_safety_title,
+                subtitle = stringResource(if (online) R.string.stickergen_safety_subtitle_online else R.string.stickergen_safety_subtitle),
                 checked = safety,
             ) {
                 safety = it
@@ -550,6 +732,15 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
             }
         }
     }
+
+    // --- Engines ---------------------------------------------------------------
+    ProvidersGroup(
+        repository,
+        settings,
+        ProviderTool.IMAGE_GEN,
+        titleRes = R.string.stickergen_engines_title,
+        info = stringResource(R.string.stickergen_engines_info),
+    )
 
     consentFor?.let { model ->
         LicenceDialog(model) { accepted ->
@@ -569,7 +760,8 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
                 scope.launch {
                     val target = withContext(Dispatchers.IO) { targetPack(context, packId, prefs.getString(KEY_PACK, null)) }
                     val bytes = withContext(Dispatchers.IO) {
-                        stickerBytes(context, done.file, removeBackground && SubjectCutout.supported)
+                        // A sticker drawn on a transparent background is cut out already.
+                        stickerBytes(context, done.file, removeBackground && SubjectCutout.supported && !done.transparent)
                     }
                     savingPick = false
                     picked = null
@@ -590,7 +782,7 @@ internal fun StickerGeneratorScreen(settings: LiveSettings, packId: String?, onN
 private sealed interface Result {
     data object Pending : Result
     data class Preview(val image: ImageBitmap) : Result
-    data class Done(val image: ImageBitmap, val file: File, val seed: Long) : Result
+    data class Done(val image: ImageBitmap, val file: File, val seed: Long, val transparent: Boolean = false) : Result
     data object Blocked : Result
 }
 
@@ -752,6 +944,13 @@ private fun loadSpec(context: Context, modelId: String): Pair<ModelSpec, ClipTok
         return@runCatching ImageGenModels.npuSpec() to ClipTokenizer.fromFile(merges)
     }
     val dir = if (catalog != null) ImageGenModels.dir(noBackup, catalog) else File(ImageGenModels.importedRoot(noBackup), modelId)
+    // An imported Qualcomm build: its context binaries run on the catalog's
+    // own schedule, with the tokenizer beside them and no wmimage.json of
+    // their own.
+    if (File(dir, ImageGenModels.NPU_UNET).isFile) {
+        val merges = dir.listFiles().orEmpty().firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
+        return@runCatching ImageGenModels.npuSpec(modelId) to ClipTokenizer.fromFile(merges)
+    }
     val files = dir.listFiles().orEmpty()
     val json = files.firstOrNull { it.name.endsWith("wmimage.json") }?.readText() ?: return@runCatching null
     val merges = files.firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
@@ -776,7 +975,7 @@ private fun targetPack(context: Context, routePack: String?, lastPack: String?):
 private suspend fun stickerBytes(context: Context, file: File, cutout: Boolean): ByteArray? {
     val bitmap = BitmapFactory.decodeFile(file.path) ?: return null
     var out = bitmap
-    if (cutout && SubjectCutout.ensureModel(context)) {
+    if (cutout && !cutAlready(bitmap) && SubjectCutout.ensureModel(context)) {
         val result = SubjectCutout.cutOut(context, bitmap)
         if (result is SubjectCutout.Result.Ok) {
             out = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -790,6 +989,14 @@ private suspend fun stickerBytes(context: Context, file: File, cutout: Boolean):
     }
 }
 
+/** A picture whose corners are see-through came with its background removed. */
+private fun cutAlready(bitmap: Bitmap): Boolean {
+    if (!bitmap.hasAlpha()) return false
+    val w = bitmap.width - 1
+    val h = bitmap.height - 1
+    return listOf(0 to 0, w to 0, 0 to h, w to h).all { (x, y) -> android.graphics.Color.alpha(bitmap.getPixel(x, y)) < CLEAR_ALPHA }
+}
+
 private fun decode(file: File): ImageBitmap? = runCatching { BitmapFactory.decodeFile(file.path)?.asImageBitmap() }.getOrNull()
 
 private const val PREFS = "sticker_generator"
@@ -800,5 +1007,10 @@ private const val KEY_VARIANTS = "variants"
 private const val KEY_SAFETY = "safety"
 private const val KEY_CUTOUT = "cutout"
 private const val KEY_PACK = "pack"
+private const val KEY_ENGINE = "engine"
+
+/** Pictures per tap from an online engine left on Auto: each one may be paid for. */
+private const val ONLINE_DEFAULT_VARIANTS = 1
+private const val CLEAR_ALPHA = 16
 private const val MAX_SEED = 2_147_483_647L
 private const val PREVIEW_ALPHA = 0.6f

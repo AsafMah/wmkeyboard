@@ -7,6 +7,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import androidx.compose.ui.composed
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,6 +90,7 @@ import com.wasimaster.wmkeyboard.ime.VoiceModelState
 import com.wasimaster.wmkeyboard.ime.VoiceStatus
 import com.wasimaster.wmkeyboard.ime.VoiceUi
 import com.wasimaster.wmkeyboard.ime.clipBased
+import com.wasimaster.wmkeyboard.ime.undoReady
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import kotlinx.coroutines.Job
@@ -97,18 +103,6 @@ import kotlinx.coroutines.launch
  */
 internal fun VoiceUi.transcribingLabelRes(): Int =
     if (tidying) R.string.ime_voice_status_tidying else R.string.ime_voice_status_transcribing
-
-/**
- * Whether the voice surfaces offer Undo: once a phrase has landed, and also
- * while one is being heard (#758), where it takes that phrase back and listens
- * again. Not in the moment a phrase is being finished, with its words on the
- * way and nothing yet to point at.
- */
-internal fun VoiceUi.undoReady(): Boolean = when (status) {
-    VoiceStatus.FINISHING -> false
-    VoiceStatus.LISTENING -> canUndo || partial.isNotEmpty()
-    else -> canUndo
-}
 
 /**
  * The punctuation column beside the panel's action rail (#758): the marks a
@@ -266,9 +260,40 @@ internal fun VoicePanel(
                         )
                     }
                 }
-                voice.status == VoiceStatus.UNAVAILABLE -> VoiceNotice(
-                    stringResource(R.string.ime_voice_unavailable_notice),
-                )
+                // No recognition service on the phone (no Google services, a
+                // Huawei): the system engine cannot run, and the way out is an
+                // engine that runs on the keyboard itself, one tap away.
+                voice.status == VoiceStatus.UNAVAILABLE -> Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        stringResource(R.string.ime_voice_unavailable_notice),
+                        color = kb.secondaryText,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
+                            .background(kb.chipActive)
+                            .chipBorder(kb, kb.chipShape())
+                            .focusRing(focusedAction == 0, kb.chipShape())
+                            .pointerInput(Unit) { detectTapGestures { onOpenVoiceSettings() } }
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.ime_voice_unavailable_action),
+                            color = kb.chipActiveText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
                 else -> MicContent(
                     state = state,
                     onToggle = onToggle,
@@ -467,11 +492,34 @@ internal fun VoicePanel(
                 .width(64.dp)
                 .fillMaxHeight(),
         ) {
+            // A sideways drag on ⌫ deletes as the keyboard's own ⌫ does, and one
+            // on space moves the cursor (#925), so a misheard word is fixed
+            // without leaving the panel.
+            val deleteSwipe = LocalDeleteSwipe.current
+            val byWord = state.settings.textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD
+            val swipeOn = state.settings.backspaceSwipeDelete
+            val currentFeedback = rememberUpdatedState(feedback)
+            val currentRailKey = rememberUpdatedState(onRailKey)
+            // Remembered: a new one on a recomposition mid-drag would restart
+            // the gesture under the finger.
+            val deleteDrag = remember(deleteSwipe, byWord, swipeOn) {
+                if (swipeOn) railDeleteDrag(deleteSwipe, byWord) { currentFeedback.value() } else null
+            }
+            val spaceDrag = remember {
+                RailDrag(stepDp = SPACE_DRAG_STEP_DP) { steps ->
+                    val edit = if (steps < 0) TextEditAction.LEFT else TextEditAction.RIGHT
+                    repeat(kotlin.math.abs(steps)) {
+                        currentFeedback.value()
+                        currentRailKey.value(VoiceBarAction.RailKey(Key("", action = KeyAction.Edit(edit))))
+                    }
+                }
+            }
             VoiceRailKey(
                 description = stringResource(CommonR.string.common_delete),
                 icon = Icons.AutoMirrored.Outlined.Backspace,
                 repeatable = true,
                 modifier = Modifier.weight(1f),
+                drag = deleteDrag,
             ) {
                 feedback()
                 onRailKey(VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)))
@@ -480,6 +528,7 @@ internal fun VoicePanel(
                 description = stringResource(R.string.ime_rail_space_desc),
                 icon = Icons.Outlined.SpaceBar,
                 modifier = Modifier.weight(1f),
+                drag = spaceDrag,
             ) {
                 feedback()
                 onRailKey(VoiceBarAction.RailKey(Key(" ", action = KeyAction.Space)))
@@ -1398,6 +1447,133 @@ private fun hasMicPermission(context: android.content.Context): Boolean =
  * enter action, whose whole point is the wording the app chose, and for the
  * punctuation column, whose keys are their marks.
  */
+/**
+ * A sideways drag on a rail key (#925): [onSteps] is told how many [stepDp]
+ * steps the finger moved since the last call, left negative, and [onEnd]
+ * when it lifts. A key with one fires its tap on the lift instead of on the
+ * press, so a drag is never also a tap.
+ */
+internal class RailDrag(
+    val stepDp: Float,
+    val onEnd: () -> Unit = {},
+    val onSteps: (Int) -> Unit,
+)
+
+private const val SPACE_DRAG_STEP_DP = 14f
+private const val DELETE_DRAG_STEP_DP = 32f
+
+/**
+ * ⌫'s drag, on the keyboard's own delete swipe: a preview that grows and
+ * shrinks with the finger and deletes on the lift, or deleting as it goes
+ * where the field cannot show one.
+ */
+internal fun railDeleteDrag(swipe: DeleteSwipeCallbacks, byWord: Boolean, feedback: () -> Unit): RailDrag {
+    var units = 0
+    var previewing = true
+    return RailDrag(
+        stepDp = DELETE_DRAG_STEP_DP,
+        onEnd = {
+            if (previewing) {
+                if (units > 0) swipe.onCommit() else swipe.onCancel()
+            }
+            units = 0
+            previewing = true
+        },
+    ) { steps ->
+        val target = (units - steps).coerceAtLeast(0)
+        if (target == units) return@RailDrag
+        if (previewing) {
+            val covered = swipe.onSelect(target, byWord, false)
+            if (covered >= 0) {
+                if (covered != units) feedback()
+                units = covered
+                return@RailDrag
+            }
+            previewing = false
+            units = 0
+        }
+        // Deleting as it goes: nothing to give back, so only leftward counts.
+        repeat((target - units).coerceAtLeast(0)) {
+            feedback()
+            swipe.onDeleteUnit(byWord, false)
+        }
+        units = target
+    }
+}
+
+/**
+ * A rail key's press: its tap, a hold that repeats when [repeatable], and the
+ * sideways [drag] when it has one (#925). Shared by the panel's rail and the
+ * collapsed bar's backspace.
+ */
+internal fun Modifier.railKeyGestures(repeatable: Boolean, drag: RailDrag?, onAction: () -> Unit): Modifier = composed {
+    val scope = rememberCoroutineScope()
+    pointerInput(repeatable, drag) {
+        if (drag == null) {
+            detectTapGestures(
+                onPress = {
+                    onAction()
+                    var repeat: Job? = null
+                    if (repeatable) {
+                        repeat = scope.launch {
+                            delay(400)
+                            while (true) {
+                                onAction()
+                                delay(120)
+                            }
+                        }
+                    }
+                    tryAwaitRelease()
+                    repeat?.cancel()
+                },
+            )
+            return@pointerInput
+        }
+        val slop = viewConfiguration.touchSlop
+        val stepPx = drag.stepDp.dp.toPx()
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            var repeated = false
+            val repeat = if (repeatable) {
+                scope.launch {
+                    delay(400)
+                    repeated = true
+                    while (true) {
+                        onAction()
+                        delay(120)
+                    }
+                }
+            } else {
+                null
+            }
+            var dragging = false
+            var anchor = down.position.x
+            while (true) {
+                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                if (!change.pressed) break
+                if (!dragging && !repeated && kotlin.math.abs(change.position.x - down.position.x) > slop) {
+                    dragging = true
+                    repeat?.cancel()
+                    anchor = change.position.x
+                }
+                if (dragging) {
+                    change.consume()
+                    val steps = ((change.position.x - anchor) / stepPx).toInt()
+                    if (steps != 0) {
+                        anchor += steps * stepPx
+                        drag.onSteps(steps)
+                    }
+                }
+            }
+            repeat?.cancel()
+            when {
+                dragging -> drag.onEnd()
+                !repeated -> onAction()
+            }
+        }
+    }
+}
+
 @Composable
 private fun VoiceRailKey(
     description: String,
@@ -1405,10 +1581,10 @@ private fun VoiceRailKey(
     modifier: Modifier = Modifier,
     label: String? = null,
     repeatable: Boolean = false,
+    drag: RailDrag? = null,
     onAction: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    val scope = rememberCoroutineScope()
     val shape = kb.keyShape()
     Box(
         modifier = modifier
@@ -1419,25 +1595,7 @@ private fun VoiceRailKey(
             .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, shape, FrostSurface.MODIFIER_KEYS) else Modifier)
             .background(kb.keyFace(kb.modifierKey), shape)
             .panelKeyBorder(kb, shape)
-            .pointerInput(repeatable) {
-                detectTapGestures(
-                    onPress = {
-                        onAction()
-                        var repeat: Job? = null
-                        if (repeatable) {
-                            repeat = scope.launch {
-                                delay(400)
-                                while (true) {
-                                    onAction()
-                                    delay(120)
-                                }
-                            }
-                        }
-                        tryAwaitRelease()
-                        repeat?.cancel()
-                    },
-                )
-            },
+            .railKeyGestures(repeatable, drag, onAction),
         contentAlignment = Alignment.Center,
     ) {
         if (label != null) {

@@ -558,10 +558,26 @@ class PrefixTrigger(val prefix: String, val typed: String, val snippet: Snippet)
  */
 class SuffixTrigger(val typed: String, val snippet: Snippet)
 
+/**
+ * A trigger that expands on the keystroke that finishes it ([Snippet.immediate]),
+ * keyed under its last character. [typed] is the trigger as written.
+ *
+ * [tail] is the run of word characters it ends with — all of `btw`, the
+ * `sig` of `:sig`, the `db` of `gr db` — which is the most the composing buffer
+ * can hold of it. A buffer that does not end with it cannot be finishing this
+ * trigger, so it is asked before the field is read.
+ */
+class ImmediateTrigger(val typed: String, val snippet: Snippet) {
+    val tail: String = typed.substring(typed.indexOfLast { !SnippetMatcher.isTriggerWordChar(it) } + 1)
+}
+
 class SnippetIndex private constructor(
     private val plain: Map<String, Snippet>,
     private val prefixed: Map<String, List<PrefixTrigger>>,
     private val suffixed: Map<Char, List<SuffixTrigger>>,
+    private val immediate: Map<Char, List<ImmediateTrigger>>,
+    /** The one-word immediate triggers, lowercased, for a glide to land on. */
+    private val immediateWords: Map<String, Snippet>,
     private val byHead: Map<Char, List<CompiledSnippet>>,
     private val ungated: List<CompiledSnippet>,
     /**
@@ -612,19 +628,79 @@ class SnippetIndex private constructor(
      * commits its word the moment the finger lifts. Built once per index, so
      * the same set comes back until the snippets change — which is what lets
      * the keyboard tell by identity whether to rebuild anything.
+     *
+     * One-word immediate triggers are in it too: a glide commits a whole word
+     * at once, so the keystroke an immediate trigger waits for is the lift.
      */
     val expandingTriggers: Set<String> = plain
         .filter { (key, snippet) -> snippet.id !in asking && key.all(SnippetMatcher::isTriggerWordChar) }
         .keys
+        .let { typed -> if (immediateWords.isEmpty()) typed else typed + immediateWords.keys }
 
     /**
      * True when some expanding plain trigger opens with a digit, like `123`
      * (#554). A word-initial digit commits straight to the field and never
      * reaches the composing buffer, so such a trigger can only be matched by
      * reading the field back — and the keyboard asks this first, so a user
-     * without one never pays for the read.
+     * without one never pays for the read. Immediate triggers are not counted:
+     * they are read back on their own keystroke, not at the space.
      */
-    val hasDigitLedTriggers: Boolean = expandingTriggers.any { it.firstOrNull()?.isDigit() == true }
+    val hasDigitLedTriggers: Boolean = plain.any { (key, snippet) ->
+        snippet.id !in asking && key.firstOrNull()?.isDigit() == true && key.all(SnippetMatcher::isTriggerWordChar)
+    }
+
+    /** True when some trigger expands on its own last keystroke. */
+    val hasImmediateTriggers: Boolean = immediate.isNotEmpty()
+
+    /**
+     * Longest immediate trigger, in characters: how far back the keyboard has
+     * to read to confirm one, before the one character in front of it that
+     * decides the word boundary and the escape.
+     */
+    val immediateReach: Int = immediate.values.maxOfOrNull { list -> list.maxOf { it.typed.length } } ?: 0
+
+    /**
+     * True when typing [last] could finish an immediate trigger, given [buffer]
+     * is what the composing buffer holds with [last] already in it (empty when
+     * nothing composes).
+     *
+     * The free half of the immediate gate, asked on every keystroke. A user
+     * whose immediate triggers end in `w` pays a map lookup per key, and a field
+     * read only on a `w` that ends the buffer the way one of them ends.
+     */
+    fun couldFinishImmediate(last: Char, buffer: CharSequence): Boolean {
+        val list = immediate[last.lowercaseChar()] ?: return false
+        if (buffer.isEmpty()) return true
+        return list.any { buffer.endsWith(it.tail, ignoreCase = true) }
+    }
+
+    /**
+     * The immediate trigger that [before] ends with — the text in front of the
+     * caret, the keystroke just typed included — or null. Longest wins, so
+     * `;;addr` beats `addr`.
+     *
+     * A trigger that starts with a word character needs a word boundary in
+     * front of it unless its snippet allows [Snippet.insideWords]; one that
+     * starts with a symbol is its own boundary, as everywhere else.
+     */
+    fun matchImmediate(before: CharSequence): ImmediateTrigger? {
+        val last = before.lastOrNull() ?: return null
+        for (candidate in immediate[last.lowercaseChar()].orEmpty()) {
+            val typed = candidate.typed
+            if (before.length < typed.length) continue
+            if (!before.endsWith(typed, ignoreCase = true)) continue
+            if (!candidate.snippet.insideWords && SnippetMatcher.isTriggerWordChar(typed[0])) {
+                val ahead = before.getOrNull(before.length - typed.length - 1)
+                if (ahead != null && SnippetMatcher.isTriggerWordChar(ahead)) continue
+            }
+            return candidate
+        }
+        return null
+    }
+
+    /** The snippet whose one-word immediate trigger is [word], ignoring case. */
+    fun matchImmediateWord(word: String): Snippet? =
+        if (immediateWords.isEmpty()) null else immediateWords[word.lowercase(Locale.ROOT)]
 
     /** True when some trigger reaches back past its last word, so the keyboard need not look. */
     val hasPrefixTriggers: Boolean = prefixed.isNotEmpty()
@@ -887,10 +963,15 @@ class SnippetIndex private constructor(
             val plain = LinkedHashMap<String, Snippet>()
             val prefixed = LinkedHashMap<String, MutableList<PrefixTrigger>>()
             val suffixed = LinkedHashMap<Char, MutableList<SuffixTrigger>>()
+            val immediate = LinkedHashMap<Char, MutableList<ImmediateTrigger>>()
+            val immediateWords = LinkedHashMap<String, Snippet>()
             val byHead = LinkedHashMap<Char, MutableList<CompiledSnippet>>()
             val ungated = ArrayList<CompiledSnippet>()
             for (snippet in snippets) {
                 if (snippet.asks(multiExpand)) asking.add(snippet.id)
+                // A snippet that asks has nothing to fire early, so it keeps
+                // the ordinary trigger paths and its chip.
+                val early = snippet.immediate && snippet.id !in asking
                 // A plain trigger is the more specific and the cheaper rule, so
                 // a snippet carrying both never reaches the pattern side. Every
                 // alias is registered exactly as the trigger is, prefix rules
@@ -904,6 +985,18 @@ class SnippetIndex private constructor(
                     if (SnippetMatcher.isSuffixTrigger(spelling)) {
                         suffixed.getOrPut(spelling.last().lowercaseChar()) { ArrayList() } +=
                             SuffixTrigger(spelling, snippet)
+                        continue
+                    }
+                    // Fired on its own last character, and kept out of the two
+                    // maps below on purpose: those are read when a word ends,
+                    // and an immediate trigger still standing at that point was
+                    // escaped or taken back, so it must stay as typed.
+                    if (early) {
+                        immediate.getOrPut(spelling.last().lowercaseChar()) { ArrayList() } +=
+                            ImmediateTrigger(spelling, snippet)
+                        if (spelling.all(SnippetMatcher::isTriggerWordChar)) {
+                            immediateWords.putIfAbsent(spelling.lowercase(Locale.ROOT), snippet)
+                        }
                         continue
                     }
                     val split = SnippetMatcher.splitPrefix(spelling)
@@ -946,7 +1039,8 @@ class SnippetIndex private constructor(
             // has installed both and the field ends in "::".
             for (list in prefixed.values) list.sortByDescending { it.prefix.length }
             for (list in suffixed.values) list.sortByDescending { it.typed.length }
-            return SnippetIndex(plain, prefixed, suffixed, byHead, ungated, asking)
+            for (list in immediate.values) list.sortByDescending { it.typed.length }
+            return SnippetIndex(plain, prefixed, suffixed, immediate, immediateWords, byHead, ungated, asking)
         }
     }
 }

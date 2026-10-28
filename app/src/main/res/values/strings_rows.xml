@@ -109,6 +109,12 @@
     <string name="rows_snippet_confirm_label">Ask before it expands</string>
     <string name="rows_snippet_confirm_body">The keyboard shows the snippet on the suggestion bar and writes it only when you tap it. Your own words stay as you typed them if you do not.</string>
 
+    <!-- Per-snippet switch: expand on the trigger's last letter, with no space after it. -->
+    <string name="rows_snippet_immediate_label">Expand immediately</string>
+    <string name="rows_snippet_immediate_body">The snippet replaces the trigger as soon as you type its last letter. You do not need a space. Press backspace once to get the trigger back. To keep a trigger as text, type the escape character, a backslash by default, just before it.</string>
+    <string name="rows_snippet_inside_words_label">Also inside words</string>
+    <string name="rows_snippet_inside_words_body">The trigger also works in the middle of a word. If this is off, it works only at the start of a word.</string>
+
     <string name="rows_snippet_test_label">Try it</string>
     <string name="rows_snippet_test_body">Type what you would type on the keyboard. The result shows here.</string>
     <string name="rows_snippet_test_no_match_label">The pattern does not match this text.</string>

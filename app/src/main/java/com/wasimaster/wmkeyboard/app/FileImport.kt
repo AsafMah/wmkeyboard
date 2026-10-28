@@ -104,9 +104,7 @@ import com.wasimaster.wmkeyboard.core.snippets.ImportedSnippets
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
-import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
-import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.theme.ConvertedTheme
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
@@ -404,12 +402,14 @@ object WMFileTypes {
         data object Text : Opened
 
         /**
-         * Files the app otherwise downloads: a language pack zip, or one word
-         * list, word-pair half, emoji name list or dictionary on its own. They
-         * install through [OfflineImport], the same as Import on a download
-         * screen, which re-opens the file itself.
+         * Files the app otherwise downloads or imports on a settings screen: a
+         * language pack zip, one word list, word-pair half, emoji name list or
+         * dictionary on its own, a model, Google's gesture library, a feature
+         * library. They install through [OfflineImport], the same as Import on
+         * a download screen, which re-opens the file itself. [kind] is what
+         * the question before the import calls them.
          */
-        data object OfflineFiles : Opened
+        data class OfflineFiles(val kind: OfflineImport.Kind) : Opened
 
         /** A font. [emoji] when it draws colour glyphs, which is what makes one an emoji font. */
         data class Font(val emoji: Boolean) : Opened
@@ -467,7 +467,15 @@ object WMFileTypes {
         // handwriting pack. Told by the name it is published under, and for
         // the models by their size too, before anything below reads it: a
         // word list is gzipped text, and a `.task` model is a zip.
-        if (OfflineImport.recognises(context, name, sizeOf(context, uri))) return Opened.OfflineFiles
+        OfflineImport.kindOf(context, name, sizeOf(context, uri))?.let { return Opened.OfflineFiles(it) }
+        // A native library under a name that says nothing (a browser or a
+        // chat app renamed it): told by its hash, as its import tells it.
+        if (name.endsWith(".so", ignoreCase = true)) {
+            val kind = runCatching {
+                context.contentResolver.requireInputStream(uri).use { OfflineImport.kindOfLibrary(sha256Of(it)) }
+            }.getOrNull()
+            return if (kind != null) Opened.OfflineFiles(kind) else Opened.Unrecognized
+        }
         if (head.size >= ZIP_MAGIC.size && head.copyOf(ZIP_MAGIC.size).contentEquals(ZIP_MAGIC)) {
             return identifyArchive(context, uri)
         }
@@ -481,6 +489,9 @@ object WMFileTypes {
         if (FileSniff.isFont(head)) return Opened.Font(emoji = FileSniff.isColourFont(head))
         if (FileSniff.isSound(head, name)) return Opened.KeySound
         if (AospDictionary.looksLikeDictionary(head)) return dictionariesIn(context, uri, name)
+        if (com.wasimaster.wmkeyboard.core.prediction.SogouScel.looksLikeScel(head)) {
+            return dictionariesIn(context, uri, name)
+        }
         if (FileSniff.isSqlite(head) || FileSniff.isTar(head)) return kaomojiIn(context, uri)
 
         // A gzipped file is read through the inflater: the data repository
@@ -542,6 +553,17 @@ object WMFileTypes {
     }
 
     /** The provider's size for [uri], or -1 when it does not say. */
+    private fun sha256Of(input: java.io.InputStream): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val n = input.read(buffer)
+            if (n < 0) break
+            digest.update(buffer, 0, n)
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
     private fun sizeOf(context: android.content.Context, uri: Uri): Long = runCatching {
         context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else -1L
@@ -842,7 +864,7 @@ object WMFileTypes {
         // the name it is published under), a GIF pack or a Yomichan
         // dictionary: whatever the download screens install. Any one file of
         // a language pack is enough, since the import reports on every file.
-        if (OfflineImport.recognisesArchive(names)) return Opened.OfflineFiles
+        OfflineImport.kindOfArchive(names)?.let { return Opened.OfflineFiles(it) }
         // An Anki deck, by the collection every export carries.
         if (names.any { it.substringAfterLast('/').startsWith("collection.anki2") }) return Opened.AnkiDeck
         // Dictionaries for suggestions: AOSP's compiled ones, or a Hunspell pair
@@ -1131,10 +1153,17 @@ internal fun ImportFileDialog(
         return
     }
 
+    // A sticker pack, the app's own or a WhatsApp one, opens on a page of its
+    // stickers to tick before any of them is converted (#965).
+    if (state == WMFileTypes.Opened.Stickers || state is WMFileTypes.Opened.WhatsAppStickers) {
+        StickerFileImport(uri) { report -> if (report == null) onClose() else message = report }
+        return
+    }
+
     // Word lists and the rest install through the download screens' own
     // import, which brings its own choice of list, progress and report.
     if (state is WMFileTypes.Opened.OfflineFiles) {
-        OfflineFilesDialog(uri, onClose)
+        OfflineFilesDialog(uri, state.kind, onClose)
         return
     }
 
@@ -1264,20 +1293,21 @@ internal fun ImportFileDialog(
 
 /**
  * A language pack or another file the app downloads, opened from outside it.
- * One question, then the same import, progress and report a download screen's
- * Import button runs; the activity closes with the report.
+ * One question, worded for what the file is ([kind]), then the same import,
+ * progress and report a download screen's Import button runs; the activity
+ * closes with the report.
  */
 @Composable
-private fun OfflineFilesDialog(uri: Uri, onClose: () -> Unit) {
+private fun OfflineFilesDialog(uri: Uri, kind: OfflineImport.Kind, onClose: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val runner = rememberOfflineImport(onReportDismissed = onClose)
     var started by remember { mutableStateOf(false) }
     if (started) return
     AlertDialog(
         onDismissRequest = onClose,
-        title = { Text(stringResource(R.string.import_offline_title)) },
+        title = { Text(stringResource(kind.titleRes)) },
         text = {
-            Text(stringResource(R.string.import_offline_body, remember(uri) { WMFileTypes.displayName(context, uri) }))
+            Text(stringResource(kind.bodyRes, remember(uri) { WMFileTypes.displayName(context, uri) }))
         },
         confirmButton = {
             TextButton(onClick = {
@@ -1919,8 +1949,8 @@ private fun rememberProposal(
         )
 
         // Drawn by OfflineFilesDialog instead; never reaches here.
-        WMFileTypes.Opened.OfflineFiles -> ImportProposal(
-            titleRes = R.string.import_offline_title,
+        is WMFileTypes.Opened.OfflineFiles -> ImportProposal(
+            titleRes = state.kind.titleRes,
             body = "",
         )
 
@@ -2118,59 +2148,13 @@ private fun rememberProposal(
             },
         )
 
-        WMFileTypes.Opened.Stickers -> ImportProposal(
+        // Drawn by [StickerFileImport] before a proposal is asked for (see
+        // [ImportFileDialog]); a sticker pack is a page to pick from, not one
+        // question.
+        WMFileTypes.Opened.Stickers, is WMFileTypes.Opened.WhatsAppStickers -> ImportProposal(
             titleRes = R.string.import_stickers_title,
             body = context.getString(R.string.import_stickers_body),
-            apply = {
-                val store = StickerPackStore.get(context)
-                // Names a pack whose own file gives no name.
-                val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-                val result = withContext(Dispatchers.IO) {
-                    runCatching {
-                        context.contentResolver.requireInputStream(uri)
-                            .use { StickerPackFile.import(it, store, fallbackName) }
-                    }.getOrDefault(StickerImportResult.Failed)
-                }
-                when (result) {
-                    is StickerImportResult.Imported -> buildString {
-                        append(
-                            context.resources.getQuantityString(
-                                R.plurals.import_stickers_done,
-                                result.pack.stickers.size,
-                                result.pack.name,
-                                result.pack.stickers.size,
-                            ),
-                        )
-                        if (result.repairs.isNotEmpty()) {
-                            append("\n\n").append(context.getString(R.string.import_repairs_title))
-                            // The reader hands back a resource and its
-                            // arguments, so the note is worded here.
-                            for (line in result.repairs) {
-                                append("\n• ${line.resolve(context)}")
-                            }
-                        }
-                    }
-                    StickerImportResult.NotAStickerPack ->
-                        context.getString(R.string.import_not_a_sticker_pack)
-                    is StickerImportResult.NoStickers -> buildString {
-                        append(context.getString(R.string.import_stickers_none_read))
-                        for (line in result.repairs.take(5)) {
-                            append("\n• ${line.resolve(context)}")
-                        }
-                    }
-                    StickerImportResult.TooManyPacks ->
-                        context.resources.getQuantityString(
-                            R.plurals.import_stickers_too_many,
-                            StickerPackStore.MAX_PACKS,
-                            StickerPackStore.MAX_PACKS,
-                        )
-                    StickerImportResult.Failed ->
-                        context.getString(R.string.import_file_unreadable)
-                }
-            },
         )
-
-        is WMFileTypes.Opened.WhatsAppStickers -> whatsAppStickersProposal(state.header, context, uri)
 
         WMFileTypes.Opened.Icons -> ImportProposal(
             titleRes = R.string.import_icons_title,
@@ -2236,48 +2220,6 @@ private fun rememberProposal(
             apply = null,
         )
     }
-}
-
-/**
- * The confirmation for a WhatsApp `.wastickers` file.
- *
- * Worded as a foreign import, like the Keyman and FlorisBoard ones: the file
- * was made for another app, and the dialog says so and says what is in it —
- * the title, who made it, how many stickers — before anything is written. The
- * author is shown here and nowhere else, because a pack of this app's keeps
- * no author; the title becomes the pack's name.
- */
-private fun whatsAppStickersProposal(
-    header: WaStickersFile.Header,
-    context: android.content.Context,
-    uri: Uri,
-): ImportProposal {
-    val title = header.title.ifBlank { context.getString(ContentR.string.core_content_sticker_pack_imported_label) }
-    val count = context.resources.getQuantityString(
-        R.plurals.import_sticker_count,
-        header.stickerCount,
-        header.stickerCount,
-    )
-    return ImportProposal(
-        titleRes = R.string.import_name_title,
-        titleArg = title,
-        body = if (header.author.isBlank()) {
-            context.getString(R.string.import_whatsapp_file_body, count)
-        } else {
-            context.getString(R.string.import_whatsapp_file_body_author, count, header.author)
-        },
-        apply = {
-            val store = StickerPackStore.get(context)
-            val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri)
-                        .use { WaStickersFile.import(it, store, fallbackName) }
-                }.getOrDefault(StickerImportResult.Failed)
-            }
-            result.describe(context)
-        },
-    )
 }
 
 /**
@@ -2385,8 +2327,13 @@ private fun gboardDictionaryProposal(
                 withContext(Dispatchers.IO) {
                     val lexicon = UserLexicon(File(context.filesDir, "learning/user_lexicon.json"))
                     // Added by hand there, so added by hand here, and a capital
-                    // the user wrote is kept, as Android's own import does.
-                    for (word in words) lexicon.addWord(word, caseEvidence = word != word.lowercase())
+                    // the user wrote is kept, as Android's own import does. A
+                    // word Gboard filed under a locale we carry is filed under
+                    // that language (#930); the rest belong to every language.
+                    for ((word, locale) in contents.localizedWords) {
+                        lexicon.addWord(word, caseEvidence = word != word.lowercase())
+                        LanguageRegistry.byLocale(locale)?.let { lexicon.setLanguage(word, it.id) }
+                    }
                     lexicon.save()
                 }
                 repository.bumpLexiconVersion()

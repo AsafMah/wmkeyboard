@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.layout.CurrentPanelLayoutVersion
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
+import com.wasimaster.wmkeyboard.core.layout.KeyHintScaleRange
 import com.wasimaster.wmkeyboard.core.layout.KeyLabelScaleRange
 import com.wasimaster.wmkeyboard.core.layout.InputMethodBinding
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
@@ -308,6 +309,8 @@ object LayoutJsonHints {
             "LayoutSpec.themeId" to PropertyHint(domain = JsonValueDomain.THEME),
             "LayoutSpec.baseMode" to PropertyHint(hidden = true),
             "LayoutSpec.version" to PropertyHint(hidden = true, examples = listOf(JsonValueExample(CurrentLayoutSpecVersion.toString()))),
+            // Written by the addon installer, never typed.
+            "LayoutSpec.basedOn" to PropertyHint(hidden = true),
             "LayoutSpec.layers" to PropertyHint(keys = layerNames),
             "LayerSpec.themeId" to PropertyHint(domain = JsonValueDomain.THEME),
             "LayerSpec.fontScale" to PropertyHint(examples = scale, range = LayoutFontScaleRange.toDoubles()),
@@ -334,6 +337,10 @@ object LayoutJsonHints {
             "Key.labelScale" to PropertyHint(
                 examples = listOf(JsonValueExample("0.8"), JsonValueExample("1"), JsonValueExample("1.2")),
                 range = KeyLabelScaleRange.toDoubles(),
+            ),
+            "Key.hintScale" to PropertyHint(
+                examples = listOf(JsonValueExample("1.5"), JsonValueExample("2")),
+                range = KeyHintScaleRange.toDoubles(),
             ),
             "Key.icon" to PropertyHint(domain = JsonValueDomain.ICON),
             "Key.iconHint" to PropertyHint(domain = JsonValueDomain.ICON),

@@ -1,16 +1,33 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.media.gallery.AlbumKind
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryAlbum
 import com.wasimaster.wmkeyboard.core.media.gallery.GallerySentHistory
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryQuality
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryStore
@@ -60,7 +77,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ) { ask() }
             }
         }
-        SettingsGroup(stringResource(R.string.gallery_browse_group)) {
+        SettingsGroup(stringResource(R.string.gallery_browse_group), level = SettingLevel.STANDARD) {
             item {
                 ChoiceSetting(
                     R.string.gallery_tap_title,
@@ -98,7 +115,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.showVideos,
                 ) { v -> update { it.copy(showVideos = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_scrubber_title,
                     stringResource(R.string.gallery_scrubber_subtitle),
@@ -106,7 +123,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.dateScrubber,
                 ) { v -> update { it.copy(dateScrubber = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_start_expanded_title,
                     stringResource(R.string.gallery_start_expanded_subtitle),
@@ -114,7 +131,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.startExpanded,
                 ) { v -> update { it.copy(startExpanded = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_remember_album_title,
                     stringResource(R.string.gallery_remember_album_subtitle),
@@ -122,13 +139,34 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.rememberAlbum,
                 ) { v -> update { it.copy(rememberAlbum = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_haptics_title,
                     stringResource(R.string.gallery_haptics_subtitle),
                     settings.watch { it.gallery.haptics },
                     default = d.haptics,
                 ) { v -> update { it.copy(haptics = v) } }
+            }
+            // #970: folders left out of the gallery altogether.
+            item(level = SettingLevel.ADVANCED) {
+                val hidden = settings.watch { it.gallery.hiddenFolders }
+                var picking by remember { mutableStateOf(false) }
+                NavRow(
+                    R.string.gallery_folders_title,
+                    subtitle = stringResource(R.string.gallery_folders_subtitle),
+                    value = if (hidden.isEmpty()) {
+                        stringResource(R.string.gallery_folders_all)
+                    } else {
+                        context.resources.getQuantityString(R.plurals.gallery_folders_hidden, hidden.size, hidden.size)
+                    },
+                ) { picking = true }
+                if (picking) {
+                    GalleryFoldersDialog(
+                        hidden = hidden,
+                        onChange = { next -> update { it.copy(hiddenFolders = next) } },
+                        onDismiss = { picking = false },
+                    )
+                }
             }
         }
     }
@@ -148,7 +186,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.quality,
             ) { v -> update { it.copy(quality = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.gallery_max_selection_title,
                 subtitle = stringResource(R.string.gallery_max_selection_subtitle),
@@ -160,7 +198,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(maxSelection = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.gallery_caption_title,
                     subtitle = stringResource(R.string.gallery_caption_subtitle),
@@ -174,7 +212,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ) { v -> update { it.copy(caption = v) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.gallery_fallback_title,
                 subtitle = stringResource(R.string.gallery_fallback_subtitle),
@@ -188,7 +226,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(fallback = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_close_after_send_title,
                     stringResource(R.string.gallery_close_after_send_subtitle),
@@ -196,7 +234,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.closeAfterSend,
                 ) { v -> update { it.copy(closeAfterSend = v) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_save_edited_title,
                     stringResource(R.string.gallery_save_edited_subtitle),
@@ -216,7 +254,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.stripLocation,
             ) { v -> update { it.copy(stripLocation = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.gallery_strip_all_title,
                 stringResource(R.string.gallery_strip_all_subtitle),
@@ -224,7 +262,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.stripAllMetadata,
             ) { v -> update { it.copy(stripAllMetadata = v) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.gallery_random_names_title,
                 stringResource(R.string.gallery_random_names_subtitle),
@@ -233,7 +271,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(randomFileNames = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_history_title,
                     stringResource(R.string.gallery_history_subtitle),
@@ -241,7 +279,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.keepHistory,
                 ) { v -> update { it.copy(keepHistory = v) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ActionRow(
                     R.string.gallery_history_clear_title,
                     subtitle = stringResource(R.string.gallery_history_clear_subtitle),
@@ -253,4 +291,51 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             }
         }
     }
+}
+
+/**
+ * The phone's photo folders, each with a tick for whether the gallery shows it
+ * (#970). A folder the tool cannot read now (no access) is not listed, but a
+ * hidden one stays hidden.
+ */
+@Composable
+private fun GalleryFoldersDialog(hidden: Set<String>, onChange: (Set<String>) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val folders by produceState<List<GalleryAlbum>?>(null) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { GalleryStore.albums(context, videos = true, sentIds = emptyList()) }.getOrDefault(emptyList())
+                .filter { it.kind == AlbumKind.BUCKET }
+                .sortedBy { it.name?.lowercase() }
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.gallery_folders_title)) },
+        text = {
+            val list = folders
+            when {
+                list == null -> Unit
+                list.isEmpty() -> Text(stringResource(R.string.gallery_folders_none))
+                else -> LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(list, key = { it.id }) { folder ->
+                        val shown = folder.id !in hidden
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onChange(if (shown) hidden + folder.id else hidden - folder.id) }
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(checked = shown, onCheckedChange = null)
+                            Text(
+                                stringResource(R.string.gallery_folders_row, folder.name.orEmpty(), folder.count),
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_done)) } },
+    )
 }

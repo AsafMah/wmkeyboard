@@ -178,12 +178,13 @@ class KotlinFuzzyBeamSearch {
                     )
                 }
                 // The same key with its accent left off: `z` standing for `ż`
-                // (#200). Not an edit, because nothing was mistyped. It still
+                // (#200), or with the Shift or hold that reaches another letter
+                // it carries (#970). Not an edit, because nothing was mistyped. It still
                 // has a price, so that at equal frequency the word spelled
                 // exactly as typed leads its accented twin.
                 for (i in 0 until count) {
                     val label = ws.children.labels[i]
-                    if (!Accents.isAccentOf(label, expected)) continue
+                    if (!isAlternate(label, expected, proximity)) continue
                     pushIfViable(
                         ws, src, walker, floor,
                         node = ws.children.nodes[i], pos = pos + 1,
@@ -253,7 +254,7 @@ class KotlinFuzzyBeamSearch {
             if (keySet == null) {
                 for (i in 0 until count) {
                     val label = ws.children.labels[i]
-                    if (label == expected || Accents.isAccentOf(label, expected)) continue
+                    if (label == expected || isAlternate(label, expected, proximity)) continue
                     if (!slipReach(touch, pos, expected, label, maxEdits, keys)) continue
                     val mixed = if (budget > 0 && slips == 0) SECOND_EDIT_SURCHARGE else 0.0
                     val subCost = discounted(
@@ -312,7 +313,7 @@ class KotlinFuzzyBeamSearch {
                     val onKey = keySet != null && keySet.contains(label)
                     // Likewise a letter already taken as the typed one with its
                     // accent left off.
-                    val accented = keySet == null && Accents.isAccentOf(label, expected)
+                    val accented = keySet == null && isAlternate(label, expected, proximity)
                     if (label != expected && !onKey && !accented &&
                         !slipReach(touch, pos, expected, label, maxEdits, keys)
                     ) {
@@ -457,6 +458,14 @@ class KotlinFuzzyBeamSearch {
         val gap = bestScore - touch.model.logLikelihood(p, expected)
         return gap.coerceIn(0.0, MATCH_CAP)
     }
+
+    /**
+     * Whether [label] is the typed [expected] with its accent left off, or
+     * another letter the same key carries (#970): read as an accent, never as
+     * an edit.
+     */
+    private fun isAlternate(label: Char, expected: Char, proximity: KeyProximity): Boolean =
+        Accents.isAccentOf(label, expected) || proximity.carries(expected, label)
 
     /**
      * Cost of assuming the user meant [label] where they typed [expected].

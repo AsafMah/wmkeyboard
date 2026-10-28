@@ -126,6 +126,8 @@
     <string name="storage_cache_addons_subtitle">Part-finished downloads, and add-on previews</string>
     <string name="storage_neural_phonetic_title">Neural suggestions model</string>
     <string name="storage_neural_phonetic_subtitle">Reads Indic words typed in English letters. One model serves every language, and deleting it turns neural suggestions off</string>
+    <string name="storage_romanized_dictation_title">Romanized dictation model</string>
+    <string name="storage_romanized_dictation_subtitle">Spells dictated Indic words in Latin letters when the spelling lists do not have them. Without it, the spelling rules do</string>
     <string name="storage_app_compiled_label">Code your device compiled from the app</string>
     <string name="storage_app_compiled_detail">Android turns the app\'s code into faster machine code after it installs. It comes back with every update</string>
     <string name="storage_cache_llm_title">AI model working files</string>
@@ -185,6 +187,8 @@
     <string name="storage_file_lexicon_label">Words the keyboard learned</string>
     <string name="storage_file_pending_learn_label">Words it is still counting</string>
     <string name="storage_file_corrections_label">Corrections you accepted</string>
+    <string name="storage_file_phonetic_picks_label">Phonetic words you picked</string>
+    <string name="storage_file_context_adapter_label">Context model record</string>
     <string name="storage_file_emoji_usage_label">Emoji you use most</string>
     <string name="storage_file_cjk_history_label">Chinese, Japanese and Cantonese picks</string>
     <string name="storage_file_language_mix_label">How you mix languages</string>
@@ -257,6 +261,7 @@
     <string name="storage_file_bergamot_label">Offline translation models</string>
     <string name="storage_file_mlkit_translate_label">Translation models from Google</string>
     <string name="storage_file_xlit_label">Neural suggestions model</string>
+    <string name="storage_file_xlit_latin_label">Romanized dictation model</string>
     <string name="storage_file_backup_id_label">This phone\'s backup name</string>
     <string name="storage_file_otp_capture_label">Whether codes are read from notifications</string>
     <string name="storage_file_work_db_label">Background jobs waiting to run</string>

@@ -125,6 +125,7 @@
     <string name="core_content_selection_macro_copy">কপি করুন</string>
     <string name="core_content_selection_macro_deepl_write">DeepL রাইট</string>
     <string name="core_content_selection_macro_digits_latin">সংখ্যাসমূহ</string>
+    <string name="core_content_selection_macro_edit_word">শব্দ সম্পাদনা করুন</string>
     <string name="core_content_selection_macro_email">ইমেইল</string>
     <string name="core_content_selection_macro_fancy">ফ্যান্সি</string>
     <string name="core_content_selection_macro_find">খুঁজুন</string>
